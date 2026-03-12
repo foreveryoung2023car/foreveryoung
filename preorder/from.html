@@ -269,6 +269,21 @@ body {
 .day-date-col .month { font-size: 11px; opacity: .8; margin-bottom: 1px; }
 .day-date-col .day-n { font-size: 20px; line-height: 1; }
 .day-date-col .weekday { font-size: 11px; opacity: .75; margin-top: 2px; }
+.day-filled-badge {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: #4caf50;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 6px;
+  opacity: 0;
+  transition: opacity .2s;
+}
+.day-filled-badge.show { opacity: 1; }
 
 .day-itin-col {
   padding: 12px 16px 10px;
@@ -1107,7 +1122,7 @@ body {
                 <button class="copy-btn" id="copyAcctBtn" onclick="copyAccount()">複製帳號</button>
               </div>
               <div class="deposit-urgent">
-                ⏰ 請於三日內完成匯款並填寫表單<br>
+                請完成匯款後填入帳號後 5 碼，再繼續下一步<br>
                 同時提供匯款截圖紀錄，以便快速查帳與成立訂單
               </div>
             </div>
@@ -1501,12 +1516,12 @@ function buildTimeSelect(id) {
   return `
   <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
     <select id="${id}_h" style="width:68px;text-align:center;font-size:15px;font-weight:600;padding:7px 4px"
-      onchange="syncTimeVal('${id}');checkNightSurcharge2('${id}');updateDayDescTime(${dayI})">
+      onchange="syncTimeVal('${id}');checkNightSurcharge2('${id}');updateDayDescTime(${dayI});checkDayFilled(${dayI})">
       <option value="">時</option>${hrs}
     </select>
     <span style="font-size:16px;font-weight:700;color:var(--blue)">:</span>
     <select id="${id}_m" style="width:68px;text-align:center;font-size:15px;font-weight:600;padding:7px 4px"
-      onchange="syncTimeVal('${id}');checkNightSurcharge2('${id}');updateDayDescTime(${dayI})">
+      onchange="syncTimeVal('${id}');checkNightSurcharge2('${id}');updateDayDescTime(${dayI});checkDayFilled(${dayI})">
       <option value="">分</option>${mins}
     </select>
     <input type="hidden" id="${id}">
@@ -1594,7 +1609,7 @@ function buildDayChildAgeHtml(dayI, desc, days) {
     <input class="field-inline" type="text" id="day_child_age_${dayI}"
       placeholder="例：${placeholder}"
       style="margin-top:0"
-      oninput="updateDayMeta(${dayI})">
+      oninput="updateDayMeta(${dayI});checkDayFilled(${dayI})">
     <div style="font-size:11px;color:var(--gray-light);margin-top:4px">本日隨行小孩年齡，以「+」分隔，如：1+2歲</div>
   </div>`;
 }
@@ -1776,11 +1791,11 @@ function buildDayRows(days) {
             ${!isArrDay ? `
             <input class="field-inline" type="text" id="depart_${i}"
               placeholder="${prevHotel ? `例：${prevHotel}` : '例：飯店名稱、車站…'}"
-              oninput="updateNextDepart(${i})">
+              oninput="updateNextDepart(${i});checkDayFilled(${i})">
             <div class="err-msg" id="err_depart_${i}">請填寫出發地點</div>
             <input class="field-inline" type="text" id="depart_addr_${i}"
               placeholder="地址補充（選填）"
-              oninput="updateNextDepart(${i})"
+              oninput="updateNextDepart(${i});checkDayFilled(${i})"
               style="margin-top:6px">` : ''}
             ${airportHint ? `<div style="margin-top:10px;padding:8px 10px;background:#fffbe6;border:1px solid #ffe58f;border-radius:6px;font-size:12px;color:#7a5c00">${airportHint}</div>` : ''}
             ${isRoundtrip ? `
@@ -1791,20 +1806,20 @@ function buildDayRows(days) {
             <div id="arrive_fields_${i}">
               <input class="field-inline" type="text" id="arrive_${i}"
                 placeholder="例：飯店名稱、車站…"
-                oninput="updateDayDescArrive(${i})">
+                oninput="updateDayDescArrive(${i});checkDayFilled(${i})">
               <input class="field-inline" type="text" id="arrive_addr_${i}"
                 placeholder="地址補充（選填）"
-                oninput="updateDayDescArrive(${i})"
+                oninput="updateDayDescArrive(${i});checkDayFilled(${i})"
                 style="margin-top:6px">
             </div>` : ''}
             ${needsArrival ? `
             <div style="font-size:12px;color:var(--gray);margin:12px 0 5px;font-weight:600">🏁 ${arrivalLabel}</div>
             <input class="field-inline" type="text" id="arrive_${i}"
               placeholder="例：大阪難波、飯店名稱…"
-              oninput="updateDayDescArrive(${i})">
+              oninput="updateDayDescArrive(${i});checkDayFilled(${i})">
             <input class="field-inline" type="text" id="arrive_addr_${i}"
               placeholder="地址補充（選填）"
-              oninput="updateDayDescArrive(${i})"
+              oninput="updateDayDescArrive(${i});checkDayFilled(${i})"
               style="margin-top:6px">` : ''}
             ${isAirportDay ? buildFlightHtml(i, isArrDay, airportName) : ''}
             ${buildDayChildAgeHtml(i, day.desc, days)}
@@ -1846,8 +1861,9 @@ function buildDayRows(days) {
 
     el.innerHTML += `
       <div class="day-row" id="dayRow${i}">
-        <div class="day-row-head">
-          <div class="day-date-col">
+        <div class="day-row-head" style="position:relative">
+          <span class="day-filled-badge" id="day_filled_${i}">✓</span>
+          <div class="day-date-col" id="day_date_col_${i}">
             <span class="month">${day.month}月</span>
             <span class="day-n">${day.dayNum}</span>
             <span class="weekday">（${day.weekday}）</span>
@@ -2007,7 +2023,7 @@ function restoreDraft() {
       if (el) el.value = val;
     });
     // re-trigger hotel change badges
-    if (ORDER) ORDER.days.forEach((d, i) => markHotelChanged(i));
+    if (ORDER) ORDER.days.forEach((d, i) => { markHotelChanged(i); checkDayFilled(i); });
     showDraftBanner();
   } catch(e) {}
 }
@@ -2031,12 +2047,45 @@ function clearDraft(banner) {
 // ════════════════════════════════════
 // HOTEL CHANGE TRACKING
 // ════════════════════════════════════
+// ════════════════════════════════════
+// DAY FILLED BADGE
+// ════════════════════════════════════
+function checkDayFilled(i) {
+  const ids = [
+    `depart_${i}`, `depart_addr_${i}`,
+    `arrive_${i}`, `arrive_addr_${i}`,
+    `hotel_name_${i}`, `hotel_addr_${i}`,
+    `day_child_age_${i}`,
+  ];
+  // 時間：只要不是預設00:00就算填過
+  const timeEl = document.getElementById(`depart_time_${i}`);
+  const timeVal = timeEl ? timeEl.value : '';
+  const timeFilled = timeVal && timeVal !== '00:00';
+
+  // 住宿名稱有改過
+  const hotelEl = document.getElementById(`hotel_name_${i}`);
+  const hotelChanged = hotelEl && hotelEl.value.trim() !== (hotelEl.dataset.original || '').trim();
+
+  const anyFilled = timeFilled || hotelChanged ||
+    ids.some(id => {
+      const el = document.getElementById(id);
+      if (!el) return false;
+      // hotel_name 要比較是否與原始值不同
+      if (id === `hotel_name_${i}`) return false; // 已在 hotelChanged 處理
+      return el.value.trim() !== '';
+    });
+
+  const badge = document.getElementById(`day_filled_${i}`);
+  if (badge) badge.classList.toggle('show', anyFilled);
+}
+
 function markHotelChanged(i) {
   const inp = document.getElementById(`hotel_name_${i}`);
   const badge = document.getElementById(`hotel_changed_badge_${i}`);
   if (!inp || !badge) return;
   const changed = inp.value.trim() !== inp.dataset.original;
   badge.style.display = changed ? 'block' : 'none';
+  checkDayFilled(i);
 }
 
 // ════════════════════════════════════
@@ -2310,7 +2359,10 @@ function renderItinSummary() {
   const el = document.getElementById('itinSummary');
   if (!el || !ORDER) return;
   const rows = ORDER.days.map((d, i) => {
-    const cleanDesc = d.desc.replace(/\([^)]*\)/g,'').replace(/\s+/g,' ').trim();
+    // 優先抓畫面上已更新的描述文字（第①步填寫後即時更新）
+    const descEl = document.getElementById(`day_desc_${i}`);
+    const liveDesc = descEl ? descEl.textContent.trim() : '';
+    const cleanDesc = (liveDesc || d.desc).replace(/\([^)]*\)/g,'').replace(/\s+/g,' ').trim();
     const isLast = i === ORDER.days.length - 1;
     return `<div class="itin-summary-row${isLast ? ' last' : ''}">
       <span class="itin-summary-date">${d.date}</span>
