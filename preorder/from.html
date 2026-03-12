@@ -1148,8 +1148,8 @@ body {
             </div>
             <div class="form-grid g2">
               <div class="field">
-                <label>姓名（中文全名）<span class="req">＊</span></label>
-                <input type="text" id="f-name" placeholder="例：王小明" autocomplete="name">
+                <label>姓名（中或英文全名）<span class="req">＊</span></label>
+                <input type="text" id="f-name" placeholder="例：王小明 / Wang Jack" autocomplete="name">
                 <div class="err-msg" id="e-name">請填寫中文姓名</div>
               </div>
               <div class="field">
@@ -1458,9 +1458,9 @@ function parseDayMeta(desc, luggage, price, childAgeStr) {
   const parts = [];
   let paxText = paxM ? paxM[1] : '';
   if (paxText && childAgeStr) paxText += `(${childAgeStr})`;
-  if (paxText) parts.push(`<span>👥 ${paxText}</span>`);
+  if (paxText) parts.push(`<span>🧑‍🤝‍🧑 ${paxText}</span>`);
   if (carM)  parts.push(`<span>🚌 ${carLabel(carM[1])}</span>`);
-  if (luggage) parts.push(`<span>📦 行李 ${luggage}</span>`);
+  if (luggage) parts.push(`<span>🧳 行李 ${luggage}</span>`);
   if (price)   parts.push(`<span class="meta-price">${price}</span>`);
   return parts.join('');
 }
