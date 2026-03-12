@@ -1004,39 +1004,45 @@ body {
         <div style="font-size:13px;font-weight:600;color:var(--blue-dark);margin-bottom:16px;letter-spacing:.06em;text-align:center">《 訂購後流程 》</div>
 
         <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">
-          ${[
-            ['1','完成訂單填寫後，我們會給您發送明細確認內容','明細內會有台灣與日本的聯絡人手機號碼方便聯繫'],
-            ['2','於出發前 3–7 天，提供 LINE／WhatsApp 連結邀請您加入包車群組','群組內有官方帳號／台灣／日本窗口／司機，至少 3 位以上在裡面等候'],
-            ['3','出發前 2 天，行程與款項再次貼在群組內雙方最後確認','早點確認出發地點與時間，以免當天多花時間查資料'],
-            ['4','出發當天，司機提早 5～30 分鐘抵達指定地點','司機會提供車牌號碼與車體外觀顏色給您確認'],
-          ].map(([n,main,sub]) => `
           <div style="display:flex;gap:12px;align-items:flex-start">
-            <div style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">${n}</div>
-            <div style="font-size:13px;color:var(--text);line-height:1.7">${main}<div style="font-size:11px;color:var(--gray-light);margin-top:2px">（${sub}）</div></div>
-          </div>`).join('')}
+            <div style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">1</div>
+            <div style="font-size:13px;color:var(--text);line-height:1.7">完成訂單填寫後，我們會給您發送明細確認內容<div style="font-size:11px;color:var(--gray-light);margin-top:2px">（明細內會有台灣與日本的聯絡人手機號碼方便聯繫）</div></div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">2</div>
+            <div style="font-size:13px;color:var(--text);line-height:1.7">出發前 3–7 天，我們會提供 LINE／WhatsApp 連結，邀請您加入日本自由行包車群組<div style="font-size:11px;color:var(--gray-light);margin-top:2px">（群組內會有官方帳號、台灣、日本聯絡窗口、司機，至少 3 位以上在裡面等候）</div></div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">3</div>
+            <div style="font-size:13px;color:var(--text);line-height:1.7">出發前 2 天，我們會將您的行程與款項再次貼在群組內，雙方最後確認<div style="font-size:11px;color:var(--gray-light);margin-top:2px">（早點確認出發地點與時間，以免當天多花時間查資料）</div></div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">4</div>
+            <div style="font-size:13px;color:var(--text);line-height:1.7">出發當天，司機會於指定時間提早 5～30 分鐘抵達地點<div style="font-size:11px;color:var(--gray-light);margin-top:2px">（司機也會提供車牌號碼與車體外觀顏色給您確認）</div></div>
+          </div>
         </div>
 
         <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
           <div style="background:var(--blue-faint);border:1px solid var(--blue-light);border-radius:8px;padding:12px 14px">
-            <div style="font-size:12px;font-weight:600;color:var(--blue-dark);margin-bottom:4px">✈️ 機場接／送機</div>
-            <div style="font-size:12px;color:var(--text-sub);line-height:1.8">抵達後拍攝行李箱外觀讓司機辨識，引導至出口即可乘車（約 5–10 分鐘出發）。送機於指定飯店周邊等候，行程結束收取日幣現金尾款。</div>
+            <div style="font-size:12px;font-weight:600;color:var(--blue-dark);margin-bottom:6px">✈️ 機場接／送機</div>
+            <div style="font-size:12px;color:var(--text-sub);line-height:1.9">抵達機場拿完行李後，請拍攝行李箱外觀傳給我們，以便司機馬上辨識，引導至出口方向即可乘車（約 5–10 分鐘出發）。<br>送機會於您指定的飯店周邊等候，行程結束後收取日幣現金尾款。</div>
           </div>
           <div style="background:var(--blue-faint);border:1px solid var(--blue-light);border-radius:8px;padding:12px 14px">
-            <div style="font-size:12px;font-weight:600;color:var(--blue-dark);margin-bottom:4px">🚌 一日遊行程</div>
-            <div style="font-size:12px;color:var(--text-sub);line-height:1.8">於指定飯店周邊等待，行程結束後司機收取日幣現金尾款。</div>
+            <div style="font-size:12px;font-weight:600;color:var(--blue-dark);margin-bottom:6px">🚌 一日遊行程</div>
+            <div style="font-size:12px;color:var(--text-sub);line-height:1.9">司機於您指定的飯店周邊等候，行程結束後收取日幣現金尾款。</div>
           </div>
         </div>
 
         <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:16px">
           <div style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">5</div>
-          <div style="font-size:13px;color:var(--text);line-height:1.7">返台後希望您能給予評價，無論好壞我們都謙虛接受，希望每段旅程都是難忘的回憶 🙏</div>
+          <div style="font-size:13px;color:var(--text);line-height:1.7">返台後還需要您的評價，無論好壞我們都謙虛接受，希望每段旅程都是您難忘的回憶 🙏</div>
         </div>
 
         <div style="padding:12px 14px;background:#fffbe6;border:1px solid #ffe58f;border-radius:8px">
           <div style="font-size:11px;color:#7a5200;line-height:2.2">
-            ＊ 行程中若有任何問題，請立即告知客服<br>
-            ＊ 上下車停靠地點，盡可能詳細告知司機<br>
-            ＊ 19人座考斯特車輛較大，無法停靠小車容易上下車的地點，敬請見諒
+            ＊ 行程中若有任何問題需要反映，請立即告知我們客服<br>
+            ＊ 上下車需停靠任何地點，請盡可能詳細告知司機<br>
+            ＊ 19 人座考斯特因車輛較大，無法停靠小車容易上下車的地點，敬請見諒
           </div>
         </div>
       </div>
@@ -2654,8 +2660,10 @@ function submitForm() {
   if (!validate()) return;
   const payload = collect();
 
-  // DEMO 模式（無 GAS URL 或 token=DEMO）直接顯示成功
-  if (payload.token === 'DEMO' || GAS_URL.includes('YOUR_SCRIPT_ID')) {
+  // DEMO 模式（無真實 token 或無 GAS URL）直接顯示成功，不送出
+  const isDemo = payload.token === 'DEMO' || payload.token === 'TEST' || GAS_URL.includes('YOUR_SCRIPT_ID');
+  if (isDemo) {
+    console.warn('⚠️ DEMO 模式：資料未送出至 GAS');
     console.log('DEMO payload:', JSON.stringify(payload, null, 2));
     clearDraft(null);
     showSuccess();
