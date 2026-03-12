@@ -51,11 +51,14 @@ body {
   justify-content: center;
   gap: 16px;
   box-shadow: 0 2px 12px rgba(8,4,3,0.25);
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 .logo-block {
   display: flex;
   align-items: baseline;
-  gap: 10px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 .logo-zh {
   font-family: 'Noto Serif TC', serif;
@@ -76,6 +79,7 @@ body {
   width: 1px;
   height: 28px;
   background: rgba(255,255,255,0.3);
+  flex-shrink: 0;
 }
 .header-form-title {
   font-family: 'Noto Serif TC', serif;
@@ -83,6 +87,13 @@ body {
   font-weight: 500;
   color: rgba(255,255,255,0.85);
   letter-spacing: .08em;
+}
+@media (max-width: 480px) {
+  .site-header { gap: 10px; padding: 12px 16px; }
+  .logo-zh { font-size: 22px; }
+  .logo-sub { font-size: 12px; letter-spacing: .04em; }
+  .header-form-title { font-size: 13px; letter-spacing: .04em; }
+  .header-divider { height: 22px; }
 }
 
 /* ─── STEP BAR ─── */
@@ -1045,19 +1056,19 @@ const DEMO = {
   rate:    "0.22",
   days: [
     { date:"01/01", month:"01", dayNum:"01", weekday:"四",
-      desc:"東京市區往返富士山一日遊(7大1小)(10座)",
+      desc:"東京市區往返富士山一日遊(7大2小)(10座)",
       luggage:"6件", price:"¥68,000", hotel:"Shinjuku Granbell Hotel",
       isFirstDay:true, prevDayIdx:-1 },
     { date:"01/02", month:"01", dayNum:"02", weekday:"五",
-      desc:"東京市區往返鐮倉一日遊(11大1小)(14座)",
+      desc:"東京市區往返鐮倉一日遊(11大2小)(14座)",
       luggage:"8件", price:"¥76,000", hotel:"Shinjuku Granbell Hotel",
       isFirstDay:false, prevDayIdx:0 },
     { date:"01/03", month:"01", dayNum:"03", weekday:"六",
-      desc:"東京市區至成田機場-單程(11大1小)(10+7座)",
+      desc:"東京市區至成田機場-單程(11大2小)(10+7座)",
       luggage:"8件", price:"¥54,000", hotel:"",
       isFirstDay:false, prevDayIdx:1 },
     { date:"01/04", month:"01", dayNum:"04", weekday:"日",
-      desc:"東京市區接送迪士尼樂園來回(7大1小)(7座)",
+      desc:"東京市區接送迪士尼樂園來回(7大2小)(7座)",
       luggage:"4件", price:"¥38,000", hotel:"Shinjuku Granbell Hotel",
       isFirstDay:false, prevDayIdx:2 }
   ]
