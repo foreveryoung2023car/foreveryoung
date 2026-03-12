@@ -188,24 +188,25 @@ body {
 
 /* ─── ORDER META ─── */
 .meta-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 24px;
   padding-bottom: 18px;
   border-bottom: 1px solid var(--gray-pale);
   margin-bottom: 20px;
+  align-items: baseline;
 }
 .meta-item label {
   display: block;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--gray);
   letter-spacing: .05em;
-  margin-bottom: 3px;
+  margin-bottom: 2px;
 }
-.meta-item .val { font-size: 16px; font-weight: 500; }
+.meta-item .val { font-size: 15px; font-weight: 500; white-space: nowrap; }
 .meta-item .val.order-no {
   font-family: 'Noto Serif TC', serif;
-  font-size: 18px;
+  font-size: 16px;
   color: var(--blue-dark);
 }
 
@@ -271,8 +272,8 @@ body {
 .day-date-col .weekday { font-size: 11px; opacity: .75; margin-top: 2px; }
 .day-filled-badge {
   position: absolute;
-  top: 6px;
-  right: 8px;
+  top: 3px;
+  right: 3px;
   background: #4caf50;
   color: #fff;
   font-size: 11px;
@@ -928,7 +929,6 @@ body {
 @media (max-width: 600px) {
   .container { padding: 16px 10px 30px; }
   .card-body { padding: 16px; }
-  .meta-grid { grid-template-columns: 1fr 1fr; }
   .g2 { grid-template-columns: 1fr; }
   .g3 { grid-template-columns: 1fr 1fr; }
   .hotel-inputs { grid-template-columns: 1fr; }
@@ -942,7 +942,6 @@ body {
 }
 @media (max-width: 380px) {
   .g3 { grid-template-columns: 1fr; }
-  .meta-grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -1165,7 +1164,7 @@ body {
               <div class="field">
                 <label>姓名（中或英文全名）<span class="req">＊</span></label>
                 <input type="text" id="f-name" placeholder="例：王小明 / Wang Jack" autocomplete="name">
-                <div class="err-msg" id="e-name">請填寫中文姓名</div>
+                <div class="err-msg" id="e-name">請填寫中文或英文姓名</div>
               </div>
               <div class="field">
                 <label>手機號碼<span class="req">＊</span></label>
@@ -1514,21 +1513,23 @@ function buildTimeSelect(id) {
   const mins = ['00','05','10','15','20','25','30','35','40','45','50','55'].map(m => `<option value="${m}">${m}</option>`).join('');
   const dayI = id.replace('depart_time_','');
   return `
-  <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
-    <select id="${id}_h" style="width:68px;text-align:center;font-size:15px;font-weight:600;padding:7px 4px"
-      onchange="syncTimeVal('${id}');checkNightSurcharge2('${id}');updateDayDescTime(${dayI});checkDayFilled(${dayI})">
+  <div style="display:flex;align-items:center;gap:4px;margin-top:4px">
+    <select id="${id}_h" style="width:54px;text-align:center;font-size:14px;font-weight:600;padding:6px 2px"
+      onchange="autoFillMin('${id}');syncTimeVal('${id}');checkNightSurcharge2('${id}');updateDayDescTime(${dayI});checkDayFilled(${dayI})">
       <option value="">時</option>${hrs}
     </select>
-    <span style="font-size:16px;font-weight:700;color:var(--blue)">:</span>
-    <select id="${id}_m" style="width:68px;text-align:center;font-size:15px;font-weight:600;padding:7px 4px"
+    <span style="font-size:15px;font-weight:700;color:var(--blue)">:</span>
+    <select id="${id}_m" style="width:54px;text-align:center;font-size:14px;font-weight:600;padding:6px 2px"
       onchange="syncTimeVal('${id}');checkNightSurcharge2('${id}');updateDayDescTime(${dayI});checkDayFilled(${dayI})">
       <option value="">分</option>${mins}
     </select>
     <input type="hidden" id="${id}">
-  </div>
-  <div id="${id}_warn" style="display:none;margin-top:6px;padding:8px 10px;background:#fff7e6;border:1px solid #ffb347;border-radius:6px;font-size:12px;color:#7a3c00">
-    ⚠️ 夜間時段（22:00–06:59）將產生加成費用，每小時另計 ¥3,000 日圓，請留意出發時間
-  </div>`;
+  </div>`; // 夜間警告在外層由 checkNightSurcharge2 控制
+}
+
+function autoFillMin(id) {
+  const mSel = document.getElementById(id + '_m');
+  if (mSel && !mSel.value) mSel.value = '00';
 }
 
 function syncReturnTime(dayI) {
@@ -1546,12 +1547,14 @@ function syncTimeVal(id) {
 }
 
 function checkNightSurcharge2(id) {
-  const warn = document.getElementById(id + '_warn');
+  // id 形如 depart_time_0，取 dayI
+  const dayI = id.replace('depart_time_','').replace('return_time_','');
+  const warn = document.getElementById(`night_warn_${dayI}`);
   if (!warn) return;
-  const h = document.getElementById(id+'_h')?.value;
-  if (!h) { warn.style.display = 'none'; return; }
-  const hNum = parseInt(h);
-  warn.style.display = (hNum >= 22 || hNum <= 6) ? 'block' : 'none';
+  const dh = parseInt(document.getElementById(`depart_time_${dayI}_h`)?.value || '-1');
+  const rh = parseInt(document.getElementById(`return_time_${dayI}_h`)?.value || '-1');
+  const isNight = h => h >= 0 && (h >= 22 || h <= 6);
+  warn.style.display = (isNight(dh) || isNight(rh)) ? 'block' : 'none';
 }
 
 function checkNightSurcharge(inp) {
@@ -1761,28 +1764,31 @@ function buildDayRows(days) {
         <div class="day-acc-body" id="dep_body_${i}">
           <div class="day-acc-inner">
             ${!isArrDay ? `
-            <div style="margin-bottom:10px;display:flex;gap:12px;align-items:flex-start">
-              <div style="flex:1">
+            <div style="margin-bottom:6px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
+              <div>
                 <span style="font-size:11px;color:var(--gray-light)">預計出發時間（選填）</span>
                 ${buildTimeSelect(`depart_time_${i}`)}
               </div>
               ${isRoundtrip ? `
-              <div style="flex:1">
+              <div>
                 <span style="font-size:11px;color:var(--gray-light)">預計回程時間（選填）</span>
-                <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+                <div style="display:flex;align-items:center;gap:4px;margin-top:4px">
                   ${(()=>{ const hrs=Array.from({length:24},(_,h)=>`<option value="${String(h).padStart(2,'0')}">${String(h).padStart(2,'0')}</option>`).join(''); const mins=['00','05','10','15','20','25','30','35','40','45','50','55'].map(m=>`<option value="${m}">${m}</option>`).join(''); return `
-                  <select id="return_time_${i}_h" style="width:68px;text-align:center;font-size:15px;font-weight:600;padding:7px 4px"
-                    onchange="syncReturnTime(${i});buildDescText(${i})">
+                  <select id="return_time_${i}_h" style="width:54px;text-align:center;font-size:14px;font-weight:600;padding:6px 2px"
+                    onchange="autoFillMin('return_time_${i}');syncReturnTime(${i});buildDescText(${i});checkNightSurcharge2('return_time_${i}')">
                     <option value="">時</option>${hrs}
                   </select>
-                  <span style="font-size:16px;font-weight:700;color:var(--blue)">:</span>
-                  <select id="return_time_${i}_m" style="width:68px;text-align:center;font-size:15px;font-weight:600;padding:7px 4px"
-                    onchange="syncReturnTime(${i});buildDescText(${i})">
+                  <span style="font-size:15px;font-weight:700;color:var(--blue)">:</span>
+                  <select id="return_time_${i}_m" style="width:54px;text-align:center;font-size:14px;font-weight:600;padding:6px 2px"
+                    onchange="syncReturnTime(${i});buildDescText(${i});checkNightSurcharge2('return_time_${i}')">
                     <option value="">分</option>${mins}
                   </select>
                   <input type="hidden" id="return_time_${i}">`; })()}
                 </div>
               </div>` : ''}
+            </div>
+            <div id="night_warn_${i}" style="display:none;margin-bottom:10px;padding:8px 10px;background:#fff7e6;border:1px solid #ffb347;border-radius:6px;font-size:12px;color:#7a3c00">
+              ⚠️ 夜間時段（22:00–06:59）將產生加成費用，每小時另計 ¥3,000 日圓，請留意出發時間
             </div>` : ''}
             ${!isAirportDay ? `
             <div style="font-size:12px;color:var(--gray);margin-bottom:5px;font-weight:600">📍 出發地點</div>` : ''}
