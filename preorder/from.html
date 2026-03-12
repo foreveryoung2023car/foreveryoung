@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>旅乘日本包車 — 訂單確認表單</title>
+<title>旅乘日本自由行包車 — 訂單確認表</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600&family=Noto+Sans+TC:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -1075,7 +1075,19 @@ window.onload = function() {
 function loadUI(data) {
   ORDER = data;
   document.getElementById('disp-id').textContent      = data.orderId;
-  document.getElementById('disp-date').textContent    = data.date;
+
+  // 旅遊日期：從 days 陣列自動算頭尾，避免硬寫的 date 欄位不準
+  if (data.days && data.days.length > 0) {
+    const first = data.days[0];
+    const last  = data.days[data.days.length - 1];
+    const dateStr = first.date === last.date
+      ? `2026/${first.date}`
+      : `2026/${first.date} – ${last.date}`;
+    document.getElementById('disp-date').textContent = dateStr;
+  } else {
+    document.getElementById('disp-date').textContent = data.date;
+  }
+
   document.getElementById('disp-total').textContent   = data.total;
   document.getElementById('disp-balance').textContent = data.balance;
   document.getElementById('disp-deposit').textContent = data.deposit;
