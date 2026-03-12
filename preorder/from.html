@@ -1036,7 +1036,8 @@ body {
     prevDayIdx  前一天 index，供出發地 placeholder 提示
 */
 const DEMO = {
-  orderId: "#26999999",
+  orderId: "#26010301",
+  token:   'TEST',
   date:    "2026/01/01 – 01/04",
   total:   "¥198,000",
   balance: "¥168,000",
@@ -1247,6 +1248,51 @@ function extractAirportName(desc) {
   return '機場';
 }
 
+// 每天兒童年齡欄（2個小孩以上才顯示）
+function buildDayChildAgeHtml(dayI, desc, days) {
+  // 計算整趟行程最大小孩數
+  const maxChild = Math.max(...days.map(d => {
+    const m = d.desc.match(/(\d+)小/);
+    return m ? parseInt(m[1]) : 0;
+  }));
+  if (maxChild < 2) return ''; // 0或1個小孩不顯示
+
+  // 今天這天的小孩數（從描述抓）
+  const todayMatch = desc.match(/(\d+)小/);
+  const todayChild = todayMatch ? parseInt(todayMatch[1]) : maxChild;
+
+  const isFirst = dayI === 0;
+  const placeholder = todayChild === 1 ? '例：3歲' :
+    Array.from({length: todayChild}, (_,k) => `${k+1}歲`).join('+');
+
+  return `
+  <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px">
+    <div style="font-size:12px;font-weight:600;color:var(--gray);margin-bottom:6px">👶 本日隨行兒童年齡</div>
+    ${!isFirst ? `
+    <label style="font-size:12px;color:var(--gray-light);display:flex;align-items:center;gap:6px;margin-bottom:6px;cursor:pointer">
+      <input type="checkbox" id="child_same_${dayI}" onchange="copyChildAgeFromDay0(${dayI})">
+      與第一天相同
+    </label>` : ''}
+    <input class="field-inline" type="text" id="day_child_age_${dayI}"
+      placeholder="例：${placeholder}"
+      style="margin-top:0">
+    <div style="font-size:11px;color:var(--gray-light);margin-top:4px">本日隨行小孩年齡，以「+」分隔，如：3+5歲</div>
+  </div>`;
+}
+
+function copyChildAgeFromDay0(dayI) {
+  const cb  = document.getElementById(`child_same_${dayI}`);
+  const src = document.getElementById('day_child_age_0');
+  const tgt = document.getElementById(`day_child_age_${dayI}`);
+  if (!src || !tgt) return;
+  if (cb.checked) {
+    tgt.value = src.value;
+    tgt.style.background = 'var(--blue-faint)';
+  } else {
+    tgt.style.background = '';
+  }
+}
+
 function buildFlightHtml(dayI, isArrival, airportName) {
   const prefix     = isArrival ? `arr_${dayI}` : `dep_${dayI}`;
   const icon       = isArrival ? '🛬' : '🛫';
@@ -1420,6 +1466,7 @@ function buildDayRows(days) {
               oninput="updateDayDescArrive(${i})"
               style="margin-top:6px">` : ''}
             ${isAirportDay ? buildFlightHtml(i, isArrDay, airportName) : ''}
+            ${buildDayChildAgeHtml(i, day.desc, days)}
           </div>
         </div>`;
     }
@@ -2159,13 +2206,13 @@ function collect() {
       hotelOriginal: d.hotel || '',
       hotelChanged:  hotelChanged,
       hotelAddr:     document.getElementById(`hotel_addr_${i}`)?.value?.trim() || '',
-      childAge:      document.getElementById('f-child-age')?.value?.trim() || ''
+      childAge:      document.getElementById(`day_child_age_${i}`)?.value?.trim() || ''
     };
   });
 
   const payload = {
     orderId:      params.get('order') || ORDER.orderId,
-    token:        params.get('token') || 'DEMO',
+    token:        params.get('token') || ORDER.token || 'DEMO',
     ts:           new Date().toISOString(),
     // 個人資料
     name:         document.getElementById('f-name').value.trim(),
@@ -2222,7 +2269,7 @@ function showSuccess() {
 // ════════════════════════════════════
 // GAS STUBS（正式版解開）
 // ════════════════════════════════════
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbyijCorq7ddafagBFadr_HhMsow_C85qpLDE1OkfPQz4LW_uEvj2V2XfthDRpC-WMvr/exec';
+const GAS_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
 
 async function loadFromGAS(orderId, token) {
   document.getElementById('loading').classList.add('show');
@@ -2245,9 +2292,16 @@ async function submitToGAS(payload) {
     const r = await fetch(GAS_URL, {
       method: 'POST',
       body: JSON.stringify(payload),
-      headers: { 'Content-Type': 'text/plain' } // GAS doPost needs text/plain for JSON body
+      headers: { 'Content-Type': 'text/plain' },
+      redirect: 'follow'
     });
-    const d = await r.json();
+    // GAS 有時回傳 text/html 包著 JSON，嘗試解析
+    const text = await r.text();
+    let d = { success: false };
+    try { d = JSON.parse(text); } catch(_) {
+      // 如果解析失敗但 HTTP 狀態正常，視為成功
+      if (r.ok || r.status === 200 || r.redirected) d = { success: true };
+    }
     document.getElementById('loading').classList.remove('show');
     if (d.success) {
       clearDraft(null);
