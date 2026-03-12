@@ -2677,7 +2677,7 @@ function showSuccess() {
 // ════════════════════════════════════
 // GAS STUBS（正式版解開）
 // ════════════════════════════════════
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbw9FrtNzGRoFjxVGWw2PXa5nHcMcxHJ0vGv_UUmQTn3Peispvr-7AEOYgKEUJBjACB3/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyFgKhrelsAg-34QKsKW7gNExnh7H2zATfq3rxEVdQRr4BBLxouZ6HgmbKL19cnDJRG/exec';
 
 async function loadFromGAS(orderId, token) {
   document.getElementById('loading').classList.add('show');
@@ -2697,28 +2697,25 @@ async function submitToGAS(payload) {
   const btn = document.getElementById('btnSubmit');
   if (btn) btn.disabled = true;
   try {
-    const r = await fetch(GAS_URL, {
-      method: 'POST',
-      body: JSON.stringify(payload),
-      headers: { 'Content-Type': 'text/plain' },
-      redirect: 'follow'
-    });
-    // GAS 常見：回傳 redirect → status=0 or redirected=true；或包著 JSON 的 text/html
-    const text = await r.text().catch(() => '');
-    let d = { success: false };
-    try { d = JSON.parse(text); } catch(_) {}
-    // HTTP 正常、redirect、或 status 0（no-cors）都視為成功
-    const httpOk = r.ok || r.redirected || r.status === 0 || r.status === 200;
-    if (d.success || (httpOk && !d.error)) d = { success: true };
-
-    document.getElementById('loading').classList.remove('show');
-    if (d.success) {
-      clearDraft(null);
-      showSuccess();
-    } else {
-      alert('送出失敗：' + (d.error || '請聯繫旅乘客服'));
-      if (btn) btn.disabled = false;
+    // GAS Web App POST 會觸發 redirect，瀏覽器 fetch 在 CORS 下會 throw TypeError
+    // 改用 no-cors mode：送得出去就視為成功（拿不到回應是正常的）
+    const ctrl    = new AbortController();
+    const timeout = setTimeout(() => ctrl.abort(), 15000); // 15秒 timeout
+    try {
+      await fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+        headers: { 'Content-Type': 'text/plain' },
+        mode: 'no-cors',
+        signal: ctrl.signal,
+      });
+    } finally {
+      clearTimeout(timeout);
     }
+    // no-cors 下永遠拿到 opaque response，送出不拋錯即成功
+    document.getElementById('loading').classList.remove('show');
+    clearDraft(null);
+    showSuccess();
   } catch(e) {
     document.getElementById('loading').classList.remove('show');
     alert('網路錯誤，請稍後再試或聯繫旅乘客服');
