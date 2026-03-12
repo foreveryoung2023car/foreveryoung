@@ -1175,7 +1175,7 @@ body {
                 <div class="err-msg" id="e-phone">請填寫手機號碼</div>
               </div>
               <div class="field">
-                <label>LINE ID<span class="req">＊</span></label>
+                <label>LINE ID<span style="font-size:11px;color:var(--gray-light);margin-left:4px">（選填）</span></label>
                 <input type="text" id="f-line" placeholder="例：travel_wang"
                   oninput="this.value=this.value.replace(/[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\uff00-\uffef]/g,'')">
                 <div class="err-msg" id="e-line">請填寫 LINE ID</div>
@@ -2434,7 +2434,7 @@ function validateStep3() {
 
   ok = _chk('f-name',        'e-name')        && ok;
   ok = _chk('f-phone',       'e-phone')       && ok;
-  ok = _chk('f-line',        'e-line')        && ok;
+  // LINE ID 為選填，不驗證
   ok = _chk('f-link-source', 'e-link-source') && ok;
   ok = _chk('f-discover',    'e-discover')    && ok;
 
@@ -2703,13 +2703,14 @@ async function submitToGAS(payload) {
       headers: { 'Content-Type': 'text/plain' },
       redirect: 'follow'
     });
-    // GAS 有時回傳 text/html 包著 JSON，嘗試解析
-    const text = await r.text();
+    // GAS 常見：回傳 redirect → status=0 or redirected=true；或包著 JSON 的 text/html
+    const text = await r.text().catch(() => '');
     let d = { success: false };
-    try { d = JSON.parse(text); } catch(_) {
-      // 如果解析失敗但 HTTP 狀態正常，視為成功
-      if (r.ok || r.status === 200 || r.redirected) d = { success: true };
-    }
+    try { d = JSON.parse(text); } catch(_) {}
+    // HTTP 正常、redirect、或 status 0（no-cors）都視為成功
+    const httpOk = r.ok || r.redirected || r.status === 0 || r.status === 200;
+    if (d.success || (httpOk && !d.error)) d = { success: true };
+
     document.getElementById('loading').classList.remove('show');
     if (d.success) {
       clearDraft(null);
