@@ -624,17 +624,14 @@ body {
   background: var(--blue);
   color: #fff;
   border: none;
-  border-radius: var(--radius);
-  font-family: 'Noto Serif TC', serif;
-  font-size: 18px;
-  font-weight: 500;
-  letter-spacing: .12em;
-  padding: 18px 0;
-  width: 100%;
-  max-width: 380px;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  padding: 14px 28px;
   cursor: pointer;
-  transition: background .2s, transform .1s, box-shadow .2s;
-  box-shadow: 0 4px 18px rgba(53,112,168,.32);
+  transition: background .2s, transform .1s;
 }
 .btn-submit:hover  { background: var(--blue-dark); }
 .btn-submit:active { transform: scale(.98); }
@@ -748,6 +745,164 @@ body {
 .error-page h2 { font-family:'Noto Serif TC',serif; font-size:22px; color:var(--red); margin-bottom:14px; }
 .error-page p  { font-size:16px; color:var(--text-sub); line-height:1.8; }
 
+/* ─── STEP PAGE NAVIGATION ─── */
+.step-page { animation: fadeUp .3s ease both; }
+.step-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0 32px;
+  gap: 12px;
+}
+.btn-next {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 14px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: .04em;
+  transition: background .2s;
+}
+.btn-next:hover { background: var(--blue-dark); }
+.btn-back {
+  background: #fff;
+  color: var(--blue);
+  border: 1.5px solid var(--blue-light);
+  border-radius: var(--radius-sm);
+  padding: 13px 22px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .2s;
+}
+.btn-back:hover { background: var(--blue-faint); }
+
+/* ─── ITIN SUMMARY (step2) ─── */
+.itin-summary-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+.itin-summary-row:last-child { border-bottom: none; }
+.itin-summary-row.last { border-bottom: none; }
+.itin-summary-date {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 13px;
+  color: var(--blue);
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.itin-summary-desc {
+  font-size: 13px;
+  color: var(--text);
+  flex: 1;
+  line-height: 1.5;
+}
+.itin-summary-price {
+  font-size: 13px;
+  color: var(--blue-dark);
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.itin-summary-total {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 2px solid var(--blue-light);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--blue-dark);
+}
+
+/* ─── STEP NAV BUTTONS ─── */
+.step-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 16px 0 32px;
+  gap: 12px;
+}
+.btn-next {
+  margin-left: auto;
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 14px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: .04em;
+  transition: background .2s;
+}
+.btn-next:hover { background: var(--blue-dark); }
+.btn-back {
+  background: #fff;
+  color: var(--blue);
+  border: 1.5px solid var(--blue-light);
+  border-radius: var(--radius-sm);
+  padding: 13px 22px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .2s;
+}
+.btn-back:hover { background: var(--blue-faint); }
+
+/* ─── ITIN SUMMARY (step 2) ─── */
+.itin-summary-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.itin-summary-row:last-of-type { border-bottom: none; }
+.itin-summary-date {
+  font-size: 13px;
+  color: var(--blue);
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 48px;
+}
+.itin-summary-desc {
+  font-size: 13px;
+  color: var(--text);
+  flex: 1;
+  line-height: 1.5;
+}
+.itin-summary-price {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--blue-dark);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.itin-summary-total {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 2px solid var(--blue-light);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--blue-dark);
+}
+
 /* ─── ANIMATIONS ─── */
 @keyframes fadeUp {
   from { opacity:0; transform:translateY(14px); }
@@ -768,7 +923,7 @@ body {
   .site-header { padding: 14px 16px; }
   .day-date-col .day-n { font-size: 18px; }
   .total-row.main span { font-size: 21px; }
-  .btn-submit { font-size: 17px; padding: 16px 0; }
+  .btn-next, .btn-back { padding: 13px 18px; font-size: 14px; }
 }
 @media (max-width: 380px) {
   .g3 { grid-template-columns: 1fr; }
@@ -796,9 +951,9 @@ body {
 <!-- STEP BAR -->
 <div class="step-bar">
   <div class="step-bar-inner" id="stepBarInner">
-    <div class="step active" id="step1" onclick="scrollToSec(1)">① 確認訂單</div>
-    <div class="step" id="step2" onclick="scrollToSec(2)">② 個人資料</div>
-    <div class="step" id="step3" onclick="scrollToSec(3)">③ 備註送出</div>
+    <div class="step active" id="step1">① 確認行程</div>
+    <div class="step" id="step2">② 匯款確認</div>
+    <div class="step" id="step3">③ 個人資料</div>
   </div>
 </div>
 
@@ -826,207 +981,261 @@ body {
       <div class="success-divider"></div>
       <p class="success-tagline">旅乘日本包車　感謝您的信任</p>
       <p class="success-tagline-en">Forever Young &nbsp;·&nbsp; Japan Private Charter</p>
+
+      <!-- 訂購後流程 -->
+      <div style="margin-top:32px;text-align:left">
+        <div style="font-size:13px;font-weight:600;color:var(--blue-dark);margin-bottom:16px;letter-spacing:.06em;text-align:center">《 訂購後流程 》</div>
+
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">
+          ${[
+            ['1','完成訂單填寫後，我們會給您發送明細確認內容','明細內會有台灣與日本的聯絡人手機號碼方便聯繫'],
+            ['2','於出發前 3–7 天，提供 LINE／WhatsApp 連結邀請您加入包車群組','群組內有官方帳號／台灣／日本窗口／司機，至少 3 位以上在裡面等候'],
+            ['3','出發前 2 天，行程與款項再次貼在群組內雙方最後確認','早點確認出發地點與時間，以免當天多花時間查資料'],
+            ['4','出發當天，司機提早 5～30 分鐘抵達指定地點','司機會提供車牌號碼與車體外觀顏色給您確認'],
+          ].map(([n,main,sub]) => `
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">${n}</div>
+            <div style="font-size:13px;color:var(--text);line-height:1.7">${main}<div style="font-size:11px;color:var(--gray-light);margin-top:2px">（${sub}）</div></div>
+          </div>`).join('')}
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+          <div style="background:var(--blue-faint);border:1px solid var(--blue-light);border-radius:8px;padding:12px 14px">
+            <div style="font-size:12px;font-weight:600;color:var(--blue-dark);margin-bottom:4px">✈️ 機場接／送機</div>
+            <div style="font-size:12px;color:var(--text-sub);line-height:1.8">抵達後拍攝行李箱外觀讓司機辨識，引導至出口即可乘車（約 5–10 分鐘出發）。送機於指定飯店周邊等候，行程結束收取日幣現金尾款。</div>
+          </div>
+          <div style="background:var(--blue-faint);border:1px solid var(--blue-light);border-radius:8px;padding:12px 14px">
+            <div style="font-size:12px;font-weight:600;color:var(--blue-dark);margin-bottom:4px">🚌 一日遊行程</div>
+            <div style="font-size:12px;color:var(--text-sub);line-height:1.8">於指定飯店周邊等待，行程結束後司機收取日幣現金尾款。</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:16px">
+          <div style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">5</div>
+          <div style="font-size:13px;color:var(--text);line-height:1.7">返台後希望您能給予評價，無論好壞我們都謙虛接受，希望每段旅程都是難忘的回憶 🙏</div>
+        </div>
+
+        <div style="padding:12px 14px;background:#fffbe6;border:1px solid #ffe58f;border-radius:8px">
+          <div style="font-size:11px;color:#7a5200;line-height:2.2">
+            ＊ 行程中若有任何問題，請立即告知客服<br>
+            ＊ 上下車停靠地點，盡可能詳細告知司機<br>
+            ＊ 19人座考斯特車輛較大，無法停靠小車容易上下車的地點，敬請見諒
+          </div>
+        </div>
+      </div>
     </div>
 
     <div id="formBody">
 
-      <!-- ① 訂單 + 行程 + 住宿 一體化 -->
-      <div class="card" id="sec1" data-sec="1">
-        <div class="card-head">
-          <div class="head-icon">📋</div>
-          <h2>訂單行程與住宿確認</h2>
-          <span class="badge ro">行程唯讀</span>
-        </div>
-        <div class="card-body">
-
-          <!-- 訂單基本資訊 -->
-          <div class="meta-grid">
-            <div class="meta-item">
-              <label>訂單編號</label>
-              <div class="val order-no" id="disp-id"></div>
-            </div>
-            <div class="meta-item">
-              <label>旅遊日期</label>
-              <div class="val" id="disp-date"></div>
-            </div>
+      <!-- ══ STEP 1：確認行程 ══ -->
+      <div class="step-page" id="page1">
+        <div class="card" id="sec1" data-sec="1">
+          <div class="card-head">
+            <div class="head-icon">📋</div>
+            <h2>訂單行程與住宿確認</h2>
+            <span class="badge ro">行程唯讀</span>
           </div>
+          <div class="card-body">
 
-          <!-- 行程表 + 住宿 -->
-          <div class="itin-header">
-            <span>📅 每日行程明細 &amp; 住宿資料</span>
-            <button class="itin-expand-btn" id="expandToggleBtn" onclick="toggleExpandAll()">⬇ 展開全部</button>
-          </div>
-          <div id="dayRowList"></div>
-          <button id="staffFillBtn" onclick="staffFillDepart()" style="display:none;width:100%;margin:12px 0 4px;padding:11px;border:1.5px dashed var(--blue-light);border-radius:var(--radius-sm);background:#fff;color:var(--blue);font-size:14px;cursor:pointer;font-family:inherit">
-            🏨 套用相同出發地點至其他日期
-          </button>
-
-          <!-- 總計 -->
-          <div class="totals">
-            <div class="total-row main">
-              <label>訂單總金額</label>
-              <span id="disp-total"></span>
-            </div>
-            <div class="total-row">
-              <label>尾款（85%，行程結束交付司機）</label>
-              <span id="disp-balance"></span>
-            </div>
-          </div>
-
-          <div class="deposit-box">
-            <div class="deposit-title">⚠️ 匯款資訊 — 請務必確認</div>
-            <div style="background:#fff3e0;border-radius:6px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap">
-              <div>
-                <span style="font-size:13px;color:#7a3e00;font-weight:500">應付訂金</span>
-                <span style="font-size:11px;color:#a05a20;margin-left:8px">匯率 <span id="disp-rate"></span>，含手續費</span>
+            <!-- 訂單基本資訊 -->
+            <div class="meta-grid">
+              <div class="meta-item">
+                <label>訂單編號</label>
+                <div class="val order-no" id="disp-id"></div>
               </div>
-              <span id="disp-deposit" style="font-family:'Noto Serif TC',serif;font-size:22px;font-weight:700;color:#c0621a;letter-spacing:.04em"></span>
-            </div>
-            <div class="deposit-account-row">
-              <div>
-                <div style="font-size:13px;font-weight:500;color:#a05a20;letter-spacing:.04em;margin-bottom:4px">華南銀行 (008) 營業部 ‧ 佳遊國際旅行社有限公司</div>
-                <span id="acct-number" style="font-size:22px;letter-spacing:.1em">100100344320</span>
+              <div class="meta-item">
+                <label>旅遊日期</label>
+                <div class="val" id="disp-date"></div>
               </div>
-              <button class="copy-btn" id="copyAcctBtn" onclick="copyAccount()">複製帳號</button>
             </div>
-            <div class="deposit-urgent">
-              ⏰ 請於三日內完成匯款並填寫表單<br>
-              同時提供匯款截圖紀錄，以便快速查帳與成立訂單
+
+            <!-- 行程表 + 住宿 -->
+            <div class="itin-header">
+              <span>📅 每日行程明細 &amp; 住宿資料</span>
+              <button class="itin-expand-btn" id="expandToggleBtn" onclick="toggleExpandAll()">⬇ 展開全部</button>
             </div>
+            <div id="dayRowList"></div>
+            <button id="staffFillBtn" onclick="staffFillDepart()" style="display:none;width:100%;margin:12px 0 4px;padding:11px;border:1.5px dashed var(--blue-light);border-radius:var(--radius-sm);background:#fff;color:var(--blue);font-size:14px;cursor:pointer;font-family:inherit">
+              🏨 套用相同出發地點至其他日期
+            </button>
           </div>
+        </div>
+
+        <div class="step-nav">
+          <div></div>
+          <button class="btn-next" onclick="goStep(2)">下一步：匯款確認 →</button>
         </div>
       </div>
 
-      <!-- ② 個人資料 -->
-      <div class="card" id="sec2" data-sec="2">
-        <div class="card-head">
-          <div class="head-icon">👤</div>
-          <h2>聯絡人與付款資料</h2>
-          <span class="badge">請填寫</span>
+      <!-- ══ STEP 2：匯款確認 ══ -->
+      <div class="step-page" id="page2" style="display:none">
+        <div class="card">
+          <div class="card-head"><div class="head-icon">💳</div><h2>行程總覽 &amp; 匯款資訊</h2></div>
+          <div class="card-body">
+
+            <!-- 行程摘要 -->
+            <div style="font-size:13px;font-weight:600;color:var(--blue);letter-spacing:.06em;margin-bottom:10px">行程摘要</div>
+            <div id="itinSummary" style="margin-bottom:20px"></div>
+
+            <!-- 費用總覽 -->
+            <div class="total-section" style="margin-bottom:20px">
+              <div class="total-row main">
+                <label>訂單總金額</label>
+                <span id="disp-total"></span>
+              </div>
+              <div class="total-row">
+                <label>尾款（85%，行程結束交付司機）</label>
+                <span id="disp-balance"></span>
+              </div>
+            </div>
+
+            <!-- 匯款資訊 -->
+            <div class="deposit-box">
+              <div class="deposit-title">⚠️ 匯款資訊 — 請務必確認</div>
+              <div id="depositAmountRow" style="background:#fff3e0;border-radius:6px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap">
+                <div>
+                  <span style="font-size:13px;color:#7a3e00;font-weight:500">應付訂金</span>
+                  <span id="dispRateWrap" style="font-size:11px;color:#a05a20;margin-left:8px">匯率 <span id="disp-rate"></span>，含手續費</span>
+                </div>
+                <span id="disp-deposit" style="font-family:'Noto Serif TC',serif;font-size:22px;font-weight:700;color:#c0621a;letter-spacing:.04em"></span>
+              </div>
+              <div id="depositBankRow" class="deposit-account-row">
+                <div>
+                  <div style="font-size:13px;font-weight:500;color:#a05a20;letter-spacing:.04em;margin-bottom:4px">華南銀行 (008) 營業部 ‧ 佳遊國際旅行社有限公司</div>
+                  <span id="acct-number" style="font-size:22px;letter-spacing:.1em">100100344320</span>
+                </div>
+                <button class="copy-btn" id="copyAcctBtn" onclick="copyAccount()">複製帳號</button>
+              </div>
+              <div class="deposit-urgent">
+                ⏰ 請於三日內完成匯款並填寫表單<br>
+                同時提供匯款截圖紀錄，以便快速查帳與成立訂單
+              </div>
+            </div>
+
+            <!-- 帳號後5碼 -->
+            <div style="margin-top:20px">
+              <div style="font-size:13px;font-weight:600;color:var(--blue);letter-spacing:.06em;margin-bottom:10px">匯款完成後填寫</div>
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                <div style="font-size:13px;color:var(--text-sub)">帳號後 5 碼</div>
+                <input type="text" id="f-account"
+                  placeholder="例：44320" maxlength="5"
+                  oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+                  style="width:120px;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:16px;letter-spacing:.12em;font-weight:600;text-align:center">
+              </div>
+              <div style="font-size:11px;color:var(--gray-light);margin-top:6px">若為其他付款方式，請填入交易序號末 5 碼</div>
+            </div>
+
+          </div>
         </div>
-        <div class="card-body">
-          <div class="notice">
-            請填寫代表聯絡人資訊與付款資料，旅乘客服將用於核對訂單及確認匯款。
-          </div>
 
-          <!-- 聯絡資訊 -->
-          <div style="font-size:13px;font-weight:600;color:var(--blue);letter-spacing:.06em;margin-bottom:12px;">聯絡資訊</div>
-          <div class="form-grid g2" style="margin-bottom:20px">
-            <div class="field">
-              <label>姓名（中文全名）<span class="req">＊</span></label>
-              <input type="text" id="f-name" placeholder="例：王小明" autocomplete="name">
-              <div class="err-msg" id="e-name">請填寫中文姓名</div>
-            </div>
-            <div class="field">
-              <label>手機號碼<span class="req">＊</span></label>
-              <input type="tel" id="f-phone" placeholder="例：0912345678、台灣以外請填國碼+號碼" autocomplete="tel">
-              <div class="err-msg" id="e-phone">請填寫手機號碼</div>
-            </div>
-            <div class="field">
-              <label>LINE ID<span class="req">＊</span></label>
-              <input type="text" id="f-line" placeholder="例：travel_wang">
-              <div class="err-msg" id="e-line">請填寫 LINE ID</div>
-            </div>
-            <div class="field">
-              <label>電子郵件地址<span class="req">＊</span></label>
-              <input type="email" id="f-email" placeholder="例：name@email.com" autocomplete="email">
-              <div class="err-msg" id="e-email">請填寫電子郵件</div>
-            </div>
-            <div class="field">
-              <label>Facebook 名稱</label>
-              <input type="text" id="f-fb" placeholder="例：小明 Wang">
-            </div>
-            <!-- 兒童年齡（有小孩時動態顯示，佔右欄） -->
-            <div class="field" id="childAgeField" style="display:none">
-              <label>兒童年齡<span class="req">＊</span>
-                <span style="font-size:11px;font-weight:400;color:var(--gray-light)">（未滿6歲，用+區隔）</span>
-              </label>
-              <input type="text" id="f-child-age" placeholder="例：3+5歲">
-              <div class="err-msg" id="e-child-age">請填寫兒童年齡</div>
-            </div>
-            <div class="field">
-              <label>您從哪裡取得此表單連結<span class="req">＊</span></label>
-              <select id="f-link-source">
-                <option value="">請選擇</option>
-                <option>LINE官方帳號</option>
-                <option>Facebook粉絲專頁</option>
-                <option>Instagram</option>
-                <option>Threads</option>
-                <option>抖音</option>
-                <option>小紅書</option>
-                <option>其他</option>
-              </select>
-              <div class="err-msg" id="e-link-source">請選擇取得方式</div>
-            </div>
-            <div class="field">
-              <label>您最先從哪裡發現旅乘<span class="req">＊</span></label>
-              <select id="f-discover">
-                <option value="">請選擇</option>
-                <option>Facebook粉絲專頁</option>
-                <option>LINE官方帳號</option>
-                <option>Instagram</option>
-                <option>Threads</option>
-                <option>Dcard</option>
-                <option>PTT討論區</option>
-                <option>背包客棧</option>
-                <option>日本自由行討論區</option>
-                <option>京都自由行究極攻略</option>
-                <option>網紅/KOL推薦</option>
-                <option>親友介紹推薦</option>
-                <option>業務人員主動聯繫</option>
-                <option>其他</option>
-              </select>
-              <div class="err-msg" id="e-discover">請選擇發現管道</div>
-            </div>
-          </div>
-
-          <!-- 匯款資訊 -->
-          <div style="font-size:13px;font-weight:600;color:var(--blue);letter-spacing:.06em;margin-bottom:12px;">匯款資訊</div>
-          <div class="form-grid g2">
-            <div class="field">
-              <label>匯款幣別<span class="req">＊</span></label>
-              <select id="f-currency">
-                <option value="">請選擇</option>
-                <option>新台幣 TWD</option>
-                <option>港幣 HKD</option>
-                <option>新加坡幣 SGD</option>
-                <option>日圓 JPY</option>
-                <option>人民幣 CNY</option>
-              </select>
-              <div class="err-msg" id="e-currency">請選擇幣別</div>
-            </div>
-            <div class="field">
-              <label>匯款金額<span class="req">＊</span></label>
-              <input type="number" id="f-amount" placeholder="例：5390">
-              <div class="err-msg" id="e-amount">請填寫匯款金額</div>
-            </div>
-            <div class="field cf">
-              <label>匯款帳號後 5 碼<span class="req">＊</span></label>
-              <input type="text" id="f-account" placeholder="例：44320" maxlength="5" inputmode="numeric">
-              <div class="err-msg" id="e-account">請填寫帳號後5碼</div>
-            </div>
-          </div>
+        <div class="step-nav">
+          <button class="btn-back" onclick="goStep(1)">← 上一步</button>
+          <button class="btn-next" onclick="goStep(3)">下一步：個人資料 →</button>
         </div>
       </div>
 
-      <!-- ④ 備註 -->
-      <div class="card" id="sec3" data-sec="3">
-        <div class="card-head">
-          <div class="head-icon">📝</div>
-          <h2>特殊需求與備註</h2>
-        </div>
-        <div class="card-body">
-          <div class="field">
-            <label>有任何特殊需求，請在此說明</label>
-            <textarea id="f-note" placeholder="例：有嬰兒車、需兒童安全座椅、飲食限制、特殊行程偏好…"></textarea>
+      <!-- ══ STEP 3：個人資料 ══ -->
+      <div class="step-page" id="page3" style="display:none">
+        <div class="card" id="sec3" data-sec="3">
+          <div class="card-head">
+            <div class="head-icon">👤</div>
+            <h2>聯絡人資料</h2>
+            <span class="badge">請填寫</span>
+          </div>
+          <div class="card-body">
+            <div class="notice">
+              請填寫代表聯絡人資訊，旅乘客服將用於核對訂單及後續聯繫。
+            </div>
+            <div class="form-grid g2">
+              <div class="field">
+                <label>姓名（中文全名）<span class="req">＊</span></label>
+                <input type="text" id="f-name" placeholder="例：王小明" autocomplete="name">
+                <div class="err-msg" id="e-name">請填寫中文姓名</div>
+              </div>
+              <div class="field">
+                <label>手機號碼<span class="req">＊</span></label>
+                <input type="tel" id="f-phone" placeholder="例：0912345678、台灣以外請填國碼+號碼" autocomplete="tel"
+                  oninput="this.value=this.value.replace(/[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\uff00-\uffef]/g,'')">
+                <div class="err-msg" id="e-phone">請填寫手機號碼</div>
+              </div>
+              <div class="field">
+                <label>LINE ID<span class="req">＊</span></label>
+                <input type="text" id="f-line" placeholder="例：travel_wang"
+                  oninput="this.value=this.value.replace(/[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\uff00-\uffef]/g,'')">
+                <div class="err-msg" id="e-line">請填寫 LINE ID</div>
+              </div>
+              <div class="field">
+                <label>電子郵件地址<span class="req">＊</span></label>
+                <input type="email" id="f-email" placeholder="例：name@email.com" autocomplete="email"
+                  oninput="this.value=this.value.replace(/[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\uff00-\uffef]/g,'')">
+                <div class="err-msg" id="e-email">請填寫電子郵件</div>
+              </div>
+              <div class="field">
+                <label>Facebook 名稱</label>
+                <input type="text" id="f-fb" placeholder="例：小明 Wang">
+              </div>
+              <!-- 兒童年齡（1個小孩時顯示） -->
+              <div class="field" id="childAgeField" style="display:none">
+                <label>兒童年齡<span class="req">＊</span>
+                  <span style="font-size:11px;font-weight:400;color:var(--gray-light)">（未滿6歲，用+區隔）</span>
+                </label>
+                <input type="text" id="f-child-age" placeholder="例：1+2歲">
+                <div class="err-msg" id="e-child-age">請填寫兒童年齡</div>
+              </div>
+              <div class="field">
+                <label>您從哪裡取得此表單連結<span class="req">＊</span></label>
+                <select id="f-link-source">
+                  <option value="">請選擇</option>
+                  <option>LINE官方帳號</option>
+                  <option>Facebook粉絲專頁</option>
+                  <option>Instagram</option>
+                  <option>Threads</option>
+                  <option>抖音</option>
+                  <option>小紅書</option>
+                  <option>其他</option>
+                </select>
+                <div class="err-msg" id="e-link-source">請選擇取得方式</div>
+              </div>
+              <div class="field">
+                <label>您最先從哪裡發現旅乘<span class="req">＊</span></label>
+                <select id="f-discover">
+                  <option value="">請選擇</option>
+                  <option>Facebook粉絲專頁</option>
+                  <option>LINE官方帳號</option>
+                  <option>Instagram</option>
+                  <option>Threads</option>
+                  <option>Dcard</option>
+                  <option>PTT討論區</option>
+                  <option>背包客棧</option>
+                  <option>日本自由行討論區</option>
+                  <option>京都自由行究極攻略</option>
+                  <option>網紅/KOL推薦</option>
+                  <option>親友介紹推薦</option>
+                  <option>業務人員主動聯繫</option>
+                  <option>其他</option>
+                </select>
+                <div class="err-msg" id="e-discover">請選擇發現管道</div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- SUBMIT -->
-      <div class="submit-wrap">
-        <button class="btn-submit" id="btnSubmit" onclick="submitForm()">確認送出資料</button>
-        <p class="submit-note">送出後資料將直接寫入您的訂單<br>如需修改請聯繫旅乘客服</p>
+        <!-- 備註（合併在此步驟） -->
+        <div class="card">
+          <div class="card-head"><div class="head-icon">📝</div><h2>特殊需求與備註</h2></div>
+          <div class="card-body">
+            <div class="field">
+              <label>有任何特殊需求，請在此說明</label>
+              <textarea id="f-note" placeholder="例：有嬰兒車、需兒童安全座椅、飲食限制、特殊行程偏好…"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <p class="submit-note" style="text-align:center;margin-bottom:12px">送出後資料將直接寫入您的訂單，如需修改請聯繫旅乘客服</p>
+        <div class="step-nav" style="margin-top:0">
+          <button class="btn-back" onclick="goStep(2)">← 上一步</button>
+          <button class="btn-submit" id="btnSubmit" onclick="submitForm()">確認送出資料</button>
+        </div>
       </div>
 
     </div><!-- /formBody -->
@@ -1047,24 +1256,25 @@ body {
     prevDayIdx  前一天 index，供出發地 placeholder 提示
 */
 const DEMO = {
-  orderId: "#26999999",
+  orderId: "#26019999",
   token:   'TEST',
   date:    "2026/01/01 – 01/04",
   total:   "¥198,000",
   balance: "¥168,000",
   deposit: "NT$6,600元",
-  rate:    "0.22",
+  rates:   { twd: 0.22, hkd: 0.043, sgd: 0.029 },  // 從 GAS doGet 帶入
+  childAge: "",   // 若有填寫例如 "3+5歲" 會自動帶入欄位
   days: [
     { date:"01/01", month:"01", dayNum:"01", weekday:"四",
       desc:"東京市區往返富士山一日遊(7大2小)(10座)",
       luggage:"6件", price:"¥68,000", hotel:"Shinjuku Granbell Hotel",
       isFirstDay:true, prevDayIdx:-1 },
     { date:"01/02", month:"01", dayNum:"02", weekday:"五",
-      desc:"東京市區往返鐮倉一日遊(11大2小)(14座)",
+      desc:"東京市區往返鐮倉一日遊(7大2小)(14座)",
       luggage:"8件", price:"¥76,000", hotel:"Shinjuku Granbell Hotel",
       isFirstDay:false, prevDayIdx:0 },
     { date:"01/03", month:"01", dayNum:"03", weekday:"六",
-      desc:"東京市區至成田機場-單程(11大2小)(10+7座)",
+      desc:"東京市區至成田機場-單程(7大2小)(10+7座)",
       luggage:"8件", price:"¥54,000", hotel:"",
       isFirstDay:false, prevDayIdx:1 },
     { date:"01/04", month:"01", dayNum:"04", weekday:"日",
@@ -1102,8 +1312,50 @@ function loadUI(data) {
 
   document.getElementById('disp-total').textContent   = data.total;
   document.getElementById('disp-balance').textContent = data.balance;
-  document.getElementById('disp-deposit').textContent = data.deposit;
-  document.getElementById('disp-rate').textContent    = data.rate;
+
+  // 訂金顯示：格式化幣別，0元隱藏整個匯款區塊
+  const depositRaw = (data.deposit || '').trim();
+  const depositNum = parseFloat(depositRaw.replace(/[^0-9.]/g, '')) || 0;
+  const depositEl  = document.getElementById('disp-deposit');
+  const bankRow    = document.getElementById('depositBankRow');
+  const amountRow  = document.getElementById('depositAmountRow');
+  const depositBox = amountRow?.closest('.deposit-box');
+
+  // 匯率：根據訂金幣別自動選對應匯率
+  const rates    = data.rates || {};
+  const rateEl   = document.getElementById('disp-rate');
+  const rateWrap = document.getElementById('dispRateWrap');
+  const depositForRate = (data.deposit || '').trim();
+  let rateVal = '';
+  if      (depositForRate.startsWith('NT$'))  rateVal = rates.twd;
+  else if (depositForRate.startsWith('HK$'))  rateVal = rates.hkd;
+  else if (depositForRate.startsWith('SGD$') || depositForRate.startsWith('S$')) rateVal = rates.sgd;
+  if (rateEl) rateEl.textContent = rateVal || '';
+  if (rateWrap) rateWrap.style.display = rateVal ? '' : 'none';
+
+  if (depositNum === 0 || !depositRaw) {
+    // 0元：隱藏整個匯款區塊（金額列 + 銀行帳號列）
+    if (amountRow) amountRow.style.display = 'none';
+    if (bankRow)   bankRow.style.display   = 'none';
+  } else {
+    // 格式化幣別文字
+    const CURRENCY_MAP = [
+      { prefix: 'NT$',  label: '新台幣$',   suffix: '元' },
+      { prefix: 'HK$',  label: '港幣$',     suffix: '元' },
+      { prefix: 'SGD$', label: '新加坡幣$', suffix: '元' },
+      { prefix: 'S$',   label: '新加坡幣$', suffix: '元' },
+      { prefix: '¥',    label: '日幣¥',     suffix: '日圓' },
+    ];
+    let formatted = depositRaw;
+    for (const c of CURRENCY_MAP) {
+      if (depositRaw.startsWith(c.prefix)) {
+        const num = depositRaw.slice(c.prefix.length).replace(/[^0-9,]/g, '');
+        formatted = `${c.label}${num}${c.suffix}`;
+        break;
+      }
+    }
+    if (depositEl) depositEl.textContent = formatted;
+  }
 
   // 從行程描述自動解析機場 — 掃描所有天，找第一個含機場名稱的
   const AIRPORTS = [
@@ -1161,8 +1413,18 @@ function loadUI(data) {
   }
 
   // 偵測是否有小孩（任何一天描述含「小」）
-  const hasChild = data.days.some(d => /\d+小/.test(d.desc));
-  if (hasChild) document.getElementById('childAgeField').style.display = 'block';
+  const maxChild = Math.max(...data.days.map(d => {
+    const m = d.desc.match(/(\d+)小/); return m ? parseInt(m[1]) : 0;
+  }));
+  const hasChild = maxChild >= 1;
+  // 只有1個小孩才顯示外層年齡欄；2個以上改在每天折疊區塊填
+  if (hasChild && maxChild === 1) document.getElementById('childAgeField').style.display = 'block';
+
+  // 若訂單資料已帶入兒童年齡，自動填入欄位
+  if (data.childAge) {
+    const ageEl = document.getElementById('f-child-age');
+    if (ageEl && !ageEl.value) ageEl.value = data.childAge;
+  }
 
   // 從行程描述自動判斷是否有接機／送機（只要含「機場」就顯示）
   const hasArrival   = data.days.some(d => d.desc.includes('機場') && d.isFirstDay);
@@ -1172,7 +1434,6 @@ function loadUI(data) {
 
   document.getElementById('mainContent').style.display = 'block';
   document.getElementById('loading').classList.remove('show');
-  initScrollNav();
   setTimeout(restoreDraft, 300); // restore after DOM settle
   setInterval(autosave, 30000);  // autosave every 30s
   document.addEventListener('input', autosave); // also save on any input
@@ -1191,15 +1452,26 @@ function carLabel(s) {
   }).join(' + ');
 }
 
-function parseDayMeta(desc, luggage, price) {
+function parseDayMeta(desc, luggage, price, childAgeStr) {
   const paxM = desc.match(/\((\d+大\d*小?|\d+小|\d+大)\)/);
   const carM  = desc.match(/\((\d+(?:\+\d+)?座)\)/);
   const parts = [];
-  if (paxM) parts.push(`<span>👥 ${paxM[1]}</span>`);
+  let paxText = paxM ? paxM[1] : '';
+  if (paxText && childAgeStr) paxText += `(${childAgeStr})`;
+  if (paxText) parts.push(`<span>👥 ${paxText}</span>`);
   if (carM)  parts.push(`<span>🚌 ${carLabel(carM[1])}</span>`);
   if (luggage) parts.push(`<span>📦 行李 ${luggage}</span>`);
   if (price)   parts.push(`<span class="meta-price">${price}</span>`);
   return parts.join('');
+}
+
+function updateDayMeta(dayI) {
+  const d = ORDER.days[dayI];
+  if (!d) return;
+  const ageInp = document.getElementById(`day_child_age_${dayI}`);
+  const ageVal = ageInp?.value.trim() || '';
+  const metaEl = document.getElementById(`day_meta_${dayI}`);
+  if (metaEl) metaEl.innerHTML = parseDayMeta(d.desc, d.luggage, d.price, ageVal);
 }
 
 
@@ -1223,13 +1495,48 @@ function getAirportHint(desc) {
 }
 
 function buildTimeSelect(id) {
-  return `<input class="field-inline" type="text" id="${id}" placeholder="例：09:00" inputmode="numeric"
-    style="margin-top:4px"
-    oninput="this.value=this.value.replace(/[^0-9:]/g,'');checkNightSurcharge(this);updateDayDescTime(parseInt(this.id.replace('depart_time_','')))"
-    onblur="checkNightSurcharge(this)">
-    <div id="${id}_warn" style="display:none;margin-top:6px;padding:8px 10px;background:#fff7e6;border:1px solid #ffb347;border-radius:6px;font-size:12px;color:#7a3c00">
-      ⚠️ 此時段（22:00–06:59）會有夜間加成費用產生，每小時 ¥3,000 日圓，請留意
-    </div>`;
+  const hrs  = Array.from({length:24}, (_,h) => `<option value="${String(h).padStart(2,'0')}">${String(h).padStart(2,'0')}</option>`).join('');
+  const mins = ['00','05','10','15','20','25','30','35','40','45','50','55'].map(m => `<option value="${m}">${m}</option>`).join('');
+  const dayI = id.replace('depart_time_','');
+  return `
+  <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+    <select id="${id}_h" style="width:68px;text-align:center;font-size:15px;font-weight:600;padding:7px 4px"
+      onchange="syncTimeVal('${id}');checkNightSurcharge2('${id}');updateDayDescTime(${dayI})">
+      <option value="">時</option>${hrs}
+    </select>
+    <span style="font-size:16px;font-weight:700;color:var(--blue)">:</span>
+    <select id="${id}_m" style="width:68px;text-align:center;font-size:15px;font-weight:600;padding:7px 4px"
+      onchange="syncTimeVal('${id}');checkNightSurcharge2('${id}');updateDayDescTime(${dayI})">
+      <option value="">分</option>${mins}
+    </select>
+    <input type="hidden" id="${id}">
+  </div>
+  <div id="${id}_warn" style="display:none;margin-top:6px;padding:8px 10px;background:#fff7e6;border:1px solid #ffb347;border-radius:6px;font-size:12px;color:#7a3c00">
+    ⚠️ 夜間時段（22:00–06:59）將產生加成費用，每小時另計 ¥3,000 日圓，請留意出發時間
+  </div>`;
+}
+
+function syncReturnTime(dayI) {
+  const h = document.getElementById(`return_time_${dayI}_h`)?.value || '';
+  const m = document.getElementById(`return_time_${dayI}_m`)?.value || '';
+  const inp = document.getElementById(`return_time_${dayI}`);
+  if (inp) inp.value = (h && m) ? `${h}:${m}` : '';
+}
+
+function syncTimeVal(id) {
+  const h = document.getElementById(id+'_h')?.value || '';
+  const m = document.getElementById(id+'_m')?.value || '';
+  const inp = document.getElementById(id);
+  if (inp) inp.value = (h && m) ? `${h}:${m}` : '';
+}
+
+function checkNightSurcharge2(id) {
+  const warn = document.getElementById(id + '_warn');
+  if (!warn) return;
+  const h = document.getElementById(id+'_h')?.value;
+  if (!h) { warn.style.display = 'none'; return; }
+  const hNum = parseInt(h);
+  warn.style.display = (hNum >= 22 || hNum <= 6) ? 'block' : 'none';
 }
 
 function checkNightSurcharge(inp) {
@@ -1273,8 +1580,8 @@ function buildDayChildAgeHtml(dayI, desc, days) {
   const todayChild = todayMatch ? parseInt(todayMatch[1]) : maxChild;
 
   const isFirst = dayI === 0;
-  const placeholder = todayChild === 1 ? '例：3歲' :
-    Array.from({length: todayChild}, (_,k) => `${k+1}歲`).join('+');
+  const placeholder = todayChild === 1 ? '例：1歲' :
+    `例：${Array.from({length: todayChild}, (_,k) => `${k+1}`).join('+')}歲`;
 
   return `
   <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px">
@@ -1286,21 +1593,34 @@ function buildDayChildAgeHtml(dayI, desc, days) {
     </label>` : ''}
     <input class="field-inline" type="text" id="day_child_age_${dayI}"
       placeholder="例：${placeholder}"
-      style="margin-top:0">
-    <div style="font-size:11px;color:var(--gray-light);margin-top:4px">本日隨行小孩年齡，以「+」分隔，如：3+5歲</div>
+      style="margin-top:0"
+      oninput="updateDayMeta(${dayI})">
+    <div style="font-size:11px;color:var(--gray-light);margin-top:4px">本日隨行小孩年齡，以「+」分隔，如：1+2歲</div>
   </div>`;
 }
 
 function copyChildAgeFromDay0(dayI) {
   const cb  = document.getElementById(`child_same_${dayI}`);
   const src = document.getElementById('day_child_age_0');
-  const tgt = document.getElementById(`day_child_age_${dayI}`);
-  if (!src || !tgt) return;
-  if (cb.checked) {
-    tgt.value = src.value;
-    tgt.style.background = 'var(--blue-faint)';
-  } else {
-    tgt.style.background = '';
+  if (!src || !cb) return;
+
+  // 若是第二天（dayI===1）勾選，把後面所有天都一起勾起來
+  const totalDays = ORDER.days.length;
+  const startDay  = (dayI === 1) ? 1 : dayI;
+  const endDay    = (dayI === 1) ? totalDays - 1 : dayI;
+
+  for (let d = startDay; d <= endDay; d++) {
+    const tgt  = document.getElementById(`day_child_age_${d}`);
+    const tcb  = document.getElementById(`child_same_${d}`);
+    if (!tgt) continue;
+    if (tcb) tcb.checked = cb.checked;
+    if (cb.checked) {
+      tgt.value = src.value;
+      tgt.style.background = 'var(--blue-faint)';
+    } else {
+      tgt.style.background = '';
+    }
+    updateDayMeta(d);
   }
 }
 
@@ -1434,9 +1754,19 @@ function buildDayRows(days) {
               ${isRoundtrip ? `
               <div style="flex:1">
                 <span style="font-size:11px;color:var(--gray-light)">預計回程時間（選填）</span>
-                <input class="field-inline" type="text" id="return_time_${i}" placeholder="例：18:00" inputmode="numeric"
-                  style="margin-top:4px"
-                  oninput="this.value=this.value.replace(/[^0-9:]/g,'');buildDescText(${i})">
+                <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+                  ${(()=>{ const hrs=Array.from({length:24},(_,h)=>`<option value="${String(h).padStart(2,'0')}">${String(h).padStart(2,'0')}</option>`).join(''); const mins=['00','05','10','15','20','25','30','35','40','45','50','55'].map(m=>`<option value="${m}">${m}</option>`).join(''); return `
+                  <select id="return_time_${i}_h" style="width:68px;text-align:center;font-size:15px;font-weight:600;padding:7px 4px"
+                    onchange="syncReturnTime(${i});buildDescText(${i})">
+                    <option value="">時</option>${hrs}
+                  </select>
+                  <span style="font-size:16px;font-weight:700;color:var(--blue)">:</span>
+                  <select id="return_time_${i}_m" style="width:68px;text-align:center;font-size:15px;font-weight:600;padding:7px 4px"
+                    onchange="syncReturnTime(${i});buildDescText(${i})">
+                    <option value="">分</option>${mins}
+                  </select>
+                  <input type="hidden" id="return_time_${i}">`; })()}
+                </div>
               </div>` : ''}
             </div>` : ''}
             ${!isAirportDay ? `
@@ -1509,7 +1839,7 @@ function buildDayRows(days) {
         </div>`;
     }
 
-    const metaHtml = `<div class="day-meta">${parseDayMeta(day.desc, day.luggage, day.price)}</div>`;
+    const metaHtml = `<div class="day-meta" id="day_meta_${i}">${parseDayMeta(day.desc, day.luggage, day.price)}</div>`;
     // 完全移除括號及其內容（已顯示在 meta 列）
     const cleanDesc = day.desc.replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
     day._cleanDesc = cleanDesc; // 存供動態更新用
@@ -1605,16 +1935,6 @@ function updateFlightPreview(prefix, suffix) {
 const AP_REPLACE_KEYS = ['成田','羽田','關西','中部','神戶','福岡','熊本','大分','仙台','那霸','新千歲','北九州','石垣','宮古'];
 
 // ════════════════════════════════════
-// SCROLL TO SECTION (NAV click)
-// ════════════════════════════════════
-function scrollToSec(n) {
-  const targets = { 1:'sec1', 2:'sec2', 3:'sec3' };
-  const el = document.getElementById(targets[n]);
-  if (!el) return;
-  const top = el.getBoundingClientRect().top + window.scrollY - 58;
-  window.scrollTo({ top, behavior: 'smooth' });
-}
-
 // ════════════════════════════════════
 // COPY ACCOUNT NUMBER
 // ════════════════════════════════════
@@ -1657,7 +1977,7 @@ const SAVE_KEY = () => `ryojo_draft_${(new URLSearchParams(location.search).get(
 
 function autosave() {
   const fields = ['f-name','f-phone','f-line','f-email','f-fb',
-    'f-link-source','f-discover','f-currency','f-amount','f-account','f-note',
+    'f-link-source','f-discover','f-account','f-note',
     'arr-airline','arr-flightno-prefix','arr-flightno-num','arr-time','arr-terminal',
     'dep-airline','dep-flightno-prefix','dep-flightno-num','dep-time','dep-leave','dep-terminal'];
   const data = {};
@@ -1696,8 +2016,8 @@ function showDraftBanner() {
   const b = document.createElement('div');
   b.innerHTML = `📝 已為您恢復上次未送出的填寫內容 &nbsp;<button onclick="clearDraft(this.parentNode)" style="background:none;border:1px solid currentColor;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:12px;color:inherit">清除</button>`;
   b.style.cssText = 'background:#e8f4fd;border:1px solid var(--blue-light);color:var(--blue-dark);font-size:13px;padding:10px 16px;border-radius:var(--radius-sm);margin-bottom:14px;display:flex;align-items:center;gap:8px';
-  const body = document.getElementById('formBody');
-  if (body) body.insertBefore(b, body.firstChild);
+  const page1 = document.getElementById('page1');
+  if (page1) page1.insertBefore(b, page1.firstChild);
 }
 
 function clearDraft(banner) {
@@ -1706,36 +2026,7 @@ function clearDraft(banner) {
 }
 
 // ════════════════════════════════════
-// SCROLL NAV DETECTION
-// ════════════════════════════════════
-function initScrollNav() {
-  window.addEventListener('scroll', () => {
-    const cards = document.querySelectorAll('[data-sec]');
-    let current = 1;
-    cards.forEach(card => {
-      if (card.getBoundingClientRect().top <= 100) current = parseInt(card.dataset.sec);
-    });
-    ['step1','step2','step3'].forEach((s, idx) => {
-      const el = document.getElementById(s);
-      if (!el) return;
-      el.classList.toggle('active', idx + 1 === current);
-      el.classList.toggle('done',   idx + 1 < current);
-    });
-  }, { passive: true });
-}
-
-// ════════════════════════════════════
-// COPY ACCOUNT NUMBER
-// ════════════════════════════════════
-function copyAccount() {
-  const num = document.getElementById('acct-number').textContent.trim();
-  navigator.clipboard.writeText(num).then(() => {
-    const btn = document.getElementById('copyAcctBtn');
-    btn.textContent = '✓ 已複製';
-    btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = '複製帳號'; btn.classList.remove('copied'); }, 2500);
-  });
-}
+// COPY ACCOUNT NUMBER (second definition removed)
 
 // ════════════════════════════════════
 // HOTEL CHANGE TRACKING
@@ -1990,69 +2281,90 @@ function t3Warn(selectId, warnId) {
 // ════════════════════════════════════
 // VALIDATION
 // ════════════════════════════════════
-function validate() {
-  let ok = true;
-  let firstErr = null;
+// ════════════════════════════════════
+// STEP PAGE NAVIGATION
+// ════════════════════════════════════
+let CURRENT_STEP = 1;
 
-  // Clear previous errors
+function goStep(n) {
+  if (n > CURRENT_STEP) {
+    if (CURRENT_STEP === 1 && !validateStep1()) return;
+    if (CURRENT_STEP === 3 && !validateStep3()) return;
+  }
+  if (n === 2) renderItinSummary();
+  document.querySelectorAll('.step-page').forEach(p => p.style.display = 'none');
+  const page = document.getElementById('page' + n);
+  if (page) page.style.display = 'block';
+  ['step1','step2','step3'].forEach((s, idx) => {
+    const el = document.getElementById(s);
+    if (!el) return;
+    el.classList.remove('active','done');
+    if (idx + 1 < n)  el.classList.add('done');
+    if (idx + 1 === n) el.classList.add('active');
+  });
+  CURRENT_STEP = n;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderItinSummary() {
+  const el = document.getElementById('itinSummary');
+  if (!el || !ORDER) return;
+  const rows = ORDER.days.map((d, i) => {
+    const cleanDesc = d.desc.replace(/\([^)]*\)/g,'').replace(/\s+/g,' ').trim();
+    const isLast = i === ORDER.days.length - 1;
+    return `<div class="itin-summary-row${isLast ? ' last' : ''}">
+      <span class="itin-summary-date">${d.date}</span>
+      <span class="itin-summary-desc">${cleanDesc}</span>
+      <span class="itin-summary-price">${d.price}</span>
+    </div>`;
+  }).join('');
+  el.innerHTML = rows + `<div class="itin-summary-total"><span>訂單總金額</span><span>${ORDER.total}</span></div>`;
+}
+
+// ════════════════════════════════════
+// VALIDATION
+// ════════════════════════════════════
+function _chk(id, errId) {
+  const el = document.getElementById(id);
+  const err = document.getElementById(errId);
+  const empty = !el || !el.value.trim();
+  if (err) err.classList.toggle('show', empty);
+  if (el)  el.classList.toggle('has-error', empty);
+  return !empty;
+}
+
+function validateStep1() {
+  // Step 1 目前無必填欄位（出發地、航班均為選填）
+  // 保留此函式供日後擴充用
+  return true;
+}
+
+function validateStep3() {
+  let ok = true;
   document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
 
-  function chk(id, errId) {
-    const el = document.getElementById(id);
-    const err = document.getElementById(errId);
-    const empty = !el || !el.value.trim();
-    if (err) err.classList.toggle('show', empty);
-    if (empty) {
-      if (el) el.classList.add('has-error');
-      ok = false; if (!firstErr && el) firstErr = el;
-    }
-  }
+  ok = _chk('f-name',        'e-name')        && ok;
+  ok = _chk('f-phone',       'e-phone')       && ok;
+  ok = _chk('f-line',        'e-line')        && ok;
+  ok = _chk('f-link-source', 'e-link-source') && ok;
+  ok = _chk('f-discover',    'e-discover')    && ok;
 
-  // Personal
-  chk('f-name',        'e-name');
-  chk('f-phone',       'e-phone');
-  chk('f-line',        'e-line');
-  // email: check format too
   const emailEl  = document.getElementById('f-email');
   const emailErr = document.getElementById('e-email');
   const emailVal = emailEl?.value.trim() || '';
   const emailOk  = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal);
-  if (emailErr) {
-    emailErr.textContent = emailVal ? '電子郵件格式不正確' : '請填寫電子郵件';
-    emailErr.classList.toggle('show', !emailOk);
-  }
-  if (!emailOk) { ok = false; if (!firstErr && emailEl) firstErr = emailEl; }
-  chk('f-link-source', 'e-link-source');
-  chk('f-discover',    'e-discover');
+  if (emailErr) { emailErr.textContent = emailVal ? '電子郵件格式不正確' : '請填寫電子郵件'; emailErr.classList.toggle('show', !emailOk); }
+  if (!emailOk) { ok = false; emailEl?.classList.add('has-error'); }
+
   if (document.getElementById('childAgeField')?.style.display !== 'none') {
-    chk('f-child-age', 'e-child-age');
+    ok = _chk('f-child-age', 'e-child-age') && ok;
   }
-  // Payment
-  chk('f-currency', 'e-currency');
-  chk('f-amount',   'e-amount');
-  chk('f-account',  'e-account');
-  // Flight numbers (only check num part)
-  const arrNum = document.getElementById('arr-flightno-num');
-  const arrErr = document.getElementById('e-arr-flightno');
-  if (arrNum && !arrNum.value.trim()) {
-    if (arrErr) arrErr.classList.add('show');
-    ok = false; if (!firstErr) firstErr = arrNum;
-  } else { if (arrErr) arrErr.classList.remove('show'); }
-
-  const depNum = document.getElementById('dep-flightno-num');
-  const depErr = document.getElementById('e-dep-flightno');
-  if (depNum && !depNum.value.trim()) {
-    if (depErr) depErr.classList.add('show');
-    ok = false; if (!firstErr) firstErr = depNum;
-  } else { if (depErr) depErr.classList.remove('show'); }
-
-  // Depart fields (skip isFirstDay — airport auto-filled)
-  ORDER.days.forEach((d, i) => {
-    if (!d.isFirstDay) chk(`depart_${i}`, `err_depart_${i}`);
-  });
-
-  if (firstErr) firstErr.scrollIntoView({ behavior:'smooth', block:'center' });
+  if (!ok) window.scrollTo({ top: 0, behavior: 'smooth' });
   return ok;
+}
+
+function validate() {
+  return validateStep1() && validateStep3();
 }
 
 // ════════════════════════════════════
@@ -2235,8 +2547,6 @@ function collect() {
     discover:     document.getElementById('f-discover').value,
     childAge:     document.getElementById('f-child-age')?.value?.trim() || '',
     // 匯款
-    currency:     document.getElementById('f-currency').value,
-    amount:       document.getElementById('f-amount').value.trim(),
     accountLast5: document.getElementById('f-account').value.trim(),
     // 備註
     note:         document.getElementById('f-note').value.trim(),
@@ -2272,8 +2582,6 @@ function showSuccess() {
     const el = document.getElementById(s);
     if (el) { el.classList.remove('active'); el.classList.add('done'); }
   });
-  const s3 = document.getElementById('step3');
-  if (s3) { s3.classList.remove('done'); s3.classList.add('active'); }
   window.scrollTo({ top:0, behavior:'smooth' });
 }
 
