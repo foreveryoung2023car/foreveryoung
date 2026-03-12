@@ -1,1 +1,2256 @@
-from CODE
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>旅乘日本包車 — 訂單確認表單</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600&family=Noto+Sans+TC:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue:        #3570a8;
+  --blue-dark:   #1e4e80;
+  --blue-mid:    #4a7fb5;
+  --blue-light:  #d6e6f5;
+  --blue-faint:  #edf4fb;
+  --gray:        #6a6a6a;
+  --gray-light:  #aaaaaa;
+  --gray-pale:   #e8e8e8;
+  --black:       #080403;
+  --text:        #1c1c1c;
+  --text-sub:    #4a4a4a;
+  --border:      #ccddef;
+  --page-bg:     #f0f5fb;
+  --card:        #ffffff;
+  --red:         #c0392b;
+  --warn-bg:     #fffbeb;
+  --warn-border: #f0b429;
+  --warn-text:   #7a5200;
+  --green:       #1e7e44;
+  --radius:      10px;
+  --radius-sm:   6px;
+  --shadow:      0 2px 10px rgba(53,112,168,0.09);
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+body {
+  background: var(--page-bg);
+  color: var(--text);
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  min-height: 100vh;
+}
+
+/* ─── SITE HEADER ─── */
+.site-header {
+  background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue) 100%);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  box-shadow: 0 2px 12px rgba(8,4,3,0.25);
+}
+.logo-block {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.logo-zh {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 28px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: .06em;
+  line-height: 1;
+}
+.logo-sub {
+  font-size: 14px;
+  font-family: 'Noto Sans TC', sans-serif;
+  color: rgba(255,255,255,0.75);
+  letter-spacing: .08em;
+  font-weight: 400;
+}
+.header-divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255,255,255,0.3);
+}
+.header-form-title {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.85);
+  letter-spacing: .08em;
+}
+
+/* ─── STEP BAR ─── */
+.step-bar {
+  background: var(--blue-dark);
+  display: flex;
+  justify-content: center;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(8,4,3,0.2);
+}
+.step-bar-inner {
+  display: flex;
+  max-width: 700px;
+  width: 100%;
+}
+.step {
+  flex: 1;
+  text-align: center;
+  padding: 11px 6px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.45);
+  border-bottom: 3px solid transparent;
+  transition: all .2s;
+  white-space: nowrap;
+}
+.step.active { color: #fff; border-bottom-color: #fff; font-weight: 500; }
+.step.done   { color: rgba(255,255,255,0.65); }
+
+/* ─── CONTAINER ─── */
+.container {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 28px 16px 100px;
+}
+
+/* ─── CARD ─── */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+  overflow: hidden;
+  animation: fadeUp .4s ease both;
+}
+.card:nth-child(1){animation-delay:.05s}
+.card:nth-child(2){animation-delay:.10s}
+.card:nth-child(3){animation-delay:.15s}
+.card:nth-child(4){animation-delay:.20s}
+.card:nth-child(5){animation-delay:.25s}
+
+.card-head {
+  background: var(--blue-faint);
+  border-bottom: 2px solid var(--blue-light);
+  padding: 15px 22px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+.head-icon {
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.card-head h2 {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--blue-dark);
+  letter-spacing: .04em;
+  flex: 1;
+}
+.badge {
+  font-size: 12px;
+  padding: 3px 11px;
+  border-radius: 20px;
+  background: var(--blue);
+  color: #fff;
+  letter-spacing: .05em;
+  white-space: nowrap;
+}
+.badge.ro {
+  background: var(--gray-pale);
+  color: var(--gray);
+}
+
+.card-body { padding: 22px; }
+
+/* ─── ORDER META ─── */
+.meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 20px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--gray-pale);
+  margin-bottom: 20px;
+}
+.meta-item label {
+  display: block;
+  font-size: 12px;
+  color: var(--gray);
+  letter-spacing: .05em;
+  margin-bottom: 3px;
+}
+.meta-item .val { font-size: 16px; font-weight: 500; }
+.meta-item .val.order-no {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 18px;
+  color: var(--blue-dark);
+}
+
+/* ─── COMBINED ITINERARY + ACCOMMODATION TABLE ─── */
+.itin-header {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--blue);
+  letter-spacing: .06em;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.itin-header-btns { display: flex; gap: 6px; }
+.itin-expand-btn {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--gray);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .15s, color .15s;
+  white-space: nowrap;
+}
+.itin-expand-btn:hover { background: var(--blue-faint); color: var(--blue); border-color: var(--blue-light); }
+
+/* Each day row = full-width block */
+.day-row {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.day-row-head {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 0;
+  background: var(--blue-faint);
+  border-bottom: 1px solid var(--border);
+}
+.day-date-col {
+  background: var(--blue);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 8px;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.3;
+  text-align: center;
+  flex-shrink: 0;
+}
+.day-date-col .month { font-size: 11px; opacity: .8; margin-bottom: 1px; }
+.day-date-col .day-n { font-size: 20px; line-height: 1; }
+.day-date-col .weekday { font-size: 11px; opacity: .75; margin-top: 2px; }
+
+.day-itin-col {
+  padding: 12px 16px 10px;
+  font-size: 15px;
+  color: var(--text-sub);
+  line-height: 1.7;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.day-itin-desc { flex: 1; }
+.day-itin-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+.day-price-chip {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--blue-dark);
+  background: var(--blue-light);
+  border-radius: 4px;
+  padding: 2px 9px;
+  letter-spacing: .02em;
+}
+
+/* per-day meta strip */
+.day-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  padding: 7px 16px 8px;
+  background: var(--blue-faint);
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--gray);
+}
+.day-meta span { display: flex; align-items: center; gap: 4px; }
+.day-meta .meta-price {
+  margin-left: auto;
+  font-family: 'Noto Serif TC', serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--blue-dark);
+}
+
+/* ── unified day accordion (depart + hotel) ── */
+.day-acc-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 16px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--blue);
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  transition: background .15s;
+  gap: 8px;
+}
+.day-acc-toggle:hover { background: var(--blue-faint); }
+.day-acc-toggle .acc-left { display: flex; align-items: center; gap: 8px; }
+.day-acc-toggle .acc-icon { font-size: 15px; line-height: 1; }
+.day-acc-toggle .acc-chevron { font-size: 10px; color: var(--gray-light); transition: transform .2s; margin-left: auto; }
+.day-acc-toggle .acc-chevron.open { transform: rotate(180deg); }
+.day-acc-body { display: none; border-bottom: 1px solid var(--border); }
+.day-acc-body.open { display: block; }
+.day-acc-body:last-child { border-bottom: none; }
+.day-acc-inner { padding: 14px 16px; }
+
+/* hotel collapsible (legacy alias) */
+.hotel-toggle { display:none; } /* replaced by day-acc-toggle */
+.hotel-body { display: none; }
+.hotel-body.open { display: block; }
+
+/* day detail section (depart + hotel) */
+.day-detail {
+  background: #fff;
+  border-top: 1px solid var(--border);
+}
+.day-detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 12px 16px;
+  border-bottom: 1px dashed var(--border);
+}
+.day-detail-row:last-child { border-bottom: none; }
+.detail-icon {
+  font-size: 16px;
+  margin-right: 10px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  line-height: 1.6;
+}
+.detail-content { flex: 1; min-width: 0; }
+.detail-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--blue);
+  letter-spacing: .05em;
+  margin-bottom: 6px;
+}
+/* readonly hotel name */
+.hotel-readonly {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--blue-dark);
+  background: var(--blue-faint);
+  border: 1.5px solid var(--blue-light);
+  border-radius: var(--radius-sm);
+  padding: 9px 13px;
+  margin-bottom: 8px;
+}
+/* auto-filled chip (first day = airport) */
+.depart-auto {
+  font-size: 14px;
+  color: var(--gray);
+  background: var(--blue-faint);
+  border: 1.5px solid var(--blue-light);
+  border-radius: var(--radius-sm);
+  padding: 9px 13px;
+  font-style: italic;
+}
+/* inline input inside day-detail */
+.field-inline {
+  width: 100%;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 15px;
+  padding: 10px 13px;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  -webkit-appearance: none;
+}
+.field-inline:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(53,112,168,.13);
+}
+.field-inline::placeholder { color: #bbb; font-size: 14px; }
+.field-inline.has-error { border-color: #e53e3e !important; background: #fff5f5 !important; }
+
+/* ─── TOTALS ─── */
+.totals {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 2px solid var(--blue-light);
+}
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+.total-row label { color: var(--gray); }
+.total-row span  { font-weight: 500; }
+.total-row.main label {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+}
+.total-row.main span {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 24px;
+  color: var(--blue-dark);
+  font-weight: 600;
+}
+
+/* deposit */
+.deposit-box {
+  margin-top: 16px;
+  padding: 16px 18px;
+  background: #fff8f0;
+  border: 1.5px solid #e8943a;
+  border-left: 5px solid #e8943a;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 14px;
+  line-height: 1.9;
+  color: var(--text);
+}
+.deposit-box .deposit-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #c0621a;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.deposit-account-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fef3e6;
+  border: 1px solid #f0b87a;
+  border-radius: var(--radius-sm);
+  padding: 9px 13px;
+  margin: 8px 0;
+  font-family: monospace;
+  font-size: 15px;
+  font-weight: 600;
+  color: #7a3e00;
+  letter-spacing: .06em;
+}
+.copy-btn {
+  margin-left: auto;
+  flex-shrink: 0;
+  background: #e8943a;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .15s;
+}
+.copy-btn:hover { background: #c0621a; }
+.copy-btn.copied { background: #4caf50; }
+.deposit-urgent {
+  margin-top: 10px;
+  padding: 9px 12px;
+  background: #fde8d0;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: #7a3e00;
+  line-height: 1.7;
+}
+
+/* ─── FORM FIELDS ─── */
+.form-grid   { display: grid; gap: 16px; }
+.g2 { grid-template-columns: 1fr 1fr; }
+.g3 { grid-template-columns: 1fr 1fr 1fr; }
+.cf { grid-column: 1 / -1; }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field > label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-sub);
+}
+.field > label .req { color: var(--red); margin-left: 2px; }
+
+.field input,
+.field select,
+.field textarea {
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 15px;
+  padding: 11px 13px;
+  outline: none;
+  width: 100%;
+  transition: border-color .2s, box-shadow .2s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%236a6a6a' d='M5 6L0 0h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 13px center;
+  padding-right: 34px;
+  cursor: pointer;
+}
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(53,112,168,.13);
+}
+.field input::placeholder,
+.field textarea::placeholder { color: #bbb; font-size: 14px; }
+.field textarea { resize: vertical; min-height: 88px; line-height: 1.6; }
+.field input[readonly] { background: var(--blue-faint); color: var(--gray); cursor: default; }
+
+.err-msg { font-size: 13px; color: var(--red); display: none; }
+.err-msg.show { display: block; }
+
+/* ─── FLIGHT ACCORDION ─── */
+.flight-acc {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.flight-acc-head {
+  background: var(--blue-faint);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color .2s;
+}
+.flight-acc-head.open-head { border-bottom-color: var(--border); }
+.flight-acc-head .fh-left {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--blue-dark);
+}
+.fh-icon { font-size: 20px; }
+.chevron { color: var(--gray); font-size: 13px; transition: transform .2s; }
+.chevron.up { transform: rotate(180deg); }
+.flight-acc-body { display: none; padding: 18px; }
+.flight-acc-body.open { display: block; }
+
+/* T3 warning */
+.t3-warn {
+  display: none;
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  border-left: 4px solid var(--warn-border);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 14px;
+  color: var(--warn-text);
+  line-height: 1.7;
+}
+.t3-warn.show { display: block; }
+
+/* ─── NOTICE ─── */
+.notice {
+  padding: 11px 15px;
+  background: #f4f4f4;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--gray);
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+.notice strong { color: var(--text); }
+
+/* ─── SUBMIT ─── */
+.submit-wrap {
+  text-align: center;
+  margin-top: 30px;
+}
+.btn-submit {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'Noto Serif TC', serif;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: .12em;
+  padding: 18px 0;
+  width: 100%;
+  max-width: 380px;
+  cursor: pointer;
+  transition: background .2s, transform .1s, box-shadow .2s;
+  box-shadow: 0 4px 18px rgba(53,112,168,.32);
+}
+.btn-submit:hover  { background: var(--blue-dark); }
+.btn-submit:active { transform: scale(.98); }
+.btn-submit:disabled { opacity: .45; cursor: not-allowed; }
+.submit-note {
+  font-size: 13px;
+  color: var(--gray-light);
+  margin-top: 12px;
+  line-height: 1.8;
+}
+
+/* ─── SUCCESS ─── */
+.success {
+  display: none;
+  text-align: center;
+  padding: 56px 24px 64px;
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+.success.show { display: block; }
+.success-icon {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue-faint) 0%, #c8dff5 100%);
+  border: 3px solid var(--blue);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px;
+  color: var(--blue);
+  margin: 0 auto 28px;
+  animation: popIn .45s cubic-bezier(.17,.89,.32,1.28) both;
+}
+@keyframes popIn {
+  from { transform: scale(0.5); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+.success-title {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--blue-dark);
+  margin-bottom: 8px;
+  letter-spacing: .04em;
+}
+.success-sub {
+  font-size: 15px;
+  color: var(--text-sub);
+  line-height: 2;
+  margin-bottom: 28px;
+}
+.success-pending {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  color: var(--warn-text);
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 36px;
+  text-align: left;
+}
+.success-pending .pending-icon { font-size: 20px; flex-shrink: 0; }
+.success-divider {
+  width: 48px; height: 2px;
+  background: var(--blue-light);
+  border-radius: 2px;
+  margin: 0 auto 28px;
+}
+.success-tagline {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 17px;
+  color: var(--blue);
+  letter-spacing: .08em;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.success-tagline-en {
+  font-size: 12px;
+  color: var(--gray-light);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+/* ─── LOADING ─── */
+.loading {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(8,4,3,.52);
+  z-index: 300;
+  align-items: center; justify-content: center;
+  flex-direction: column; gap: 18px;
+}
+.loading.show { display: flex; }
+.spinner {
+  width: 40px; height: 40px;
+  border: 3px solid rgba(255,255,255,.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to{transform:rotate(360deg)} }
+.loading p { font-size:15px; color:rgba(255,255,255,.85); letter-spacing:.1em; }
+
+/* ─── ERROR PAGE ─── */
+.error-page { display:none; text-align:center; padding:80px 20px; }
+.error-page.show { display:block; }
+.error-page h2 { font-family:'Noto Serif TC',serif; font-size:22px; color:var(--red); margin-bottom:14px; }
+.error-page p  { font-size:16px; color:var(--text-sub); line-height:1.8; }
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ─── RWD ─── */
+@media (max-width: 600px) {
+  .container { padding: 16px 10px 30px; }
+  .card-body { padding: 16px; }
+  .meta-grid { grid-template-columns: 1fr 1fr; }
+  .g2 { grid-template-columns: 1fr; }
+  .g3 { grid-template-columns: 1fr 1fr; }
+  .hotel-inputs { grid-template-columns: 1fr; }
+  .itin-price { display: none; }
+  .day-price-tag { font-size: 12px; padding: 2px 8px; }
+  .step { font-size: 11px; padding: 10px 3px; }
+  .site-header { padding: 14px 16px; }
+  .day-date-col .day-n { font-size: 18px; }
+  .total-row.main span { font-size: 21px; }
+  .btn-submit { font-size: 17px; padding: 16px 0; }
+}
+@media (max-width: 380px) {
+  .g3 { grid-template-columns: 1fr; }
+  .meta-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <p>訂單資料載入中…</p>
+</div>
+
+<!-- HEADER -->
+<div class="site-header">
+  <div class="logo-block">
+    <span class="logo-zh">旅乘</span>
+    <span class="logo-sub">日本自由行包車</span>
+  </div>
+  <div class="header-divider"></div>
+  <div class="header-form-title">匯款訂購單確認</div>
+</div>
+
+<!-- STEP BAR -->
+<div class="step-bar">
+  <div class="step-bar-inner" id="stepBarInner">
+    <div class="step active" id="step1" onclick="scrollToSec(1)">① 確認訂單</div>
+    <div class="step" id="step2" onclick="scrollToSec(2)">② 個人資料</div>
+    <div class="step" id="step3" onclick="scrollToSec(3)">③ 備註送出</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="error-page" id="errorPage">
+    <h2>連結無效或已過期</h2>
+    <p>請聯繫旅乘客服確認您的專屬表單連結<br>或檢查連結是否完整複製</p>
+  </div>
+
+  <div id="mainContent" style="display:none">
+
+    <!-- SUCCESS -->
+    <div class="success" id="successScreen">
+      <div class="success-icon">✓</div>
+      <p class="success-title">資料已成功送出</p>
+      <p class="success-sub">
+        感謝您填寫旅乘訂單確認表單<br>
+        我們已收到您的資料，正在進行審核
+      </p>
+      <div class="success-pending">
+        <span class="pending-icon">⏳</span>
+        <span>工作人員確認後，將透過 <strong>LINE</strong> 或 <strong>電子信箱</strong> 另行通知您，請耐心等候。</span>
+      </div>
+      <div class="success-divider"></div>
+      <p class="success-tagline">旅乘日本包車　感謝您的信任</p>
+      <p class="success-tagline-en">Forever Young &nbsp;·&nbsp; Japan Private Charter</p>
+    </div>
+
+    <div id="formBody">
+
+      <!-- ① 訂單 + 行程 + 住宿 一體化 -->
+      <div class="card" id="sec1" data-sec="1">
+        <div class="card-head">
+          <div class="head-icon">📋</div>
+          <h2>訂單行程與住宿確認</h2>
+          <span class="badge ro">行程唯讀</span>
+        </div>
+        <div class="card-body">
+
+          <!-- 訂單基本資訊 -->
+          <div class="meta-grid">
+            <div class="meta-item">
+              <label>訂單編號</label>
+              <div class="val order-no" id="disp-id"></div>
+            </div>
+            <div class="meta-item">
+              <label>旅遊日期</label>
+              <div class="val" id="disp-date"></div>
+            </div>
+          </div>
+
+          <!-- 行程表 + 住宿 -->
+          <div class="itin-header">
+            <span>📅 每日行程明細 &amp; 住宿資料</span>
+            <button class="itin-expand-btn" id="expandToggleBtn" onclick="toggleExpandAll()">⬇ 展開全部</button>
+          </div>
+          <div id="dayRowList"></div>
+          <button id="staffFillBtn" onclick="staffFillDepart()" style="display:none;width:100%;margin:12px 0 4px;padding:11px;border:1.5px dashed var(--blue-light);border-radius:var(--radius-sm);background:#fff;color:var(--blue);font-size:14px;cursor:pointer;font-family:inherit">
+            🏨 套用相同出發地點至其他日期
+          </button>
+
+          <!-- 總計 -->
+          <div class="totals">
+            <div class="total-row main">
+              <label>訂單總金額</label>
+              <span id="disp-total"></span>
+            </div>
+            <div class="total-row">
+              <label>尾款（85%，行程結束交付司機）</label>
+              <span id="disp-balance"></span>
+            </div>
+          </div>
+
+          <div class="deposit-box">
+            <div class="deposit-title">⚠️ 匯款資訊 — 請務必確認</div>
+            <div style="background:#fff3e0;border-radius:6px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap">
+              <div>
+                <span style="font-size:13px;color:#7a3e00;font-weight:500">應付訂金</span>
+                <span style="font-size:11px;color:#a05a20;margin-left:8px">匯率 <span id="disp-rate"></span>，含手續費</span>
+              </div>
+              <span id="disp-deposit" style="font-family:'Noto Serif TC',serif;font-size:22px;font-weight:700;color:#c0621a;letter-spacing:.04em"></span>
+            </div>
+            <div class="deposit-account-row">
+              <div>
+                <div style="font-size:13px;font-weight:500;color:#a05a20;letter-spacing:.04em;margin-bottom:4px">華南銀行 (008) 營業部 ‧ 佳遊國際旅行社有限公司</div>
+                <span id="acct-number" style="font-size:22px;letter-spacing:.1em">100100344320</span>
+              </div>
+              <button class="copy-btn" id="copyAcctBtn" onclick="copyAccount()">複製帳號</button>
+            </div>
+            <div class="deposit-urgent">
+              ⏰ 請於三日內完成匯款並填寫表單<br>
+              同時提供匯款截圖紀錄，以便快速查帳與成立訂單
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ② 個人資料 -->
+      <div class="card" id="sec2" data-sec="2">
+        <div class="card-head">
+          <div class="head-icon">👤</div>
+          <h2>聯絡人與付款資料</h2>
+          <span class="badge">請填寫</span>
+        </div>
+        <div class="card-body">
+          <div class="notice">
+            請填寫代表聯絡人資訊與付款資料，旅乘客服將用於核對訂單及確認匯款。
+          </div>
+
+          <!-- 聯絡資訊 -->
+          <div style="font-size:13px;font-weight:600;color:var(--blue);letter-spacing:.06em;margin-bottom:12px;">聯絡資訊</div>
+          <div class="form-grid g2" style="margin-bottom:20px">
+            <div class="field">
+              <label>姓名（中文全名）<span class="req">＊</span></label>
+              <input type="text" id="f-name" placeholder="例：王小明" autocomplete="name">
+              <div class="err-msg" id="e-name">請填寫中文姓名</div>
+            </div>
+            <div class="field">
+              <label>手機號碼<span class="req">＊</span></label>
+              <input type="tel" id="f-phone" placeholder="例：0912345678、台灣以外請填國碼+號碼" autocomplete="tel">
+              <div class="err-msg" id="e-phone">請填寫手機號碼</div>
+            </div>
+            <div class="field">
+              <label>LINE ID<span class="req">＊</span></label>
+              <input type="text" id="f-line" placeholder="例：travel_wang">
+              <div class="err-msg" id="e-line">請填寫 LINE ID</div>
+            </div>
+            <div class="field">
+              <label>電子郵件地址<span class="req">＊</span></label>
+              <input type="email" id="f-email" placeholder="例：name@email.com" autocomplete="email">
+              <div class="err-msg" id="e-email">請填寫電子郵件</div>
+            </div>
+            <div class="field">
+              <label>Facebook 名稱</label>
+              <input type="text" id="f-fb" placeholder="例：小明 Wang">
+            </div>
+            <!-- 兒童年齡（有小孩時動態顯示，佔右欄） -->
+            <div class="field" id="childAgeField" style="display:none">
+              <label>兒童年齡<span class="req">＊</span>
+                <span style="font-size:11px;font-weight:400;color:var(--gray-light)">（未滿6歲，用+區隔）</span>
+              </label>
+              <input type="text" id="f-child-age" placeholder="例：3+5歲">
+              <div class="err-msg" id="e-child-age">請填寫兒童年齡</div>
+            </div>
+            <div class="field">
+              <label>您從哪裡取得此表單連結<span class="req">＊</span></label>
+              <select id="f-link-source">
+                <option value="">請選擇</option>
+                <option>LINE官方帳號</option>
+                <option>Facebook粉絲專頁</option>
+                <option>Instagram</option>
+                <option>Threads</option>
+                <option>抖音</option>
+                <option>小紅書</option>
+                <option>其他</option>
+              </select>
+              <div class="err-msg" id="e-link-source">請選擇取得方式</div>
+            </div>
+            <div class="field">
+              <label>您最先從哪裡發現旅乘<span class="req">＊</span></label>
+              <select id="f-discover">
+                <option value="">請選擇</option>
+                <option>Facebook粉絲專頁</option>
+                <option>LINE官方帳號</option>
+                <option>Instagram</option>
+                <option>Threads</option>
+                <option>Dcard</option>
+                <option>PTT討論區</option>
+                <option>背包客棧</option>
+                <option>日本自由行討論區</option>
+                <option>京都自由行究極攻略</option>
+                <option>網紅/KOL推薦</option>
+                <option>親友介紹推薦</option>
+                <option>業務人員主動聯繫</option>
+                <option>其他</option>
+              </select>
+              <div class="err-msg" id="e-discover">請選擇發現管道</div>
+            </div>
+          </div>
+
+          <!-- 匯款資訊 -->
+          <div style="font-size:13px;font-weight:600;color:var(--blue);letter-spacing:.06em;margin-bottom:12px;">匯款資訊</div>
+          <div class="form-grid g2">
+            <div class="field">
+              <label>匯款幣別<span class="req">＊</span></label>
+              <select id="f-currency">
+                <option value="">請選擇</option>
+                <option>新台幣 TWD</option>
+                <option>港幣 HKD</option>
+                <option>新加坡幣 SGD</option>
+                <option>日圓 JPY</option>
+                <option>人民幣 CNY</option>
+              </select>
+              <div class="err-msg" id="e-currency">請選擇幣別</div>
+            </div>
+            <div class="field">
+              <label>匯款金額<span class="req">＊</span></label>
+              <input type="number" id="f-amount" placeholder="例：5390">
+              <div class="err-msg" id="e-amount">請填寫匯款金額</div>
+            </div>
+            <div class="field cf">
+              <label>匯款帳號後 5 碼<span class="req">＊</span></label>
+              <input type="text" id="f-account" placeholder="例：44320" maxlength="5" inputmode="numeric">
+              <div class="err-msg" id="e-account">請填寫帳號後5碼</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ④ 備註 -->
+      <div class="card" id="sec3" data-sec="3">
+        <div class="card-head">
+          <div class="head-icon">📝</div>
+          <h2>特殊需求與備註</h2>
+        </div>
+        <div class="card-body">
+          <div class="field">
+            <label>有任何特殊需求，請在此說明</label>
+            <textarea id="f-note" placeholder="例：有嬰兒車、需兒童安全座椅、飲食限制、特殊行程偏好…"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBMIT -->
+      <div class="submit-wrap">
+        <button class="btn-submit" id="btnSubmit" onclick="submitForm()">確認送出資料</button>
+        <p class="submit-note">送出後資料將直接寫入您的訂單<br>如需修改請聯繫旅乘客服</p>
+      </div>
+
+    </div><!-- /formBody -->
+  </div><!-- /mainContent -->
+</div><!-- /container -->
+
+<script>
+// ════════════════════════════════════
+// DEMO DATA
+// ════════════════════════════════════
+/*
+  day 物件：
+    desc        行程描述（含 (X大X小)(X座) 供前端解析）
+    luggage     行李件數（另外給欄位）
+    price       當日費用
+    hotel       住宿名稱（你填好，空白=無住宿）
+    isFirstDay  true = 第一天，出發地從行程抓機場
+    prevDayIdx  前一天 index，供出發地 placeholder 提示
+*/
+const DEMO = {
+  orderId: "#26010301",
+  date:    "2026/01/01 – 01/03",
+  total:   "¥198,000",
+  balance: "¥168,000",
+  deposit: "NT$6,600元",
+  rate:    "0.22",
+  days: [
+    { date:"01/01", month:"01", dayNum:"01", weekday:"四",
+      desc:"東京市區往返富士山一日遊(7大1小)(10座)",
+      luggage:"6件", price:"¥68,000", hotel:"Shinjuku Granbell Hotel",
+      isFirstDay:true, prevDayIdx:-1 },
+    { date:"01/02", month:"01", dayNum:"02", weekday:"五",
+      desc:"東京市區往返鐮倉一日遊(11大1小)(14座)",
+      luggage:"8件", price:"¥76,000", hotel:"Shinjuku Granbell Hotel",
+      isFirstDay:false, prevDayIdx:0 },
+    { date:"01/03", month:"01", dayNum:"03", weekday:"六",
+      desc:"東京市區至成田機場-單程(11大1小)(10+7座)",
+      luggage:"8件", price:"¥54,000", hotel:"",
+      isFirstDay:false, prevDayIdx:1 },
+    { date:"01/04", month:"01", dayNum:"04", weekday:"日",
+      desc:"東京市區接送迪士尼樂園來回(7大1小)(7座)",
+      luggage:"4件", price:"¥38,000", hotel:"Shinjuku Granbell Hotel",
+      isFirstDay:false, prevDayIdx:2 }
+  ]
+};
+
+let ORDER = null;
+
+// ════════════════════════════════════
+// INIT
+// ════════════════════════════════════
+window.onload = function() {
+  // 正式版：parse URL params → loadFromGAS(order, token)
+  loadUI(DEMO);
+};
+
+function loadUI(data) {
+  ORDER = data;
+  document.getElementById('disp-id').textContent      = data.orderId;
+  document.getElementById('disp-date').textContent    = data.date;
+  document.getElementById('disp-total').textContent   = data.total;
+  document.getElementById('disp-balance').textContent = data.balance;
+  document.getElementById('disp-deposit').textContent = data.deposit;
+  document.getElementById('disp-rate').textContent    = data.rate;
+
+  // 從行程描述自動解析機場 — 掃描所有天，找第一個含機場名稱的
+  const AIRPORTS = [
+    { name: '福岡機場',     code: 'FUK' },
+    { name: '那霸機場',     code: 'OKA' },
+    { name: '新千歲機場',   code: 'CTS' },
+    { name: '成田機場',     code: 'NRT' },
+    { name: '羽田機場',     code: 'HND' },
+    { name: '關西機場',     code: 'KIX' },
+    { name: '中部機場',     code: 'NGO' },
+    { name: '新北九州機場', code: 'KKJ' },
+    { name: '長崎機場',     code: 'NGS' },
+    { name: '熊本機場',     code: 'KMJ' },
+    { name: '大分機場',     code: 'OIT' },
+    { name: '宮崎機場',     code: 'KMI' },
+    { name: '鹿兒島機場',   code: 'KOJ' },
+    { name: '石垣機場',     code: 'ISG' },
+    { name: '宮古機場',     code: 'MMY' },
+  ];
+
+  // 每天都掃描，有機場就記錄 autoDepart（供第一天唯讀顯示 or 後面天鎖定選單用）
+  let globalAirport = null;
+  data.days.forEach(d => {
+    const hit = AIRPORTS.find(a => d.desc.includes(a.name));
+    if (hit) {
+      d.autoDepart = hit.name;
+      if (!globalAirport) globalAirport = hit; // 第一個出現的機場作為航班預設
+    } else {
+      d.autoDepart = null;
+    }
+  });
+
+  // 將兩個機場 select 預設選中並鎖定（disabled + 顯示唯讀樣式）
+  if (globalAirport) {
+    const optionText = `${globalAirport.name} (${globalAirport.code})`;
+    ['arr-airport', 'dep-airport'].forEach(id => {
+      const sel = document.getElementById(id);
+      if (!sel) return;
+      for (let opt of sel.options) {
+        if (opt.text === optionText) { opt.selected = true; break; }
+      }
+      sel.disabled = true;
+      sel.style.background = 'var(--blue-faint)';
+      sel.style.color = 'var(--blue-dark)';
+      sel.style.fontWeight = '500';
+    });
+  }
+
+  buildDayRows(data.days);
+
+  // 多天且有可填寫出發地（非鎖定機場）才顯示套用按鈕
+  const fillableDays = data.days.filter(d => !(d.isFirstDay && d.autoDepart));
+  if (fillableDays.length >= 2) {
+    document.getElementById('staffFillBtn').style.display = 'block';
+  }
+
+  // 偵測是否有小孩（任何一天描述含「小」）
+  const hasChild = data.days.some(d => /\d+小/.test(d.desc));
+  if (hasChild) document.getElementById('childAgeField').style.display = 'block';
+
+  // 從行程描述自動判斷是否有接機／送機（只要含「機場」就顯示）
+  const hasArrival   = data.days.some(d => d.desc.includes('機場') && d.isFirstDay);
+  const hasDeparture = data.days.some(d => d.desc.includes('機場') && !d.isFirstDay);
+  const hasAnyFlight = data.days.some(d => d.desc.includes('機場'));
+
+
+  document.getElementById('mainContent').style.display = 'block';
+  document.getElementById('loading').classList.remove('show');
+  initScrollNav();
+  setTimeout(restoreDraft, 300); // restore after DOM settle
+  setInterval(autosave, 30000);  // autosave every 30s
+  document.addEventListener('input', autosave); // also save on any input
+}
+
+// ════════════════════════════════════
+// BUILD DAY ROWS
+// ════════════════════════════════════
+
+// 車款對照（顯示格式：10座海獅）
+const CAR_NAMES = {'7':'舒適款','8':'商務款','9':'豪華款','10':'海獅','13':'海獅','14':'海獅','19':'考斯特','25':'大型巴士','45':'大型巴士'};
+function carLabel(s) {
+  return s.replace('座','').split('+').map(n => {
+    const nm = CAR_NAMES[n.trim()];
+    return nm ? `${n}座${nm}` : `${n}座`;
+  }).join(' + ');
+}
+
+function parseDayMeta(desc, luggage, price) {
+  const paxM = desc.match(/\((\d+大\d*小?|\d+小|\d+大)\)/);
+  const carM  = desc.match(/\((\d+(?:\+\d+)?座)\)/);
+  const parts = [];
+  if (paxM) parts.push(`<span>👥 ${paxM[1]}</span>`);
+  if (carM)  parts.push(`<span>🚌 ${carLabel(carM[1])}</span>`);
+  if (luggage) parts.push(`<span>📦 行李 ${luggage}</span>`);
+  if (price)   parts.push(`<span class="meta-price">${price}</span>`);
+  return parts.join('');
+}
+
+
+const AIRPORT_HINTS = {
+  '成田': '⏱ 東京市區至成田機場約1小時30分鐘車程，請留意登機時間',
+  'NRT':  '⏱ 東京市區至成田機場約1小時30分鐘車程，請留意登機時間',
+  '羽田': '⏱ 東京市區至羽田機場約1小時車程，請留意登機時間',
+  'HND':  '⏱ 東京市區至羽田機場約1小時車程，請留意登機時間',
+  '關西': '⏱ 大阪市區至關西機場約1小時、京都市區約1小時45分鐘車程，請留意登機時間',
+  'KIX':  '⏱ 大阪市區至關西機場約1小時、京都市區約1小時45分鐘車程，請留意登機時間',
+  '福岡': '⏱ 福岡市區至福岡機場約20分鐘車程，請留意登機時間',
+  'FUK':  '⏱ 福岡市區至福岡機場約20分鐘車程，請留意登機時間',
+  '中部': '⏱ 名古屋市區至中部機場約1小時車程，請留意登機時間',
+  'NGO':  '⏱ 名古屋市區至中部機場約1小時車程，請留意登機時間',
+};
+function getAirportHint(desc) {
+  for (const [k, v] of Object.entries(AIRPORT_HINTS)) {
+    if (desc.includes(k)) return v;
+  }
+  return '';
+}
+
+function buildTimeSelect(id) {
+  return `<input class="field-inline" type="text" id="${id}" placeholder="例：09:00" inputmode="numeric"
+    style="margin-top:4px"
+    oninput="this.value=this.value.replace(/[^0-9:]/g,'');checkNightSurcharge(this);updateDayDescTime(parseInt(this.id.replace('depart_time_','')))"
+    onblur="checkNightSurcharge(this)">
+    <div id="${id}_warn" style="display:none;margin-top:6px;padding:8px 10px;background:#fff7e6;border:1px solid #ffb347;border-radius:6px;font-size:12px;color:#7a3c00">
+      ⚠️ 此時段（22:00–06:59）會有夜間加成費用產生，每小時 ¥3,000 日圓，請留意
+    </div>`;
+}
+
+function checkNightSurcharge(inp) {
+  const warn = document.getElementById(inp.id + '_warn');
+  if (!warn) return;
+  const val = inp.value.trim();
+  const m = val.match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) { warn.style.display = 'none'; return; }
+  const h = parseInt(m[1]);
+  const isNight = (h >= 22) || (h <= 6);
+  warn.style.display = isNight ? 'block' : 'none';
+}
+
+// 從行程描述抓機場名稱（用於航班唯讀顯示）
+const AIRPORT_MAP = {
+  '成田':'東京成田', 'NRT':'東京成田', '羽田':'東京羽田', 'HND':'東京羽田',
+  '關西':'大阪關西', 'KIX':'大阪關西', '福岡':'福岡國際', 'FUK':'福岡國際',
+  '中部':'名古屋中部', 'NGO':'名古屋中部', '那霸':'那霸', 'OKA':'那霸',
+  '新千歲':'新千歲', 'CTS':'新千歲', '熊本':'熊本', 'KMJ':'熊本',
+  '長崎':'長崎', 'NGS':'長崎', '神戶':'神戶', 'UKB':'神戶',
+  '北九州':'北九州', 'KKJ':'北九州', '石垣':'石垣', 'ISG':'石垣',
+};
+function extractAirportName(desc) {
+  for (const [k, v] of Object.entries(AIRPORT_MAP)) {
+    if (desc.includes(k)) return v;
+  }
+  return '機場';
+}
+
+function buildFlightHtml(dayI, isArrival, airportName) {
+  const prefix     = isArrival ? `arr_${dayI}` : `dep_${dayI}`;
+  const icon       = isArrival ? '🛬' : '🛫';
+  const label      = isArrival ? '抵達航班' : '出發航班';
+  const timeSuffix = isArrival ? '著' : '飛';
+  const timePH     = isArrival ? '例：13:20' : '例：12:15';
+
+  const airports = [
+    '東京成田','東京羽田','大阪關西','福岡國際','名古屋中部',
+    '那霸','新千歲','熊本','長崎','神戶','北九州','石垣','宮古'
+  ];
+  const airportOpts = airports.map(a =>
+    `<option value="${a}"${a === airportName ? ' selected' : ''}>${a}機場</option>`
+  ).join('');
+
+  const airlines = `
+    <option value="" data-code="">請選擇</option>
+    <optgroup label="— 台灣出發 —">
+      <option value="中華航空" data-code="CI">中華航空 CI</option>
+      <option value="長榮航空" data-code="BR">長榮航空 BR</option>
+      <option value="星宇航空" data-code="JX">星宇航空 JX</option>
+      <option value="台灣虎航" data-code="IT">台灣虎航 IT</option>
+      <option value="酷航"     data-code="TR">酷航 TR</option>
+    </optgroup>
+    <optgroup label="— 日本航空 —">
+      <option value="日本航空" data-code="JL">日本航空 JL</option>
+      <option value="全日空"   data-code="NH">全日空 NH</option>
+      <option value="樂桃航空" data-code="MM">樂桃航空 MM</option>
+    </optgroup>
+    <optgroup label="— 其他 —">
+      <option value="國泰航空" data-code="CX">國泰航空 CX</option>
+      <option value="香港快運" data-code="UO">香港快運 UO</option>
+      <option value="港航"     data-code="HX">港航 HX</option>
+      <option value="泰國航空" data-code="TG">泰國航空 TG</option>
+      <option value="韓亞航空" data-code="OZ">韓亞航空 OZ</option>
+      <option value="大韓航空" data-code="KE">大韓航空 KE</option>
+    </optgroup>
+    <option value="其他" data-code="">其他</option>`;
+
+  const onchange = `updateFlightPreview('${prefix}','${timeSuffix}')`;
+
+  return `
+    <div style="margin-top:12px;padding:10px 12px;background:var(--blue-faint);border-radius:var(--radius-sm);border:1px solid var(--blue-light)">
+      <div style="font-size:12px;font-weight:600;color:var(--blue);margin-bottom:10px">${icon} ${label}</div>
+      <div class="form-grid g2" style="gap:8px">
+        <div class="field">
+          <label>機場</label>
+          <select id="${prefix}_airport" disabled
+            style="color:var(--blue-dark);background:#dce8ff;border-color:var(--blue-light);cursor:default"
+            onchange="${onchange}">${airportOpts}</select>
+        </div>
+        <div class="field">
+          <label>航廈</label>
+          <select id="${prefix}_terminal" onchange="${onchange}">
+            <option value="">請選擇</option><option>T1</option><option>T2</option><option>T3</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>航空公司<span class="req">＊</span></label>
+          <select id="${prefix}_airline" onchange="flightAirlinePick('${prefix}');${onchange}">
+            ${airlines}
+          </select>
+        </div>
+        <div class="field">
+          <label>班機號碼<span class="req">＊</span></label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input type="text" id="${prefix}_no_pfx" readonly
+              style="width:62px;text-align:center;font-weight:700;background:#e8f0fe;color:var(--blue-dark);flex-shrink:0" placeholder="CI">
+            <input type="text" id="${prefix}_no_num" placeholder="191" inputmode="numeric" style="flex:1"
+              oninput="this.value=this.value.replace(/\\D/g,'');${onchange}">
+          </div>
+          <div class="err-msg" id="e_${prefix}_no">請填寫班機號碼</div>
+        </div>
+        <div class="field cf">
+          <label>${isArrival ? '抵達時間' : '起飛時間（' + timeSuffix + '）'}<span class="req">＊</span></label>
+          <input class="field-inline" type="text" id="${prefix}_time"
+            placeholder="${timePH}" inputmode="numeric"
+            oninput="${onchange}">
+        </div>
+      </div>
+      <div id="${prefix}_preview" style="display:none !important"></div>
+    </div>`;
+}
+function buildDayRows(days) {
+  const el = document.getElementById('dayRowList');
+  days.forEach((day, i) => {
+    const lockAsAirport = day.isFirstDay && day.autoDepart;
+
+    // ── 出發地 + 抵達地點（折疊） ──
+    let departRowHtml = '';
+    if (lockAsAirport) {
+      departRowHtml = `
+        <div class="day-acc-toggle" onclick="toggleAcc2('dep_body_${i}','dep_chev_${i}')">
+          <div class="acc-left"><span class="acc-icon">📍</span>出發 ／ 抵達地點</div>
+          <span class="acc-chevron" id="dep_chev_${i}">▼</span>
+        </div>
+        <div class="day-acc-body" id="dep_body_${i}">
+          <div class="day-acc-inner">
+            <div class="depart-auto">${day.autoDepart}</div>
+            <div style="font-size:11px;color:var(--gray-light);margin-top:4px">依行程自動帶入，無需填寫</div>
+          </div>
+        </div>`;
+    } else {
+      const prevHotel = day.prevDayIdx >= 0 && days[day.prevDayIdx].hotel ? days[day.prevDayIdx].hotel : '';
+      const cleanForCheck = day.desc.replace(/\([^)]*\)/g,'').replace(/\s+/g,' ').trim();
+      const isNoHotel     = /往返|接送|來回/.test(cleanForCheck);   // 隱藏住宿
+      const isRoundtrip   = /接送/.test(cleanForCheck) && /來回/.test(cleanForCheck); // 雙時間欄
+      const isAirportDay  = cleanForCheck.includes('機場');
+      const needsArrival  = !isAirportDay && (day.desc.includes('宿') || (!isRoundtrip));
+      const arrivalLabel  = day.desc.includes('宿') ? '抵達地點（宿）' : '抵達地點';
+      const airportHint   = isAirportDay ? getAirportHint(cleanForCheck) : '';
+      const isArrDay      = isAirportDay && day.isFirstDay;
+      const airportName   = isAirportDay ? extractAirportName(cleanForCheck) : '';
+
+      departRowHtml = `
+        <div class="day-acc-toggle" onclick="toggleAcc2('dep_body_${i}','dep_chev_${i}')">
+          <div class="acc-left"><span class="acc-icon">📍</span>${isAirportDay ? '行程地點 & 航班資料' : '出發 ／ 抵達地點'}<span class="req" style="font-size:12px;margin-left:2px">＊</span></div>
+          <span class="acc-chevron" id="dep_chev_${i}">▼</span>
+        </div>
+        <div class="day-acc-body" id="dep_body_${i}">
+          <div class="day-acc-inner">
+            ${!isArrDay ? `
+            <div style="margin-bottom:10px;display:flex;gap:12px;align-items:flex-start">
+              <div style="flex:1">
+                <span style="font-size:11px;color:var(--gray-light)">預計出發時間（選填）</span>
+                ${buildTimeSelect(`depart_time_${i}`)}
+              </div>
+              ${isRoundtrip ? `
+              <div style="flex:1">
+                <span style="font-size:11px;color:var(--gray-light)">預計回程時間（選填）</span>
+                <input class="field-inline" type="text" id="return_time_${i}" placeholder="例：18:00" inputmode="numeric"
+                  style="margin-top:4px"
+                  oninput="this.value=this.value.replace(/[^0-9:]/g,'');buildDescText(${i})">
+              </div>` : ''}
+            </div>` : ''}
+            ${!isAirportDay ? `
+            <div style="font-size:12px;color:var(--gray);margin-bottom:5px;font-weight:600">📍 出發地點</div>` : ''}
+            ${isAirportDay && !isArrDay ? `
+            <div style="font-size:12px;color:var(--gray);margin-bottom:5px;font-weight:600">📍 出發地點（送機出發地）</div>` : ''}
+            ${!isArrDay ? `
+            <input class="field-inline" type="text" id="depart_${i}"
+              placeholder="${prevHotel ? `例：${prevHotel}` : '例：飯店名稱、車站…'}"
+              oninput="updateNextDepart(${i})">
+            <div class="err-msg" id="err_depart_${i}">請填寫出發地點</div>
+            <input class="field-inline" type="text" id="depart_addr_${i}"
+              placeholder="地址補充（選填）"
+              oninput="updateNextDepart(${i})"
+              style="margin-top:6px">` : ''}
+            ${airportHint ? `<div style="margin-top:10px;padding:8px 10px;background:#fffbe6;border:1px solid #ffe58f;border-radius:6px;font-size:12px;color:#7a5c00">${airportHint}</div>` : ''}
+            ${isRoundtrip ? `
+            <div style="font-size:12px;color:var(--gray);margin:12px 0 5px;font-weight:600">🏁 抵達地點（回程）</div>
+            <label style="font-size:12px;color:var(--gray-light);display:flex;align-items:center;gap:6px;margin-bottom:6px;cursor:pointer">
+              <input type="checkbox" id="arrive_same_${i}" onchange="toggleArriveSame(${i})"> 與出發地點相同
+            </label>
+            <div id="arrive_fields_${i}">
+              <input class="field-inline" type="text" id="arrive_${i}"
+                placeholder="例：飯店名稱、車站…"
+                oninput="updateDayDescArrive(${i})">
+              <input class="field-inline" type="text" id="arrive_addr_${i}"
+                placeholder="地址補充（選填）"
+                oninput="updateDayDescArrive(${i})"
+                style="margin-top:6px">
+            </div>` : ''}
+            ${needsArrival ? `
+            <div style="font-size:12px;color:var(--gray);margin:12px 0 5px;font-weight:600">🏁 ${arrivalLabel}</div>
+            <input class="field-inline" type="text" id="arrive_${i}"
+              placeholder="例：大阪難波、飯店名稱…"
+              oninput="updateDayDescArrive(${i})">
+            <input class="field-inline" type="text" id="arrive_addr_${i}"
+              placeholder="地址補充（選填）"
+              oninput="updateDayDescArrive(${i})"
+              style="margin-top:6px">` : ''}
+            ${isAirportDay ? buildFlightHtml(i, isArrDay, airportName) : ''}
+          </div>
+        </div>`;
+    }
+
+    // 往返行程不顯示住宿（回程回原點，無需住宿確認）
+    const cleanForHotel = day.desc.replace(/\([^)]*\)/g,'').replace(/\s+/g,' ').trim();
+    const isRoundtripDay = /往返|接送|來回/.test(cleanForHotel);
+
+    // ── 住宿（折疊，往返行程不顯示） ──
+    let hotelHtml = '';
+    if (day.hotel && !isRoundtripDay) {
+      hotelHtml = `
+        <div class="day-acc-toggle" onclick="toggleAcc2('hotel_body_${i}','hotel_chev_${i}')">
+          <div class="acc-left"><span class="acc-icon">🏨</span>當晚住宿確認</div>
+          <span class="acc-chevron" id="hotel_chev_${i}">▼</span>
+        </div>
+        <div class="day-acc-body" id="hotel_body_${i}">
+          <div class="day-acc-inner">
+            <div style="font-size:11px;color:var(--gray-light);margin-bottom:6px">如已更換飯店，請直接修改下方名稱</div>
+            <input class="field-inline" type="text" id="hotel_name_${i}"
+              value="${day.hotel}" data-original="${day.hotel}"
+              oninput="markHotelChanged(${i})" style="margin-bottom:6px">
+            <div id="hotel_changed_badge_${i}" style="display:none;font-size:12px;color:#e07000;margin-bottom:6px">
+              ✏️ 已修改（原：${day.hotel}）
+            </div>
+            <input class="field-inline" type="text" id="hotel_addr_${i}"
+              placeholder="地址補充（選填，幫助司機導航）">
+          </div>
+        </div>`;
+    }
+
+    const metaHtml = `<div class="day-meta">${parseDayMeta(day.desc, day.luggage, day.price)}</div>`;
+    // 完全移除括號及其內容（已顯示在 meta 列）
+    const cleanDesc = day.desc.replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
+    day._cleanDesc = cleanDesc; // 存供動態更新用
+
+    el.innerHTML += `
+      <div class="day-row" id="dayRow${i}">
+        <div class="day-row-head">
+          <div class="day-date-col">
+            <span class="month">${day.month}月</span>
+            <span class="day-n">${day.dayNum}</span>
+            <span class="weekday">（${day.weekday}）</span>
+          </div>
+          <div class="day-itin-col">
+            <span class="day-itin-desc" id="day_desc_${i}" data-orig="${cleanDesc.replace(/"/g,'&quot;')}">${cleanDesc}</span>
+          </div>
+        </div>
+        ${metaHtml}
+        <div class="day-detail">
+          ${departRowHtml}
+          ${hotelHtml}
+        </div>
+      </div>`;
+  });
+}
+
+// ════════════════════════════════════
+// AIRLINE CODE AUTO-FILL
+// ════════════════════════════════════
+function autoFillFlightCode(selectId, prefixId, numId) {
+  const sel = document.getElementById(selectId);
+  const code = sel.options[sel.selectedIndex]?.dataset?.code || '';
+  const prefix = document.getElementById(prefixId);
+  const num = document.getElementById(numId);
+  prefix.value = code;
+  prefix.placeholder = code || '代碼';
+  if (code) num.focus();
+}
+
+function flightAirlinePick(prefix) {
+  const sel  = document.getElementById(`${prefix}_airline`);
+  const val  = sel?.options[sel.selectedIndex]?.value || '';
+  const code = sel?.options[sel.selectedIndex]?.dataset?.code || '';
+  const pfx  = document.getElementById(`${prefix}_no_pfx`);
+  const num  = document.getElementById(`${prefix}_no_num`);
+  const isOther = (val === '其他' || code === '');
+  if (pfx) {
+    pfx.value = code;
+    pfx.readOnly = !isOther;
+    pfx.style.background = isOther ? '#fff' : '#e8f0fe';
+    pfx.placeholder = isOther ? '自行填寫' : 'XX';
+  }
+  if (num) {
+    num.placeholder = isOther ? '完整班機號碼（例：TR156）' : '191';
+  }
+  if (code && num) num.focus();
+}
+
+function updateFlightPreview(prefix, suffix) {
+  const airport  = document.getElementById(`${prefix}_airport`)?.value  || '';
+  const terminal = document.getElementById(`${prefix}_terminal`)?.value || '';
+  const airline  = document.getElementById(`${prefix}_airline`);
+  const airName  = airline?.options[airline?.selectedIndex]?.value || '';
+  const code     = airline?.options[airline?.selectedIndex]?.dataset?.code || '';
+  const num      = document.getElementById(`${prefix}_no_num`)?.value || '';
+  const time     = document.getElementById(`${prefix}_time`)?.value  || '';
+  const prev     = document.getElementById(`${prefix}_preview`);
+  if (!prev) return;
+
+  const dayI = parseInt(prefix.replace(/^(arr|dep)_/, ''));
+  if (isNaN(dayI)) return;
+  const titleEl = document.getElementById(`day_desc_${dayI}`);
+  if (!titleEl) return;
+
+  if (!airName || !num || !time) {
+    // 清掉已存的航班替換，重跑 buildDescText
+    titleEl.dataset.flight = '';
+    buildDescText(dayI);
+    return;
+  }
+
+  const airportPart  = airport ? airport + '機場' : '';
+  const terminalPart = terminal || '';
+  const shortName    = airName.replace(/\s.*/, '');
+  const flightCode   = code ? `${shortName}${code}${num}` : `${airName}${num}`;
+  const result = [airportPart + terminalPart, flightCode, `${time}${suffix}`].filter(Boolean).join('-');
+
+  // 存起來供 buildDescText 使用
+  titleEl.dataset.flight = result;
+  buildDescText(dayI);
+}
+
+// 機場短名對照（描述中出現的短鍵 → AP_REPLACE 要搜尋的 pattern）
+const AP_REPLACE_KEYS = ['成田','羽田','關西','中部','神戶','福岡','熊本','大分','仙台','那霸','新千歲','北九州','石垣','宮古'];
+
+// ════════════════════════════════════
+// SCROLL TO SECTION (NAV click)
+// ════════════════════════════════════
+function scrollToSec(n) {
+  const targets = { 1:'sec1', 2:'sec2', 3:'sec3' };
+  const el = document.getElementById(targets[n]);
+  if (!el) return;
+  const top = el.getBoundingClientRect().top + window.scrollY - 58;
+  window.scrollTo({ top, behavior: 'smooth' });
+}
+
+// ════════════════════════════════════
+// COPY ACCOUNT NUMBER
+// ════════════════════════════════════
+function copyAccount() {
+  const num = document.getElementById('acct-number').textContent.trim();
+  const success = () => showToast('✓ 已複製帳號 ' + num);
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(num).then(success).catch(() => fallbackCopy(num, success));
+  } else {
+    fallbackCopy(num, success);
+  }
+}
+function fallbackCopy(text, cb) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;width:1px;height:1px';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try { if (document.execCommand('copy')) cb(); else showToast('請長按帳號手動複製'); } catch(e) { showToast('請長按帳號手動複製'); }
+  document.body.removeChild(ta);
+}
+function showToast(msg) {
+  let t = document.getElementById('_toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = '_toast';
+    t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:11px 22px;border-radius:24px;font-size:14px;z-index:9999;pointer-events:none;transition:opacity .3s;white-space:nowrap';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.opacity = '0'; }, 2200);
+}
+
+// ════════════════════════════════════
+// LOCALSTORAGE AUTOSAVE
+// ════════════════════════════════════
+const SAVE_KEY = () => `ryojo_draft_${(new URLSearchParams(location.search).get('order') || 'demo')}`;
+
+function autosave() {
+  const fields = ['f-name','f-phone','f-line','f-email','f-fb',
+    'f-link-source','f-discover','f-currency','f-amount','f-account','f-note',
+    'arr-airline','arr-flightno-prefix','arr-flightno-num','arr-time','arr-terminal',
+    'dep-airline','dep-flightno-prefix','dep-flightno-num','dep-time','dep-leave','dep-terminal'];
+  const data = {};
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) data[id] = el.value;
+  });
+  // depart inputs
+  if (ORDER) ORDER.days.forEach((d, i) => {
+    const inp = document.getElementById(`depart_${i}`);
+    if (inp) data[`depart_${i}`] = inp.value;
+    const addr = document.getElementById(`hotel_addr_${i}`);
+    if (addr) data[`hotel_addr_${i}`] = addr.value;
+    const name = document.getElementById(`hotel_name_${i}`);
+    if (name) data[`hotel_name_${i}`] = name.value;
+  });
+  try { localStorage.setItem(SAVE_KEY(), JSON.stringify(data)); } catch(e) {}
+}
+
+function restoreDraft() {
+  try {
+    const saved = localStorage.getItem(SAVE_KEY());
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    Object.entries(data).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el) el.value = val;
+    });
+    // re-trigger hotel change badges
+    if (ORDER) ORDER.days.forEach((d, i) => markHotelChanged(i));
+    showDraftBanner();
+  } catch(e) {}
+}
+
+function showDraftBanner() {
+  const b = document.createElement('div');
+  b.innerHTML = `📝 已為您恢復上次未送出的填寫內容 &nbsp;<button onclick="clearDraft(this.parentNode)" style="background:none;border:1px solid currentColor;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:12px;color:inherit">清除</button>`;
+  b.style.cssText = 'background:#e8f4fd;border:1px solid var(--blue-light);color:var(--blue-dark);font-size:13px;padding:10px 16px;border-radius:var(--radius-sm);margin-bottom:14px;display:flex;align-items:center;gap:8px';
+  const body = document.getElementById('formBody');
+  if (body) body.insertBefore(b, body.firstChild);
+}
+
+function clearDraft(banner) {
+  try { localStorage.removeItem(SAVE_KEY()); } catch(e) {}
+  if (banner) banner.remove();
+}
+
+// ════════════════════════════════════
+// SCROLL NAV DETECTION
+// ════════════════════════════════════
+function initScrollNav() {
+  window.addEventListener('scroll', () => {
+    const cards = document.querySelectorAll('[data-sec]');
+    let current = 1;
+    cards.forEach(card => {
+      if (card.getBoundingClientRect().top <= 100) current = parseInt(card.dataset.sec);
+    });
+    ['step1','step2','step3'].forEach((s, idx) => {
+      const el = document.getElementById(s);
+      if (!el) return;
+      el.classList.toggle('active', idx + 1 === current);
+      el.classList.toggle('done',   idx + 1 < current);
+    });
+  }, { passive: true });
+}
+
+// ════════════════════════════════════
+// COPY ACCOUNT NUMBER
+// ════════════════════════════════════
+function copyAccount() {
+  const num = document.getElementById('acct-number').textContent.trim();
+  navigator.clipboard.writeText(num).then(() => {
+    const btn = document.getElementById('copyAcctBtn');
+    btn.textContent = '✓ 已複製';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '複製帳號'; btn.classList.remove('copied'); }, 2500);
+  });
+}
+
+// ════════════════════════════════════
+// HOTEL CHANGE TRACKING
+// ════════════════════════════════════
+function markHotelChanged(i) {
+  const inp = document.getElementById(`hotel_name_${i}`);
+  const badge = document.getElementById(`hotel_changed_badge_${i}`);
+  if (!inp || !badge) return;
+  const changed = inp.value.trim() !== inp.dataset.original;
+  badge.style.display = changed ? 'block' : 'none';
+}
+
+// ════════════════════════════════════
+// UNIFIED DAY ACCORDION TOGGLE
+// ════════════════════════════════════
+function toggleAcc2(bodyId, chevId) {
+  const body = document.getElementById(bodyId);
+  const chev = document.getElementById(chevId);
+  if (!body) return;
+  const open = body.classList.toggle('open');
+  if (chev) chev.classList.toggle('open', open);
+}
+// legacy alias
+function toggleHotel(bodyId, chevId) { toggleAcc2(bodyId, chevId); }
+
+let _allExpanded = false;
+function toggleExpandAll() {
+  _allExpanded = !_allExpanded;
+  document.querySelectorAll('.day-acc-body').forEach(b => b.classList.toggle('open', _allExpanded));
+  document.querySelectorAll('.acc-chevron').forEach(c => c.classList.toggle('open', _allExpanded));
+  const btn = document.getElementById('expandToggleBtn');
+  if (btn) btn.textContent = _allExpanded ? '⬆ 收合全部' : '⬇ 展開全部';
+}
+function expandAllDays(expand) {
+  _allExpanded = expand;
+  document.querySelectorAll('.day-acc-body').forEach(b => b.classList.toggle('open', expand));
+  document.querySelectorAll('.acc-chevron').forEach(c => c.classList.toggle('open', expand));
+  const btn = document.getElementById('expandToggleBtn');
+  if (btn) btn.textContent = expand ? '⬆ 收合全部' : '⬇ 展開全部';
+}
+
+// ════════════════════════════════════
+// STAFF FILL WITH UNDO
+// ════════════════════════════════════
+let _staffFillSnapshot = null;
+
+function staffFillDepart() {
+  // snapshot current values for undo
+  _staffFillSnapshot = {};
+  ORDER.days.forEach((d, i) => {
+    const inp = document.getElementById(`depart_${i}`);
+    if (inp) _staffFillSnapshot[i] = inp.value;
+  });
+
+  ORDER.days.forEach((d, i) => {
+    const lockAsAirport = d.isFirstDay && d.autoDepart;
+    if (!lockAsAirport) {
+      const inp = document.getElementById(`depart_${i}`);
+      if (inp) {
+        const prev = d.prevDayIdx >= 0 ? ORDER.days[d.prevDayIdx] : null;
+        const hotelInp = prev ? document.getElementById(`hotel_name_${d.prevDayIdx}`) : null;
+        const val = hotelInp?.value?.trim() || prev?.hotel || '';
+        if (val) { inp.value = val; updateNextDepart(i); }
+      }
+    }
+  });
+
+  const btn = document.getElementById('staffFillBtn');
+  btn.textContent = '✓ 已帶入';
+  btn.style.background = 'var(--blue-faint)';
+  btn.style.color = 'var(--blue-dark)';
+  btn.style.borderStyle = 'solid';
+
+  // show undo button
+  let undoBtn = document.getElementById('staffFillUndo');
+  if (!undoBtn) {
+    undoBtn = document.createElement('button');
+    undoBtn.id = 'staffFillUndo';
+    undoBtn.textContent = '↩ 清除帶入，重新填寫';
+    undoBtn.style.cssText = 'width:100%;margin-top:6px;padding:9px;border:1px solid var(--gray-pale);border-radius:var(--radius-sm);background:#fff;color:var(--gray);font-size:13px;cursor:pointer;font-family:inherit';
+    undoBtn.onclick = undoStaffFill;
+    btn.parentNode.insertBefore(undoBtn, btn.nextSibling);
+  }
+  undoBtn.style.display = 'block';
+}
+
+function undoStaffFill() {
+  if (!_staffFillSnapshot) return;
+  ORDER.days.forEach((d, i) => {
+    const inp = document.getElementById(`depart_${i}`);
+    if (inp && _staffFillSnapshot[i] !== undefined) {
+      inp.value = _staffFillSnapshot[i];
+      updateNextDepart(i);
+    }
+  });
+  _staffFillSnapshot = null;
+  const btn = document.getElementById('staffFillBtn');
+  btn.textContent = '🏨 帶入上晚住宿為各日出發地點';
+  btn.style.background = '#fff';
+  btn.style.color = 'var(--blue)';
+  btn.style.borderStyle = 'dashed';
+  document.getElementById('staffFillUndo').style.display = 'none';
+}
+// ════════════════════════════════════
+// 從描述抽出「出發地」和「固定後半段」
+// 支援：至 / 往返 / 接送來回 / -單程 / ─單程
+function parseDescParts(desc) {
+  const clean = desc.replace(/\([^)]*\)/g, '').trim();
+  const sep = clean.match(/^(.*?)(往返|接送來回|至|－單程|-單程|─單程|—單程)/u);
+  if (!sep) return { prefix: null, separator: null, suffix: clean };
+  return {
+    prefix:    sep[1].trim(),
+    separator: sep[2],
+    suffix:    clean.slice(sep[0].length).trim()
+  };
+}
+
+function fmtPlace(name, addr) {
+  if (!name) return '';
+  return addr ? `${name}；${addr}` : name;
+}
+
+function buildDescText(dayI) {
+  const inp     = document.getElementById(`depart_${dayI}`);
+  const addrInp = document.getElementById(`depart_addr_${dayI}`);
+  const timeInp = document.getElementById(`depart_time_${dayI}`);
+  const titleEl = document.getElementById(`day_desc_${dayI}`);
+  if (!titleEl) return;
+
+  const typed = inp?.value.trim() || '';
+  const addr  = addrInp?.value.trim() || '';
+  const place = fmtPlace(typed, addr);
+  const time  = timeInp?.value.trim() || '';
+  const orig  = titleEl.dataset.orig || '';
+  const parts = parseDescParts(orig);
+
+  // 抵達地（往返 or 宿XXX）
+  const arrInp   = document.getElementById(`arrive_${dayI}`);
+  const arrAddr  = document.getElementById(`arrive_addr_${dayI}`);
+  const arrTyped = arrInp?.value.trim() || '';
+  const arrAddrV = arrAddr?.value.trim() || '';
+  const arrPlace = fmtPlace(arrTyped, arrAddrV);
+
+  let descBody = orig;
+  if (parts.prefix !== null && typed) {
+    let suffix = parts.suffix;
+    // 宿XXX → 替換宿後地名
+    if (arrPlace && /宿/.test(suffix)) {
+      suffix = suffix.replace(/宿[^（(）\s]*/, `宿${arrPlace}`);
+    }
+    descBody = `${place}${parts.separator}${suffix}`;
+    // 往返且有抵達地 → 結尾加「，結束於XXX」
+    if (arrPlace && /往返|接送來回/.test(parts.separator + suffix + parts.separator)) {
+      // 檢查是否往返（separator 是往返 或 行程主體含往返）
+    }
+  }
+
+  // 往返且有抵達地（與出發不同）→ 在描述後加「，結束於XX」
+  const sameCb = document.getElementById(`arrive_same_${dayI}`);
+  const isSame = sameCb?.checked;
+  if (arrPlace && !isSame && /往返|接送來回/.test(orig)) {
+    descBody = descBody.replace(/，結束於.*$/, ''); // 清掉舊的
+    descBody += `，結束於${arrPlace}`;
+  }
+
+  // 套用航班替換（若已填航班）
+  const flightStr = titleEl.dataset.flight || '';
+  if (flightStr) {
+    for (const shortKey of AP_REPLACE_KEYS) {
+      const pat = new RegExp(`${shortKey}機場`, 'g');
+      if (pat.test(descBody)) {
+        descBody = descBody.replace(pat, flightStr);
+        break;
+      }
+    }
+  }
+
+  // 回程時間（接送/來回才有）
+  const returnInp  = document.getElementById(`return_time_${dayI}`);
+  const returnTime = returnInp?.value.trim() || '';
+
+  let finalText = time ? `${time} ${descBody}` : descBody;
+
+  // 有回程時間 → 結尾加「返程XX:XX」（只限接送來回）
+  if (returnTime && /接送/.test(orig) && /來回/.test(orig)) {
+    finalText = finalText.replace(/　?返程\d{1,2}:\d{2}$/, ''); // 清掉舊的
+    finalText += `　返程${returnTime}`;
+  }
+
+  titleEl.textContent = finalText;
+}
+
+function updateDayDesc(dayI)      { buildDescText(dayI); }
+function updateDayDescArrive(dayI){ buildDescText(dayI); }
+function updateDayDescTime(dayI)  { buildDescText(dayI); }
+
+function toggleArriveSame(dayI) {
+  const cb      = document.getElementById(`arrive_same_${dayI}`);
+  const fields  = document.getElementById(`arrive_fields_${dayI}`);
+  const arrInp  = document.getElementById(`arrive_${dayI}`);
+  const arrAddr = document.getElementById(`arrive_addr_${dayI}`);
+  const depInp  = document.getElementById(`depart_${dayI}`);
+  const depAddr = document.getElementById(`depart_addr_${dayI}`);
+  if (!cb) return;
+  if (cb.checked) {
+    if (arrInp)  { arrInp.value  = depInp?.value  || ''; arrInp.disabled  = true; }
+    if (arrAddr) { arrAddr.value = depAddr?.value || ''; arrAddr.disabled = true; }
+    if (fields)  fields.style.display = 'none';
+  } else {
+    if (arrInp)  arrInp.disabled  = false;
+    if (arrAddr) arrAddr.disabled = false;
+    if (fields)  fields.style.display = '';
+  }
+  buildDescText(dayI);
+}
+
+function updateNextDepart(dayI) {
+  updateDayDesc(dayI);
+  const val = (document.getElementById(`depart_${dayI}`) || {}).value?.trim() || '';
+  ORDER.days.forEach((d, ni) => {
+    if (d.prevDayIdx === dayI) {
+      const inp = document.getElementById(`depart_${ni}`);
+      if (inp && !inp.value) {
+        inp.placeholder = val
+          ? `可填：${val}（上一晚住宿地）`
+          : (ORDER.days[dayI].hotel ? `可填：${ORDER.days[dayI].hotel}` : '例：飯店名稱…');
+      }
+    }
+  });
+}
+
+// ════════════════════════════════════
+// FLIGHT ACCORDION
+// ════════════════════════════════════
+function toggleAcc(bodyId, header, chevId) {
+  const body = document.getElementById(bodyId);
+  const chev = document.getElementById(chevId);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chev.classList.toggle('up', !isOpen);
+  header.classList.toggle('open-head', !isOpen);
+}
+
+// ════════════════════════════════════
+// T3 WARNING
+// ════════════════════════════════════
+function t3Warn(selectId, warnId) {
+  const v = document.getElementById(selectId).value;
+  document.getElementById(warnId).classList.toggle('show', v === 'T3');
+}
+
+// ════════════════════════════════════
+// VALIDATION
+// ════════════════════════════════════
+function validate() {
+  let ok = true;
+  let firstErr = null;
+
+  // Clear previous errors
+  document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+
+  function chk(id, errId) {
+    const el = document.getElementById(id);
+    const err = document.getElementById(errId);
+    const empty = !el || !el.value.trim();
+    if (err) err.classList.toggle('show', empty);
+    if (empty) {
+      if (el) el.classList.add('has-error');
+      ok = false; if (!firstErr && el) firstErr = el;
+    }
+  }
+
+  // Personal
+  chk('f-name',        'e-name');
+  chk('f-phone',       'e-phone');
+  chk('f-line',        'e-line');
+  // email: check format too
+  const emailEl  = document.getElementById('f-email');
+  const emailErr = document.getElementById('e-email');
+  const emailVal = emailEl?.value.trim() || '';
+  const emailOk  = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal);
+  if (emailErr) {
+    emailErr.textContent = emailVal ? '電子郵件格式不正確' : '請填寫電子郵件';
+    emailErr.classList.toggle('show', !emailOk);
+  }
+  if (!emailOk) { ok = false; if (!firstErr && emailEl) firstErr = emailEl; }
+  chk('f-link-source', 'e-link-source');
+  chk('f-discover',    'e-discover');
+  if (document.getElementById('childAgeField')?.style.display !== 'none') {
+    chk('f-child-age', 'e-child-age');
+  }
+  // Payment
+  chk('f-currency', 'e-currency');
+  chk('f-amount',   'e-amount');
+  chk('f-account',  'e-account');
+  // Flight numbers (only check num part)
+  const arrNum = document.getElementById('arr-flightno-num');
+  const arrErr = document.getElementById('e-arr-flightno');
+  if (arrNum && !arrNum.value.trim()) {
+    if (arrErr) arrErr.classList.add('show');
+    ok = false; if (!firstErr) firstErr = arrNum;
+  } else { if (arrErr) arrErr.classList.remove('show'); }
+
+  const depNum = document.getElementById('dep-flightno-num');
+  const depErr = document.getElementById('e-dep-flightno');
+  if (depNum && !depNum.value.trim()) {
+    if (depErr) depErr.classList.add('show');
+    ok = false; if (!firstErr) firstErr = depNum;
+  } else { if (depErr) depErr.classList.remove('show'); }
+
+  // Depart fields (skip isFirstDay — airport auto-filled)
+  ORDER.days.forEach((d, i) => {
+    if (!d.isFirstDay) chk(`depart_${i}`, `err_depart_${i}`);
+  });
+
+  if (firstErr) firstErr.scrollIntoView({ behavior:'smooth', block:'center' });
+  return ok;
+}
+
+// ════════════════════════════════════
+// BUILD ORDER TEXT（供 GAS processOrder 使用）
+// ════════════════════════════════════
+function buildOrderText(payload) {
+  const d     = ORDER.days;
+  const first = d[0];
+
+  // ── 人數（從第一天的 desc 抓，格式如 (7大1小)(10座)）
+  // 先從 desc 抽出人數字串，若抓不到就留空讓 GAS 自己處理
+  const peopleMatch = first.desc.match(/\((\d+大\d*小?(?:\([^)]+\))?)\)/);
+  const people = peopleMatch ? peopleMatch[1] : '';
+
+  // 若有兒童年齡補進人數欄
+  const childAge = payload.childAge ? `(${payload.childAge})` : '';
+  const peopleStr = people + childAge;
+
+  // ── 車款（從各天的 desc 抓最後的括號座數，如 (10座)）
+  // 取第一天 desc 的末尾 (N座) 作為車款
+  const carMatch = first.desc.match(/\((\d+(?:\+\d+)?座)\)\s*$/);
+  const carStr = carMatch
+    ? carMatch[1].replace('座', '人座')
+        .replace('10人座', '10人座海獅')
+        .replace('14人座', '14人座海獅')
+        .replace('7人座',  '7人座舒適款')
+    : '';
+
+  // ── 行李（取所有天中最大的那個值）
+  let maxLuggage = 0;
+  d.forEach(day => {
+    const m = (day.luggage || '').match(/(\d+)/);
+    if (m) maxLuggage = Math.max(maxLuggage, parseInt(m[1]));
+  });
+  const luggageStr = maxLuggage > 0 ? `${maxLuggage}件` : (first.luggage || '');
+
+  // ── 行程（每天一行：M/DD 出發地至目的地-單程 or 其他）
+  const itineraryLines = d.map((day, i) => {
+    // 取 buildDescText 計算後的最終顯示文字
+    const descEl = document.getElementById(`day_desc_${i}`);
+    const cleanDesc = descEl ? descEl.textContent.trim() : day.desc;
+
+    // 去掉人數和座位括號，只保留行程描述
+    const desc = cleanDesc
+      .replace(/\(\d+大\d*小?\)/g, '')
+      .replace(/\([^)]*歲[^)]*\)/g, '')
+      .replace(/\(\d+(?:\+\d+)?座\)/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    return `${day.month}/${day.dayNum} ${desc}`;
+  });
+
+  // ── 費用（每天一行）
+  const feeLines = d.map(day =>
+    `${day.month}/${day.dayNum} ${day.price}日圓`
+  );
+
+  // ── 匯率 / 訂金幣別
+  const currencyMap = {
+    '新台幣 TWD': '新台幣',
+    '港幣 HKD':   '港幣',
+    '新加坡幣 SGD': '新幣',
+    '日圓 JPY':   '日圓',
+    '人民幣 CNY': '人民幣',
+  };
+  const currLabel = currencyMap[payload.currency] || payload.currency;
+  const rate = ORDER.rate || '';
+
+  // ── 組合完整打單文字
+  const lines = [
+    `訂單：${payload.orderId}`,
+    `日期：${ORDER.date.replace(' – ', '-').replace('/', '/').split('/').slice(0,3).join('/')}`,
+  ];
+
+  if (peopleStr) lines.push(`人數：${peopleStr}`);
+  if (luggageStr) lines.push(`行李：${luggageStr}`);
+  if (carStr)     lines.push(`車款：${carStr}`);
+
+  lines.push('行程：');
+  itineraryLines.forEach(l => lines.push(l));
+
+  lines.push('費用：');
+  feeLines.forEach(l => lines.push(l));
+
+  lines.push(`訂單總金額：${ORDER.total}`);
+  lines.push(`尾款：${ORDER.balance}`);
+
+  if (payload.amount && rate) {
+    lines.push(`訂金：${currLabel}$${payload.amount}元（匯率${rate}）`);
+  }
+
+  if (payload.note) {
+    lines.push(`備註：${payload.note}`);
+  }
+
+  return lines.join('\n');
+}
+
+// ════════════════════════════════════
+// COLLECT
+// ════════════════════════════════════
+function collect() {
+  const params = new URLSearchParams(window.location.search);
+
+  // 每天資料（出發地、抵達地、住宿、航班、出發時間）
+  const dayData = ORDER.days.map((d, i) => {
+    const hotelNameEl = document.getElementById(`hotel_name_${i}`);
+    const currentHotel = hotelNameEl?.value?.trim() || d.hotel || '';
+    const hotelChanged  = !!(d.hotel && currentHotel !== d.hotel);
+
+    // 出發地合併（飯店名；地址）
+    const depName = d.isFirstDay
+      ? (d.autoDepart || '')
+      : (document.getElementById(`depart_${i}`)?.value?.trim() || '');
+    const depAddr = document.getElementById(`depart_addr_${i}`)?.value?.trim() || '';
+    const departFmt = depAddr ? `${depName}；${depAddr}` : depName;
+
+    // 抵達地
+    const arrName = document.getElementById(`arrive_${i}`)?.value?.trim() || '';
+    const arrAddr = document.getElementById(`arrive_addr_${i}`)?.value?.trim() || '';
+    const arriveFmt = arrAddr ? `${arrName}；${arrAddr}` : arrName;
+
+    // 出發時間
+    const departTime = document.getElementById(`depart_time_${i}`)?.value?.trim() || '';
+
+    // 航班（動態 prefix：arr_i 或 dep_i）
+    // 第一天含機場 → 抵達航班 arr_i；其他天含機場 → 出發航班 dep_i
+    const isAirportDay = /機場/.test(d.desc || '');
+    const flightPfx    = (isAirportDay && d.isFirstDay) ? `arr_${i}` : (isAirportDay ? `dep_${i}` : null);
+    let flightStr = '';
+    if (flightPfx) {
+      const airport   = document.getElementById(`${flightPfx}_airport`)?.value   || '';
+      const terminal  = document.getElementById(`${flightPfx}_terminal`)?.value  || '';
+      const airline   = document.getElementById(`${flightPfx}_airline`);
+      const airName   = airline?.options[airline?.selectedIndex]?.value || '';
+      const code      = airline?.options[airline?.selectedIndex]?.dataset?.code || '';
+      const num       = document.getElementById(`${flightPfx}_no_num`)?.value   || '';
+      const time      = document.getElementById(`${flightPfx}_time`)?.value     || '';
+      const suffix    = d.isFirstDay ? '著' : '飛';
+      if (airName && num && time) {
+        const shortName = airName.replace(/\s.*/, '');
+        const fc = code ? `${shortName}${code}${num}` : `${airName}${num}`;
+        const ap = airport ? airport + '機場' : '';
+        flightStr = [ap + terminal, fc, time + suffix].filter(Boolean).join('-');
+      }
+    }
+
+    // N欄目的地：原始行程描述（已在Sheets），若有航班則用航班字串覆蓋機場部分
+    // 這裡送出 titleEl 的最終顯示文字（已包含航班替換）
+    const descEl = document.getElementById(`day_desc_${i}`);
+    const finalDesc = descEl ? descEl.textContent : (d._cleanDesc || d.desc || '');
+
+    return {
+      date:          d.date,
+      depart:        departFmt,           // M出發地
+      departTime:    departTime,          // 出發時間（備用）
+      arrive:        arriveFmt,           // 抵達地（往返回程）
+      desc:          finalDesc,           // N目的地（含航班）
+      flight:        flightStr,           // 航班字串（備用）
+      hotel:         currentHotel,        // 住宿名
+      hotelOriginal: d.hotel || '',
+      hotelChanged:  hotelChanged,
+      hotelAddr:     document.getElementById(`hotel_addr_${i}`)?.value?.trim() || '',
+      childAge:      document.getElementById('f-child-age')?.value?.trim() || ''
+    };
+  });
+
+  const payload = {
+    orderId:      params.get('order') || ORDER.orderId,
+    token:        params.get('token') || 'DEMO',
+    ts:           new Date().toISOString(),
+    // 個人資料
+    name:         document.getElementById('f-name').value.trim(),
+    phone:        document.getElementById('f-phone').value.trim(),
+    lineId:       document.getElementById('f-line').value.trim(),
+    email:        document.getElementById('f-email').value.trim(),
+    facebook:     document.getElementById('f-fb').value.trim(),
+    linkSource:   document.getElementById('f-link-source').value,
+    discover:     document.getElementById('f-discover').value,
+    childAge:     document.getElementById('f-child-age')?.value?.trim() || '',
+    // 匯款
+    currency:     document.getElementById('f-currency').value,
+    amount:       document.getElementById('f-amount').value.trim(),
+    accountLast5: document.getElementById('f-account').value.trim(),
+    // 備註
+    note:         document.getElementById('f-note').value.trim(),
+    // 每天資料（給 GAS 寫出發地用）
+    days:         dayData,
+  };
+  // ★ 打單文字（GAS 直接餵給 processOrder）
+  payload.orderText = buildOrderText(payload);
+  return payload;
+}
+
+// ════════════════════════════════════
+// SUBMIT
+// ════════════════════════════════════
+function submitForm() {
+  if (!validate()) return;
+  const payload = collect();
+
+  // DEMO 模式（無 GAS URL 或 token=DEMO）直接顯示成功
+  if (payload.token === 'DEMO' || GAS_URL.includes('YOUR_SCRIPT_ID')) {
+    console.log('DEMO payload:', JSON.stringify(payload, null, 2));
+    clearDraft(null);
+    showSuccess();
+    return;
+  }
+  submitToGAS(payload);
+}
+
+function showSuccess() {
+  document.getElementById('formBody').style.display = 'none';
+  document.getElementById('successScreen').classList.add('show');
+  ['step1','step2','step3'].forEach(s => {
+    const el = document.getElementById(s);
+    if (el) { el.classList.remove('active'); el.classList.add('done'); }
+  });
+  const s3 = document.getElementById('step3');
+  if (s3) { s3.classList.remove('done'); s3.classList.add('active'); }
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+// ════════════════════════════════════
+// GAS STUBS（正式版解開）
+// ════════════════════════════════════
+const GAS_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+
+async function loadFromGAS(orderId, token) {
+  document.getElementById('loading').classList.add('show');
+  try {
+    const r = await fetch(`${GAS_URL}?action=getOrder&order=${orderId}&token=${token}`);
+    const d = await r.json();
+    if (d.error) throw d.error;
+    loadUI(d);
+  } catch(e) {
+    document.getElementById('loading').classList.remove('show');
+    document.getElementById('errorPage').classList.add('show');
+  }
+}
+
+async function submitToGAS(payload) {
+  document.getElementById('loading').classList.add('show');
+  const btn = document.getElementById('btnSubmit');
+  if (btn) btn.disabled = true;
+  try {
+    const r = await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: { 'Content-Type': 'text/plain' } // GAS doPost needs text/plain for JSON body
+    });
+    const d = await r.json();
+    document.getElementById('loading').classList.remove('show');
+    if (d.success) {
+      clearDraft(null);
+      showSuccess();
+    } else {
+      alert('送出失敗：' + (d.error || '請聯繫旅乘客服'));
+      if (btn) btn.disabled = false;
+    }
+  } catch(e) {
+    document.getElementById('loading').classList.remove('show');
+    alert('網路錯誤，請稍後再試或聯繫旅乘客服');
+    if (btn) btn.disabled = false;
+  }
+}
+</script>
+
+</body>
+</html>
