@@ -188,8 +188,8 @@ body {
 
 /* ─── ORDER META ─── */
 .meta-grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 6px 24px;
   padding-bottom: 18px;
   border-bottom: 1px solid var(--gray-pale);
@@ -939,6 +939,9 @@ body {
   .day-date-col .day-n { font-size: 18px; }
   .total-row.main span { font-size: 21px; }
   .btn-next, .btn-back { padding: 13px 18px; font-size: 14px; }
+  .meta-item label { font-size: 10px; }
+  .meta-item .val { font-size: 13px; }
+  .meta-item .val.order-no { font-size: 13px; }
 }
 @media (max-width: 380px) {
   .g3 { grid-template-columns: 1fr; }
@@ -1114,9 +1117,8 @@ body {
                 <span id="disp-deposit" style="font-family:'Noto Serif TC',serif;font-size:22px;font-weight:700;color:#c0621a;letter-spacing:.04em"></span>
               </div>
               <div id="depositBankRow" class="deposit-account-row">
-                <div>
-                  <div style="font-size:13px;font-weight:500;color:#a05a20;letter-spacing:.04em;margin-bottom:4px">華南銀行 (008) 營業部 ‧ 佳遊國際旅行社有限公司</div>
-                  <span id="acct-number" style="font-size:22px;letter-spacing:.1em">100100344320</span>
+                <div id="bankInfoText" style="flex:1">
+                  <!-- 由 JS 根據幣別動態填入 -->
                 </div>
                 <button class="copy-btn" id="copyAcctBtn" onclick="copyAccount()">複製帳號</button>
               </div>
@@ -1277,6 +1279,11 @@ const DEMO = {
   balance: "¥168,000",
   deposit: "NT$6,600元",
   rates:   { twd: 0.22, hkd: 0.043, sgd: 0.029 },  // 從 GAS doGet 帶入
+  accounts: {
+    twd: { bankName: '華南銀行 (008) 營業部 ‧ 佳遊國際旅行社有限公司', accountNo: '100100344320' },
+    hkd: { raw: '【香港匯豐ONE帳戶資訊】\n戶名：YEH,CHUN HSIEN\n戶口號碼：583-261169-833' },
+    sgd: { raw: '【新加坡DBS帳戶資訊】\nDBS PayLah\n90226783' },
+  },
   childAge: "",   // 若有填寫例如 "3+5歲" 會自動帶入欄位
   days: [
     { date:"01/01", month:"01", dayNum:"01", weekday:"四",
@@ -1369,6 +1376,28 @@ function loadUI(data) {
       }
     }
     if (depositEl) depositEl.textContent = formatted;
+
+    // 根據幣別顯示對應帳戶資訊
+    const accounts = data.accounts || {};
+    const bankInfoEl = document.getElementById('bankInfoText');
+    if (bankInfoEl) {
+      let html = '';
+      if (depositRaw.startsWith('NT$')) {
+        const a = accounts.twd || {};
+        html = `
+          <div style="font-size:13px;font-weight:500;color:#a05a20;letter-spacing:.03em;margin-bottom:4px">${a.bankName || ''}</div>
+          <span id="acct-number" style="font-size:22px;letter-spacing:.1em">${a.accountNo || ''}</span>`;
+      } else if (depositRaw.startsWith('HK$')) {
+        const raw = (accounts.hkd || {}).raw || '';
+        const copyVal = raw.split('\n').pop().trim(); // 最後一行為帳號
+        html = `<pre id="acct-number" data-copy="${copyVal}" style="margin:0;font-size:14px;line-height:1.7;white-space:pre-wrap;font-family:inherit;color:#a05a20">${raw}</pre>`;
+      } else if (depositRaw.startsWith('SGD$') || depositRaw.startsWith('S$')) {
+        const raw = (accounts.sgd || {}).raw || '';
+        const copyVal = raw.split('\n').pop().trim(); // 最後一行為帳號
+        html = `<pre id="acct-number" data-copy="${copyVal}" style="margin:0;font-size:14px;line-height:1.7;white-space:pre-wrap;font-family:inherit;color:#a05a20">${raw}</pre>`;
+      }
+      bankInfoEl.innerHTML = html;
+    }
   }
 
   // 從行程描述自動解析機場 — 掃描所有天，找第一個含機場名稱的
@@ -1961,7 +1990,9 @@ const AP_REPLACE_KEYS = ['成田','羽田','關西','中部','神戶','福岡','
 // COPY ACCOUNT NUMBER
 // ════════════════════════════════════
 function copyAccount() {
-  const num = document.getElementById('acct-number').textContent.trim();
+  const el  = document.getElementById('acct-number');
+  if (!el) return;
+  const num = (el.dataset.copy || el.textContent).trim();
   const success = () => showToast('✓ 已複製帳號 ' + num);
   if (navigator.clipboard && window.isSecureContext) {
     navigator.clipboard.writeText(num).then(success).catch(() => fallbackCopy(num, success));
@@ -2646,7 +2677,7 @@ function showSuccess() {
 // ════════════════════════════════════
 // GAS STUBS（正式版解開）
 // ════════════════════════════════════
-const GAS_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbw9FrtNzGRoFjxVGWw2PXa5nHcMcxHJ0vGv_UUmQTn3Peispvr-7AEOYgKEUJBjACB3/exec';
 
 async function loadFromGAS(orderId, token) {
   document.getElementById('loading').classList.add('show');
