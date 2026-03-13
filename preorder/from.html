@@ -1472,7 +1472,7 @@ function parseDayMeta(desc, luggage, price, childAgeStr) {
   if (paxText && childAgeStr) paxText += `(${childAgeStr})`;
   if (paxText) parts.push(`<span>🧑‍🤝‍🧑 ${paxText}</span>`);
   if (carM)  parts.push(`<span>🚌 ${carLabel(carM[1])}</span>`);
-  if (luggage) parts.push(`<span>🧳 行李 ${luggage}</span>`);
+  if (luggage) parts.push(`<span>👜 行李 ${luggage}</span>`);
   if (price)   parts.push(`<span class="meta-price">${price}</span>`);
   return parts.join('');
 }
