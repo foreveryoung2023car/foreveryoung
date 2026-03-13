@@ -1,341 +1,2819 @@
-// ════════════════════════════════════════════════════════════
-// 旅乘日本包車 — 客人確認表單 GAS 後端
-// 功能：接收表單送出 → 用 processOrder 邏輯寫入訂單收支表
-//       → 補寫客人資料欄 → Telegram 通知
-// ════════════════════════════════════════════════════════════
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>旅乘日本自由行包車 — 訂單確認表</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600&family=Noto+Sans+TC:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue:        #3570a8;
+  --blue-dark:   #1e4e80;
+  --blue-mid:    #4a7fb5;
+  --blue-light:  #d6e6f5;
+  --blue-faint:  #edf4fb;
+  --gray:        #6a6a6a;
+  --gray-light:  #aaaaaa;
+  --gray-pale:   #e8e8e8;
+  --black:       #080403;
+  --text:        #1c1c1c;
+  --text-sub:    #4a4a4a;
+  --border:      #ccddef;
+  --page-bg:     #f0f5fb;
+  --card:        #ffffff;
+  --red:         #c0392b;
+  --warn-bg:     #fffbeb;
+  --warn-border: #f0b429;
+  --warn-text:   #7a5200;
+  --green:       #1e7e44;
+  --radius:      10px;
+  --radius-sm:   6px;
+  --shadow:      0 2px 10px rgba(53,112,168,0.09);
+}
 
-// ── 設定區（依實際修改）──────────────────────────────────────
-const CONFIG = {
-  SHEET_ID:         '1esDJG7IjoVMobYEwEm5tpFyu5xVh-V2srtauVknx0iQ',
-  SHEET_NAME:       '訂單收支表',
-  RATES_SHEET_NAME: '產生器與試算',   // 匯率所在 sheet
-  TELEGRAM_TOKEN:   '8207854550:AAEe70qyN1bSAlh_-EHQ3zXR1tzdpV6HPpU',
-  TELEGRAM_CHAT_ID: '8136105343',
+*{margin:0;padding:0;box-sizing:border-box}
+
+body {
+  background: var(--page-bg);
+  color: var(--text);
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  min-height: 100vh;
+}
+
+/* ─── SITE HEADER ─── */
+.site-header {
+  background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue) 100%);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  box-shadow: 0 2px 12px rgba(8,4,3,0.25);
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+.logo-block {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.logo-zh {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 28px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: .06em;
+  line-height: 1;
+}
+.logo-sub {
+  font-size: 14px;
+  font-family: 'Noto Sans TC', sans-serif;
+  color: rgba(255,255,255,0.75);
+  letter-spacing: .08em;
+  font-weight: 400;
+}
+.header-divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255,255,255,0.3);
+  flex-shrink: 0;
+}
+.header-form-title {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.85);
+  letter-spacing: .08em;
+}
+@media (max-width: 480px) {
+  .site-header { gap: 10px; padding: 12px 16px; }
+  .logo-zh { font-size: 22px; }
+  .logo-sub { font-size: 12px; letter-spacing: .04em; }
+  .header-form-title { font-size: 13px; letter-spacing: .04em; }
+  .header-divider { height: 22px; }
+}
+
+/* ─── STEP BAR ─── */
+.step-bar {
+  background: var(--blue-dark);
+  display: flex;
+  justify-content: center;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(8,4,3,0.2);
+}
+.step-bar-inner {
+  display: flex;
+  max-width: 700px;
+  width: 100%;
+}
+.step {
+  flex: 1;
+  text-align: center;
+  padding: 11px 6px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.45);
+  border-bottom: 3px solid transparent;
+  transition: all .2s;
+  white-space: nowrap;
+}
+.step.active { color: #fff; border-bottom-color: #fff; font-weight: 500; }
+.step.done   { color: rgba(255,255,255,0.65); }
+
+/* ─── CONTAINER ─── */
+.container {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 28px 16px 100px;
+}
+
+/* ─── CARD ─── */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+  overflow: hidden;
+  animation: fadeUp .4s ease both;
+}
+.card:nth-child(1){animation-delay:.05s}
+.card:nth-child(2){animation-delay:.10s}
+.card:nth-child(3){animation-delay:.15s}
+.card:nth-child(4){animation-delay:.20s}
+.card:nth-child(5){animation-delay:.25s}
+
+.card-head {
+  background: var(--blue-faint);
+  border-bottom: 2px solid var(--blue-light);
+  padding: 15px 22px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+.head-icon {
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.card-head h2 {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--blue-dark);
+  letter-spacing: .04em;
+  flex: 1;
+}
+.badge {
+  font-size: 12px;
+  padding: 3px 11px;
+  border-radius: 20px;
+  background: var(--blue);
+  color: #fff;
+  letter-spacing: .05em;
+  white-space: nowrap;
+}
+.badge.ro {
+  background: var(--gray-pale);
+  color: var(--gray);
+}
+
+.card-body { padding: 22px; }
+
+/* ─── ORDER META ─── */
+.meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 24px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--gray-pale);
+  margin-bottom: 20px;
+  align-items: baseline;
+}
+.meta-item label {
+  display: block;
+  font-size: 11px;
+  color: var(--gray);
+  letter-spacing: .05em;
+  margin-bottom: 2px;
+}
+.meta-item .val { font-size: 15px; font-weight: 500; white-space: nowrap; }
+.meta-item .val.order-no {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 16px;
+  color: var(--blue-dark);
+}
+
+/* ─── COMBINED ITINERARY + ACCOMMODATION TABLE ─── */
+.itin-header {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--blue);
+  letter-spacing: .06em;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.itin-header-btns { display: flex; gap: 6px; }
+.itin-expand-btn {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--gray);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .15s, color .15s;
+  white-space: nowrap;
+}
+.itin-expand-btn:hover { background: var(--blue-faint); color: var(--blue); border-color: var(--blue-light); }
+
+/* Each day row = full-width block */
+.day-row {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.day-row-head {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 0;
+  background: var(--blue-faint);
+  border-bottom: 1px solid var(--border);
+}
+.day-date-col {
+  background: var(--blue);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 8px;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.3;
+  text-align: center;
+  flex-shrink: 0;
+}
+.day-date-col .month { font-size: 11px; opacity: .8; margin-bottom: 1px; }
+.day-date-col .day-n { font-size: 20px; line-height: 1; }
+.day-date-col .weekday { font-size: 11px; opacity: .75; margin-top: 2px; }
+.day-filled-badge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  background: #4caf50;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 6px;
+  opacity: 0;
+  transition: opacity .2s;
+}
+.day-filled-badge.show { opacity: 1; }
+
+.day-itin-col {
+  padding: 12px 16px 10px;
+  font-size: 15px;
+  color: var(--text-sub);
+  line-height: 1.7;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.day-itin-desc { flex: 1; }
+.day-itin-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+.day-price-chip {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--blue-dark);
+  background: var(--blue-light);
+  border-radius: 4px;
+  padding: 2px 9px;
+  letter-spacing: .02em;
+}
+
+/* per-day meta strip */
+.day-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  padding: 7px 16px 8px;
+  background: var(--blue-faint);
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--gray);
+}
+.day-meta span { display: flex; align-items: center; gap: 4px; }
+.day-meta .meta-price {
+  margin-left: auto;
+  font-family: 'Noto Serif TC', serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--blue-dark);
+}
+
+/* ── unified day accordion (depart + hotel) ── */
+.day-acc-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 16px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--blue);
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  transition: background .15s;
+  gap: 8px;
+}
+.day-acc-toggle:hover { background: var(--blue-faint); }
+.day-acc-toggle .acc-left { display: flex; align-items: center; gap: 8px; }
+.day-acc-toggle .acc-icon { font-size: 15px; line-height: 1; }
+.day-acc-toggle .acc-chevron { font-size: 10px; color: var(--gray-light); transition: transform .2s; margin-left: auto; }
+.day-acc-toggle .acc-chevron.open { transform: rotate(180deg); }
+.day-acc-body { display: none; border-bottom: 1px solid var(--border); }
+.day-acc-body.open { display: block; }
+.day-acc-body:last-child { border-bottom: none; }
+.day-acc-inner { padding: 14px 16px; }
+
+/* hotel collapsible (legacy alias) */
+.hotel-toggle { display:none; } /* replaced by day-acc-toggle */
+.hotel-body { display: none; }
+.hotel-body.open { display: block; }
+
+/* day detail section (depart + hotel) */
+.day-detail {
+  background: #fff;
+  border-top: 1px solid var(--border);
+}
+.day-detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 12px 16px;
+  border-bottom: 1px dashed var(--border);
+}
+.day-detail-row:last-child { border-bottom: none; }
+.detail-icon {
+  font-size: 16px;
+  margin-right: 10px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  line-height: 1.6;
+}
+.detail-content { flex: 1; min-width: 0; }
+.detail-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--blue);
+  letter-spacing: .05em;
+  margin-bottom: 6px;
+}
+/* readonly hotel name */
+.hotel-readonly {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--blue-dark);
+  background: var(--blue-faint);
+  border: 1.5px solid var(--blue-light);
+  border-radius: var(--radius-sm);
+  padding: 9px 13px;
+  margin-bottom: 8px;
+}
+/* auto-filled chip (first day = airport) */
+.depart-auto {
+  font-size: 14px;
+  color: var(--gray);
+  background: var(--blue-faint);
+  border: 1.5px solid var(--blue-light);
+  border-radius: var(--radius-sm);
+  padding: 9px 13px;
+  font-style: italic;
+}
+/* inline input inside day-detail */
+.field-inline {
+  width: 100%;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 15px;
+  padding: 10px 13px;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  -webkit-appearance: none;
+}
+.field-inline:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(53,112,168,.13);
+}
+.field-inline::placeholder { color: #bbb; font-size: 14px; }
+.field-inline.has-error { border-color: #e53e3e !important; background: #fff5f5 !important; }
+
+/* ─── TOTALS ─── */
+.totals {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 2px solid var(--blue-light);
+}
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+.total-row label { color: var(--gray); }
+.total-row span  { font-weight: 500; }
+.total-row.main label {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+}
+.total-row.main span {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 24px;
+  color: var(--blue-dark);
+  font-weight: 600;
+}
+
+/* deposit */
+.deposit-box {
+  margin-top: 16px;
+  padding: 16px 18px;
+  background: #fff8f0;
+  border: 1.5px solid #e8943a;
+  border-left: 5px solid #e8943a;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 14px;
+  line-height: 1.9;
+  color: var(--text);
+}
+.deposit-box .deposit-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #c0621a;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.deposit-account-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fef3e6;
+  border: 1px solid #f0b87a;
+  border-radius: var(--radius-sm);
+  padding: 9px 13px;
+  margin: 8px 0;
+  font-family: monospace;
+  font-size: 15px;
+  font-weight: 600;
+  color: #7a3e00;
+  letter-spacing: .06em;
+}
+.copy-btn {
+  margin-left: auto;
+  flex-shrink: 0;
+  background: #e8943a;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .15s;
+}
+.copy-btn:hover { background: #c0621a; }
+.copy-btn.copied { background: #4caf50; }
+.deposit-urgent {
+  margin-top: 10px;
+  padding: 9px 12px;
+  background: #fde8d0;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: #7a3e00;
+  line-height: 1.7;
+}
+
+/* ─── FORM FIELDS ─── */
+.form-grid   { display: grid; gap: 16px; }
+.g2 { grid-template-columns: 1fr 1fr; }
+.g3 { grid-template-columns: 1fr 1fr 1fr; }
+.cf { grid-column: 1 / -1; }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field > label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-sub);
+}
+.field > label .req { color: var(--red); margin-left: 2px; }
+
+.field input,
+.field select,
+.field textarea {
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 15px;
+  padding: 11px 13px;
+  outline: none;
+  width: 100%;
+  transition: border-color .2s, box-shadow .2s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%236a6a6a' d='M5 6L0 0h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 13px center;
+  padding-right: 34px;
+  cursor: pointer;
+}
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(53,112,168,.13);
+}
+.field input::placeholder,
+.field textarea::placeholder { color: #bbb; font-size: 14px; }
+.field textarea { resize: vertical; min-height: 88px; line-height: 1.6; }
+.field input[readonly] { background: var(--blue-faint); color: var(--gray); cursor: default; }
+
+.err-msg { font-size: 13px; color: var(--red); display: none; }
+.err-msg.show { display: block; }
+
+/* ─── FLIGHT ACCORDION ─── */
+.flight-acc {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.flight-acc-head {
+  background: var(--blue-faint);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color .2s;
+}
+.flight-acc-head.open-head { border-bottom-color: var(--border); }
+.flight-acc-head .fh-left {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--blue-dark);
+}
+.fh-icon { font-size: 20px; }
+.chevron { color: var(--gray); font-size: 13px; transition: transform .2s; }
+.chevron.up { transform: rotate(180deg); }
+.flight-acc-body { display: none; padding: 18px; }
+.flight-acc-body.open { display: block; }
+
+/* T3 warning */
+.t3-warn {
+  display: none;
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  border-left: 4px solid var(--warn-border);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 14px;
+  color: var(--warn-text);
+  line-height: 1.7;
+}
+.t3-warn.show { display: block; }
+
+/* ─── NOTICE ─── */
+.notice {
+  padding: 11px 15px;
+  background: #f4f4f4;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--gray);
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+.notice strong { color: var(--text); }
+
+/* ─── SUBMIT ─── */
+.submit-wrap {
+  text-align: center;
+  margin-top: 30px;
+}
+.btn-submit {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  padding: 14px 28px;
+  cursor: pointer;
+  transition: background .2s, transform .1s;
+}
+.btn-submit:hover  { background: var(--blue-dark); }
+.btn-submit:active { transform: scale(.98); }
+.btn-submit:disabled { opacity: .45; cursor: not-allowed; }
+.submit-note {
+  font-size: 13px;
+  color: var(--gray-light);
+  margin-top: 12px;
+  line-height: 1.8;
+}
+
+/* ─── SUCCESS ─── */
+.success {
+  display: none;
+  text-align: center;
+  padding: 56px 24px 64px;
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+.success.show { display: block; }
+.success-icon {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue-faint) 0%, #c8dff5 100%);
+  border: 3px solid var(--blue);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px;
+  color: var(--blue);
+  margin: 0 auto 28px;
+  animation: popIn .45s cubic-bezier(.17,.89,.32,1.28) both;
+}
+@keyframes popIn {
+  from { transform: scale(0.5); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+.success-title {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--blue-dark);
+  margin-bottom: 8px;
+  letter-spacing: .04em;
+}
+.success-sub {
+  font-size: 15px;
+  color: var(--text-sub);
+  line-height: 2;
+  margin-bottom: 28px;
+}
+.success-pending {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  color: var(--warn-text);
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 36px;
+  text-align: left;
+}
+.success-pending .pending-icon { font-size: 20px; flex-shrink: 0; }
+.success-divider {
+  width: 48px; height: 2px;
+  background: var(--blue-light);
+  border-radius: 2px;
+  margin: 0 auto 28px;
+}
+.success-tagline {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 17px;
+  color: var(--blue);
+  letter-spacing: .08em;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.success-tagline-en {
+  font-size: 12px;
+  color: var(--gray-light);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+/* ─── LOADING ─── */
+.loading {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(8,4,3,.52);
+  z-index: 300;
+  align-items: center; justify-content: center;
+  flex-direction: column; gap: 18px;
+}
+.loading.show { display: flex; }
+.spinner {
+  width: 40px; height: 40px;
+  border: 3px solid rgba(255,255,255,.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to{transform:rotate(360deg)} }
+.loading p { font-size:15px; color:rgba(255,255,255,.85); letter-spacing:.1em; }
+
+/* ─── ERROR PAGE ─── */
+.error-page { display:none; text-align:center; padding:80px 20px; }
+.error-page.show { display:block; }
+.error-page h2 { font-family:'Noto Serif TC',serif; font-size:22px; color:var(--red); margin-bottom:14px; }
+.error-page p  { font-size:16px; color:var(--text-sub); line-height:1.8; }
+
+/* ─── STEP PAGE NAVIGATION ─── */
+.step-page { animation: fadeUp .3s ease both; }
+.step-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0 32px;
+  gap: 12px;
+}
+.btn-next {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 14px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: .04em;
+  transition: background .2s;
+}
+.btn-next:hover { background: var(--blue-dark); }
+.btn-back {
+  background: #fff;
+  color: var(--blue);
+  border: 1.5px solid var(--blue-light);
+  border-radius: var(--radius-sm);
+  padding: 13px 22px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .2s;
+}
+.btn-back:hover { background: var(--blue-faint); }
+
+/* ─── ITIN SUMMARY (step2) ─── */
+.itin-summary-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+.itin-summary-row:last-child { border-bottom: none; }
+.itin-summary-row.last { border-bottom: none; }
+.itin-summary-date {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 13px;
+  color: var(--blue);
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.itin-summary-desc {
+  font-size: 13px;
+  color: var(--text);
+  flex: 1;
+  line-height: 1.5;
+}
+.itin-summary-price {
+  font-size: 13px;
+  color: var(--blue-dark);
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.itin-summary-total {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 2px solid var(--blue-light);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--blue-dark);
+}
+
+/* ─── STEP NAV BUTTONS ─── */
+.step-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 16px 0 32px;
+  gap: 12px;
+}
+.btn-next {
+  margin-left: auto;
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 14px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: .04em;
+  transition: background .2s;
+}
+.btn-next:hover { background: var(--blue-dark); }
+.btn-back {
+  background: #fff;
+  color: var(--blue);
+  border: 1.5px solid var(--blue-light);
+  border-radius: var(--radius-sm);
+  padding: 13px 22px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .2s;
+}
+.btn-back:hover { background: var(--blue-faint); }
+
+/* ─── ITIN SUMMARY (step 2) ─── */
+.itin-summary-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.itin-summary-row:last-of-type { border-bottom: none; }
+.itin-summary-date {
+  font-size: 13px;
+  color: var(--blue);
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 48px;
+}
+.itin-summary-desc {
+  font-size: 13px;
+  color: var(--text);
+  flex: 1;
+  line-height: 1.5;
+}
+.itin-summary-price {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--blue-dark);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.itin-summary-total {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 2px solid var(--blue-light);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--blue-dark);
+}
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ─── RWD ─── */
+@media (max-width: 600px) {
+  .container { padding: 16px 10px 30px; }
+  .card-body { padding: 16px; }
+  .g2 { grid-template-columns: 1fr; }
+  .g3 { grid-template-columns: 1fr 1fr; }
+  .hotel-inputs { grid-template-columns: 1fr; }
+  .itin-price { display: none; }
+  .day-price-tag { font-size: 12px; padding: 2px 8px; }
+  .step { font-size: 11px; padding: 10px 3px; }
+  .site-header { padding: 14px 16px; }
+  .day-date-col .day-n { font-size: 18px; }
+  .total-row.main span { font-size: 21px; }
+  .btn-next, .btn-back { padding: 13px 18px; font-size: 14px; }
+  .meta-item label { font-size: 10px; }
+  .meta-item .val { font-size: 13px; }
+  .meta-item .val.order-no { font-size: 13px; }
+}
+@media (max-width: 380px) {
+  .g3 { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <p>訂單資料載入中…</p>
+</div>
+
+<!-- HEADER -->
+<div class="site-header">
+  <div class="logo-block">
+    <span class="logo-zh">旅乘</span>
+    <span class="logo-sub">日本自由行包車</span>
+  </div>
+  <div class="header-divider"></div>
+  <div class="header-form-title">匯款訂購單確認</div>
+</div>
+
+<!-- STEP BAR -->
+<div class="step-bar">
+  <div class="step-bar-inner" id="stepBarInner">
+    <div class="step active" id="step1">① 確認行程</div>
+    <div class="step" id="step2">② 匯款確認</div>
+    <div class="step" id="step3">③ 個人資料</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="error-page" id="errorPage">
+    <h2>連結無效或已過期</h2>
+    <p>請聯繫旅乘客服確認您的專屬表單連結<br>或檢查連結是否完整複製</p>
+    <p id="errorDetail" style="font-size:11px;color:#999;margin-top:8px;word-break:break-all"></p>
+  </div>
+
+  <div id="mainContent" style="display:none">
+
+    <!-- SUCCESS -->
+    <div class="success" id="successScreen">
+      <div class="success-icon">✓</div>
+      <p class="success-title">資料已成功送出</p>
+      <p class="success-sub">
+        感謝您填寫旅乘訂單確認表單<br>
+        我們已收到您的資料，正在進行審核
+      </p>
+      <div class="success-pending">
+        <span class="pending-icon">⏳</span>
+        <span>工作人員確認後，將透過 <strong>LINE</strong> 或 <strong>電子信箱</strong> 另行通知您，請耐心等候。</span>
+      </div>
+      <div class="success-divider"></div>
+      <p class="success-tagline">旅乘日本包車　感謝您的信任</p>
+      <p class="success-tagline-en">Forever Young &nbsp;·&nbsp; Japan Private Charter</p>
+
+      <!-- 訂購後流程 -->
+      <div style="margin-top:32px;text-align:left">
+        <div style="font-size:13px;font-weight:600;color:var(--blue-dark);margin-bottom:16px;letter-spacing:.06em;text-align:center">《 訂購後流程 》</div>
+
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">1</div>
+            <div style="font-size:13px;color:var(--text);line-height:1.7">完成訂單填寫後，我們會給您發送明細確認內容<div style="font-size:11px;color:var(--gray-light);margin-top:2px">（明細內會有台灣與日本的聯絡人手機號碼方便聯繫）</div></div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">2</div>
+            <div style="font-size:13px;color:var(--text);line-height:1.7">出發前 3–7 天，我們會提供 LINE／WhatsApp 連結，邀請您加入日本自由行包車群組<div style="font-size:11px;color:var(--gray-light);margin-top:2px">（群組內會有官方帳號、台灣、日本聯絡窗口、司機，至少 3 位以上在裡面等候）</div></div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">3</div>
+            <div style="font-size:13px;color:var(--text);line-height:1.7">出發前 2 天，我們會將您的行程與款項再次貼在群組內，雙方最後確認<div style="font-size:11px;color:var(--gray-light);margin-top:2px">（早點確認出發地點與時間，以免當天多花時間查資料）</div></div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">4</div>
+            <div style="font-size:13px;color:var(--text);line-height:1.7">出發當天，司機會於指定時間提早 5～30 分鐘抵達地點<div style="font-size:11px;color:var(--gray-light);margin-top:2px">（司機也會提供車牌號碼與車體外觀顏色給您確認）</div></div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+          <div style="background:var(--blue-faint);border:1px solid var(--blue-light);border-radius:8px;padding:12px 14px">
+            <div style="font-size:12px;font-weight:600;color:var(--blue-dark);margin-bottom:6px">✈️ 機場接／送機</div>
+            <div style="font-size:12px;color:var(--text-sub);line-height:1.9">抵達機場拿完行李後，請拍攝行李箱外觀傳給我們，以便司機馬上辨識，引導至出口方向即可乘車（約 5–10 分鐘出發）。<br>送機會於您指定的飯店周邊等候，行程結束後收取日幣現金尾款。</div>
+          </div>
+          <div style="background:var(--blue-faint);border:1px solid var(--blue-light);border-radius:8px;padding:12px 14px">
+            <div style="font-size:12px;font-weight:600;color:var(--blue-dark);margin-bottom:6px">🚌 一日遊行程</div>
+            <div style="font-size:12px;color:var(--text-sub);line-height:1.9">司機於您指定的飯店周邊等候，行程結束後收取日幣現金尾款。</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:16px">
+          <div style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">5</div>
+          <div style="font-size:13px;color:var(--text);line-height:1.7">返台後還需要您的評價，無論好壞我們都謙虛接受，希望每段旅程都是您難忘的回憶 🙏</div>
+        </div>
+
+        <div style="padding:12px 14px;background:#fffbe6;border:1px solid #ffe58f;border-radius:8px">
+          <div style="font-size:11px;color:#7a5200;line-height:2.2">
+            ＊ 行程中若有任何問題需要反映，請立即告知我們客服<br>
+            ＊ 上下車需停靠任何地點，請盡可能詳細告知司機<br>
+            ＊ 19 人座考斯特因車輛較大，無法停靠小車容易上下車的地點，敬請見諒
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="formBody">
+
+      <!-- ══ STEP 1：確認行程 ══ -->
+      <div class="step-page" id="page1">
+        <div class="card" id="sec1" data-sec="1">
+          <div class="card-head">
+            <div class="head-icon">📋</div>
+            <h2>訂單行程與住宿確認</h2>
+            <span class="badge ro">行程唯讀</span>
+          </div>
+          <div class="card-body">
+
+            <!-- 訂單基本資訊 -->
+            <div class="meta-grid">
+              <div class="meta-item">
+                <label>訂單編號</label>
+                <div class="val order-no" id="disp-id"></div>
+              </div>
+              <div class="meta-item">
+                <label>旅遊日期</label>
+                <div class="val" id="disp-date"></div>
+              </div>
+            </div>
+
+            <!-- 行程表 + 住宿 -->
+            <div class="itin-header">
+              <span>📅 每日行程明細 &amp; 住宿資料</span>
+              <button class="itin-expand-btn" id="expandToggleBtn" onclick="toggleExpandAll()">⬇ 展開全部</button>
+            </div>
+            <div id="dayRowList"></div>
+            <button id="staffFillBtn" onclick="staffFillDepart()" style="display:none;width:100%;margin:12px 0 4px;padding:11px;border:1.5px dashed var(--blue-light);border-radius:var(--radius-sm);background:#fff;color:var(--blue);font-size:14px;cursor:pointer;font-family:inherit">
+              🏨 套用相同出發地點至其他日期
+            </button>
+          </div>
+        </div>
+
+        <div class="step-nav">
+          <button class="btn-back" onclick="confirmClearAll()" style="color:var(--red);border-color:#f5c0bb">🗑 清除重填</button>
+          <button class="btn-next" onclick="goStep(2)">下一步：匯款確認 →</button>
+        </div>
+      </div>
+
+      <!-- ══ STEP 2：匯款確認 ══ -->
+      <div class="step-page" id="page2" style="display:none">
+        <div class="card">
+          <div class="card-head"><div class="head-icon">💳</div><h2>行程總覽 &amp; 匯款資訊</h2></div>
+          <div class="card-body">
+
+            <!-- 行程摘要 -->
+            <div style="font-size:13px;font-weight:600;color:var(--blue);letter-spacing:.06em;margin-bottom:10px">行程摘要</div>
+            <div id="itinSummary" style="margin-bottom:20px"></div>
+
+            <!-- 費用總覽 -->
+            <div class="total-section" style="margin-bottom:20px">
+              <div class="total-row main">
+                <label>訂單總金額</label>
+                <span id="disp-total"></span>
+              </div>
+              <div class="total-row">
+                <label>尾款（85%，行程結束交付司機）</label>
+                <span id="disp-balance"></span>
+              </div>
+            </div>
+
+            <!-- 匯款資訊 -->
+            <div class="deposit-box">
+              <div class="deposit-title">⚠️ 匯款資訊 — 請務必確認</div>
+              <div id="depositAmountRow" style="background:#fff3e0;border-radius:6px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap">
+                <div>
+                  <span style="font-size:13px;color:#7a3e00;font-weight:500">應付訂金</span>
+                  <span id="dispRateWrap" style="font-size:11px;color:#a05a20;margin-left:8px">匯率 <span id="disp-rate"></span>，含手續費</span>
+                </div>
+                <span id="disp-deposit" style="font-family:'Noto Serif TC',serif;font-size:22px;font-weight:700;color:#c0621a;letter-spacing:.04em"></span>
+              </div>
+              <div id="depositBankRow" class="deposit-account-row">
+                <div id="bankInfoText" style="flex:1">
+                  <!-- 由 JS 根據幣別動態填入 -->
+                </div>
+                <button class="copy-btn" id="copyAcctBtn" onclick="copyAccount()">複製帳號</button>
+              </div>
+              <div class="deposit-urgent">
+                請完成匯款後填入帳號後 5 碼，再繼續下一步<br>
+                同時提供匯款截圖紀錄，以便快速查帳與成立訂單
+              </div>
+            </div>
+
+            <!-- 帳號後5碼 -->
+            <div style="margin-top:20px">
+              <div style="font-size:13px;font-weight:600;color:var(--blue);letter-spacing:.06em;margin-bottom:10px">匯款完成後填寫</div>
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                <div style="font-size:13px;color:var(--text-sub)">帳號後 5 碼</div>
+                <input type="text" id="f-account"
+                  placeholder="例：44320" maxlength="5"
+                  oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+                  style="width:120px;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:16px;letter-spacing:.12em;font-weight:600;text-align:center">
+              </div>
+              <div style="font-size:11px;color:var(--gray-light);margin-top:6px">若為其他付款方式，請填入交易序號末 5 碼</div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="step-nav">
+          <button class="btn-back" onclick="goStep(1)">← 上一步</button>
+          <button class="btn-next" onclick="goStep(3)">下一步：個人資料 →</button>
+        </div>
+      </div>
+
+      <!-- ══ STEP 3：個人資料 ══ -->
+      <div class="step-page" id="page3" style="display:none">
+        <div class="card" id="sec3" data-sec="3">
+          <div class="card-head">
+            <div class="head-icon">👤</div>
+            <h2>聯絡人資料</h2>
+            <span class="badge">請填寫</span>
+          </div>
+          <div class="card-body">
+            <div class="notice">
+              請填寫代表聯絡人資訊，旅乘客服將用於核對訂單及後續聯繫。
+            </div>
+            <div class="form-grid g2">
+              <div class="field">
+                <label>姓名（中或英文全名）<span class="req">＊</span></label>
+                <input type="text" id="f-name" placeholder="例：王小明 / Wang Jack" autocomplete="name">
+                <div class="err-msg" id="e-name">請填寫中文或英文姓名</div>
+              </div>
+              <div class="field">
+                <label>手機號碼<span class="req">＊</span></label>
+                <input type="tel" id="f-phone" placeholder="例：0912345678、台灣以外請填國碼+號碼" autocomplete="tel"
+                  oninput="this.value=this.value.replace(/[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\uff00-\uffef]/g,'')">
+                <div class="err-msg" id="e-phone">請填寫手機號碼</div>
+              </div>
+              <div class="field">
+                <label>LINE ID<span style="font-size:11px;color:var(--gray-light);margin-left:4px">（選填）</span></label>
+                <input type="text" id="f-line" placeholder="例：travel_wang"
+                  oninput="this.value=this.value.replace(/[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\uff00-\uffef]/g,'')">
+                <div class="err-msg" id="e-line">請填寫 LINE ID</div>
+              </div>
+              <div class="field">
+                <label>電子郵件地址<span class="req">＊</span></label>
+                <input type="email" id="f-email" placeholder="例：name@email.com" autocomplete="email"
+                  oninput="this.value=this.value.replace(/[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\uff00-\uffef]/g,'')">
+                <div class="err-msg" id="e-email">請填寫電子郵件</div>
+              </div>
+              <div class="field">
+                <label>Facebook 名稱</label>
+                <input type="text" id="f-fb" placeholder="例：小明 Wang">
+              </div>
+              <!-- 兒童年齡（1個小孩時顯示） -->
+              <div class="field" id="childAgeField" style="display:none">
+                <label>兒童年齡<span class="req">＊</span>
+                  <span style="font-size:11px;font-weight:400;color:var(--gray-light)">（未滿6歲，用+區隔）</span>
+                </label>
+                <input type="text" id="f-child-age" placeholder="例：1+2歲">
+                <div class="err-msg" id="e-child-age">請填寫兒童年齡</div>
+              </div>
+              <div class="field">
+                <label>您從哪裡取得此表單連結<span class="req">＊</span></label>
+                <select id="f-link-source">
+                  <option value="">請選擇</option>
+                  <option>LINE官方帳號</option>
+                  <option>Facebook粉絲專頁</option>
+                  <option>Instagram</option>
+                  <option>Threads</option>
+                  <option>抖音</option>
+                  <option>小紅書</option>
+                  <option>其他</option>
+                </select>
+                <div class="err-msg" id="e-link-source">請選擇取得方式</div>
+              </div>
+              <div class="field">
+                <label>您最先從哪裡發現旅乘<span class="req">＊</span></label>
+                <select id="f-discover">
+                  <option value="">請選擇</option>
+                  <option>Facebook粉絲專頁</option>
+                  <option>LINE官方帳號</option>
+                  <option>Instagram</option>
+                  <option>Threads</option>
+                  <option>Dcard</option>
+                  <option>PTT討論區</option>
+                  <option>背包客棧</option>
+                  <option>日本自由行討論區</option>
+                  <option>京都自由行究極攻略</option>
+                  <option>網紅/KOL推薦</option>
+                  <option>親友介紹推薦</option>
+                  <option>業務人員主動聯繫</option>
+                  <option>其他</option>
+                </select>
+                <div class="err-msg" id="e-discover">請選擇發現管道</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 備註（合併在此步驟） -->
+        <div class="card">
+          <div class="card-head"><div class="head-icon">📝</div><h2>特殊需求與備註</h2></div>
+          <div class="card-body">
+            <div class="field">
+              <label>有任何特殊需求，請在此說明</label>
+              <textarea id="f-note" placeholder="例：有嬰兒車、需兒童安全座椅、飲食限制、特殊行程偏好…"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <p class="submit-note" style="text-align:center;margin-bottom:12px">送出後資料將直接寫入您的訂單，如需修改請聯繫旅乘客服</p>
+        <div class="step-nav" style="margin-top:0">
+          <button class="btn-back" onclick="goStep(2)">← 上一步</button>
+          <button class="btn-submit" id="btnSubmit" onclick="submitForm()">確認送出資料</button>
+        </div>
+      </div>
+
+    </div><!-- /formBody -->
+  </div><!-- /mainContent -->
+</div><!-- /container -->
+
+<script>
+// ════════════════════════════════════
+// DEMO DATA
+// ════════════════════════════════════
+/*
+  day 物件：
+    desc        行程描述（含 (X大X小)(X座) 供前端解析）
+    luggage     行李件數（另外給欄位）
+    price       當日費用
+    hotel       住宿名稱（你填好，空白=無住宿）
+    isFirstDay  true = 第一天，出發地從行程抓機場
+    prevDayIdx  前一天 index，供出發地 placeholder 提示
+*/
+const DEMO = {
+  orderId: "#26019999",
+  token:   'TEST',
+  date:    "2026/01/01 – 01/04",
+  total:   "¥198,000",
+  balance: "¥168,000",
+  deposit: "NT$6,600元",
+  rates:   { twd: 0.22, hkd: 0.043, sgd: 0.029 },  // 從 GAS doGet 帶入
+  accounts: {
+    twd: { bankName: '華南銀行 (008) 營業部 ‧ 佳遊國際旅行社有限公司', accountNo: '100100344320' },
+    hkd: { raw: '【香港匯豐ONE帳戶資訊】\n戶名：YEH,CHUN HSIEN\n戶口號碼：583-261169-833' },
+    sgd: { raw: '【新加坡DBS帳戶資訊】\nDBS PayLah\n90226783' },
+  },
+  childAge: "",   // 若有填寫例如 "3+5歲" 會自動帶入欄位
+  days: [
+    { date:"01/01", month:"01", dayNum:"01", weekday:"四",
+      desc:"成田機場至東京市區-單程(7大2小)(10座)",
+      from:"成田機場", to:"東京市區", hours:"-",
+      luggage:"6件", price:"¥68,000", hotel:"Shinjuku Granbell Hotel",
+      isFirstDay:true, prevDayIdx:-1 },
+    { date:"01/02", month:"01", dayNum:"02", weekday:"五",
+      desc:"東京市區往返富士山一日遊(7大2小)(10座)",
+      from:"東京市區", to:"富士山", hours:"10",
+      luggage:"6件", price:"¥76,000", hotel:"Shinjuku Granbell Hotel",
+      isFirstDay:false, prevDayIdx:0 },
+    { date:"01/03", month:"01", dayNum:"03", weekday:"六",
+      desc:"東京市區至成田機場-單程(7大2小)(10座)",
+      from:"東京市區", to:"成田機場", hours:"-",
+      luggage:"6件", price:"¥54,000", hotel:"",
+      isFirstDay:false, prevDayIdx:1 },
+    { date:"01/04", month:"01", dayNum:"04", weekday:"日",
+      desc:"東京市區接送迪士尼樂園來回(7大2小)(7座)",
+      from:"東京市區", to:"迪士尼樂園", hours:"8",
+      luggage:"4件", price:"¥38,000", hotel:"Shinjuku Granbell Hotel",
+      isFirstDay:false, prevDayIdx:2 }
+  ]
 };
 
-// ── 客人資料欄位（只補寫這些，其餘由 processOrder 寫）──────
-// 欄號對照：AL=38 AM=39 AN=40 AO=41 AP=42 AQ=43 AT=46 AJ=36
-const CUSTOMER_COLS = {
-  帳號後碼:   36, // AJ
-  訂購姓名:   38, // AL
-  訂購人電話: 39, // AM
-  訂購人LINE: 40, // AN
-  訂購EMAIL:  41, // AO
-  曝光管道:   42, // AP
-  FB名稱:     43, // AQ
-  來源:       46, // AT
+let ORDER = null;
+
+// ════════════════════════════════════
+// INIT
+// ════════════════════════════════════
+window.onload = function() {
+  const params  = new URLSearchParams(location.search);
+  const orderId = params.get('order');
+  const token   = params.get('token');
+  const isDemo = !token || token === 'DEMO' || token === 'TEST';
+  if (orderId && token && !isDemo) {
+    loadFromGAS(orderId, token);
+  } else {
+    loadUI(DEMO);
+  }
 };
 
-// ════════════════════════════════════════════════════════════
-// doPost — 表單送出入口
-// ════════════════════════════════════════════════════════════
-function doPost(e) {
+function loadUI(data) {
+  ORDER = data;
+  document.getElementById('disp-id').textContent      = data.orderId;
+
+  // 旅遊日期：從 days 陣列自動算頭尾，避免硬寫的 date 欄位不準
+  if (data.days && data.days.length > 0) {
+    const first = data.days[0];
+    const last  = data.days[data.days.length - 1];
+    const dateStr = first.date === last.date
+      ? `2026/${first.date}`
+      : `2026/${first.date} – ${last.date}`;
+    document.getElementById('disp-date').textContent = dateStr;
+  } else {
+    document.getElementById('disp-date').textContent = data.date;
+  }
+
+  document.getElementById('disp-total').textContent   = data.total;
+  document.getElementById('disp-balance').textContent = data.balance;
+
+  // 訂金顯示：格式化幣別，0元隱藏整個匯款區塊
+  const depositRaw = (data.deposit || '').trim();
+  const depositNum = parseFloat(depositRaw.replace(/[^0-9.]/g, '')) || 0;
+  const depositEl  = document.getElementById('disp-deposit');
+  const bankRow    = document.getElementById('depositBankRow');
+  const amountRow  = document.getElementById('depositAmountRow');
+  const depositBox = amountRow?.closest('.deposit-box');
+
+  // 匯率：根據訂金幣別自動選對應匯率
+  const rates    = data.rates || {};
+  const rateEl   = document.getElementById('disp-rate');
+  const rateWrap = document.getElementById('dispRateWrap');
+  const depositForRate = (data.deposit || '').trim();
+  let rateVal = '';
+  if      (depositForRate.startsWith('NT$'))  rateVal = rates.twd;
+  else if (depositForRate.startsWith('HK$'))  rateVal = rates.hkd;
+  else if (depositForRate.startsWith('SGD$') || depositForRate.startsWith('S$')) rateVal = rates.sgd;
+  if (rateEl) rateEl.textContent = rateVal || '';
+  if (rateWrap) rateWrap.style.display = rateVal ? '' : 'none';
+
+  if (depositNum === 0 || !depositRaw) {
+    // 0元：隱藏整個匯款區塊（金額列 + 銀行帳號列）
+    if (amountRow) amountRow.style.display = 'none';
+    if (bankRow)   bankRow.style.display   = 'none';
+  } else {
+    // 格式化幣別文字
+    const CURRENCY_MAP = [
+      { prefix: 'NT$',  label: '新台幣$',   suffix: '元' },
+      { prefix: 'HK$',  label: '港幣$',     suffix: '元' },
+      { prefix: 'SGD$', label: '新加坡幣$', suffix: '元' },
+      { prefix: 'S$',   label: '新加坡幣$', suffix: '元' },
+      { prefix: '¥',    label: '日幣¥',     suffix: '日圓' },
+    ];
+    let formatted = depositRaw;
+    for (const c of CURRENCY_MAP) {
+      if (depositRaw.startsWith(c.prefix)) {
+        const num = depositRaw.slice(c.prefix.length).replace(/[^0-9,]/g, '');
+        formatted = `${c.label}${num}${c.suffix}`;
+        break;
+      }
+    }
+    if (depositEl) depositEl.textContent = formatted;
+
+    // 根據幣別顯示對應帳戶資訊
+    const accounts = data.accounts || {};
+    const bankInfoEl = document.getElementById('bankInfoText');
+    if (bankInfoEl) {
+      let html = '';
+      if (depositRaw.startsWith('NT$')) {
+        const a = accounts.twd || {};
+        html = `
+          <div style="font-size:13px;font-weight:500;color:#a05a20;letter-spacing:.03em;margin-bottom:4px">${a.bankName || ''}</div>
+          <span id="acct-number" style="font-size:22px;letter-spacing:.1em">${a.accountNo || ''}</span>`;
+      } else if (depositRaw.startsWith('HK$')) {
+        const raw = (accounts.hkd || {}).raw || '';
+        const copyVal = raw.split('\n').pop().trim(); // 最後一行為帳號
+        html = `<pre id="acct-number" data-copy="${copyVal}" style="margin:0;font-size:14px;line-height:1.7;white-space:pre-wrap;font-family:inherit;color:#a05a20">${raw}</pre>`;
+      } else if (depositRaw.startsWith('SGD$') || depositRaw.startsWith('S$')) {
+        const raw = (accounts.sgd || {}).raw || '';
+        const copyVal = raw.split('\n').pop().trim(); // 最後一行為帳號
+        html = `<pre id="acct-number" data-copy="${copyVal}" style="margin:0;font-size:14px;line-height:1.7;white-space:pre-wrap;font-family:inherit;color:#a05a20">${raw}</pre>`;
+      }
+      bankInfoEl.innerHTML = html;
+    }
+  }
+
+  buildDayRows(data.days);
+
+  // 套用按鈕：有可填寫出發地的天（排除「接機天」：第一天 from 含機場）
+  const fillableDays = data.days.filter(d => {
+    const fromStr = (d.from || '').trim();
+    const fromIsAp = fromStr.includes('機場') || /^[A-Z]{3}$/.test(fromStr);
+    return !(d.isFirstDay && fromIsAp);
+  });
+  if (fillableDays.length >= 2) {
+    document.getElementById('staffFillBtn').style.display = 'block';
+  }
+
+  // 偵測是否有小孩（任何一天描述含「小」）
+  const maxChild = Math.max(...data.days.map(d => {
+    const m = d.desc.match(/(\d+)小/); return m ? parseInt(m[1]) : 0;
+  }));
+  const hasChild = maxChild >= 1;
+  // 只有1個小孩才顯示外層年齡欄；2個以上改在每天折疊區塊填
+  if (hasChild && maxChild === 1) document.getElementById('childAgeField').style.display = 'block';
+
+  // 若訂單資料已帶入兒童年齡，自動填入欄位
+  if (data.childAge) {
+    const ageEl = document.getElementById('f-child-age');
+    if (ageEl && !ageEl.value) ageEl.value = data.childAge;
+  }
+
+
+  document.getElementById('mainContent').style.display = 'block';
+  document.getElementById('loading').classList.remove('show');
+  setTimeout(restoreDraft, 300); // restore after DOM settle
+  setInterval(autosave, 30000);  // autosave every 30s
+  document.addEventListener('input', autosave); // also save on any input
+}
+
+// ════════════════════════════════════
+// BUILD DAY ROWS
+// ════════════════════════════════════
+
+// 車款對照（顯示格式：10座海獅）
+const CAR_NAMES = {'7':'舒適款','8':'商務款','9':'豪華款','10':'海獅','13':'海獅','14':'海獅','19':'考斯特','25':'大型巴士','45':'大型巴士'};
+function carLabel(s) {
+  return s.replace('座','').split('+').map(n => {
+    const nm = CAR_NAMES[n.trim()];
+    return nm ? `${n}座${nm}` : `${n}座`;
+  }).join(' + ');
+}
+
+function parseDayMeta(desc, luggage, price, childAgeStr, hours) {
+  const paxM = desc.match(/\((\d+大\d*小?|\d+小|\d+大)\)/);
+  const carM  = desc.match(/\((\d+(?:\+\d+)?座)\)/);
+  const parts = [];
+  let paxText = paxM ? paxM[1] : '';
+  if (paxText && childAgeStr) paxText += `(${childAgeStr})`;
+  if (paxText) parts.push(`<span>🧑‍🤝‍🧑 ${paxText}</span>`);
+  if (carM)  parts.push(`<span>🚌 ${carLabel(carM[1])}</span>`);
+  if (hours && hours !== '-') parts.push(`<span>⏱ ${hours}小時</span>`);
+  if (luggage) parts.push(`<span>🧳 行李 ${luggage}</span>`);
+  if (price)   parts.push(`<span class="meta-price">${price}</span>`);
+  return parts.join('');
+}
+
+function updateDayMeta(dayI) {
+  const d = ORDER.days[dayI];
+  if (!d) return;
+  const ageInp = document.getElementById(`day_child_age_${dayI}`);
+  const ageVal = ageInp?.value.trim() || '';
+  const metaEl = document.getElementById(`day_meta_${dayI}`);
+  if (metaEl) metaEl.innerHTML = parseDayMeta(d.desc, d.luggage, d.price, ageVal, d.hours);
+}
+
+
+const AIRPORT_HINTS = {
+  '成田': '⏱ 東京市區至成田機場約1小時30分鐘車程，請留意登機時間',
+  'NRT':  '⏱ 東京市區至成田機場約1小時30分鐘車程，請留意登機時間',
+  '羽田': '⏱ 東京市區至羽田機場約1小時車程，請留意登機時間',
+  'HND':  '⏱ 東京市區至羽田機場約1小時車程，請留意登機時間',
+  '關西': '⏱ 大阪市區至關西機場約1小時、京都市區約1小時45分鐘車程，請留意登機時間',
+  'KIX':  '⏱ 大阪市區至關西機場約1小時、京都市區約1小時45分鐘車程，請留意登機時間',
+  '福岡': '⏱ 福岡市區至福岡機場約20分鐘車程，請留意登機時間',
+  'FUK':  '⏱ 福岡市區至福岡機場約20分鐘車程，請留意登機時間',
+  '中部': '⏱ 名古屋市區至中部機場約1小時車程，請留意登機時間',
+  'NGO':  '⏱ 名古屋市區至中部機場約1小時車程，請留意登機時間',
+};
+function getAirportHint(desc) {
+  for (const [k, v] of Object.entries(AIRPORT_HINTS)) {
+    if (desc.includes(k)) return v;
+  }
+  return '';
+}
+
+function buildTimeSelect(id) {
+  const hrs  = Array.from({length:24}, (_,h) => `<option value="${String(h).padStart(2,'0')}">${String(h).padStart(2,'0')}</option>`).join('');
+  const mins = ['00','05','10','15','20','25','30','35','40','45','50','55'].map(m => `<option value="${m}">${m}</option>`).join('');
+  const dayI = id.replace('depart_time_','');
+  return `
+  <div style="display:flex;align-items:center;gap:4px;margin-top:4px">
+    <select id="${id}_h" style="width:54px;text-align:center;font-size:14px;font-weight:600;padding:6px 2px"
+      onchange="autoFillMin('${id}');syncTimeVal('${id}');checkNightSurcharge2('${id}');updateDayDescTime(${dayI});checkDayFilled(${dayI})">
+      <option value="">時</option>${hrs}
+    </select>
+    <span style="font-size:15px;font-weight:700;color:var(--blue)">:</span>
+    <select id="${id}_m" style="width:54px;text-align:center;font-size:14px;font-weight:600;padding:6px 2px"
+      onchange="syncTimeVal('${id}');checkNightSurcharge2('${id}');updateDayDescTime(${dayI});checkDayFilled(${dayI})">
+      <option value="">分</option>${mins}
+    </select>
+    <input type="hidden" id="${id}">
+  </div>`; // 夜間警告在外層由 checkNightSurcharge2 控制
+}
+
+function autoFillMin(id) {
+  const mSel = document.getElementById(id + '_m');
+  if (mSel && !mSel.value) mSel.value = '00';
+}
+
+function syncReturnTime(dayI) {
+  const h = document.getElementById(`return_time_${dayI}_h`)?.value || '';
+  const m = document.getElementById(`return_time_${dayI}_m`)?.value || '';
+  const inp = document.getElementById(`return_time_${dayI}`);
+  if (inp) inp.value = (h && m) ? `${h}:${m}` : '';
+}
+
+function syncFlightTime(prefix) {
+  const h = document.getElementById(`${prefix}_time_h`)?.value || '';
+  const m = document.getElementById(`${prefix}_time_m`)?.value || '';
+  const inp = document.getElementById(`${prefix}_time`);
+  if (inp) inp.value = (h && m) ? `${h}:${m}` : '';
+}
+
+function syncTimeVal(id) {
+  const h = document.getElementById(id+'_h')?.value || '';
+  const m = document.getElementById(id+'_m')?.value || '';
+  const inp = document.getElementById(id);
+  if (inp) inp.value = (h && m) ? `${h}:${m}` : '';
+}
+
+function checkNightSurcharge2(id) {
+  // id 形如 depart_time_0，取 dayI
+  const dayI = id.replace('depart_time_','').replace('return_time_','');
+  const warn = document.getElementById(`night_warn_${dayI}`);
+  if (!warn) return;
+  const dh = parseInt(document.getElementById(`depart_time_${dayI}_h`)?.value || '-1');
+  const rh = parseInt(document.getElementById(`return_time_${dayI}_h`)?.value || '-1');
+  const isNight = h => h >= 0 && (h >= 22 || h <= 6);
+  warn.style.display = (isNight(dh) || isNight(rh)) ? 'block' : 'none';
+}
+
+function checkNightSurcharge(inp) {
+  const warn = document.getElementById(inp.id + '_warn');
+  if (!warn) return;
+  const val = inp.value.trim();
+  const m = val.match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) { warn.style.display = 'none'; return; }
+  const h = parseInt(m[1]);
+  const isNight = (h >= 22) || (h <= 6);
+  warn.style.display = isNight ? 'block' : 'none';
+}
+
+// 從行程描述抓機場名稱（用於航班唯讀顯示）
+const AIRPORT_MAP = {
+  '成田':'東京成田', 'NRT':'東京成田', '羽田':'東京羽田', 'HND':'東京羽田',
+  '關西':'大阪關西', 'KIX':'大阪關西', '福岡':'福岡國際', 'FUK':'福岡國際',
+  '中部':'名古屋中部', 'NGO':'名古屋中部', '那霸':'那霸', 'OKA':'那霸',
+  '新千歲':'新千歲', 'CTS':'新千歲', '熊本':'熊本', 'KMJ':'熊本',
+  '長崎':'長崎', 'NGS':'長崎', '神戶':'神戶', 'UKB':'神戶',
+  '北九州':'北九州', 'KKJ':'北九州', '石垣':'石垣', 'ISG':'石垣',
+};
+function extractAirportName(desc) {
+  for (const [k, v] of Object.entries(AIRPORT_MAP)) {
+    if (desc.includes(k)) return v;
+  }
+  return '機場';
+}
+
+// 每天兒童年齡欄（2個小孩以上才顯示）
+function buildDayChildAgeHtml(dayI, desc, days) {
+  // 計算整趟行程最大小孩數
+  const maxChild = Math.max(...days.map(d => {
+    const m = d.desc.match(/(\d+)小/);
+    return m ? parseInt(m[1]) : 0;
+  }));
+  if (maxChild < 2) return ''; // 0或1個小孩不顯示
+
+  // 今天這天的小孩數（從描述抓）
+  const todayMatch = desc.match(/(\d+)小/);
+  const todayChild = todayMatch ? parseInt(todayMatch[1]) : maxChild;
+
+  const isFirst = dayI === 0;
+  const placeholder = todayChild === 1 ? '例：1歲' :
+    `例：${Array.from({length: todayChild}, (_,k) => `${k+1}`).join('+')}歲`;
+
+  return `
+  <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px">
+    <div style="font-size:12px;font-weight:600;color:var(--gray);margin-bottom:6px">👶 本日隨行兒童年齡</div>
+    ${!isFirst ? `
+    <label style="font-size:12px;color:var(--gray-light);display:flex;align-items:center;gap:6px;margin-bottom:6px;cursor:pointer">
+      <input type="checkbox" id="child_same_${dayI}" onchange="copyChildAgeFromDay0(${dayI})">
+      與第一天相同
+    </label>` : ''}
+    <input class="field-inline" type="text" id="day_child_age_${dayI}"
+      placeholder="例：${placeholder}"
+      style="margin-top:0"
+      oninput="updateDayMeta(${dayI});checkDayFilled(${dayI})">
+    <div style="font-size:11px;color:var(--gray-light);margin-top:4px">本日隨行小孩年齡，以「+」分隔，如：1+2歲</div>
+  </div>`;
+}
+
+function copyChildAgeFromDay0(dayI) {
+  const cb  = document.getElementById(`child_same_${dayI}`);
+  const src = document.getElementById('day_child_age_0');
+  if (!src || !cb) return;
+
+  // 若是第二天（dayI===1）勾選，把後面所有天都一起勾起來
+  const totalDays = ORDER.days.length;
+  const startDay  = (dayI === 1) ? 1 : dayI;
+  const endDay    = (dayI === 1) ? totalDays - 1 : dayI;
+
+  for (let d = startDay; d <= endDay; d++) {
+    const tgt  = document.getElementById(`day_child_age_${d}`);
+    const tcb  = document.getElementById(`child_same_${d}`);
+    if (!tgt) continue;
+    if (tcb) tcb.checked = cb.checked;
+    if (cb.checked) {
+      tgt.value = src.value;
+      tgt.style.background = 'var(--blue-faint)';
+    } else {
+      tgt.style.background = '';
+    }
+    updateDayMeta(d);
+  }
+}
+
+function buildFlightHtml(dayI, isArrival, airportName) {
+  const prefix     = isArrival ? `arr_${dayI}` : `dep_${dayI}`;
+  const icon       = isArrival ? '🛬' : '🛫';
+  const label      = isArrival ? '抵達航班' : '出發航班';
+  const timeSuffix = isArrival ? '著' : '飛';
+  const timeLabel  = isArrival ? '抵達時間（著）' : `起飛時間（飛）`;
+
+  const airports = [
+    '東京成田','東京羽田','大阪關西','福岡國際','名古屋中部',
+    '那霸','新千歲','熊本','長崎','神戶','北九州','石垣','宮古'
+  ];
+  const airportOpts = airports.map(a =>
+    `<option value="${a}"${a === airportName ? ' selected' : ''}>${a}機場</option>`
+  ).join('');
+
+  const airlines = `
+    <option value="" data-code="">請選擇</option>
+    <optgroup label="— 台灣出發 —">
+      <option value="中華航空" data-code="CI">中華航空 CI</option>
+      <option value="長榮航空" data-code="BR">長榮航空 BR</option>
+      <option value="星宇航空" data-code="JX">星宇航空 JX</option>
+      <option value="台灣虎航" data-code="IT">台灣虎航 IT</option>
+      <option value="酷航"     data-code="TR">酷航 TR</option>
+    </optgroup>
+    <optgroup label="— 日本航空 —">
+      <option value="日本航空" data-code="JL">日本航空 JL</option>
+      <option value="全日空"   data-code="NH">全日空 NH</option>
+      <option value="樂桃航空" data-code="MM">樂桃航空 MM</option>
+    </optgroup>
+    <optgroup label="— 其他 —">
+      <option value="國泰航空" data-code="CX">國泰航空 CX</option>
+      <option value="香港快運" data-code="UO">香港快運 UO</option>
+      <option value="港航"     data-code="HX">港航 HX</option>
+      <option value="泰國航空" data-code="TG">泰國航空 TG</option>
+      <option value="韓亞航空" data-code="OZ">韓亞航空 OZ</option>
+      <option value="大韓航空" data-code="KE">大韓航空 KE</option>
+    </optgroup>
+    <option value="其他" data-code="">其他</option>`;
+
+  const onchange = `updateFlightPreview('${prefix}','${timeSuffix}')`;
+  const hrs  = Array.from({length:24},(_,h)=>`<option value="${String(h).padStart(2,'0')}">${String(h).padStart(2,'0')}</option>`).join('');
+  const mins = ['00','05','10','15','20','25','30','35','40','45','50','55'].map(m=>`<option value="${m}">${m}</option>`).join('');
+
+  return `
+    <div style="margin-top:12px;padding:10px 12px;background:var(--blue-faint);border-radius:var(--radius-sm);border:1px solid var(--blue-light)">
+      <div style="font-size:12px;font-weight:600;color:var(--blue);margin-bottom:10px">${icon} ${label}</div>
+      <div class="form-grid g2" style="gap:8px">
+        <div class="field">
+          <label>機場</label>
+          <select id="${prefix}_airport" disabled
+            style="color:var(--blue-dark);background:#dce8ff;border-color:var(--blue-light);cursor:default"
+            onchange="${onchange}">${airportOpts}</select>
+        </div>
+        <div class="field">
+          <label>航廈</label>
+          <select id="${prefix}_terminal" onchange="${onchange}">
+            <option value="">請選擇</option><option>T1</option><option>T2</option><option>T3</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>航空公司<span class="req">＊</span></label>
+          <select id="${prefix}_airline" onchange="flightAirlinePick('${prefix}');${onchange}">
+            ${airlines}
+          </select>
+        </div>
+        <div class="field">
+          <label>班機號碼<span class="req">＊</span></label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input type="text" id="${prefix}_no_pfx" readonly
+              style="width:62px;text-align:center;font-weight:700;background:#e8f0fe;color:var(--blue-dark);flex-shrink:0" placeholder="CI">
+            <input type="text" id="${prefix}_no_num" placeholder="191" inputmode="numeric" style="flex:1"
+              oninput="this.value=this.value.replace(/\\D/g,'');${onchange}">
+          </div>
+          <div class="err-msg" id="e_${prefix}_no">請填寫班機號碼</div>
+        </div>
+        <div class="field cf">
+          <label>${timeLabel}<span class="req">＊</span></label>
+          <div style="display:flex;align-items:center;gap:4px;margin-top:4px">
+            <select id="${prefix}_time_h" style="width:66px;text-align:center;font-size:14px;font-weight:600;padding:6px 4px"
+              onchange="autoFillMin('${prefix}_time');syncFlightTime('${prefix}');${onchange}">
+              <option value="">時</option>${hrs}
+            </select>
+            <span style="font-size:15px;font-weight:700;color:var(--blue)">:</span>
+            <select id="${prefix}_time_m" style="width:66px;text-align:center;font-size:14px;font-weight:600;padding:6px 4px"
+              onchange="syncFlightTime('${prefix}');${onchange}">
+              <option value="">分</option>${mins}
+            </select>
+            <input type="hidden" id="${prefix}_time">
+          </div>
+        </div>
+      </div>
+      <div id="${prefix}_preview" style="display:none !important"></div>
+    </div>`;
+}
+function buildDayRows(days) {
+  const el = document.getElementById('dayRowList');
+  days.forEach((day, i) => {
+    const descStr  = (day.desc  || '');
+
+    // ── from/to fallback：若 GAS 未回傳，從 desc 解析
+    let fromStr = (day.from || '').trim();
+    let toStr   = (day.to   || '').trim();
+    if (!fromStr || !toStr) {
+      // 嘗試從 desc 解析「出發地至目的地」或「出發地-單程」
+      const clean = descStr.replace(/\([^)]*\)/g,'').trim();
+      const m = clean.match(/^(.+?)(?:至|－單程|-單程|─單程|—單程|往返|接送)/u);
+      if (m && !fromStr) fromStr = m[1].trim();
+      const m2 = clean.match(/至(.+?)(?:-單程|─單程|—單程|$)/u);
+      if (m2 && !toStr) toStr = m2[1].trim();
+    }
+
+    // ── 用 from/to 判斷行程結構
+    const fromIsAp   = fromStr.includes('機場') || /^[A-Z]{3}$/.test(fromStr);
+    const toIsAp     = toStr.includes('機場')   || /^[A-Z]{3}$/.test(toStr);
+    const isArrival  = day.isFirstDay && fromIsAp;   // 接機：第一天 from=機場
+    const isDeparture = toIsAp;                       // 送機：to=機場
+    const hasAirport = fromIsAp || toIsAp;
+    const isRoundtrip = /接送.*來回|來回.*接送/.test(descStr); // 只有「接送來回」才有回程時間
+
+    const prevHotel = day.prevDayIdx >= 0 && days[day.prevDayIdx]?.hotel
+      ? days[day.prevDayIdx].hotel : '';
+
+    // 機場提示
+    const airportHint = isDeparture ? getAirportHint(toStr || descStr) : '';
+
+    // 航班 block 用的機場顯示名稱
+    const airportName = isArrival
+      ? extractAirportName(fromStr)
+      : isDeparture
+        ? extractAirportName(toStr)
+        : '';
+
+    // ── 出發地 HTML
+    let fromHtml = '';
+    if (!isArrival) {
+      // 非接機天才顯示出發地欄位
+      const depLabel = isDeparture ? '📍 出發地點（送機出發地）' : '📍 出發地點';
+      fromHtml = `
+        <div style="font-size:12px;color:var(--gray);margin-bottom:5px;font-weight:600">${depLabel}</div>
+        <input class="field-inline" type="text" id="depart_${i}"
+          placeholder="${prevHotel ? `例：${prevHotel}` : '例：飯店名稱、車站…'}"
+          oninput="buildDescText(${i});updateNextDepart(${i});checkDayFilled(${i})">
+        <div class="err-msg" id="err_depart_${i}">請填寫地點</div>
+        <input class="field-inline" type="text" id="depart_addr_${i}"
+          placeholder="地址補充（選填）"
+          oninput="buildDescText(${i});updateNextDepart(${i});checkDayFilled(${i})"
+          style="margin-top:6px">`;
+    }
+
+    // ── 目的地 / 回程地點 HTML
+    let arriveHtml = '';
+    if (isDeparture) {
+      // 送機：目的地鎖定（機場已在航班區塊顯示），不需要再給欄位
+    } else if (isArrival) {
+      // 接機天：目的地 = 飯店，可編輯，觸發標題更新
+      const arrVal = toStr.replace(/^宿/, '');
+      arriveHtml = `
+        <div style="font-size:12px;color:var(--gray);margin:12px 0 5px;font-weight:600">🏁 抵達地點（飯店／市區地址）</div>
+        <input class="field-inline" type="text" id="arrive_${i}"
+          value="${arrVal}"
+          placeholder="例：新宿格蘭貝爾酒店"
+          oninput="buildDescText(${i});checkDayFilled(${i})">
+        <input class="field-inline" type="text" id="arrive_addr_${i}"
+          placeholder="地址補充（選填，幫助司機導航）"
+          oninput="buildDescText(${i});checkDayFilled(${i})"
+          style="margin-top:6px">`;
+    } else if (isRoundtrip) {
+      arriveHtml = `
+        <div style="font-size:12px;color:var(--gray);margin:12px 0 5px;font-weight:600">🏁 抵達地點（回程）</div>
+        <label style="font-size:12px;color:var(--gray-light);display:flex;align-items:center;gap:6px;margin-bottom:6px;cursor:pointer">
+          <input type="checkbox" id="arrive_same_${i}" checked onchange="toggleArriveSame(${i})"> 與出發地點相同
+        </label>
+        <div id="arrive_fields_${i}" style="display:none">
+          <input class="field-inline" type="text" id="arrive_${i}"
+            placeholder="例：飯店名稱、車站…"
+            oninput="buildDescText(${i});checkDayFilled(${i})">
+          <input class="field-inline" type="text" id="arrive_addr_${i}"
+            placeholder="地址補充（選填）"
+            oninput="buildDescText(${i});checkDayFilled(${i})"
+            style="margin-top:6px">
+        </div>`;
+    } else if (!hasAirport) {
+      // 一般點對點：顯示目的地欄
+      const hm = toStr.match(/^宿(.+)/);
+      const arrLabel = hm ? '🏁 抵達地點（宿）' : '🏁 抵達地點';
+      const arrVal   = hm ? hm[1] : (toStr || '');
+      arriveHtml = `
+        <div style="font-size:12px;color:var(--gray);margin:12px 0 5px;font-weight:600">${arrLabel}</div>
+        <input class="field-inline" type="text" id="arrive_${i}"
+          value="${arrVal}"
+          placeholder="例：大阪難波、飯店名稱…"
+          oninput="buildDescText(${i});checkDayFilled(${i})">
+        <input class="field-inline" type="text" id="arrive_addr_${i}"
+          placeholder="地址補充（選填）"
+          oninput="buildDescText(${i});checkDayFilled(${i})"
+          style="margin-top:6px">`;
+    }
+
+    // ── 時間欄 HTML（接機天不需要）
+    let timeHtml = '';
+    if (!isArrival) {
+      const rtHtml = isRoundtrip ? `
+        <div>
+          <span style="font-size:11px;color:var(--gray-light)">預計回程時間（選填）</span>
+          <div style="display:flex;align-items:center;gap:4px;margin-top:4px">
+            ${(()=>{
+              const hrs  = Array.from({length:24},(_,h)=>`<option value="${String(h).padStart(2,'0')}">${String(h).padStart(2,'0')}</option>`).join('');
+              const mins = ['00','05','10','15','20','25','30','35','40','45','50','55'].map(m=>`<option value="${m}">${m}</option>`).join('');
+              return `
+              <select id="return_time_${i}_h" style="width:54px;text-align:center;font-size:14px;font-weight:600;padding:6px 2px"
+                onchange="autoFillMin('return_time_${i}');syncReturnTime(${i});buildDescText(${i});checkNightSurcharge2('return_time_${i}')">
+                <option value="">時</option>${hrs}
+              </select>
+              <span style="font-size:15px;font-weight:700;color:var(--blue)">:</span>
+              <select id="return_time_${i}_m" style="width:54px;text-align:center;font-size:14px;font-weight:600;padding:6px 2px"
+                onchange="syncReturnTime(${i});buildDescText(${i});checkNightSurcharge2('return_time_${i}')">
+                <option value="">分</option>${mins}
+              </select>
+              <input type="hidden" id="return_time_${i}">`;
+            })()}
+          </div>
+        </div>` : '';
+      timeHtml = `
+        <div style="margin-bottom:6px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
+          <div>
+            <span style="font-size:11px;color:var(--gray-light)">預計出發時間（選填）</span>
+            ${buildTimeSelect(`depart_time_${i}`)}
+          </div>
+          ${rtHtml}
+        </div>
+        <div id="night_warn_${i}" style="display:none;margin-bottom:10px;padding:8px 10px;background:#fff7e6;border:1px solid #ffb347;border-radius:6px;font-size:12px;color:#7a3c00">
+          ⚠️ 夜間時段（22:00–06:59）將產生加成費用，每小時另計 ¥3,000 日圓，請留意出發時間
+        </div>`;
+    }
+
+    // ── 折疊標題
+    const accLabel = hasAirport ? '行程地點 & 航班資料' : '出發 ／ 抵達地點';
+    const reqMark  = !isArrival ? `<span class="req" style="font-size:12px;margin-left:2px">＊</span>` : '';
+
+    const departRowHtml = `
+      <div class="day-acc-toggle" onclick="toggleAcc2('dep_body_${i}','dep_chev_${i}')">
+        <div class="acc-left"><span class="acc-icon">📍</span>${accLabel}${reqMark}</div>
+        <span class="acc-chevron" id="dep_chev_${i}">▼</span>
+      </div>
+      <div class="day-acc-body" id="dep_body_${i}">
+        <div class="day-acc-inner">
+          ${timeHtml}
+          ${fromHtml}
+          ${airportHint ? `<div style="margin-top:10px;padding:8px 10px;background:#fffbe6;border:1px solid #ffe58f;border-radius:6px;font-size:12px;color:#7a5c00">${airportHint}</div>` : ''}
+          ${hasAirport ? buildFlightHtml(i, isArrival, airportName) : ''}
+          ${arriveHtml}
+          ${buildDayChildAgeHtml(i, day.desc, days)}
+        </div>
+      </div>`;
+
+    // ── 住宿（往返行程不顯示）
+    const isRoundtripDay = /往返|接送|來回/.test(descStr);
+    let hotelHtml = '';
+    if (day.hotel && !isRoundtripDay && !isArrival && !isDeparture) {
+      hotelHtml = `
+        <div class="day-acc-toggle" onclick="toggleAcc2('hotel_body_${i}','hotel_chev_${i}')">
+          <div class="acc-left"><span class="acc-icon">🏨</span>當晚住宿確認</div>
+          <span class="acc-chevron" id="hotel_chev_${i}">▼</span>
+        </div>
+        <div class="day-acc-body" id="hotel_body_${i}">
+          <div class="day-acc-inner">
+            <div style="font-size:11px;color:var(--gray-light);margin-bottom:6px">如已更換飯店，請直接修改下方名稱</div>
+            <input class="field-inline" type="text" id="hotel_name_${i}"
+              value="${day.hotel}" data-original="${day.hotel}"
+              oninput="markHotelChanged(${i})" style="margin-bottom:6px">
+            <div id="hotel_changed_badge_${i}" style="display:none;font-size:12px;color:#e07000;margin-bottom:6px">
+              ✏️ 已修改（原：${day.hotel}）
+            </div>
+            <input class="field-inline" type="text" id="hotel_addr_${i}"
+              placeholder="地址補充（選填，幫助司機導航）">
+          </div>
+        </div>`;
+    }
+
+    const metaHtml = `<div class="day-meta" id="day_meta_${i}">${parseDayMeta(day.desc, day.luggage, day.price, '', day.hours)}</div>`;
+    const cleanDesc = day.desc.replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
+    day._cleanDesc = cleanDesc;
+
+    el.innerHTML += `
+      <div class="day-row" id="dayRow${i}">
+        <div class="day-row-head" style="position:relative">
+          <span class="day-filled-badge" id="day_filled_${i}">✓</span>
+          <div class="day-date-col" id="day_date_col_${i}">
+            <span class="month">${day.month}月</span>
+            <span class="day-n">${day.dayNum}</span>
+            <span class="weekday">（${day.weekday}）</span>
+          </div>
+          <div class="day-itin-col">
+            <span class="day-itin-desc" id="day_desc_${i}" data-orig="${cleanDesc.replace(/"/g,'&quot;')}">${cleanDesc}</span>
+          </div>
+        </div>
+        ${metaHtml}
+        <div class="day-detail">
+          ${departRowHtml}
+          ${hotelHtml}
+        </div>
+      </div>`;
+  });
+}
+
+// ════════════════════════════════════
+// AIRLINE CODE AUTO-FILL
+// ════════════════════════════════════
+function autoFillFlightCode(selectId, prefixId, numId) {
+  const sel = document.getElementById(selectId);
+  const code = sel.options[sel.selectedIndex]?.dataset?.code || '';
+  const prefix = document.getElementById(prefixId);
+  const num = document.getElementById(numId);
+  prefix.value = code;
+  prefix.placeholder = code || '代碼';
+  if (code) num.focus();
+}
+
+function flightAirlinePick(prefix) {
+  const sel  = document.getElementById(`${prefix}_airline`);
+  const val  = sel?.options[sel.selectedIndex]?.value || '';
+  const code = sel?.options[sel.selectedIndex]?.dataset?.code || '';
+  const pfx  = document.getElementById(`${prefix}_no_pfx`);
+  const num  = document.getElementById(`${prefix}_no_num`);
+  const isOther = (val === '其他' || code === '');
+  if (pfx) {
+    pfx.value = code;
+    pfx.readOnly = !isOther;
+    pfx.style.background = isOther ? '#fff' : '#e8f0fe';
+    pfx.placeholder = isOther ? '自行填寫' : 'XX';
+  }
+  if (num) {
+    num.placeholder = isOther ? '完整班機號碼（例：TR156）' : '191';
+  }
+  if (code && num) num.focus();
+}
+
+function updateFlightPreview(prefix, suffix) {
+  const airport  = document.getElementById(`${prefix}_airport`)?.value  || '';
+  const terminal = document.getElementById(`${prefix}_terminal`)?.value || '';
+  const airline  = document.getElementById(`${prefix}_airline`);
+  const airName  = airline?.options[airline?.selectedIndex]?.value || '';
+  const code     = airline?.options[airline?.selectedIndex]?.dataset?.code || '';
+  const num      = document.getElementById(`${prefix}_no_num`)?.value || '';
+  const timeH    = document.getElementById(`${prefix}_time_h`)?.value || '';
+  const timeM    = document.getElementById(`${prefix}_time_m`)?.value || '';
+  const time     = (timeH && timeM) ? `${timeH}:${timeM}` : (document.getElementById(`${prefix}_time`)?.value || '');
+  const prev     = document.getElementById(`${prefix}_preview`);
+  if (!prev) return;
+
+  const dayI = parseInt(prefix.replace(/^(arr|dep)_/, ''));
+  if (isNaN(dayI)) return;
+  const titleEl = document.getElementById(`day_desc_${dayI}`);
+  if (!titleEl) return;
+
+  if (!airName || !num || !time) {
+    // 清掉已存的航班替換，重跑 buildDescText
+    titleEl.dataset.flight = '';
+    buildDescText(dayI);
+    return;
+  }
+
+  const airportPart  = airport ? airport + '機場' : '';
+  const terminalPart = terminal || '';
+  const shortName    = airName.replace(/\s.*/, '');
+  const flightCode   = code ? `${shortName}${code}${num}` : `${airName}${num}`;
+  const result = [airportPart + terminalPart, flightCode, `${time}${suffix}`].filter(Boolean).join('-');
+
+  // 存起來供 buildDescText 使用
+  titleEl.dataset.flight = result;
+  buildDescText(dayI);
+}
+
+// 機場短名對照（描述中出現的短鍵 → AP_REPLACE 要搜尋的 pattern）
+const AP_REPLACE_KEYS = ['成田','羽田','關西','中部','神戶','福岡','熊本','大分','仙台','那霸','新千歲','北九州','石垣','宮古'];
+
+// ════════════════════════════════════
+// ════════════════════════════════════
+// COPY ACCOUNT NUMBER
+// ════════════════════════════════════
+function copyAccount() {
+  const el  = document.getElementById('acct-number');
+  if (!el) return;
+  const num = (el.dataset.copy || el.textContent).trim();
+  const success = () => showToast('✓ 已複製帳號 ' + num);
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(num).then(success).catch(() => fallbackCopy(num, success));
+  } else {
+    fallbackCopy(num, success);
+  }
+}
+function fallbackCopy(text, cb) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;width:1px;height:1px';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try { if (document.execCommand('copy')) cb(); else showToast('請長按帳號手動複製'); } catch(e) { showToast('請長按帳號手動複製'); }
+  document.body.removeChild(ta);
+}
+function showToast(msg) {
+  let t = document.getElementById('_toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = '_toast';
+    t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:11px 22px;border-radius:24px;font-size:14px;z-index:9999;pointer-events:none;transition:opacity .3s;white-space:nowrap';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.opacity = '0'; }, 2200);
+}
+
+// ════════════════════════════════════
+// LOCALSTORAGE AUTOSAVE
+// ════════════════════════════════════
+const SAVE_KEY = () => `ryojo_draft_${(new URLSearchParams(location.search).get('order') || 'demo')}`;
+
+function autosave() {
+  const fields = ['f-name','f-phone','f-line','f-email','f-fb',
+    'f-link-source','f-discover','f-account','f-note',
+    'arr-airline','arr-flightno-prefix','arr-flightno-num','arr-time','arr-terminal',
+    'dep-airline','dep-flightno-prefix','dep-flightno-num','dep-time','dep-leave','dep-terminal'];
+  const data = {};
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) data[id] = el.value;
+  });
+  // depart inputs
+  if (ORDER) ORDER.days.forEach((d, i) => {
+    const inp = document.getElementById(`depart_${i}`);
+    if (inp) data[`depart_${i}`] = inp.value;
+    const addr = document.getElementById(`hotel_addr_${i}`);
+    if (addr) data[`hotel_addr_${i}`] = addr.value;
+    const name = document.getElementById(`hotel_name_${i}`);
+    if (name) data[`hotel_name_${i}`] = name.value;
+  });
+  try { localStorage.setItem(SAVE_KEY(), JSON.stringify(data)); } catch(e) {}
+}
+
+function restoreDraft() {
   try {
-    const p = JSON.parse(e.postData.contents);
-    Logger.log('doPost received: orderId=' + p.orderId + ' name=' + p.name);
+    const saved = localStorage.getItem(SAVE_KEY());
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    Object.entries(data).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el) el.value = val;
+    });
+    // re-trigger hotel change badges
+    if (ORDER) ORDER.days.forEach((d, i) => { markHotelChanged(i); checkDayFilled(i); });
+    showDraftBanner();
+  } catch(e) {}
+}
 
-    // Token 驗證（讀 BF 欄）
-    const check = verifyToken_BF(p.orderId, p.token);
-    if (!check.valid) return jsonResponse({ success: false, error: check.reason });
+function showDraftBanner() {
+  const b = document.createElement('div');
+  b.innerHTML = `📝 已為您恢復上次未送出的填寫內容 &nbsp;<button onclick="clearDraft(this.parentNode)" style="background:none;border:1px solid currentColor;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:12px;color:inherit">清除</button>`;
+  b.style.cssText = 'background:#e8f4fd;border:1px solid var(--blue-light);color:var(--blue-dark);font-size:13px;padding:10px 16px;border-radius:var(--radius-sm);margin-bottom:14px;display:flex;align-items:center;gap:8px';
+  const page1 = document.getElementById('page1');
+  if (page1) page1.insertBefore(b, page1.firstChild);
+}
 
-    // 找原有訂單第一列
-    const firstRow = findOrderFirstRow(p.orderId);
-    if (!firstRow) return jsonResponse({ success: false, error: '找不到訂單：' + p.orderId });
+function clearDraft(banner) {
+  try { localStorage.removeItem(SAVE_KEY()); } catch(e) {}
+  if (banner) banner.remove();
+}
 
-    // 計算這筆訂單有幾列（連續相同訂單編號的列數）
-    const rowCount = countOrderRows(p.orderId, firstRow);
+function confirmClearAll() {
+  if (!confirm('確定要清除所有已填寫的資料，重新填寫嗎？')) return;
+  // 清除所有 input/select/textarea
+  document.querySelectorAll('#dayRowList input, #dayRowList select, #dayRowList textarea').forEach(el => {
+    if (el.type === 'checkbox') el.checked = false;
+    else if (el.type === 'hidden') return;
+    else el.value = '';
+  });
+  document.querySelectorAll('#page3 input, #page3 select, #page3 textarea').forEach(el => {
+    if (el.type === 'checkbox') el.checked = false;
+    else el.value = '';
+  });
+  document.getElementById('f-account') && (document.getElementById('f-account').value = '');
+  document.getElementById('f-note')    && (document.getElementById('f-note').value = '');
+  // 清除 localStorage
+  try { localStorage.removeItem(SAVE_KEY()); } catch(e) {}
+  // 重跑所有天的標題和 badge
+  if (ORDER) ORDER.days.forEach((d, i) => { buildDescText(i); checkDayFilled(i); });
+  showToast('✓ 已清除所有填寫資料');
+}
 
-    // 寫入客人個人資料（AL～AT 欄）
-    writeCustomerData(p, firstRow);
+// ════════════════════════════════════
+// COPY ACCOUNT NUMBER (second definition removed)
 
-    // 寫入每天出發地到 M 欄
-    writeDepartAddresses(p, firstRow);
+// ════════════════════════════════════
+// HOTEL CHANGE TRACKING
+// ════════════════════════════════════
+// ════════════════════════════════════
+// DAY FILLED BADGE
+// ════════════════════════════════════
+function checkDayFilled(i) {
+  const ids = [
+    `depart_${i}`, `depart_addr_${i}`,
+    `arrive_${i}`, `arrive_addr_${i}`,
+    `hotel_name_${i}`, `hotel_addr_${i}`,
+    `day_child_age_${i}`,
+  ];
+  // 時間：只要不是預設00:00就算填過
+  const timeEl = document.getElementById(`depart_time_${i}`);
+  const timeVal = timeEl ? timeEl.value : '';
+  const timeFilled = timeVal && timeVal !== '00:00';
 
-    // 標記 token 已使用（BF 欄 false → true）
-    markTokenUsed(p.orderId);
+  // 住宿名稱有改過
+  const hotelEl = document.getElementById(`hotel_name_${i}`);
+  const hotelChanged = hotelEl && hotelEl.value.trim() !== (hotelEl.dataset.original || '').trim();
 
-    // Telegram 通知
-    try {
-      sendTelegram(p, firstRow, rowCount);
-    } catch(tgErr) {
-      Logger.log('Telegram 通知失敗（不影響寫入）: ' + tgErr);
+  const anyFilled = timeFilled || hotelChanged ||
+    ids.some(id => {
+      const el = document.getElementById(id);
+      if (!el) return false;
+      // hotel_name 要比較是否與原始值不同
+      if (id === `hotel_name_${i}`) return false; // 已在 hotelChanged 處理
+      return el.value.trim() !== '';
+    });
+
+  const badge = document.getElementById(`day_filled_${i}`);
+  if (badge) badge.classList.toggle('show', anyFilled);
+}
+
+function markHotelChanged(i) {
+  const inp = document.getElementById(`hotel_name_${i}`);
+  const badge = document.getElementById(`hotel_changed_badge_${i}`);
+  if (!inp || !badge) return;
+  const changed = inp.value.trim() !== inp.dataset.original;
+  badge.style.display = changed ? 'block' : 'none';
+  checkDayFilled(i);
+}
+
+// ════════════════════════════════════
+// UNIFIED DAY ACCORDION TOGGLE
+// ════════════════════════════════════
+function toggleAcc2(bodyId, chevId) {
+  const body = document.getElementById(bodyId);
+  const chev = document.getElementById(chevId);
+  if (!body) return;
+  const open = body.classList.toggle('open');
+  if (chev) chev.classList.toggle('open', open);
+}
+// legacy alias
+function toggleHotel(bodyId, chevId) { toggleAcc2(bodyId, chevId); }
+
+let _allExpanded = false;
+function toggleExpandAll() {
+  _allExpanded = !_allExpanded;
+  document.querySelectorAll('.day-acc-body').forEach(b => b.classList.toggle('open', _allExpanded));
+  document.querySelectorAll('.acc-chevron').forEach(c => c.classList.toggle('open', _allExpanded));
+  const btn = document.getElementById('expandToggleBtn');
+  if (btn) btn.textContent = _allExpanded ? '⬆ 收合全部' : '⬇ 展開全部';
+}
+function expandAllDays(expand) {
+  _allExpanded = expand;
+  document.querySelectorAll('.day-acc-body').forEach(b => b.classList.toggle('open', expand));
+  document.querySelectorAll('.acc-chevron').forEach(c => c.classList.toggle('open', expand));
+  const btn = document.getElementById('expandToggleBtn');
+  if (btn) btn.textContent = expand ? '⬆ 收合全部' : '⬇ 展開全部';
+}
+
+// ════════════════════════════════════
+// STAFF FILL WITH UNDO
+// ════════════════════════════════════
+let _staffFillSnapshot = null;
+
+function staffFillDepart() {
+  // snapshot current values for undo
+  _staffFillSnapshot = {};
+  ORDER.days.forEach((d, i) => {
+    const inp = document.getElementById(`depart_${i}`);
+    if (inp) _staffFillSnapshot[i] = inp.value;
+  });
+
+  ORDER.days.forEach((d, i) => {
+    const lockAsAirport = d.isFirstDay && d.autoDepart;
+    if (!lockAsAirport) {
+      const inp = document.getElementById(`depart_${i}`);
+      if (inp) {
+        const prev = d.prevDayIdx >= 0 ? ORDER.days[d.prevDayIdx] : null;
+        const hotelInp = prev ? document.getElementById(`hotel_name_${d.prevDayIdx}`) : null;
+        const val = hotelInp?.value?.trim() || prev?.hotel || '';
+        if (val) { inp.value = val; updateNextDepart(i); }
+      }
     }
+  });
 
-    return jsonResponse({ success: true });
+  const btn = document.getElementById('staffFillBtn');
+  btn.textContent = '✓ 已帶入';
+  btn.style.background = 'var(--blue-faint)';
+  btn.style.color = 'var(--blue-dark)';
+  btn.style.borderStyle = 'solid';
 
-  } catch (err) {
-    Logger.log('doPost error: ' + err);
-    return jsonResponse({ success: false, error: err.toString() });
+  // show undo button
+  let undoBtn = document.getElementById('staffFillUndo');
+  if (!undoBtn) {
+    undoBtn = document.createElement('button');
+    undoBtn.id = 'staffFillUndo';
+    undoBtn.textContent = '↩ 清除帶入，重新填寫';
+    undoBtn.style.cssText = 'width:100%;margin-top:6px;padding:9px;border:1px solid var(--gray-pale);border-radius:var(--radius-sm);background:#fff;color:var(--gray);font-size:13px;cursor:pointer;font-family:inherit';
+    undoBtn.onclick = undoStaffFill;
+    btn.parentNode.insertBefore(undoBtn, btn.nextSibling);
   }
+  undoBtn.style.display = 'block';
 }
 
-// ════════════════════════════════════════════════════════════
-// 找訂單在 Sheets 的第一列列號（從後往前找，A欄比對）
-// ════════════════════════════════════════════════════════════
-function findOrderFirstRow(orderId) {
-  const ss    = SpreadsheetApp.openById(CONFIG.SHEET_ID);
-  const sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
-  const vals  = sheet.getRange('A1:A' + sheet.getLastRow()).getValues();
-  for (let i = vals.length - 1; i >= 0; i--) {
-    if (String(vals[i][0]).trim() === String(orderId).trim()) {
-      return i + 1; // 1-based
+function undoStaffFill() {
+  if (!_staffFillSnapshot) return;
+  ORDER.days.forEach((d, i) => {
+    const inp = document.getElementById(`depart_${i}`);
+    if (inp && _staffFillSnapshot[i] !== undefined) {
+      inp.value = _staffFillSnapshot[i];
+      updateNextDepart(i);
     }
-  }
-  return null;
+  });
+  _staffFillSnapshot = null;
+  const btn = document.getElementById('staffFillBtn');
+  btn.textContent = '🏨 帶入上晚住宿為各日出發地點';
+  btn.style.background = '#fff';
+  btn.style.color = 'var(--blue)';
+  btn.style.borderStyle = 'dashed';
+  document.getElementById('staffFillUndo').style.display = 'none';
 }
-
-// 計算同一訂單連續佔幾列（往下數相同 orderId 的列）
-function countOrderRows(orderId, firstRow) {
-  const ss    = SpreadsheetApp.openById(CONFIG.SHEET_ID);
-  const sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
-  const lastRow = sheet.getLastRow();
-  let count = 0;
-  for (let r = firstRow; r <= lastRow; r++) {
-    const val = String(sheet.getRange(r, 1).getValue()).trim();
-    if (val === String(orderId).trim()) count++;
-    else if (count > 0) break; // 遇到不同訂單就停
-  }
-  return Math.max(count, 1);
-}
-
-// ════════════════════════════════════════════════════════════
-// processOrderFromText — 把 orderText 寫進 Sheets
-// 跟你現有的 processOrder() 完全相同邏輯，只是 sourceText 從參數來
-// ════════════════════════════════════════════════════════════
-function processOrderFromText(orderText) {
-  try {
-    const ss          = SpreadsheetApp.openById(CONFIG.SHEET_ID);
-    const targetSheet = ss.getSheetByName(CONFIG.SHEET_NAME);
-    if (!targetSheet) throw new Error('找不到工作表：' + CONFIG.SHEET_NAME);
-
-    const lastRow   = targetSheet.getLastRow() + 1;
-    const orderInfo = parseOrderBasicInfo(orderText);
-    let   trips     = parseItinerary(orderText, orderInfo);
-
-    if (trips.length === 0) {
-      trips.push({ date: orderInfo.startDate, time:'', from:'', to:'', hours:'', carType:'' });
-    }
-
-    // 在最下面加空白列（跟原版一樣）
-    try { targetSheet.insertRowsAfter(targetSheet.getMaxRows(), trips.length + 3); } catch(e) {}
-
-    const lastFilledRow = getLastFilledRow(targetSheet);
-    const pColumnData   = lastFilledRow > 0 ? targetSheet.getRange('P' + lastFilledRow).getValue() : '';
-
-    fillOrderDataToSheet(targetSheet, lastRow, trips, orderInfo, pColumnData);
-
-    return { success: true, firstRow: lastRow, rowCount: trips.length };
-  } catch (err) {
-    Logger.log('processOrderFromText error: ' + err);
-    return { success: false, error: err.toString() };
-  }
-}
-
-// ════════════════════════════════════════════════════════════
-// 補寫客人個人資料（第一列）
-// ════════════════════════════════════════════════════════════
-function writeCustomerData(p, firstRow) {
-  const ss    = SpreadsheetApp.openById(CONFIG.SHEET_ID);
-  const sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
-
-  const data = {
-    [CUSTOMER_COLS.帳號後碼]:   p.accountLast5 || '',
-    [CUSTOMER_COLS.訂購姓名]:   p.name         || '',
-    [CUSTOMER_COLS.訂購人電話]: p.phone        || '',
-    [CUSTOMER_COLS.訂購人LINE]: p.lineId       || '',
-    [CUSTOMER_COLS.訂購EMAIL]:  p.email        || '',
-    [CUSTOMER_COLS.曝光管道]:   p.discover     || '',
-    [CUSTOMER_COLS.FB名稱]:     p.facebook     || '',
-    [CUSTOMER_COLS.來源]:       p.linkSource   || '',
+// ════════════════════════════════════
+// 從描述抽出「出發地」和「固定後半段」
+// 支援：至 / 往返 / 接送來回 / -單程 / ─單程
+function parseDescParts(desc) {
+  const clean = desc.replace(/\([^)]*\)/g, '').trim();
+  const sep = clean.match(/^(.*?)(至|－單程|-單程|─單程|—單程|接送|往返)/u);
+  if (!sep) return { prefix: null, separator: null, suffix: clean };
+  return {
+    prefix:    sep[1].trim(),
+    separator: sep[2],
+    suffix:    clean.slice(sep[0].length).trim()
   };
-
-  for (const [col, val] of Object.entries(data)) {
-    if (val) sheet.getRange(firstRow, Number(col)).setValue(val);
-  }
-  Logger.log('客人資料已補寫至第 ' + firstRow + ' 列');
 }
 
-// ════════════════════════════════════════════════════════════
-// 補寫每天出發地到 M 欄（processOrder 已寫 from/to，這裡覆蓋 M 欄為客人輸入的地址）
-// ════════════════════════════════════════════════════════════
-function writeDepartAddresses(p, firstRow) {
-  if (!p.days || !p.days.length) return;
-  const ss    = SpreadsheetApp.openById(CONFIG.SHEET_ID);
-  const sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
+function fmtPlace(name, addr) {
+  if (!name) return '';
+  return addr ? `${name}；${addr}` : name;
+}
 
-  p.days.forEach((day, i) => {
-    if (day.depart) {
-      sheet.getRange(firstRow + i, 13).setValue(day.depart); // M欄=13
-      Logger.log(`第 ${firstRow + i} 列 M欄 ← ${day.depart}`);
+function buildDescText(dayI) {
+  const titleEl = document.getElementById(`day_desc_${dayI}`);
+  if (!titleEl) return;
+
+  const orig  = titleEl.dataset.orig || '';
+  const parts = parseDescParts(orig);
+
+  // 出發地
+  const depInp  = document.getElementById(`depart_${dayI}`);
+  const depAddr = document.getElementById(`depart_addr_${dayI}`);
+  const depTyped = depInp?.value.trim() || '';
+  const depAddrV = depAddr?.value.trim() || '';
+  const depPlace = fmtPlace(depTyped, depAddrV);
+
+  // 抵達地
+  const arrInp   = document.getElementById(`arrive_${dayI}`);
+  const arrAddr  = document.getElementById(`arrive_addr_${dayI}`);
+  const arrTyped = arrInp?.value.trim() || '';
+  const arrAddrV = arrAddr?.value.trim() || '';
+  const arrPlace = fmtPlace(arrTyped, arrAddrV);
+
+  // 出發時間
+  const timeInp = document.getElementById(`depart_time_${dayI}`);
+  const time    = timeInp?.value.trim() || '';
+
+  let descBody = orig;
+
+  // ── 接機天：航班替換「至」前面 + 抵達地替換「至」後面
+  const isArrivalDay = ORDER?.days[dayI]?.isFirstDay &&
+    (() => { const f=(ORDER.days[dayI].from||'').trim(); return f.includes('機場')||/^[A-Z]{3}$/.test(f)||orig.split(/至|-單程/)[0].includes('機場'); })();
+
+  if (isArrivalDay) {
+    const flightStr = titleEl.dataset.flight || '';
+    // 取「至」後半段
+    const atIdx = orig.indexOf('至');
+    const suffix = atIdx >= 0 ? orig.slice(atIdx) : '';  // 「至東京市區...」
+    // 前半段用航班字串取代，後半段用抵達地取代（若有填）
+    const frontPart = flightStr || orig.slice(0, atIdx >= 0 ? atIdx : orig.length);
+    let backPart = suffix;
+    if (arrPlace && atIdx >= 0) {
+      // 「至」後面的部分替換成 arrPlace（保留-單程等後綴）
+      const afterAt = orig.slice(atIdx + 1); // 去掉「至」
+      const suffixMatch = afterAt.match(/(-單程|－單程|─單程|—單程)$/);
+      const tail = suffixMatch ? suffixMatch[1] : '';
+      backPart = `至${arrPlace}${tail}`;
+    }
+    descBody = frontPart + backPart;
+    titleEl.textContent = descBody;
+    return;
+  }
+
+  // ── 一般天：重組描述
+  if (parts.prefix !== null) {
+    const front = depPlace || parts.prefix; // 出發地有填就換，沒填保留原本
+    const suffix = parts.suffix;            // suffix 不動（目的地保持原字串）
+    descBody = `${front}${parts.separator}${suffix}`;
+  }
+
+  // 回程地點「結束於XXX」（接送/往返天，抵達地有填且不勾「與出發同」）
+  const sameCb = document.getElementById(`arrive_same_${dayI}`);
+  const isSame = sameCb?.checked;
+  if (!isSame && arrPlace && /接送|往返/.test(orig)) {
+    descBody = descBody.replace(/，結束於.*$/, ''); // 清掉舊的
+    descBody += `，結束於${arrPlace}`;
+  } else if (isSame || (!arrPlace && /接送|往返/.test(orig))) {
+    descBody = descBody.replace(/，結束於.*$/, ''); // 清掉（勾了或空白）
+  }
+
+  // 套用航班替換（送機天）
+  const flightStr = titleEl.dataset.flight || '';
+  if (flightStr) {
+    for (const shortKey of AP_REPLACE_KEYS) {
+      const pat = new RegExp(`${shortKey}機場`, 'g');
+      if (pat.test(descBody)) {
+        descBody = descBody.replace(pat, flightStr);
+        break;
+      }
+    }
+  }
+
+  // 回程時間
+  const returnInp  = document.getElementById(`return_time_${dayI}`);
+  const returnTime = returnInp?.value.trim() || '';
+  let finalText = time ? `${time} ${descBody}` : descBody;
+  if (returnTime && /接送/.test(orig) && /來回/.test(orig)) {
+    finalText = finalText.replace(/　?返程\d{1,2}:\d{2}$/, '');
+    finalText += `　返程${returnTime}`;
+  }
+
+  titleEl.textContent = finalText;
+}
+
+function updateDayDesc(dayI)      { buildDescText(dayI); }
+function updateDayDescArrive(dayI){ buildDescText(dayI); }
+function updateDayDescTime(dayI)  { buildDescText(dayI); }
+
+function toggleArriveSame(dayI) {
+  const cb      = document.getElementById(`arrive_same_${dayI}`);
+  const fields  = document.getElementById(`arrive_fields_${dayI}`);
+  const arrInp  = document.getElementById(`arrive_${dayI}`);
+  const arrAddr = document.getElementById(`arrive_addr_${dayI}`);
+  const depInp  = document.getElementById(`depart_${dayI}`);
+  const depAddr = document.getElementById(`depart_addr_${dayI}`);
+  if (!cb) return;
+  if (cb.checked) {
+    if (arrInp)  { arrInp.value  = depInp?.value  || ''; arrInp.disabled  = true; }
+    if (arrAddr) { arrAddr.value = depAddr?.value || ''; arrAddr.disabled = true; }
+    if (fields)  fields.style.display = 'none';
+  } else {
+    if (arrInp)  arrInp.disabled  = false;
+    if (arrAddr) arrAddr.disabled = false;
+    if (fields)  fields.style.display = '';
+  }
+  buildDescText(dayI);
+}
+
+function updateNextDepart(dayI) {
+  updateDayDesc(dayI);
+  const val = (document.getElementById(`depart_${dayI}`) || {}).value?.trim() || '';
+  ORDER.days.forEach((d, ni) => {
+    if (d.prevDayIdx === dayI) {
+      const inp = document.getElementById(`depart_${ni}`);
+      if (inp && !inp.value) {
+        inp.placeholder = val
+          ? `可填：${val}（上一晚住宿地）`
+          : (ORDER.days[dayI].hotel ? `可填：${ORDER.days[dayI].hotel}` : '例：飯店名稱…');
+      }
     }
   });
 }
 
-// ════════════════════════════════════════════════════════════
-// Token 驗證
-// ════════════════════════════════════════════════════════════
-// verifyToken_BF：讀訂單收支表 BF 欄（第58欄）
-// 格式：token|expiry|used(true/false)
-function verifyToken_BF(orderId, token) {
-  if (token === 'DEMO' || token === 'TEST') return { valid: true };
-  const ss    = SpreadsheetApp.openById(CONFIG.SHEET_ID);
-  const sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
-  const vals  = sheet.getRange('A1:A' + sheet.getLastRow()).getValues();
-  // 從後往前找（最新的一筆）
-  for (let i = vals.length - 1; i >= 0; i--) {
-    if (String(vals[i][0]).trim() !== String(orderId).trim()) continue;
-    const row = i + 1;
-    const raw = String(sheet.getRange(row, 58).getValue()).trim();
-    if (!raw) return { valid: false, reason: 'Token 不存在，連結可能已失效' };
-    const parts = raw.split('|');
-    const storedToken = parts[0];
-    const expiry      = parts[1];
-    const used        = parts[2] === 'true';
-    if (used)                              return { valid: false, reason: '此連結已使用過' };
-    if (new Date() > new Date(expiry))     return { valid: false, reason: '連結已逾時（72小時）' };
-    if (storedToken !== token)             return { valid: false, reason: 'Token 不符合' };
-    return { valid: true };
+// ════════════════════════════════════
+// FLIGHT ACCORDION
+// ════════════════════════════════════
+function toggleAcc(bodyId, header, chevId) {
+  const body = document.getElementById(bodyId);
+  const chev = document.getElementById(chevId);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chev.classList.toggle('up', !isOpen);
+  header.classList.toggle('open-head', !isOpen);
+}
+
+// ════════════════════════════════════
+// T3 WARNING
+// ════════════════════════════════════
+function t3Warn(selectId, warnId) {
+  const v = document.getElementById(selectId).value;
+  document.getElementById(warnId).classList.toggle('show', v === 'T3');
+}
+
+// ════════════════════════════════════
+// VALIDATION
+// ════════════════════════════════════
+// ════════════════════════════════════
+// STEP PAGE NAVIGATION
+// ════════════════════════════════════
+let CURRENT_STEP = 1;
+
+function goStep(n) {
+  if (n > CURRENT_STEP) {
+    if (CURRENT_STEP === 1 && !validateStep1()) return;
+    if (CURRENT_STEP === 3 && !validateStep3()) return;
   }
-  return { valid: false, reason: '找不到此訂單' };
+  if (n === 2) renderItinSummary();
+  document.querySelectorAll('.step-page').forEach(p => p.style.display = 'none');
+  const page = document.getElementById('page' + n);
+  if (page) page.style.display = 'block';
+  ['step1','step2','step3'].forEach((s, idx) => {
+    const el = document.getElementById(s);
+    if (!el) return;
+    el.classList.remove('active','done');
+    if (idx + 1 < n)  el.classList.add('done');
+    if (idx + 1 === n) el.classList.add('active');
+  });
+  CURRENT_STEP = n;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function markTokenUsed(orderId) {
-  const row = findOrderFirstRow(orderId);
-  if (!row) return;
-  const ss    = SpreadsheetApp.openById(CONFIG.SHEET_ID);
-  const sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
-  const raw   = String(sheet.getRange(row, 58).getValue());
-  if (!raw) return;
-  const parts = raw.split('|');
-  parts[2] = 'true';
-  sheet.getRange(row, 58).setValue(parts.join('|'));
-  Logger.log('token 已標記使用：' + orderId);
+function renderItinSummary() {
+  const el = document.getElementById('itinSummary');
+  if (!el || !ORDER) return;
+  const rows = ORDER.days.map((d, i) => {
+    // 優先抓畫面上已更新的描述文字（第①步填寫後即時更新）
+    const descEl = document.getElementById(`day_desc_${i}`);
+    const liveDesc = descEl ? descEl.textContent.trim() : '';
+    const cleanDesc = (liveDesc || d.desc).replace(/\([^)]*\)/g,'').replace(/\s+/g,' ').trim();
+    const isLast = i === ORDER.days.length - 1;
+    return `<div class="itin-summary-row${isLast ? ' last' : ''}">
+      <span class="itin-summary-date">${d.date}</span>
+      <span class="itin-summary-desc">${cleanDesc}</span>
+      <span class="itin-summary-price">${d.price}</span>
+    </div>`;
+  }).join('');
+  el.innerHTML = rows + `<div class="itin-summary-total"><span>訂單總金額</span><span>${ORDER.total}</span></div>`;
 }
 
-// 產生連結（在 GAS 手動執行，貼給客人）
-// ════════════════════════════════════════════════════════════
-// doGet — 表單載入，回傳訂單資料給前端
-// ════════════════════════════════════════════════════════════
-function doGet(e) {
-  const orderId = e?.parameter?.order || '';
-  const token   = e?.parameter?.token || '';
+// ════════════════════════════════════
+// VALIDATION
+// ════════════════════════════════════
+function _chk(id, errId) {
+  const el = document.getElementById(id);
+  const err = document.getElementById(errId);
+  const empty = !el || !el.value.trim();
+  if (err) err.classList.toggle('show', empty);
+  if (el)  el.classList.toggle('has-error', empty);
+  return !empty;
+}
 
-  Logger.log(`doGet: orderId=${orderId} token=${token}`);
+function validateStep1() {
+  // Step 1 目前無必填欄位（出發地、航班均為選填）
+  // 保留此函式供日後擴充用
+  return true;
+}
 
-  // token 驗證（verifyToken 回傳 {valid, reason}）
-  const check = verifyToken(orderId, token);
-  if (!check.valid) {
-    Logger.log('doGet token invalid: ' + check.reason);
-    return jsonResponse({ error: check.reason || 'invalid_token' });
+function validateStep3() {
+  let ok = true;
+  document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+
+  ok = _chk('f-name',        'e-name')        && ok;
+  ok = _chk('f-phone',       'e-phone')       && ok;
+  // LINE ID 為選填，不驗證
+  ok = _chk('f-link-source', 'e-link-source') && ok;
+  ok = _chk('f-discover',    'e-discover')    && ok;
+
+  const emailEl  = document.getElementById('f-email');
+  const emailErr = document.getElementById('e-email');
+  const emailVal = emailEl?.value.trim() || '';
+  const emailOk  = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal);
+  if (emailErr) { emailErr.textContent = emailVal ? '電子郵件格式不正確' : '請填寫電子郵件'; emailErr.classList.toggle('show', !emailOk); }
+  if (!emailOk) { ok = false; emailEl?.classList.add('has-error'); }
+
+  if (document.getElementById('childAgeField')?.style.display !== 'none') {
+    ok = _chk('f-child-age', 'e-child-age') && ok;
   }
-
-  // 讀匯率 + 帳戶資訊
-  const payment = getPaymentConfig();
-  Logger.log('doGet success, rates: ' + JSON.stringify(payment.rates));
-
-  // TODO: 實作完整讀取訂單資料邏輯
-  return jsonResponse({ orderId, rates: payment.rates, accounts: payment.accounts });
+  if (!ok) window.scrollTo({ top: 0, behavior: 'smooth' });
+  return ok;
 }
 
-// ── 讀取匯率 + 帳戶資訊（產生器與試算）────────────────────
-// 欄位配置：
-//   E2 = 新台幣匯率　E3 = 港幣匯率　E4 = 新加坡幣匯率
-//   G2 = 港幣帳戶資訊（多行文字）
-//   G3 = 新幣帳戶資訊（多行文字）
-function getPaymentConfig() {
-  const ss    = SpreadsheetApp.openById(CONFIG.SHEET_ID);
-  const sheet = ss.getSheetByName(CONFIG.RATES_SHEET_NAME);
-  if (!sheet) return { rates: { twd:0, hkd:0, sgd:0 }, accounts: {} };
-
-  return {
-    rates: {
-      twd: sheet.getRange('E2').getValue() || 0,
-      hkd: sheet.getRange('E3').getValue() || 0,
-      sgd: sheet.getRange('E4').getValue() || 0,
-    },
-    accounts: {
-      // 台幣帳戶寫死（華南銀行，不太變動）
-      twd: {
-        bankName: '華南銀行 (008) 營業部 ‧ 佳遊國際旅行社有限公司',
-        accountNo: '100100344320',
-      },
-      // 港幣帳戶從 G2 讀取
-      hkd: { raw: sheet.getRange('G2').getValue() || '' },
-      // 新幣帳戶從 G3 讀取
-      sgd: { raw: sheet.getRange('G3').getValue() || '' },
-    }
-  };
+function validate() {
+  return validateStep1() && validateStep3();
 }
 
+// ════════════════════════════════════
+// BUILD ORDER TEXT（供 GAS processOrder 使用）
+// ════════════════════════════════════
+function buildOrderText(payload) {
+  const d     = ORDER.days;
+  const first = d[0];
 
-// ════════════════════════════════════════════════════════════
-// 產生連結（在 GAS 手動執行，貼給客人）
-// ════════════════════════════════════════════════════════════
-function generateFormLink(orderId) {
-  const token = Utilities.computeDigest(
-    Utilities.DigestAlgorithm.SHA_256,
-    orderId + new Date().getTime()
-  ).map(b => ('0' + (b & 0xFF).toString(16)).slice(-2)).join('').substring(0, 32);
+  // ── 人數（從第一天的 desc 抓，格式如 (7大1小)(10座)）
+  // 先從 desc 抽出人數字串，若抓不到就留空讓 GAS 自己處理
+  const peopleMatch = first.desc.match(/\((\d+大\d*小?(?:\([^)]+\))?)\)/);
+  const people = peopleMatch ? peopleMatch[1] : '';
 
-  const expiry = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString();
-  PropertiesService.getScriptProperties()
-    .setProperty('TOKEN_' + orderId, JSON.stringify({ token, expiry, used: false }));
+  // 若有兒童年齡補進人數欄
+  const childAge = payload.childAge ? `(${payload.childAge})` : '';
+  const peopleStr = people + childAge;
 
-  const BASE = 'https://foreveryoung2023car.github.io/foreveryoung/preorder/form.html';
-  const link = `${BASE}?order=${encodeURIComponent(orderId)}&token=${token}`;
-  Logger.log('✅ 連結：' + link);
-  Logger.log('有效期至：' + expiry);
-  return link;
-}
+  // ── 車款（從各天的 desc 抓最後的括號座數，如 (10座)）
+  // 取第一天 desc 的末尾 (N座) 作為車款
+  const carMatch = first.desc.match(/\((\d+(?:\+\d+)?座)\)\s*$/);
+  const carStr = carMatch
+    ? carMatch[1].replace('座', '人座')
+        .replace('10人座', '10人座海獅')
+        .replace('14人座', '14人座海獅')
+        .replace('7人座',  '7人座舒適款')
+    : '';
 
-// ════════════════════════════════════════════════════════════
-// Telegram 通知
-// ════════════════════════════════════════════════════════════
-function sendTelegram(p, firstRow, rowCount) {
-  const msg = [
-    '✅ 客人已填表確認',
-    `📋 ${p.orderId}`,
-    `👤 ${p.name}`,
-    `📱 ${p.phone}`,
-    `💬 LINE: ${p.lineId}`,
-    `💰 訂金 ${p.currency} ${p.amount}（後碼 ${p.accountLast5}）`,
-    `📝 寫入第 ${firstRow}–${firstRow + rowCount - 1} 列`,
-  ].join('\n');
+  // ── 行李（取所有天中最大的那個值）
+  let maxLuggage = 0;
+  d.forEach(day => {
+    const m = (day.luggage || '').match(/(\d+)/);
+    if (m) maxLuggage = Math.max(maxLuggage, parseInt(m[1]));
+  });
+  const luggageStr = maxLuggage > 0 ? `${maxLuggage}件` : (first.luggage || '');
 
-  UrlFetchApp.fetch(
-    `https://api.telegram.org/bot${CONFIG.TELEGRAM_TOKEN}/sendMessage`,
-    { method:'post', contentType:'application/json',
-      payload: JSON.stringify({ chat_id: CONFIG.TELEGRAM_CHAT_ID, text: msg }) }
+  // ── 行程（每天一行：M/DD 出發地至目的地-單程 or 其他）
+  const itineraryLines = d.map((day, i) => {
+    // 取 buildDescText 計算後的最終顯示文字
+    const descEl = document.getElementById(`day_desc_${i}`);
+    const cleanDesc = descEl ? descEl.textContent.trim() : day.desc;
+
+    // 去掉人數和座位括號，只保留行程描述
+    const desc = cleanDesc
+      .replace(/\(\d+大\d*小?\)/g, '')
+      .replace(/\([^)]*歲[^)]*\)/g, '')
+      .replace(/\(\d+(?:\+\d+)?座\)/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    return `${day.month}/${day.dayNum} ${desc}`;
+  });
+
+  // ── 費用（每天一行）
+  const feeLines = d.map(day =>
+    `${day.month}/${day.dayNum} ${day.price}日圓`
   );
+
+  // ── 匯率 / 訂金幣別
+  const currencyMap = {
+    '新台幣 TWD': '新台幣',
+    '港幣 HKD':   '港幣',
+    '新加坡幣 SGD': '新幣',
+    '日圓 JPY':   '日圓',
+    '人民幣 CNY': '人民幣',
+  };
+  const currLabel = currencyMap[payload.currency] || payload.currency;
+  const rate = ORDER.rate || '';
+
+  // ── 組合完整打單文字
+  const lines = [
+    `訂單：${payload.orderId}`,
+    `日期：${ORDER.date.replace(' – ', '-').replace('/', '/').split('/').slice(0,3).join('/')}`,
+  ];
+
+  if (peopleStr) lines.push(`人數：${peopleStr}`);
+  if (luggageStr) lines.push(`行李：${luggageStr}`);
+  if (carStr)     lines.push(`車款：${carStr}`);
+
+  lines.push('行程：');
+  itineraryLines.forEach(l => lines.push(l));
+
+  lines.push('費用：');
+  feeLines.forEach(l => lines.push(l));
+
+  lines.push(`訂單總金額：${ORDER.total}`);
+  lines.push(`尾款：${ORDER.balance}`);
+
+  if (payload.amount && rate) {
+    lines.push(`訂金：${currLabel}$${payload.amount}元（匯率${rate}）`);
+  }
+
+  if (payload.note) {
+    lines.push(`備註：${payload.note}`);
+  }
+
+  return lines.join('\n');
 }
 
-// ════════════════════════════════════════════════════════════
-// 工具
-// ════════════════════════════════════════════════════════════
-function jsonResponse(obj) {
-  return ContentService.createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
+// ════════════════════════════════════
+// COLLECT
+// ════════════════════════════════════
+function collect() {
+  const params = new URLSearchParams(window.location.search);
+
+  // 每天資料（出發地、抵達地、住宿、航班、出發時間）
+  const dayData = ORDER.days.map((d, i) => {
+    const hotelNameEl = document.getElementById(`hotel_name_${i}`);
+    const currentHotel = hotelNameEl?.value?.trim() || d.hotel || '';
+    const hotelChanged  = !!(d.hotel && currentHotel !== d.hotel);
+
+    // 出發地合併（飯店名；地址）
+    const depName = d.isFirstDay
+      ? (d.autoDepart || '')
+      : (document.getElementById(`depart_${i}`)?.value?.trim() || '');
+    const depAddr = document.getElementById(`depart_addr_${i}`)?.value?.trim() || '';
+    const departFmt = depAddr ? `${depName}；${depAddr}` : depName;
+
+    // 抵達地
+    const arrName = document.getElementById(`arrive_${i}`)?.value?.trim() || '';
+    const arrAddr = document.getElementById(`arrive_addr_${i}`)?.value?.trim() || '';
+    const arriveFmt = arrAddr ? `${arrName}；${arrAddr}` : arrName;
+
+    // 出發時間
+    const departTime = document.getElementById(`depart_time_${i}`)?.value?.trim() || '';
+
+    // 航班（動態 prefix：arr_i 或 dep_i）
+    // 第一天含機場 → 抵達航班 arr_i；其他天含機場 → 出發航班 dep_i
+    const isAirportDay = /機場/.test(d.desc || '');
+    const flightPfx    = (isAirportDay && d.isFirstDay) ? `arr_${i}` : (isAirportDay ? `dep_${i}` : null);
+    let flightStr = '';
+    if (flightPfx) {
+      const airport   = document.getElementById(`${flightPfx}_airport`)?.value   || '';
+      const terminal  = document.getElementById(`${flightPfx}_terminal`)?.value  || '';
+      const airline   = document.getElementById(`${flightPfx}_airline`);
+      const airName   = airline?.options[airline?.selectedIndex]?.value || '';
+      const code      = airline?.options[airline?.selectedIndex]?.dataset?.code || '';
+      const num       = document.getElementById(`${flightPfx}_no_num`)?.value   || '';
+      const time      = document.getElementById(`${flightPfx}_time`)?.value     || '';
+      const suffix    = d.isFirstDay ? '著' : '飛';
+      if (airName && num && time) {
+        const shortName = airName.replace(/\s.*/, '');
+        const fc = code ? `${shortName}${code}${num}` : `${airName}${num}`;
+        const ap = airport ? airport + '機場' : '';
+        flightStr = [ap + terminal, fc, time + suffix].filter(Boolean).join('-');
+      }
+    }
+
+    // N欄目的地：原始行程描述（已在Sheets），若有航班則用航班字串覆蓋機場部分
+    // 這裡送出 titleEl 的最終顯示文字（已包含航班替換）
+    const descEl = document.getElementById(`day_desc_${i}`);
+    const finalDesc = descEl ? descEl.textContent : (d._cleanDesc || d.desc || '');
+
+    return {
+      date:          d.date,
+      depart:        departFmt,           // M出發地
+      departTime:    departTime,          // 出發時間（備用）
+      arrive:        arriveFmt,           // 抵達地（往返回程）
+      desc:          finalDesc,           // N目的地（含航班）
+      flight:        flightStr,           // 航班字串（備用）
+      hotel:         currentHotel,        // 住宿名
+      hotelOriginal: d.hotel || '',
+      hotelChanged:  hotelChanged,
+      hotelAddr:     document.getElementById(`hotel_addr_${i}`)?.value?.trim() || '',
+      childAge:      document.getElementById(`day_child_age_${i}`)?.value?.trim() || ''
+    };
+  });
+
+  const payload = {
+    orderId:      params.get('order') || ORDER.orderId,
+    token:        params.get('token') || ORDER.token || 'DEMO',
+    ts:           new Date().toISOString(),
+    // 個人資料
+    name:         document.getElementById('f-name').value.trim(),
+    phone:        document.getElementById('f-phone').value.trim(),
+    lineId:       document.getElementById('f-line').value.trim(),
+    email:        document.getElementById('f-email').value.trim(),
+    facebook:     document.getElementById('f-fb').value.trim(),
+    linkSource:   document.getElementById('f-link-source').value,
+    discover:     document.getElementById('f-discover').value,
+    childAge:     document.getElementById('f-child-age')?.value?.trim() || '',
+    // 匯款
+    accountLast5: document.getElementById('f-account').value.trim(),
+    // 備註
+    note:         document.getElementById('f-note').value.trim(),
+    // 每天資料（給 GAS 寫出發地用）
+    days:         dayData,
+  };
+  // ★ 打單文字（GAS 直接餵給 processOrder）
+  payload.orderText = buildOrderText(payload);
+  return payload;
 }
 
-// ── 手動測試 ──────────────────────────────────────────────
-function testProcessOrder() {
-  const mockText = `訂單：#26031124
-日期：2026/05/15
-人數：5大3小(9+10+12歲)
-行李：8件
-車款：10人座海獅
-行程：
-5/15 成田機場至東京市區-單程
-5/17 東京市區往返富士山一日遊(10小時)
-5/19 東京市區至成田機場-單程
-費用：
-5/15 ¥22,500日圓
-5/17 ¥52,500日圓
-5/19 ¥22,500日圓
-訂單總金額：¥97,500日圓
-尾款85%：¥82,900日圓
-訂金：新台幣$2,200元（匯率0.22）`;
+// ════════════════════════════════════
+// SUBMIT
+// ════════════════════════════════════
+function submitForm() {
+  if (!validate()) return;
+  const payload = collect();
 
-  const result = processOrderFromText(mockText);
-  Logger.log(JSON.stringify(result));
+  // DEMO 模式（無真實 token 或無 GAS URL）直接顯示成功，不送出
+  const isDemo = payload.token === 'DEMO' || payload.token === 'TEST' || GAS_URL.includes('YOUR_SCRIPT_ID');
+  if (isDemo) {
+    console.warn('⚠️ DEMO 模式：資料未送出至 GAS');
+    console.log('DEMO payload:', JSON.stringify(payload, null, 2));
+    clearDraft(null);
+    showSuccess();
+    return;
+  }
+  submitToGAS(payload);
 }
+
+function showSuccess() {
+  document.getElementById('formBody').style.display = 'none';
+  document.getElementById('successScreen').classList.add('show');
+  ['step1','step2','step3'].forEach(s => {
+    const el = document.getElementById(s);
+    if (el) { el.classList.remove('active'); el.classList.add('done'); }
+  });
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+// ════════════════════════════════════
+// GAS STUBS（正式版解開）
+// ════════════════════════════════════
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxkWs0CvJvEQ7VzZQ1yL7jw6BAGQsEOlJexsV8ZpvFtWthCfY3ZCRwdeiKe9CPibjD2/exec';
+
+async function loadFromGAS(orderId, token) {
+  document.getElementById('loading').classList.add('show');
+  try {
+    const url = `${GAS_URL}?order=${encodeURIComponent(orderId)}&token=${encodeURIComponent(token)}`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    loadUI(d);
+  } catch(e) {
+    document.getElementById('loading').classList.remove('show');
+    const errPage = document.getElementById('errorPage');
+    errPage.classList.add('show');
+    // 顯示錯誤細節方便 debug（之後可移除）
+    const dbg = document.getElementById('errorDetail');
+    if (dbg) dbg.textContent = e.message || String(e);
+  }
+}
+
+async function submitToGAS(payload) {
+  document.getElementById('loading').classList.add('show');
+  const btn = document.getElementById('btnSubmit');
+  if (btn) btn.disabled = true;
+  try {
+    // GAS Web App POST 會觸發 redirect，瀏覽器 fetch 在 CORS 下會 throw TypeError
+    // 改用 no-cors mode：送得出去就視為成功（拿不到回應是正常的）
+    const ctrl    = new AbortController();
+    const timeout = setTimeout(() => ctrl.abort(), 15000); // 15秒 timeout
+    try {
+      await fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+        headers: { 'Content-Type': 'text/plain' },
+        mode: 'no-cors',
+        signal: ctrl.signal,
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
+    // no-cors 下永遠拿到 opaque response，送出不拋錯即成功
+    document.getElementById('loading').classList.remove('show');
+    clearDraft(null);
+    showSuccess();
+  } catch(e) {
+    document.getElementById('loading').classList.remove('show');
+    alert('網路錯誤，請稍後再試或聯繫旅乘客服');
+    if (btn) btn.disabled = false;
+  }
+}
+</script>
+
+</body>
+</html>
