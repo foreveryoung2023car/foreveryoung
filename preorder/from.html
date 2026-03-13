@@ -1324,7 +1324,8 @@ window.onload = function() {
   const params  = new URLSearchParams(location.search);
   const orderId = params.get('order');
   const token   = params.get('token');
-  if (orderId && token) {
+  const isDemo = !token || token === 'DEMO' || token === 'TEST';
+  if (orderId && token && !isDemo) {
     loadFromGAS(orderId, token);
   } else {
     loadUI(DEMO);
