@@ -1472,7 +1472,7 @@ function parseDayMeta(desc, luggage, price, childAgeStr) {
   if (paxText && childAgeStr) paxText += `(${childAgeStr})`;
   if (paxText) parts.push(`<span>🧑‍🤝‍🧑 ${paxText}</span>`);
   if (carM)  parts.push(`<span>🚌 ${carLabel(carM[1])}</span>`);
-  if (luggage) parts.push(`<span>👜 行李 ${luggage}</span>`);
+  if (luggage) parts.push(`<span>🧳 行李 ${luggage}</span>`);
   if (price)   parts.push(`<span class="meta-price">${price}</span>`);
   return parts.join('');
 }
@@ -1726,11 +1726,21 @@ function buildFlightHtml(dayI, isArrival, airportName) {
 function buildDayRows(days) {
   const el = document.getElementById('dayRowList');
   days.forEach((day, i) => {
-    const fromStr  = (day.from  || '').trim();
-    const toStr    = (day.to    || '').trim();
     const descStr  = (day.desc  || '');
 
-    // ── 用 from/to 判斷行程結構（不掃 desc）
+    // ── from/to fallback：若 GAS 未回傳，從 desc 解析
+    let fromStr = (day.from || '').trim();
+    let toStr   = (day.to   || '').trim();
+    if (!fromStr || !toStr) {
+      // 嘗試從 desc 解析「出發地至目的地」或「出發地-單程」
+      const clean = descStr.replace(/\([^)]*\)/g,'').trim();
+      const m = clean.match(/^(.+?)(?:至|－單程|-單程|─單程|—單程|往返|接送)/u);
+      if (m && !fromStr) fromStr = m[1].trim();
+      const m2 = clean.match(/至(.+?)(?:-單程|─單程|—單程|$)/u);
+      if (m2 && !toStr) toStr = m2[1].trim();
+    }
+
+    // ── 用 from/to 判斷行程結構
     const fromIsAp   = fromStr.includes('機場') || /^[A-Z]{3}$/.test(fromStr);
     const toIsAp     = toStr.includes('機場')   || /^[A-Z]{3}$/.test(toStr);
     const isArrival  = day.isFirstDay && fromIsAp;   // 接機：第一天 from=機場
