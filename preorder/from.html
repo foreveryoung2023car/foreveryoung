@@ -1769,7 +1769,19 @@ function buildFlightHtml(dayI, isArrival, airportName) {
 function buildDayRows(days) {
   const el = document.getElementById('dayRowList');
   days.forEach((day, i) => {
-    const lockAsAirport = day.isFirstDay && day.autoDepart;
+    // 用 from/to 判斷結構
+    const fromStr = day.from || '';
+    const toStr   = day.to   || '';
+    const hoursStr = day.hours || '';
+
+    const fromHasAirport = fromStr.includes('機場') || /[A-Z]{3}/.test(fromStr);
+    const toHasAirport   = toStr.includes('機場')   || /[A-Z]{3}/.test(toStr);
+    const isArrival      = day.isFirstDay && fromHasAirport;  // 接機
+    const isDeparture    = !day.isFirstDay && toHasAirport;   // 送機
+    const hasAirport     = fromHasAirport || toHasAirport;
+    const isOneway       = hoursStr === '-' || day.desc.includes('單程');
+    const isRoundtrip    = /往返|接送|來回/.test(day.desc);
+    const lockAsAirport  = false; // 不再鎖定，統一走完整邏輯
 
     // ── 出發地 + 抵達地點（折疊） ──
     let departRowHtml = '';
@@ -1790,11 +1802,11 @@ function buildDayRows(days) {
       const cleanForCheck = day.desc.replace(/\([^)]*\)/g,'').replace(/\s+/g,' ').trim();
       const isNoHotel     = /往返|接送|來回/.test(cleanForCheck);   // 隱藏住宿
       const isRoundtrip   = /接送/.test(cleanForCheck) && /來回/.test(cleanForCheck); // 雙時間欄
-      const isAirportDay  = cleanForCheck.includes('機場');
+      const isAirportDay  = hasAirport;
       const needsArrival  = !isAirportDay && (day.desc.includes('宿') || (!isRoundtrip));
       const arrivalLabel  = day.desc.includes('宿') ? '抵達地點（宿）' : '抵達地點';
       const airportHint   = isAirportDay ? getAirportHint(cleanForCheck) : '';
-      const isArrDay      = isAirportDay && day.isFirstDay;
+      const isArrDay = isArrival;
       const airportName   = isAirportDay ? extractAirportName(cleanForCheck) : '';
 
       departRowHtml = `
