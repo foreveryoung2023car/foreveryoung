@@ -1317,8 +1317,14 @@ let ORDER = null;
 // INIT
 // ════════════════════════════════════
 window.onload = function() {
-  // 正式版：parse URL params → loadFromGAS(order, token)
-  loadUI(DEMO);
+  const params = new URLSearchParams(location.search);
+  const orderId = params.get('order');
+  const token   = params.get('token');
+  if (orderId && token) {
+    loadFromGAS(orderId, token);
+  } else {
+    loadUI(DEMO);
+  }
 };
 
 function loadUI(data) {
