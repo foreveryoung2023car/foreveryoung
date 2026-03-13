@@ -2685,7 +2685,7 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbzy9zBnzrL_mDyvUaGa2k94
 async function loadFromGAS(orderId, token) {
   document.getElementById('loading').classList.add('show');
   try {
-    const r = await fetch(`${GAS_URL}?action=getOrder&order=${orderId}&token=${token}`);
+    const r = await fetch(`${GAS_URL}?order=${encodeURIComponent(orderId)}&token=${encodeURIComponent(token)}`);
     const d = await r.json();
     if (d.error) throw d.error;
     loadUI(d);
