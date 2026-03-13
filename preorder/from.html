@@ -1293,19 +1293,23 @@ const DEMO = {
   childAge: "",   // 若有填寫例如 "3+5歲" 會自動帶入欄位
   days: [
     { date:"01/01", month:"01", dayNum:"01", weekday:"四",
-      desc:"東京市區往返富士山一日遊(7大2小)(10座)",
+      desc:"成田機場至東京市區-單程(7大2小)(10座)",
+      from:"成田機場", to:"東京市區", hours:"-",
       luggage:"6件", price:"¥68,000", hotel:"Shinjuku Granbell Hotel",
       isFirstDay:true, prevDayIdx:-1 },
     { date:"01/02", month:"01", dayNum:"02", weekday:"五",
-      desc:"東京市區往返鐮倉一日遊(7大2小)(14座)",
-      luggage:"8件", price:"¥76,000", hotel:"Shinjuku Granbell Hotel",
+      desc:"東京市區往返富士山一日遊(7大2小)(10座)",
+      from:"東京市區", to:"富士山", hours:"10",
+      luggage:"6件", price:"¥76,000", hotel:"Shinjuku Granbell Hotel",
       isFirstDay:false, prevDayIdx:0 },
     { date:"01/03", month:"01", dayNum:"03", weekday:"六",
-      desc:"東京市區至成田機場-單程(7大2小)(10+7座)",
-      luggage:"8件", price:"¥54,000", hotel:"",
+      desc:"東京市區至成田機場-單程(7大2小)(10座)",
+      from:"東京市區", to:"成田機場", hours:"-",
+      luggage:"6件", price:"¥54,000", hotel:"",
       isFirstDay:false, prevDayIdx:1 },
     { date:"01/04", month:"01", dayNum:"04", weekday:"日",
       desc:"東京市區接送迪士尼樂園來回(7大2小)(7座)",
+      from:"東京市區", to:"迪士尼樂園", hours:"8",
       luggage:"4件", price:"¥38,000", hotel:"Shinjuku Granbell Hotel",
       isFirstDay:false, prevDayIdx:2 }
   ]
@@ -1317,7 +1321,7 @@ let ORDER = null;
 // INIT
 // ════════════════════════════════════
 window.onload = function() {
-  const params = new URLSearchParams(location.search);
+  const params  = new URLSearchParams(location.search);
   const orderId = params.get('order');
   const token   = params.get('token');
   if (orderId && token) {
@@ -1412,57 +1416,14 @@ function loadUI(data) {
     }
   }
 
-  // 從行程描述自動解析機場 — 掃描所有天，找第一個含機場名稱的
-  const AIRPORTS = [
-    { name: '福岡機場',     code: 'FUK' },
-    { name: '那霸機場',     code: 'OKA' },
-    { name: '新千歲機場',   code: 'CTS' },
-    { name: '成田機場',     code: 'NRT' },
-    { name: '羽田機場',     code: 'HND' },
-    { name: '關西機場',     code: 'KIX' },
-    { name: '中部機場',     code: 'NGO' },
-    { name: '新北九州機場', code: 'KKJ' },
-    { name: '長崎機場',     code: 'NGS' },
-    { name: '熊本機場',     code: 'KMJ' },
-    { name: '大分機場',     code: 'OIT' },
-    { name: '宮崎機場',     code: 'KMI' },
-    { name: '鹿兒島機場',   code: 'KOJ' },
-    { name: '石垣機場',     code: 'ISG' },
-    { name: '宮古機場',     code: 'MMY' },
-  ];
-
-  // 每天都掃描，有機場就記錄 autoDepart（供第一天唯讀顯示 or 後面天鎖定選單用）
-  let globalAirport = null;
-  data.days.forEach(d => {
-    const hit = AIRPORTS.find(a => d.desc.includes(a.name));
-    if (hit) {
-      d.autoDepart = hit.name;
-      if (!globalAirport) globalAirport = hit; // 第一個出現的機場作為航班預設
-    } else {
-      d.autoDepart = null;
-    }
-  });
-
-  // 將兩個機場 select 預設選中並鎖定（disabled + 顯示唯讀樣式）
-  if (globalAirport) {
-    const optionText = `${globalAirport.name} (${globalAirport.code})`;
-    ['arr-airport', 'dep-airport'].forEach(id => {
-      const sel = document.getElementById(id);
-      if (!sel) return;
-      for (let opt of sel.options) {
-        if (opt.text === optionText) { opt.selected = true; break; }
-      }
-      sel.disabled = true;
-      sel.style.background = 'var(--blue-faint)';
-      sel.style.color = 'var(--blue-dark)';
-      sel.style.fontWeight = '500';
-    });
-  }
-
   buildDayRows(data.days);
 
-  // 多天且有可填寫出發地（非鎖定機場）才顯示套用按鈕
-  const fillableDays = data.days.filter(d => !(d.isFirstDay && d.autoDepart));
+  // 套用按鈕：有可填寫出發地的天（排除「接機天」：第一天 from 含機場）
+  const fillableDays = data.days.filter(d => {
+    const fromStr = (d.from || '').trim();
+    const fromIsAp = fromStr.includes('機場') || /^[A-Z]{3}$/.test(fromStr);
+    return !(d.isFirstDay && fromIsAp);
+  });
   if (fillableDays.length >= 2) {
     document.getElementById('staffFillBtn').style.display = 'block';
   }
@@ -1480,11 +1441,6 @@ function loadUI(data) {
     const ageEl = document.getElementById('f-child-age');
     if (ageEl && !ageEl.value) ageEl.value = data.childAge;
   }
-
-  // 從行程描述自動判斷是否有接機／送機（只要含「機場」就顯示）
-  const hasArrival   = data.days.some(d => d.desc.includes('機場') && d.isFirstDay);
-  const hasDeparture = data.days.some(d => d.desc.includes('機場') && !d.isFirstDay);
-  const hasAnyFlight = data.days.some(d => d.desc.includes('機場'));
 
 
   document.getElementById('mainContent').style.display = 'block';
@@ -1769,128 +1725,150 @@ function buildFlightHtml(dayI, isArrival, airportName) {
 function buildDayRows(days) {
   const el = document.getElementById('dayRowList');
   days.forEach((day, i) => {
-    // 用 from/to 判斷結構
-    const fromStr = day.from || '';
-    const toStr   = day.to   || '';
-    const hoursStr = day.hours || '';
+    const fromStr  = (day.from  || '').trim();
+    const toStr    = (day.to    || '').trim();
+    const descStr  = (day.desc  || '');
 
-    const fromHasAirport = fromStr.includes('機場') || /[A-Z]{3}/.test(fromStr);
-    const toHasAirport   = toStr.includes('機場')   || /[A-Z]{3}/.test(toStr);
-    const isArrival      = day.isFirstDay && fromHasAirport;  // 接機
-    const isDeparture    = !day.isFirstDay && toHasAirport;   // 送機
-    const hasAirport     = fromHasAirport || toHasAirport;
-    const isOneway       = hoursStr === '-' || day.desc.includes('單程');
-    const isRoundtrip    = /往返|接送|來回/.test(day.desc);
-    const lockAsAirport  = false; // 不再鎖定，統一走完整邏輯
+    // ── 用 from/to 判斷行程結構（不掃 desc）
+    const fromIsAp   = fromStr.includes('機場') || /^[A-Z]{3}$/.test(fromStr);
+    const toIsAp     = toStr.includes('機場')   || /^[A-Z]{3}$/.test(toStr);
+    const isArrival  = day.isFirstDay && fromIsAp;   // 接機：第一天 from=機場
+    const isDeparture = toIsAp;                       // 送機：to=機場
+    const hasAirport = fromIsAp || toIsAp;
+    const isRoundtrip = /往返|接送|來回/.test(descStr);
 
-    // ── 出發地 + 抵達地點（折疊） ──
-    let departRowHtml = '';
-    if (lockAsAirport) {
-      departRowHtml = `
-        <div class="day-acc-toggle" onclick="toggleAcc2('dep_body_${i}','dep_chev_${i}')">
-          <div class="acc-left"><span class="acc-icon">📍</span>出發 ／ 抵達地點</div>
-          <span class="acc-chevron" id="dep_chev_${i}">▼</span>
-        </div>
-        <div class="day-acc-body" id="dep_body_${i}">
-          <div class="day-acc-inner">
-            <div class="depart-auto">${day.autoDepart}</div>
-            <div style="font-size:11px;color:var(--gray-light);margin-top:4px">依行程自動帶入，無需填寫</div>
-          </div>
-        </div>`;
+    const prevHotel = day.prevDayIdx >= 0 && days[day.prevDayIdx]?.hotel
+      ? days[day.prevDayIdx].hotel : '';
+
+    // 機場提示
+    const airportHint = isDeparture ? getAirportHint(toStr || descStr) : '';
+
+    // 航班 block 用的機場顯示名稱
+    const airportName = isArrival
+      ? extractAirportName(fromStr)
+      : isDeparture
+        ? extractAirportName(toStr)
+        : '';
+
+    // ── 出發地 HTML
+    let fromHtml = '';
+    if (isArrival) {
+      fromHtml = `
+        <div style="font-size:12px;color:var(--gray);margin-bottom:5px;font-weight:600">📍 接機地點</div>
+        <div class="depart-auto">${fromStr}</div>
+        <div style="font-size:11px;color:var(--gray-light);margin-top:4px">依行程自動帶入，無需填寫</div>`;
     } else {
-      const prevHotel = day.prevDayIdx >= 0 && days[day.prevDayIdx].hotel ? days[day.prevDayIdx].hotel : '';
-      const cleanForCheck = day.desc.replace(/\([^)]*\)/g,'').replace(/\s+/g,' ').trim();
-      const isNoHotel     = /往返|接送|來回/.test(cleanForCheck);   // 隱藏住宿
-      const isRoundtrip   = /接送/.test(cleanForCheck) && /來回/.test(cleanForCheck); // 雙時間欄
-      const isAirportDay  = hasAirport;
-      const needsArrival  = !isAirportDay && (day.desc.includes('宿') || (!isRoundtrip));
-      const arrivalLabel  = day.desc.includes('宿') ? '抵達地點（宿）' : '抵達地點';
-      const airportHint   = isAirportDay ? getAirportHint(cleanForCheck) : '';
-      const isArrDay = isArrival;
-      const airportName   = isAirportDay ? extractAirportName(cleanForCheck) : '';
+      const depLabel = isDeparture ? '📍 出發地點（送機出發地）' : '📍 出發地點';
+      fromHtml = `
+        <div style="font-size:12px;color:var(--gray);margin-bottom:5px;font-weight:600">${depLabel}</div>
+        <input class="field-inline" type="text" id="depart_${i}"
+          placeholder="${prevHotel ? `例：${prevHotel}` : '例：飯店名稱、車站…'}"
+          oninput="updateNextDepart(${i});checkDayFilled(${i})">
+        <div class="err-msg" id="err_depart_${i}">請填寫出發地點</div>
+        <input class="field-inline" type="text" id="depart_addr_${i}"
+          placeholder="地址補充（選填）"
+          oninput="updateNextDepart(${i});checkDayFilled(${i})"
+          style="margin-top:6px">`;
+    }
 
-      departRowHtml = `
-        <div class="day-acc-toggle" onclick="toggleAcc2('dep_body_${i}','dep_chev_${i}')">
-          <div class="acc-left"><span class="acc-icon">📍</span>${isAirportDay ? '行程地點 & 航班資料' : '出發 ／ 抵達地點'}<span class="req" style="font-size:12px;margin-left:2px">＊</span></div>
-          <span class="acc-chevron" id="dep_chev_${i}">▼</span>
-        </div>
-        <div class="day-acc-body" id="dep_body_${i}">
-          <div class="day-acc-inner">
-            ${!isArrDay ? `
-            <div style="margin-bottom:6px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
-              <div>
-                <span style="font-size:11px;color:var(--gray-light)">預計出發時間（選填）</span>
-                ${buildTimeSelect(`depart_time_${i}`)}
-              </div>
-              ${isRoundtrip ? `
-              <div>
-                <span style="font-size:11px;color:var(--gray-light)">預計回程時間（選填）</span>
-                <div style="display:flex;align-items:center;gap:4px;margin-top:4px">
-                  ${(()=>{ const hrs=Array.from({length:24},(_,h)=>`<option value="${String(h).padStart(2,'0')}">${String(h).padStart(2,'0')}</option>`).join(''); const mins=['00','05','10','15','20','25','30','35','40','45','50','55'].map(m=>`<option value="${m}">${m}</option>`).join(''); return `
-                  <select id="return_time_${i}_h" style="width:54px;text-align:center;font-size:14px;font-weight:600;padding:6px 2px"
-                    onchange="autoFillMin('return_time_${i}');syncReturnTime(${i});buildDescText(${i});checkNightSurcharge2('return_time_${i}')">
-                    <option value="">時</option>${hrs}
-                  </select>
-                  <span style="font-size:15px;font-weight:700;color:var(--blue)">:</span>
-                  <select id="return_time_${i}_m" style="width:54px;text-align:center;font-size:14px;font-weight:600;padding:6px 2px"
-                    onchange="syncReturnTime(${i});buildDescText(${i});checkNightSurcharge2('return_time_${i}')">
-                    <option value="">分</option>${mins}
-                  </select>
-                  <input type="hidden" id="return_time_${i}">`; })()}
-                </div>
-              </div>` : ''}
-            </div>
-            <div id="night_warn_${i}" style="display:none;margin-bottom:10px;padding:8px 10px;background:#fff7e6;border:1px solid #ffb347;border-radius:6px;font-size:12px;color:#7a3c00">
-              ⚠️ 夜間時段（22:00–06:59）將產生加成費用，每小時另計 ¥3,000 日圓，請留意出發時間
-            </div>` : ''}
-            ${!isAirportDay ? `
-            <div style="font-size:12px;color:var(--gray);margin-bottom:5px;font-weight:600">📍 出發地點</div>` : ''}
-            ${isAirportDay && !isArrDay ? `
-            <div style="font-size:12px;color:var(--gray);margin-bottom:5px;font-weight:600">📍 出發地點（送機出發地）</div>` : ''}
-            ${!isArrDay ? `
-            <input class="field-inline" type="text" id="depart_${i}"
-              placeholder="${prevHotel ? `例：${prevHotel}` : '例：飯店名稱、車站…'}"
-              oninput="updateNextDepart(${i});checkDayFilled(${i})">
-            <div class="err-msg" id="err_depart_${i}">請填寫出發地點</div>
-            <input class="field-inline" type="text" id="depart_addr_${i}"
-              placeholder="地址補充（選填）"
-              oninput="updateNextDepart(${i});checkDayFilled(${i})"
-              style="margin-top:6px">` : ''}
-            ${airportHint ? `<div style="margin-top:10px;padding:8px 10px;background:#fffbe6;border:1px solid #ffe58f;border-radius:6px;font-size:12px;color:#7a5c00">${airportHint}</div>` : ''}
-            ${isRoundtrip ? `
-            <div style="font-size:12px;color:var(--gray);margin:12px 0 5px;font-weight:600">🏁 抵達地點（回程）</div>
-            <label style="font-size:12px;color:var(--gray-light);display:flex;align-items:center;gap:6px;margin-bottom:6px;cursor:pointer">
-              <input type="checkbox" id="arrive_same_${i}" onchange="toggleArriveSame(${i})"> 與出發地點相同
-            </label>
-            <div id="arrive_fields_${i}">
-              <input class="field-inline" type="text" id="arrive_${i}"
-                placeholder="例：飯店名稱、車站…"
-                oninput="updateDayDescArrive(${i});checkDayFilled(${i})">
-              <input class="field-inline" type="text" id="arrive_addr_${i}"
-                placeholder="地址補充（選填）"
-                oninput="updateDayDescArrive(${i});checkDayFilled(${i})"
-                style="margin-top:6px">
-            </div>` : ''}
-            ${needsArrival ? `
-            <div style="font-size:12px;color:var(--gray);margin:12px 0 5px;font-weight:600">🏁 ${arrivalLabel}</div>
-            <input class="field-inline" type="text" id="arrive_${i}"
-              placeholder="例：大阪難波、飯店名稱…"
-              oninput="updateDayDescArrive(${i});checkDayFilled(${i})">
-            <input class="field-inline" type="text" id="arrive_addr_${i}"
-              placeholder="地址補充（選填）"
-              oninput="updateDayDescArrive(${i});checkDayFilled(${i})"
-              style="margin-top:6px">` : ''}
-            ${isAirportDay ? buildFlightHtml(i, isArrDay, airportName) : ''}
-            ${buildDayChildAgeHtml(i, day.desc, days)}
+    // ── 目的地 / 回程地點 HTML
+    let arriveHtml = '';
+    if (isDeparture) {
+      arriveHtml = `
+        <div style="font-size:12px;color:var(--gray);margin:12px 0 5px;font-weight:600">🏁 送機地點</div>
+        <div class="depart-auto">${toStr}</div>
+        <div style="font-size:11px;color:var(--gray-light);margin-top:4px">依行程自動帶入，無需填寫</div>`;
+    } else if (isRoundtrip) {
+      arriveHtml = `
+        <div style="font-size:12px;color:var(--gray);margin:12px 0 5px;font-weight:600">🏁 抵達地點（回程）</div>
+        <label style="font-size:12px;color:var(--gray-light);display:flex;align-items:center;gap:6px;margin-bottom:6px;cursor:pointer">
+          <input type="checkbox" id="arrive_same_${i}" onchange="toggleArriveSame(${i})"> 與出發地點相同
+        </label>
+        <div id="arrive_fields_${i}">
+          <input class="field-inline" type="text" id="arrive_${i}"
+            placeholder="例：飯店名稱、車站…"
+            oninput="updateDayDescArrive(${i});checkDayFilled(${i})">
+          <input class="field-inline" type="text" id="arrive_addr_${i}"
+            placeholder="地址補充（選填）"
+            oninput="updateDayDescArrive(${i});checkDayFilled(${i})"
+            style="margin-top:6px">
+        </div>`;
+    } else if (!hasAirport) {
+      // 一般點對點：顯示目的地欄
+      const hm = toStr.match(/^宿(.+)/);
+      const arrLabel = hm ? '🏁 抵達地點（宿）' : '🏁 抵達地點';
+      const arrVal   = hm ? hm[1] : (toStr || '');
+      arriveHtml = `
+        <div style="font-size:12px;color:var(--gray);margin:12px 0 5px;font-weight:600">${arrLabel}</div>
+        <input class="field-inline" type="text" id="arrive_${i}"
+          value="${arrVal}"
+          placeholder="例：大阪難波、飯店名稱…"
+          oninput="updateDayDescArrive(${i});checkDayFilled(${i})">
+        <input class="field-inline" type="text" id="arrive_addr_${i}"
+          placeholder="地址補充（選填）"
+          oninput="updateDayDescArrive(${i});checkDayFilled(${i})"
+          style="margin-top:6px">`;
+    }
+
+    // ── 時間欄 HTML（接機天不需要）
+    let timeHtml = '';
+    if (!isArrival) {
+      const rtHtml = isRoundtrip ? `
+        <div>
+          <span style="font-size:11px;color:var(--gray-light)">預計回程時間（選填）</span>
+          <div style="display:flex;align-items:center;gap:4px;margin-top:4px">
+            ${(()=>{
+              const hrs  = Array.from({length:24},(_,h)=>`<option value="${String(h).padStart(2,'0')}">${String(h).padStart(2,'0')}</option>`).join('');
+              const mins = ['00','05','10','15','20','25','30','35','40','45','50','55'].map(m=>`<option value="${m}">${m}</option>`).join('');
+              return `
+              <select id="return_time_${i}_h" style="width:54px;text-align:center;font-size:14px;font-weight:600;padding:6px 2px"
+                onchange="autoFillMin('return_time_${i}');syncReturnTime(${i});buildDescText(${i});checkNightSurcharge2('return_time_${i}')">
+                <option value="">時</option>${hrs}
+              </select>
+              <span style="font-size:15px;font-weight:700;color:var(--blue)">:</span>
+              <select id="return_time_${i}_m" style="width:54px;text-align:center;font-size:14px;font-weight:600;padding:6px 2px"
+                onchange="syncReturnTime(${i});buildDescText(${i});checkNightSurcharge2('return_time_${i}')">
+                <option value="">分</option>${mins}
+              </select>
+              <input type="hidden" id="return_time_${i}">`;
+            })()}
           </div>
+        </div>` : '';
+      timeHtml = `
+        <div style="margin-bottom:6px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
+          <div>
+            <span style="font-size:11px;color:var(--gray-light)">預計出發時間（選填）</span>
+            ${buildTimeSelect(`depart_time_${i}`)}
+          </div>
+          ${rtHtml}
+        </div>
+        <div id="night_warn_${i}" style="display:none;margin-bottom:10px;padding:8px 10px;background:#fff7e6;border:1px solid #ffb347;border-radius:6px;font-size:12px;color:#7a3c00">
+          ⚠️ 夜間時段（22:00–06:59）將產生加成費用，每小時另計 ¥3,000 日圓，請留意出發時間
         </div>`;
     }
 
-    // 往返行程不顯示住宿（回程回原點，無需住宿確認）
-    const cleanForHotel = day.desc.replace(/\([^)]*\)/g,'').replace(/\s+/g,' ').trim();
-    const isRoundtripDay = /往返|接送|來回/.test(cleanForHotel);
+    // ── 折疊標題
+    const accLabel = hasAirport ? '行程地點 & 航班資料' : '出發 ／ 抵達地點';
+    const reqMark  = !isArrival ? `<span class="req" style="font-size:12px;margin-left:2px">＊</span>` : '';
 
-    // ── 住宿（折疊，往返行程不顯示） ──
+    const departRowHtml = `
+      <div class="day-acc-toggle" onclick="toggleAcc2('dep_body_${i}','dep_chev_${i}')">
+        <div class="acc-left"><span class="acc-icon">📍</span>${accLabel}${reqMark}</div>
+        <span class="acc-chevron" id="dep_chev_${i}">▼</span>
+      </div>
+      <div class="day-acc-body" id="dep_body_${i}">
+        <div class="day-acc-inner">
+          ${timeHtml}
+          ${fromHtml}
+          ${airportHint ? `<div style="margin-top:10px;padding:8px 10px;background:#fffbe6;border:1px solid #ffe58f;border-radius:6px;font-size:12px;color:#7a5c00">${airportHint}</div>` : ''}
+          ${arriveHtml}
+          ${hasAirport ? buildFlightHtml(i, isArrival, airportName) : ''}
+          ${buildDayChildAgeHtml(i, day.desc, days)}
+        </div>
+      </div>`;
+
+    // ── 住宿（往返行程不顯示）
+    const isRoundtripDay = /往返|接送|來回/.test(descStr);
     let hotelHtml = '';
     if (day.hotel && !isRoundtripDay) {
       hotelHtml = `
@@ -1914,9 +1892,8 @@ function buildDayRows(days) {
     }
 
     const metaHtml = `<div class="day-meta" id="day_meta_${i}">${parseDayMeta(day.desc, day.luggage, day.price)}</div>`;
-    // 完全移除括號及其內容（已顯示在 meta 列）
     const cleanDesc = day.desc.replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
-    day._cleanDesc = cleanDesc; // 存供動態更新用
+    day._cleanDesc = cleanDesc;
 
     el.innerHTML += `
       <div class="day-row" id="dayRow${i}">
@@ -2703,12 +2680,12 @@ function showSuccess() {
 // ════════════════════════════════════
 // GAS STUBS（正式版解開）
 // ════════════════════════════════════
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxkWs0CvJvEQ7VzZQ1yL7jw6BAGQsEOlJexsV8ZpvFtWthCfY3ZCRwdeiKe9CPibjD2/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzy9zBnzrL_mDyvUaGa2k943boRdSN79G1OUkFxwVtDLVwKCtyr3EAlGa2cL4TKhGnl/exec';
 
 async function loadFromGAS(orderId, token) {
   document.getElementById('loading').classList.add('show');
   try {
-    const r = await fetch(`${GAS_URL}?order=${encodeURIComponent(orderId)}&token=${token}`);
+    const r = await fetch(`${GAS_URL}?action=getOrder&order=${orderId}&token=${token}`);
     const d = await r.json();
     if (d.error) throw d.error;
     loadUI(d);
