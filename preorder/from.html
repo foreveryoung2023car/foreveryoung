@@ -1085,7 +1085,7 @@ body {
         </div>
 
         <div class="step-nav">
-          <div></div>
+          <button class="btn-back" onclick="confirmClearAll()" style="color:var(--red);border-color:#f5c0bb">🗑 清除重填</button>
           <button class="btn-next" onclick="goStep(2)">下一步：匯款確認 →</button>
         </div>
       </div>
@@ -1464,7 +1464,7 @@ function carLabel(s) {
   }).join(' + ');
 }
 
-function parseDayMeta(desc, luggage, price, childAgeStr) {
+function parseDayMeta(desc, luggage, price, childAgeStr, hours) {
   const paxM = desc.match(/\((\d+大\d*小?|\d+小|\d+大)\)/);
   const carM  = desc.match(/\((\d+(?:\+\d+)?座)\)/);
   const parts = [];
@@ -1472,6 +1472,7 @@ function parseDayMeta(desc, luggage, price, childAgeStr) {
   if (paxText && childAgeStr) paxText += `(${childAgeStr})`;
   if (paxText) parts.push(`<span>🧑‍🤝‍🧑 ${paxText}</span>`);
   if (carM)  parts.push(`<span>🚌 ${carLabel(carM[1])}</span>`);
+  if (hours && hours !== '-') parts.push(`<span>⏱ ${hours}小時</span>`);
   if (luggage) parts.push(`<span>🧳 行李 ${luggage}</span>`);
   if (price)   parts.push(`<span class="meta-price">${price}</span>`);
   return parts.join('');
@@ -1483,7 +1484,7 @@ function updateDayMeta(dayI) {
   const ageInp = document.getElementById(`day_child_age_${dayI}`);
   const ageVal = ageInp?.value.trim() || '';
   const metaEl = document.getElementById(`day_meta_${dayI}`);
-  if (metaEl) metaEl.innerHTML = parseDayMeta(d.desc, d.luggage, d.price, ageVal);
+  if (metaEl) metaEl.innerHTML = parseDayMeta(d.desc, d.luggage, d.price, ageVal, d.hours);
 }
 
 
@@ -1534,6 +1535,13 @@ function syncReturnTime(dayI) {
   const h = document.getElementById(`return_time_${dayI}_h`)?.value || '';
   const m = document.getElementById(`return_time_${dayI}_m`)?.value || '';
   const inp = document.getElementById(`return_time_${dayI}`);
+  if (inp) inp.value = (h && m) ? `${h}:${m}` : '';
+}
+
+function syncFlightTime(prefix) {
+  const h = document.getElementById(`${prefix}_time_h`)?.value || '';
+  const m = document.getElementById(`${prefix}_time_m`)?.value || '';
+  const inp = document.getElementById(`${prefix}_time`);
   if (inp) inp.value = (h && m) ? `${h}:${m}` : '';
 }
 
@@ -1645,7 +1653,7 @@ function buildFlightHtml(dayI, isArrival, airportName) {
   const icon       = isArrival ? '🛬' : '🛫';
   const label      = isArrival ? '抵達航班' : '出發航班';
   const timeSuffix = isArrival ? '著' : '飛';
-  const timePH     = isArrival ? '例：13:20' : '例：12:15';
+  const timeLabel  = isArrival ? '抵達時間（著）' : `起飛時間（飛）`;
 
   const airports = [
     '東京成田','東京羽田','大阪關西','福岡國際','名古屋中部',
@@ -1680,6 +1688,8 @@ function buildFlightHtml(dayI, isArrival, airportName) {
     <option value="其他" data-code="">其他</option>`;
 
   const onchange = `updateFlightPreview('${prefix}','${timeSuffix}')`;
+  const hrs  = Array.from({length:24},(_,h)=>`<option value="${String(h).padStart(2,'0')}">${String(h).padStart(2,'0')}</option>`).join('');
+  const mins = ['00','05','10','15','20','25','30','35','40','45','50','55'].map(m=>`<option value="${m}">${m}</option>`).join('');
 
   return `
     <div style="margin-top:12px;padding:10px 12px;background:var(--blue-faint);border-radius:var(--radius-sm);border:1px solid var(--blue-light)">
@@ -1714,10 +1724,19 @@ function buildFlightHtml(dayI, isArrival, airportName) {
           <div class="err-msg" id="e_${prefix}_no">請填寫班機號碼</div>
         </div>
         <div class="field cf">
-          <label>${isArrival ? '抵達時間' : '起飛時間（' + timeSuffix + '）'}<span class="req">＊</span></label>
-          <input class="field-inline" type="text" id="${prefix}_time"
-            placeholder="${timePH}" inputmode="numeric"
-            oninput="${onchange}">
+          <label>${timeLabel}<span class="req">＊</span></label>
+          <div style="display:flex;align-items:center;gap:4px;margin-top:4px">
+            <select id="${prefix}_time_h" style="width:66px;text-align:center;font-size:14px;font-weight:600;padding:6px 4px"
+              onchange="autoFillMin('${prefix}_time');syncFlightTime('${prefix}');${onchange}">
+              <option value="">時</option>${hrs}
+            </select>
+            <span style="font-size:15px;font-weight:700;color:var(--blue)">:</span>
+            <select id="${prefix}_time_m" style="width:66px;text-align:center;font-size:14px;font-weight:600;padding:6px 4px"
+              onchange="syncFlightTime('${prefix}');${onchange}">
+              <option value="">分</option>${mins}
+            </select>
+            <input type="hidden" id="${prefix}_time">
+          </div>
         </div>
       </div>
       <div id="${prefix}_preview" style="display:none !important"></div>
@@ -1746,7 +1765,7 @@ function buildDayRows(days) {
     const isArrival  = day.isFirstDay && fromIsAp;   // 接機：第一天 from=機場
     const isDeparture = toIsAp;                       // 送機：to=機場
     const hasAirport = fromIsAp || toIsAp;
-    const isRoundtrip = /往返|接送|來回/.test(descStr);
+    const isRoundtrip = /接送.*來回|來回.*接送/.test(descStr); // 只有「接送來回」才有回程時間
 
     const prevHotel = day.prevDayIdx >= 0 && days[day.prevDayIdx]?.hotel
       ? days[day.prevDayIdx].hotel : '';
@@ -1763,45 +1782,51 @@ function buildDayRows(days) {
 
     // ── 出發地 HTML
     let fromHtml = '';
-    if (isArrival) {
-      fromHtml = `
-        <div style="font-size:12px;color:var(--gray);margin-bottom:5px;font-weight:600">📍 接機地點</div>
-        <div class="depart-auto">${fromStr}</div>
-        <div style="font-size:11px;color:var(--gray-light);margin-top:4px">依行程自動帶入，無需填寫</div>`;
-    } else {
+    if (!isArrival) {
+      // 非接機天才顯示出發地欄位
       const depLabel = isDeparture ? '📍 出發地點（送機出發地）' : '📍 出發地點';
       fromHtml = `
         <div style="font-size:12px;color:var(--gray);margin-bottom:5px;font-weight:600">${depLabel}</div>
         <input class="field-inline" type="text" id="depart_${i}"
           placeholder="${prevHotel ? `例：${prevHotel}` : '例：飯店名稱、車站…'}"
-          oninput="updateNextDepart(${i});checkDayFilled(${i})">
-        <div class="err-msg" id="err_depart_${i}">請填寫出發地點</div>
+          oninput="buildDescText(${i});updateNextDepart(${i});checkDayFilled(${i})">
+        <div class="err-msg" id="err_depart_${i}">請填寫地點</div>
         <input class="field-inline" type="text" id="depart_addr_${i}"
           placeholder="地址補充（選填）"
-          oninput="updateNextDepart(${i});checkDayFilled(${i})"
+          oninput="buildDescText(${i});updateNextDepart(${i});checkDayFilled(${i})"
           style="margin-top:6px">`;
     }
 
     // ── 目的地 / 回程地點 HTML
     let arriveHtml = '';
     if (isDeparture) {
+      // 送機：目的地鎖定（機場已在航班區塊顯示），不需要再給欄位
+    } else if (isArrival) {
+      // 接機天：目的地 = 飯店，可編輯，觸發標題更新
+      const arrVal = toStr.replace(/^宿/, '');
       arriveHtml = `
-        <div style="font-size:12px;color:var(--gray);margin:12px 0 5px;font-weight:600">🏁 送機地點</div>
-        <div class="depart-auto">${toStr}</div>
-        <div style="font-size:11px;color:var(--gray-light);margin-top:4px">依行程自動帶入，無需填寫</div>`;
+        <div style="font-size:12px;color:var(--gray);margin:12px 0 5px;font-weight:600">🏁 抵達地點（飯店／市區地址）</div>
+        <input class="field-inline" type="text" id="arrive_${i}"
+          value="${arrVal}"
+          placeholder="例：新宿格蘭貝爾酒店"
+          oninput="buildDescText(${i});checkDayFilled(${i})">
+        <input class="field-inline" type="text" id="arrive_addr_${i}"
+          placeholder="地址補充（選填，幫助司機導航）"
+          oninput="buildDescText(${i});checkDayFilled(${i})"
+          style="margin-top:6px">`;
     } else if (isRoundtrip) {
       arriveHtml = `
         <div style="font-size:12px;color:var(--gray);margin:12px 0 5px;font-weight:600">🏁 抵達地點（回程）</div>
         <label style="font-size:12px;color:var(--gray-light);display:flex;align-items:center;gap:6px;margin-bottom:6px;cursor:pointer">
-          <input type="checkbox" id="arrive_same_${i}" onchange="toggleArriveSame(${i})"> 與出發地點相同
+          <input type="checkbox" id="arrive_same_${i}" checked onchange="toggleArriveSame(${i})"> 與出發地點相同
         </label>
-        <div id="arrive_fields_${i}">
+        <div id="arrive_fields_${i}" style="display:none">
           <input class="field-inline" type="text" id="arrive_${i}"
             placeholder="例：飯店名稱、車站…"
-            oninput="updateDayDescArrive(${i});checkDayFilled(${i})">
+            oninput="buildDescText(${i});checkDayFilled(${i})">
           <input class="field-inline" type="text" id="arrive_addr_${i}"
             placeholder="地址補充（選填）"
-            oninput="updateDayDescArrive(${i});checkDayFilled(${i})"
+            oninput="buildDescText(${i});checkDayFilled(${i})"
             style="margin-top:6px">
         </div>`;
     } else if (!hasAirport) {
@@ -1814,10 +1839,10 @@ function buildDayRows(days) {
         <input class="field-inline" type="text" id="arrive_${i}"
           value="${arrVal}"
           placeholder="例：大阪難波、飯店名稱…"
-          oninput="updateDayDescArrive(${i});checkDayFilled(${i})">
+          oninput="buildDescText(${i});checkDayFilled(${i})">
         <input class="field-inline" type="text" id="arrive_addr_${i}"
           placeholder="地址補充（選填）"
-          oninput="updateDayDescArrive(${i});checkDayFilled(${i})"
+          oninput="buildDescText(${i});checkDayFilled(${i})"
           style="margin-top:6px">`;
     }
 
@@ -1872,8 +1897,8 @@ function buildDayRows(days) {
           ${timeHtml}
           ${fromHtml}
           ${airportHint ? `<div style="margin-top:10px;padding:8px 10px;background:#fffbe6;border:1px solid #ffe58f;border-radius:6px;font-size:12px;color:#7a5c00">${airportHint}</div>` : ''}
-          ${arriveHtml}
           ${hasAirport ? buildFlightHtml(i, isArrival, airportName) : ''}
+          ${arriveHtml}
           ${buildDayChildAgeHtml(i, day.desc, days)}
         </div>
       </div>`;
@@ -1881,7 +1906,7 @@ function buildDayRows(days) {
     // ── 住宿（往返行程不顯示）
     const isRoundtripDay = /往返|接送|來回/.test(descStr);
     let hotelHtml = '';
-    if (day.hotel && !isRoundtripDay) {
+    if (day.hotel && !isRoundtripDay && !isArrival && !isDeparture) {
       hotelHtml = `
         <div class="day-acc-toggle" onclick="toggleAcc2('hotel_body_${i}','hotel_chev_${i}')">
           <div class="acc-left"><span class="acc-icon">🏨</span>當晚住宿確認</div>
@@ -1902,7 +1927,7 @@ function buildDayRows(days) {
         </div>`;
     }
 
-    const metaHtml = `<div class="day-meta" id="day_meta_${i}">${parseDayMeta(day.desc, day.luggage, day.price)}</div>`;
+    const metaHtml = `<div class="day-meta" id="day_meta_${i}">${parseDayMeta(day.desc, day.luggage, day.price, '', day.hours)}</div>`;
     const cleanDesc = day.desc.replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
     day._cleanDesc = cleanDesc;
 
@@ -1967,7 +1992,9 @@ function updateFlightPreview(prefix, suffix) {
   const airName  = airline?.options[airline?.selectedIndex]?.value || '';
   const code     = airline?.options[airline?.selectedIndex]?.dataset?.code || '';
   const num      = document.getElementById(`${prefix}_no_num`)?.value || '';
-  const time     = document.getElementById(`${prefix}_time`)?.value  || '';
+  const timeH    = document.getElementById(`${prefix}_time_h`)?.value || '';
+  const timeM    = document.getElementById(`${prefix}_time_m`)?.value || '';
+  const time     = (timeH && timeM) ? `${timeH}:${timeM}` : (document.getElementById(`${prefix}_time`)?.value || '');
   const prev     = document.getElementById(`${prefix}_preview`);
   if (!prev) return;
 
@@ -2088,6 +2115,27 @@ function showDraftBanner() {
 function clearDraft(banner) {
   try { localStorage.removeItem(SAVE_KEY()); } catch(e) {}
   if (banner) banner.remove();
+}
+
+function confirmClearAll() {
+  if (!confirm('確定要清除所有已填寫的資料，重新填寫嗎？')) return;
+  // 清除所有 input/select/textarea
+  document.querySelectorAll('#dayRowList input, #dayRowList select, #dayRowList textarea').forEach(el => {
+    if (el.type === 'checkbox') el.checked = false;
+    else if (el.type === 'hidden') return;
+    else el.value = '';
+  });
+  document.querySelectorAll('#page3 input, #page3 select, #page3 textarea').forEach(el => {
+    if (el.type === 'checkbox') el.checked = false;
+    else el.value = '';
+  });
+  document.getElementById('f-account') && (document.getElementById('f-account').value = '');
+  document.getElementById('f-note')    && (document.getElementById('f-note').value = '');
+  // 清除 localStorage
+  try { localStorage.removeItem(SAVE_KEY()); } catch(e) {}
+  // 重跑所有天的標題和 badge
+  if (ORDER) ORDER.days.forEach((d, i) => { buildDescText(i); checkDayFilled(i); });
+  showToast('✓ 已清除所有填寫資料');
 }
 
 // ════════════════════════════════════
@@ -2233,7 +2281,7 @@ function undoStaffFill() {
 // 支援：至 / 往返 / 接送來回 / -單程 / ─單程
 function parseDescParts(desc) {
   const clean = desc.replace(/\([^)]*\)/g, '').trim();
-  const sep = clean.match(/^(.*?)(往返|接送來回|至|－單程|-單程|─單程|—單程)/u);
+  const sep = clean.match(/^(.*?)(至|－單程|-單程|─單程|—單程|接送|往返)/u);
   if (!sep) return { prefix: null, separator: null, suffix: clean };
   return {
     prefix:    sep[1].trim(),
@@ -2248,49 +2296,74 @@ function fmtPlace(name, addr) {
 }
 
 function buildDescText(dayI) {
-  const inp     = document.getElementById(`depart_${dayI}`);
-  const addrInp = document.getElementById(`depart_addr_${dayI}`);
-  const timeInp = document.getElementById(`depart_time_${dayI}`);
   const titleEl = document.getElementById(`day_desc_${dayI}`);
   if (!titleEl) return;
 
-  const typed = inp?.value.trim() || '';
-  const addr  = addrInp?.value.trim() || '';
-  const place = fmtPlace(typed, addr);
-  const time  = timeInp?.value.trim() || '';
   const orig  = titleEl.dataset.orig || '';
   const parts = parseDescParts(orig);
 
-  // 抵達地（往返 or 宿XXX）
+  // 出發地
+  const depInp  = document.getElementById(`depart_${dayI}`);
+  const depAddr = document.getElementById(`depart_addr_${dayI}`);
+  const depTyped = depInp?.value.trim() || '';
+  const depAddrV = depAddr?.value.trim() || '';
+  const depPlace = fmtPlace(depTyped, depAddrV);
+
+  // 抵達地
   const arrInp   = document.getElementById(`arrive_${dayI}`);
   const arrAddr  = document.getElementById(`arrive_addr_${dayI}`);
   const arrTyped = arrInp?.value.trim() || '';
   const arrAddrV = arrAddr?.value.trim() || '';
   const arrPlace = fmtPlace(arrTyped, arrAddrV);
 
+  // 出發時間
+  const timeInp = document.getElementById(`depart_time_${dayI}`);
+  const time    = timeInp?.value.trim() || '';
+
   let descBody = orig;
-  if (parts.prefix !== null && typed) {
-    let suffix = parts.suffix;
-    // 宿XXX → 替換宿後地名
-    if (arrPlace && /宿/.test(suffix)) {
-      suffix = suffix.replace(/宿[^（(）\s]*/, `宿${arrPlace}`);
+
+  // ── 接機天：航班替換「至」前面 + 抵達地替換「至」後面
+  const isArrivalDay = ORDER?.days[dayI]?.isFirstDay &&
+    (() => { const f=(ORDER.days[dayI].from||'').trim(); return f.includes('機場')||/^[A-Z]{3}$/.test(f)||orig.split(/至|-單程/)[0].includes('機場'); })();
+
+  if (isArrivalDay) {
+    const flightStr = titleEl.dataset.flight || '';
+    // 取「至」後半段
+    const atIdx = orig.indexOf('至');
+    const suffix = atIdx >= 0 ? orig.slice(atIdx) : '';  // 「至東京市區...」
+    // 前半段用航班字串取代，後半段用抵達地取代（若有填）
+    const frontPart = flightStr || orig.slice(0, atIdx >= 0 ? atIdx : orig.length);
+    let backPart = suffix;
+    if (arrPlace && atIdx >= 0) {
+      // 「至」後面的部分替換成 arrPlace（保留-單程等後綴）
+      const afterAt = orig.slice(atIdx + 1); // 去掉「至」
+      const suffixMatch = afterAt.match(/(-單程|－單程|─單程|—單程)$/);
+      const tail = suffixMatch ? suffixMatch[1] : '';
+      backPart = `至${arrPlace}${tail}`;
     }
-    descBody = `${place}${parts.separator}${suffix}`;
-    // 往返且有抵達地 → 結尾加「，結束於XXX」
-    if (arrPlace && /往返|接送來回/.test(parts.separator + suffix + parts.separator)) {
-      // 檢查是否往返（separator 是往返 或 行程主體含往返）
-    }
+    descBody = frontPart + backPart;
+    titleEl.textContent = descBody;
+    return;
   }
 
-  // 往返且有抵達地（與出發不同）→ 在描述後加「，結束於XX」
+  // ── 一般天：重組描述
+  if (parts.prefix !== null) {
+    const front = depPlace || parts.prefix; // 出發地有填就換，沒填保留原本
+    const suffix = parts.suffix;            // suffix 不動（目的地保持原字串）
+    descBody = `${front}${parts.separator}${suffix}`;
+  }
+
+  // 回程地點「結束於XXX」（接送/往返天，抵達地有填且不勾「與出發同」）
   const sameCb = document.getElementById(`arrive_same_${dayI}`);
   const isSame = sameCb?.checked;
-  if (arrPlace && !isSame && /往返|接送來回/.test(orig)) {
+  if (!isSame && arrPlace && /接送|往返/.test(orig)) {
     descBody = descBody.replace(/，結束於.*$/, ''); // 清掉舊的
     descBody += `，結束於${arrPlace}`;
+  } else if (isSame || (!arrPlace && /接送|往返/.test(orig))) {
+    descBody = descBody.replace(/，結束於.*$/, ''); // 清掉（勾了或空白）
   }
 
-  // 套用航班替換（若已填航班）
+  // 套用航班替換（送機天）
   const flightStr = titleEl.dataset.flight || '';
   if (flightStr) {
     for (const shortKey of AP_REPLACE_KEYS) {
@@ -2302,15 +2375,12 @@ function buildDescText(dayI) {
     }
   }
 
-  // 回程時間（接送/來回才有）
+  // 回程時間
   const returnInp  = document.getElementById(`return_time_${dayI}`);
   const returnTime = returnInp?.value.trim() || '';
-
   let finalText = time ? `${time} ${descBody}` : descBody;
-
-  // 有回程時間 → 結尾加「返程XX:XX」（只限接送來回）
   if (returnTime && /接送/.test(orig) && /來回/.test(orig)) {
-    finalText = finalText.replace(/　?返程\d{1,2}:\d{2}$/, ''); // 清掉舊的
+    finalText = finalText.replace(/　?返程\d{1,2}:\d{2}$/, '');
     finalText += `　返程${returnTime}`;
   }
 
