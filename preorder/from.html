@@ -1929,7 +1929,9 @@ function buildDayRows(days) {
     }
 
     const metaHtml = `<div class="day-meta" id="day_meta_${i}">${parseDayMeta(day.desc, day.luggage, day.price, '', day.hours)}</div>`;
-    const cleanDesc = day.desc.replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
+    // titleDesc 給標題（from至to）；desc 給 parseDayMeta（人數/車款）
+    const titleDesc = (day.titleDesc || '').trim() || day.desc.replace(/\([^)]*\)/g,'').replace(/\s+/g,' ').trim();
+    const cleanDesc = titleDesc;
     day._cleanDesc = cleanDesc;
 
     el.innerHTML += `
@@ -2762,7 +2764,7 @@ function showSuccess() {
 // ════════════════════════════════════
 // GAS STUBS（正式版解開）
 // ════════════════════════════════════
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbx8R1bUru0EaieQYAYkA0wA6ePiW3VZgt-cRcfhJOiQFySh6VnBeDBXYRJBfUhvw071/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwgkvqAfahmBYICW3CL_CsiDlLm7P2SmXGR5PCp2cAaweq_67jrQZe7qrvkQQw7f2q9/exec';
 
 async function loadFromGAS(orderId, token) {
   document.getElementById('loading').classList.add('show');
