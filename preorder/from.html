@@ -1466,8 +1466,10 @@ function carLabel(s) {
 }
 
 function parseDayMeta(desc, luggage, price, childAgeStr, hours) {
-  const paxM = desc.match(/\((\d+大\d*小?|\d+小|\d+大)\)/);
-  const carM  = desc.match(/\((\d+(?:\+\d+)?座)\)/);
+  // 人數：括號內或直接在 desc 開頭，例如「4大0小」「(4大0小)」
+  const paxM = desc.match(/[（(]?(\d+大\d*小?|\d+小|\d+大)[）)]?/);
+  // 車款：括號內「X座XXX」或直接「X座XXX」，例如「(7座舒適款)」「10座海獅」
+  const carM  = desc.match(/[（(](\d+(?:\+\d+)?座[^）)]*)[）)]/);
   const parts = [];
   let paxText = paxM ? paxM[1] : '';
   if (paxText && childAgeStr) paxText += `(${childAgeStr})`;
@@ -2764,7 +2766,7 @@ function showSuccess() {
 // ════════════════════════════════════
 // GAS STUBS（正式版解開）
 // ════════════════════════════════════
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbwgkvqAfahmBYICW3CL_CsiDlLm7P2SmXGR5PCp2cAaweq_67jrQZe7qrvkQQw7f2q9/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbx8R1bUru0EaieQYAYkA0wA6ePiW3VZgt-cRcfhJOiQFySh6VnBeDBXYRJBfUhvw071/exec';
 
 async function loadFromGAS(orderId, token) {
   document.getElementById('loading').classList.add('show');
