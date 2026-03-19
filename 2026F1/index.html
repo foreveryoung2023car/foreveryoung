@@ -6,94 +6,39 @@
 <title>旅乘 F1 鈴鹿接駁</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;900&display=swap');
-:root {
-  --red:#e8002d; --bg:#f0f2f5; --card:#fff; --border:#e2e8f0;
-  --text:#0f172a; --muted:#64748b; --green:#16a34a; --r:14px;
-}
+:root{--red:#e8002d;--bg:#f0f2f5;--card:#fff;--border:#e2e8f0;--text:#0f172a;--muted:#64748b;--green:#16a34a;--purple:#7c3aed;--r:14px}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-
 .hdr{background:var(--red);padding:24px 20px;text-align:center;box-shadow:0 2px 10px rgba(232,0,45,.3)}
 .hdr-logo{font-size:28px;font-weight:900;color:#fff}
 .hdr-sub{font-size:12px;color:rgba(255,255,255,.8);margin-top:4px;letter-spacing:2px}
-
 .wrap{padding:24px 16px;max-width:440px;margin:0 auto}
-
 .card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:24px 20px;box-shadow:0 2px 8px rgba(0,0,0,.07)}
 .card-title{font-size:17px;font-weight:900;margin-bottom:6px}
 .card-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
-
 .label{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px;display:block}
-.inp{
-  width:100%;padding:14px 16px;border-radius:10px;
-  border:2px solid var(--border);font-size:16px;
-  font-family:'Noto Sans TC',sans-serif;color:var(--text);
-  background:#f8fafc;transition:border-color .2s;margin-bottom:14px;
-  -webkit-appearance:none
-}
+.inp{width:100%;padding:14px 16px;border-radius:10px;border:2px solid var(--border);font-size:16px;font-family:'Noto Sans TC',sans-serif;color:var(--text);background:#f8fafc;transition:border-color .2s;margin-bottom:14px;-webkit-appearance:none}
 .inp:focus{outline:none;border-color:var(--red);background:#fff}
 .inp::placeholder{color:#cbd5e1}
-
-.btn{
-  width:100%;padding:16px;border-radius:10px;
-  font-size:16px;font-weight:900;cursor:pointer;border:none;
-  background:var(--red);color:#fff;
-  font-family:'Noto Sans TC',sans-serif;
-  transition:all .2s;letter-spacing:.5px
-}
+.btn{width:100%;padding:16px;border-radius:10px;font-size:16px;font-weight:900;cursor:pointer;border:none;background:var(--red);color:#fff;font-family:'Noto Sans TC',sans-serif;transition:all .2s}
 .btn:active{transform:scale(.98)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
-
 .hint{font-size:12px;color:var(--muted);text-align:center;margin-top:12px;line-height:1.6}
-
-.err{
-  background:#fff5f5;border:1px solid #fca5a5;border-radius:10px;
-  padding:12px 16px;font-size:14px;color:#dc2626;
-  margin-top:14px;display:none
-}
+.err{background:#fff5f5;border:1px solid #fca5a5;border-radius:10px;padding:12px 16px;font-size:14px;color:#dc2626;margin-top:14px;display:none}
 .err.show{display:block}
-
-/* 結果區 */
 .result{margin-top:20px;display:none}
 .result.show{display:block}
-
-/* 客人結果 */
-.booking{
-  background:#fff;border:2px solid var(--border);
-  border-radius:var(--r);margin-bottom:12px;overflow:hidden
-}
-.booking-head{
-  background:var(--red);padding:10px 16px;
-  display:flex;align-items:center;justify-content:space-between
-}
-.booking-date{font-size:15px;font-weight:800;color:#fff}
-.booking-status{
-  font-size:12px;font-weight:700;padding:3px 10px;
-  border-radius:12px;background:rgba(255,255,255,.2);color:#fff
-}
+.booking{background:#fff;border:2px solid var(--border);border-radius:var(--r);margin-bottom:12px;overflow:hidden}
 .booking-body{padding:14px 16px}
-.b-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .b-item{font-size:13px;color:var(--muted)}
 .b-item b{display:block;font-size:16px;font-weight:800;color:var(--text);margin-top:2px}
-
-/* 司機結果 */
-.car-btn{
-  background:#f8fafc;border:2px solid var(--border);
-  border-radius:10px;padding:16px;margin-bottom:10px;
-  cursor:pointer;display:flex;align-items:center;justify-content:space-between;
-  transition:all .2s
-}
-.car-btn:hover{border-color:var(--text);background:#fff}
+.car-btn{background:#f8fafc;border:2px solid var(--border);border-radius:10px;padding:16px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all .2s}
 .car-btn:active{transform:scale(.98)}
 .car-left{display:flex;align-items:center;gap:10px}
 .car-plate{background:var(--red);color:#fff;font-size:14px;font-weight:800;padding:4px 12px;border-radius:6px}
 .car-vid{font-size:17px;font-weight:900}
 .car-info{font-size:13px;color:var(--muted);margin-top:2px}
 .car-arrow{font-size:22px;color:var(--muted)}
-
-.greeting{font-size:15px;font-weight:800;margin-bottom:14px}
-
-/* Loading */
 .dots span{display:inline-block;width:8px;height:8px;border-radius:50%;background:#fff;margin:0 3px;animation:dot 1.2s infinite}
 .dots span:nth-child(2){animation-delay:.2s}
 .dots span:nth-child(3){animation-delay:.4s}
@@ -101,33 +46,26 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 </style>
 </head>
 <body>
-
 <div class="hdr">
   <div class="hdr-logo">旅乘包車</div>
   <div class="hdr-sub">F1 SUZUKA 2026 接駁服務</div>
 </div>
-
 <div class="wrap">
   <div class="card">
     <div id="formArea">
-    <div class="card-title">查詢乘車資訊</div>
-    <div class="card-sub">請輸入姓名與電話號碼以查詢您的乘車安排</div>
-
-    <label class="label">姓名</label>
-    <input class="inp" id="inpName" type="text" placeholder="請輸入您的姓名"
-      oninput="clearResult()" onkeydown="if(event.key==='Enter')doSearch()">
-
-    <label class="label">電話號碼</label>
-    <input class="inp" id="inpPhone" type="tel" inputmode="numeric" pattern="[0-9]*"
-      placeholder="請輸入電話號碼（純數字）"
-      oninput="this.value=this.value.replace(/[^0-9]/g,'');clearResult()"
-      onkeydown="if(event.key==='Enter')doSearch()">
-
-    <button class="btn" id="searchBtn" onclick="doSearch()">查詢</button>
-
-    <div class="hint">查無資料？請確認姓名與電話號碼是否正確<br>電話請輸入純數字，不需要符號</div>
-
-    <div class="err" id="errMsg"></div>
+      <div class="card-title">查詢乘車資訊</div>
+      <div class="card-sub">請輸入姓名與電話號碼以查詢您的乘車安排</div>
+      <label class="label">姓名</label>
+      <input class="inp" id="inpName" type="text" placeholder="請輸入您的姓名"
+        oninput="clearResult()" onkeydown="if(event.key==='Enter')doSearch()">
+      <label class="label">電話號碼</label>
+      <input class="inp" id="inpPhone" type="tel" inputmode="numeric" pattern="[0-9]*"
+        placeholder="請輸入電話號碼（純數字）"
+        oninput="this.value=this.value.replace(/[^0-9]/g,'');clearResult()"
+        onkeydown="if(event.key==='Enter')doSearch()">
+      <button class="btn" id="searchBtn" onclick="doSearch()">查詢</button>
+      <div class="hint">查無資料？請確認姓名與電話號碼是否正確<br>電話請輸入純數字，不需要符號</div>
+      <div class="err" id="errMsg"></div>
     </div>
     <div class="result" id="resultArea"></div>
   </div>
@@ -142,20 +80,19 @@ function simplePt(pt) {
   return pt;
 }
 
-function jstToday() {
-  const d = new Date();
-  const jst = new Date(d.getTime() + (9*60 + d.getTimezoneOffset())*60000);
-  return String(jst.getMonth()+1).padStart(2,"0") + "/" + String(jst.getDate()).padStart(2,"0");
-}
-
-function jstHour() {
+function jstNow() {
   try {
-    const s = new Date().toLocaleString("ja-JP",{timeZone:"Asia/Tokyo",hour:"2-digit",hour12:false});
-    return parseInt(s.replace(/[^\d]/g,""));
-  } catch(e) {
     const d = new Date();
-    return new Date(d.getTime()+(9*60+d.getTimezoneOffset())*60000).getHours();
-  }
+    const s = d.toLocaleString("ja-JP", {timeZone:"Asia/Tokyo",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false});
+    const m = s.match(/(\d{2})\/(\d{2}).+?(\d{2}):(\d{2})/);
+    if (m) return { md: m[1]+"/"+m[2], hour: parseInt(m[3]) };
+  } catch(e) {}
+  const d = new Date();
+  const jst = new Date(d.getTime() + (9*60+d.getTimezoneOffset())*60000);
+  return {
+    md:   String(jst.getMonth()+1).padStart(2,"0")+"/"+String(jst.getDate()).padStart(2,"0"),
+    hour: jst.getHours()
+  };
 }
 
 function clearResult() {
@@ -164,9 +101,8 @@ function clearResult() {
 }
 
 function showErr(msg) {
-  const el = document.getElementById("errMsg");
-  el.textContent = msg;
-  el.className = "err show";
+  document.getElementById("errMsg").textContent = msg;
+  document.getElementById("errMsg").className = "err show";
 }
 
 async function doSearch() {
@@ -182,13 +118,11 @@ async function doSearch() {
   btn.disabled = true;
 
   try {
-    if (isDriver) {
-      await searchDriver(phone);
-    } else {
-      await searchPassenger(phone, name);
-    }
+    if (isDriver) await searchDriver(phone);
+    else await searchPassenger(phone, name);
   } catch(e) {
     showErr("查詢失敗，請稍後再試");
+    console.error(e);
   }
 
   btn.innerHTML = "查詢";
@@ -196,26 +130,18 @@ async function doSearch() {
 }
 
 async function searchDriver(num) {
-  const r = await fetch(`${API}?action=findCar&num=${num}`);
+  const r = await fetch(`${API}?action=findCar&num=${encodeURIComponent(num)}`);
   const d = await r.json();
-
   if (d.error) { showErr(d.error); return; }
 
-  const today = jstToday();
-  const res   = document.getElementById("resultArea");
+  const { md: today } = jstNow();
+  const res = document.getElementById("resultArea");
   res.className = "result show";
 
-  if (d.results.length === 1) {
-    gotoDriver(d.results[0]); return;
-  }
+  if (d.results.length === 1) { gotoDriver(d.results[0]); return; }
 
-  const sorted = d.results.sort((a,b) => {
-    const aToday = a.date.includes(today) ? 0 : 1;
-    const bToday = b.date.includes(today) ? 0 : 1;
-    return aToday - bToday;
-  });
-
-  let html = `<div class="greeting">找到以下車次，請選擇今天的班次：</div>`;
+  const sorted = [...d.results].sort((a,b) => (a.date.includes(today)?0:1)-(b.date.includes(today)?0:1));
+  let html = `<div style="font-size:15px;font-weight:800;margin-bottom:12px">請選擇今天的班次：</div>`;
   sorted.forEach(car => {
     const isToday = car.date.includes(today);
     html += `
@@ -235,235 +161,181 @@ async function searchDriver(num) {
 
 function gotoDriver(car) {
   const m = car.date.match(/(\d{2})\/(\d{2})/);
-  const dateCode = m ? m[1]+m[2] : "0329";
-  location.href = `driver.html?car=${encodeURIComponent(car.plate)}&date=${dateCode}`;
+  const dc = m ? m[1]+m[2] : "0329";
+  location.href = `driver.html?car=${encodeURIComponent(car.plate)}&date=${dc}`;
 }
 
 async function searchPassenger(phone, name) {
   const r = await fetch(`${API}?action=findPassenger&phone=${encodeURIComponent(phone)}&name=${encodeURIComponent(name)}`);
   const d = await r.json();
-
-  if (d.error) { showErr("查無資料，請確認電話號碼與姓名是否正確"); return; }
+  if (d.error || !d.passengers || !d.passengers.length) {
+    showErr("查無資料，請確認電話號碼與姓名是否正確");
+    return;
+  }
 
   document.getElementById("formArea").style.display = "none";
-
   const res = document.getElementById("resultArea");
   res.className = "result show";
 
-  const PT_FULL = {
+  const PT = {
     "名古屋站": { name:"名古屋車站", addr:"Ministop ミニストップ 名駅椿町店", map:"https://maps.app.goo.gl/nyDsH6F7xdkRFesm8" },
     "榮站":     { name:"名古屋榮站", addr:"榮站 10B 出口（洋食厨房ムギ）\n3 Chome-16-5 Nishiki, Naka Ward, Nagoya", map:"https://maps.app.goo.gl/5gH2Kz4oUSsyrNHHA" },
   };
-  const RET_GATHER = {
-    name: "apollostation セルフステーション鈴鹿南 SS 對面",
-    addr: "（三重石商事）",
-    map:  "https://maps.app.goo.gl/jQviaKfC8jvtxbED7"
-  };
+  const RET = { name:"apollostation セルフステーション鈴鹿南 SS 對面", addr:"（三重石商事）", map:"https://maps.app.goo.gl/jQviaKfC8jvtxbED7" };
 
-  const pax0    = d.passengers[0];
-  const b0      = pax0.bookings[0];
-  const pt0     = simplePt(b0?.depPt || "");
-  const ptInfo0 = PT_FULL[pt0] || { name:pt0, addr:"", map:"" };
+  const pax0   = d.passengers[0];
+  const allBks = [];
+  d.passengers.forEach(p => p.bookings.forEach(b => allBks.push({pax:p, b})));
+
+  const firstPt   = simplePt(allBks[0]?.b?.depPt || "");
+  const ptInfo0   = PT[firstPt] || { name:firstPt, addr:"", map:"" };
+  const { md:today, hour } = jstNow();
+  const isOut = hour < 12;
+  const trip  = isOut ? "outbound" : "return";
 
   let html = `
-  <div id="stickyName" style="
-    position:sticky;top:0;z-index:50;
-    background:var(--red);padding:14px 20px;
-    display:flex;align-items:center;justify-content:center;gap:12px;
-    box-shadow:0 2px 10px rgba(232,0,45,0.3);
-  ">
-    <div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-0.5px">${pax0.name}</div>
-    <div style="background:rgba(255,255,255,0.25);border:2px solid rgba(255,255,255,0.5);border-radius:10px;padding:5px 12px;text-align:center;flex-shrink:0">
-      <div style="font-size:20px;font-weight:900;color:#fff;line-height:1">${b0?.pax || ""}</div>
-      <div style="font-size:10px;color:rgba(255,255,255,0.85);margin-top:1px;font-weight:600">位</div>
+  <div style="position:sticky;top:0;z-index:50;background:var(--red);padding:14px 20px;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 2px 10px rgba(232,0,45,.3);margin:-20px -20px 14px">
+    <div style="font-size:28px;font-weight:900;color:#fff">${pax0.name}</div>
+    <div style="background:rgba(255,255,255,.25);border:2px solid rgba(255,255,255,.5);border-radius:10px;padding:5px 12px;text-align:center">
+      <div style="font-size:20px;font-weight:900;color:#fff;line-height:1">${allBks[0]?.b?.pax || ""}</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.85);margin-top:1px;font-weight:600">位</div>
     </div>
   </div>
-
-  <div style="padding:14px">
 
   <div style="background:#f8fafc;border-radius:12px;padding:14px;margin-bottom:10px">
     <div style="font-size:12px;color:var(--muted);font-weight:700;margin-bottom:8px;letter-spacing:1px">🚌 去程上車地點</div>
     <div style="font-size:16px;font-weight:900;color:var(--text)">${ptInfo0.name}</div>
     <div style="font-size:13px;color:var(--muted);margin-top:3px;white-space:pre-line">${ptInfo0.addr}</div>
-    ${ptInfo0.map ? `<a href="${ptInfo0.map}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;color:#2563eb;text-decoration:none">🗺️ 開啟地圖導航</a>` : ""}
+    ${ptInfo0.map?`<a href="${ptInfo0.map}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;color:#2563eb;text-decoration:none">🗺️ 開啟地圖導航</a>`:""}
   </div>
 
   <div style="background:#fff7ed;border:1px solid #fde68a;border-radius:12px;padding:14px;margin-bottom:14px">
     <div style="font-size:12px;color:var(--muted);font-weight:700;margin-bottom:8px;letter-spacing:1px">🔁 回程集合地點</div>
-    <div style="font-size:16px;font-weight:900;color:var(--text)">${RET_GATHER.name}</div>
-    <div style="font-size:13px;color:var(--muted);margin-top:3px">${RET_GATHER.addr}</div>
-    <a href="${RET_GATHER.map}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;color:#2563eb;text-decoration:none">🗺️ 開啟地圖導航</a>
+    <div style="font-size:16px;font-weight:900;color:var(--text)">${RET.name}</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:3px">${RET.addr}</div>
+    <a href="${RET.map}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;color:#2563eb;text-decoration:none">🗺️ 開啟地圖導航</a>
   </div>`;
 
-  const today = jstToday();
-  const hour  = jstHour();
-  const isOut = hour < 12;
-  const trip  = isOut ? "outbound" : "return";
+  allBks.forEach(({pax, b}) => {
+    const bm      = b.date.match(/(\d{2})\/(\d{2})/);
+    const bMD     = bm ? bm[1]+"/"+bm[2] : "";
+    const isToday = bMD === today;
+    const outDone = b.outStatus==="✅";
+    const retDone = b.retStatus==="✅";
+    const tripDone= isOut ? outDone : retDone;
+    const oid     = (pax.orderNo+"_"+b.date).replace(/[^a-zA-Z0-9_]/g,"");
 
-  d.passengers.forEach(pax => {
-    pax.bookings.forEach(b => {
-      const bDate    = b.date.match(/(\d{2})\/(\d{2})/);
-      const bMD      = bDate ? bDate[1]+"/"+bDate[2] : "";
-      const isToday  = bMD === today;
-      const outDone  = b.outStatus==="✅";
-      const retDone  = b.retStatus==="✅";
-      const tripDone = isOut ? outDone : retDone;
-      const oid      = pax.orderNo + "_" + b.date.replace(/[\/（）\s]/g,"");
+    const st = outDone&&retDone ? "✅ 去回程已報到"
+      : outDone&&!isOut ? "✅ 去程已報到　⏳ 回程待報到"
+      : outDone ? "✅ 去程已報到"
+      : retDone ? "✅ 回程已報到"
+      : b.outStatus==="❌" ? "❌ 未到"
+      : isToday ? (isOut?"⏳ 去程待報到":"⏳ 回程待報到") : "－";
 
-      const st = outDone && retDone
-        ? "✅ 去回程已報到"
-        : outDone && !isOut ? "✅ 去程已報到　⏳ 回程待報到"
-        : outDone ? "✅ 去程已報到"
-        : retDone ? "✅ 回程已報到"
-        : b.outStatus==="❌" ? "❌ 未到"
-        : isToday ? (isOut ? "⏳ 去程待報到" : "⏳ 回程待報到")
-        : "－";
+    const btnLabel = tripDone
+      ? (isOut?"✅ 去程已完成報到":"✅ 回程已完成報到")
+      : (isOut?"長按 2 秒完成去程報到 🚌":"長按 2 秒完成回程報到 🔁");
 
-      const btnLabel = tripDone
-        ? (isOut ? "✅ 去程已完成報到" : "✅ 回程已完成報到")
-        : (isOut ? "長按 2 秒完成去程報到 🚌" : "長按 2 秒完成回程報到 🔁");
-
-      html += `
-      <div class="booking" style="margin-bottom:12px">
-        <div style="background:#1e293b;border-radius:12px 12px 0 0;padding:14px 18px;display:flex;align-items:center;justify-content:space-between">
-          <div style="color:#fff;font-size:17px;font-weight:800">📅 ${b.date}</div>
-          <div id="st_${oid}" style="background:rgba(255,255,255,0.12);color:#fff;font-size:13px;font-weight:700;padding:5px 14px;border-radius:20px">${st}</div>
+    html += `
+    <div class="booking">
+      <div style="background:#1e293b;padding:14px 18px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:#fff;font-size:17px;font-weight:800">📅 ${b.date}</div>
+        <div id="st_${oid}" style="background:rgba(255,255,255,.12);color:#fff;font-size:13px;font-weight:700;padding:5px 14px;border-radius:20px">${st}</div>
+      </div>
+      <div class="booking-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;${isToday?"margin-bottom:14px":""}">
+          <div class="b-item">車次<b>${b.vid}</b></div>
+          <div class="b-item">車牌<b>${b.plate}</b></div>
+          <div class="b-item">車種<b>${b.vtype}</b></div>
+          <div class="b-item">去程<b>${b.depTime}</b></div>
+          <div class="b-item">回程<b>${b.retTime}</b></div>
         </div>
-        <div class="booking-body">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;${isToday?"margin-bottom:14px":""}">
-            <div class="b-item">車次<b>${b.vid}</b></div>
-            <div class="b-item">車牌<b>${b.plate}</b></div>
-            <div class="b-item">車種<b>${b.vtype}</b></div>
-            <div class="b-item">去程<b>${b.depTime}</b></div>
-            <div class="b-item">回程<b>${b.retTime}</b></div>
-          </div>
-          ${isToday ? `
-          <button id="btn_${oid}"
-            onmousedown="startCheckin('${pax.orderNo}','${b.date}','${oid}','${trip}')"
-            ontouchstart="startCheckin('${pax.orderNo}','${b.date}','${oid}','${trip}')"
-            onmouseup="cancelCheckin('${oid}')" onmouseleave="cancelCheckin('${oid}')"
-            ontouchend="cancelCheckin('${oid}')" ontouchcancel="cancelCheckin('${oid}')"
-            style="width:100%;padding:16px;border-radius:12px;border:none;cursor:pointer;
-            font-size:16px;font-weight:900;font-family:'Noto Sans TC',sans-serif;
-            position:relative;overflow:hidden;transition:all 0.2s;
-            ${tripDone
-              ? "background:#f0fdf4;color:var(--green);border:2px solid var(--green);cursor:default;"
-              : isOut
-                ? "background:var(--green);color:#fff;box-shadow:0 4px 14px rgba(22,163,74,0.35);"
-                : "background:var(--purple);color:#fff;box-shadow:0 4px 14px rgba(124,58,237,0.35);"
-            }"
-            ${tripDone ? "disabled" : ""}>
-            <div id="fill_${oid}" style="position:absolute;top:0;left:0;height:100%;width:0;background:rgba(0,0,0,0.15);transition:none;border-radius:12px"></div>
-            <span style="position:relative;z-index:1">${btnLabel}</span>
-          </button>` : ""}
-        </div>
-      </div>`;
+        ${isToday?`
+        <button id="btn_${oid}"
+          onmousedown="startCheckin('${pax.orderNo}','${b.date}','${oid}','${trip}')"
+          ontouchstart="startCheckin('${pax.orderNo}','${b.date}','${oid}','${trip}')"
+          onmouseup="cancelCheckin('${oid}')" onmouseleave="cancelCheckin('${oid}')"
+          ontouchend="cancelCheckin('${oid}')" ontouchcancel="cancelCheckin('${oid}')"
+          style="width:100%;padding:16px;border-radius:12px;border:none;cursor:pointer;font-size:16px;font-weight:900;font-family:'Noto Sans TC',sans-serif;position:relative;overflow:hidden;transition:all .2s;
+          ${tripDone?"background:#f0fdf4;color:var(--green);border:2px solid var(--green);cursor:default;"
+            :isOut?"background:var(--green);color:#fff;box-shadow:0 4px 14px rgba(22,163,74,.35);"
+                   :"background:var(--purple);color:#fff;box-shadow:0 4px 14px rgba(124,58,237,.35);"}"
+          ${tripDone?"disabled":""}>
+          <div id="fill_${oid}" style="position:absolute;top:0;left:0;height:100%;width:0;background:rgba(0,0,0,.15);transition:none;border-radius:12px"></div>
+          <span style="position:relative;z-index:1">${btnLabel}</span>
+        </button>`:""}
+      </div>
+    </div>`;
+  });
 
   html += `
   <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:14px;font-size:13px;color:#166534;line-height:1.8;margin-top:4px">
-    📸 <b>溫馨提醒</b><br>
-    建議截圖保存此頁面作為乘車憑證，上車時請出示給司機確認，祝您旅途愉快！🏎️
+    📸 <b>溫馨提醒</b><br>建議截圖保存此頁面作為乘車憑證，上車時請出示給司機確認，祝您旅途愉快！🏎️
   </div>
   <div style="text-align:center;margin-top:14px;padding-bottom:10px">
     <button onclick="resetForm()" style="font-size:13px;color:var(--muted);background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px 20px;cursor:pointer;font-family:'Noto Sans TC',sans-serif">重新查詢</button>
-  </div>
   </div>`;
 
   res.innerHTML = html;
 }
 
-function jstHour() {
-  try {
-    const s = new Date().toLocaleString("ja-JP",{timeZone:"Asia/Tokyo",hour:"2-digit",hour12:false});
-    return parseInt(s.replace(/[^\d]/g,""));
-  } catch(e) {
-    const d = new Date();
-    return new Date(d.getTime()+(9*60+d.getTimezoneOffset())*60000).getHours();
-  }
+let holdTimer=null, holdOid=null;
+
+function startCheckin(orderNo,dateStr,oid,trip){
+  if(holdTimer) return;
+  holdOid=oid;
+  const fill=document.getElementById("fill_"+oid);
+  if(fill){fill.style.transition="width 2s linear";fill.style.width="100%";}
+  holdTimer=setTimeout(()=>{holdTimer=null;doSelfCheckin(orderNo,dateStr,oid,trip);},2000);
 }
 
-let holdTimer = null;
-let holdOid   = null;
-
-function startCheckin(orderNo, dateStr, oid, trip) {
-  if (holdTimer) return;
-  holdOid = oid;
-
-  const fill = document.getElementById("fill_"+oid);
-  if (fill) {
-    fill.style.transition = "width 2s linear";
-    fill.style.width = "100%";
-  }
-
-  holdTimer = setTimeout(() => {
-    holdTimer = null;
-    doSelfCheckin(orderNo, dateStr, oid, trip);
-  }, 2000);
+function cancelCheckin(oid){
+  if(holdTimer){clearTimeout(holdTimer);holdTimer=null;}
+  if(oid!==holdOid) return;
+  const fill=document.getElementById("fill_"+oid);
+  if(fill){fill.style.transition="width 0.2s linear";fill.style.width="0";}
 }
 
-function cancelCheckin(oid) {
-  if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
-  if (oid !== holdOid) return;
-  const fill = document.getElementById("fill_"+oid);
-  if (fill) {
-    fill.style.transition = "width 0.2s linear";
-    fill.style.width = "0";
-  }
-}
-
-async function doSelfCheckin(orderNo, dateStr, oid, trip) {
-  const btn  = document.getElementById("btn_"+oid);
-  const stEl = document.getElementById("st_"+oid);
-  const fill = document.getElementById("fill_"+oid);
-  if (!btn || btn.disabled) return;
-
-  btn.disabled = true;
-  const span = btn.querySelector("span");
-  if (span) span.textContent = "確認中...";
-
-  const dateCode = dateStr.match(/(\d{2})\/(\d{2})/);
-  const date = dateCode ? dateCode[1]+dateCode[2] : "";
-  const isOut = trip === "outbound";
-
-  try {
-    const r = await fetch(API, {
-      method:"POST",
-      body: JSON.stringify({ action:"confirm", orderNo, date, trip })
-    });
-    const d = await r.json();
-    if (d.success) {
-      if (fill) fill.style.width = "0";
-      btn.style.background = "#f0fdf4";
-      btn.style.color = "var(--green)";
-      btn.style.border = "2px solid var(--green)";
-      btn.style.boxShadow = "none";
-      if (span) span.textContent = isOut ? "✅ 去程已完成報到" : "✅ 回程已完成報到";
-      if (stEl) {
-        const cur = stEl.textContent;
-        if (isOut) {
-          stEl.textContent = cur.includes("回程已報到") ? "✅ 去程＋回程已報到" : "✅ 去程已報到";
-        } else {
-          stEl.textContent = cur.includes("去程已報到") ? "✅ 去程＋回程已報到" : "✅ 回程已報到";
-        }
+async function doSelfCheckin(orderNo,dateStr,oid,trip){
+  const btn=document.getElementById("btn_"+oid);
+  const stEl=document.getElementById("st_"+oid);
+  const fill=document.getElementById("fill_"+oid);
+  if(!btn||btn.disabled) return;
+  btn.disabled=true;
+  const span=btn.querySelector("span");
+  if(span) span.textContent="確認中...";
+  const m=dateStr.match(/(\d{2})\/(\d{2})/);
+  const date=m?m[1]+m[2]:"";
+  const isOut=trip==="outbound";
+  try{
+    const r=await fetch(API,{method:"POST",body:JSON.stringify({action:"confirm",orderNo,date,trip})});
+    const d=await r.json();
+    if(d.success){
+      if(fill) fill.style.width="0";
+      btn.style.cssText="width:100%;padding:16px;border-radius:12px;border:2px solid var(--green);cursor:default;font-size:16px;font-weight:900;font-family:'Noto Sans TC',sans-serif;position:relative;overflow:hidden;background:#f0fdf4;color:var(--green);";
+      if(span) span.textContent=isOut?"✅ 去程已完成報到":"✅ 回程已完成報到";
+      if(stEl){
+        const cur=stEl.textContent;
+        stEl.textContent=(isOut&&cur.includes("回程"))||((!isOut)&&cur.includes("去程"))?"✅ 去回程已報到":isOut?"✅ 去程已報到":"✅ 回程已報到";
       }
     } else {
-      btn.disabled = false;
-      if (span) span.textContent = isOut ? "長按 2 秒完成去程報到 🚌" : "長按 2 秒完成回程報到 🔁";
-      if (fill) fill.style.width = "0";
+      btn.disabled=false;
+      if(span) span.textContent=isOut?"長按 2 秒完成去程報到 🚌":"長按 2 秒完成回程報到 🔁";
+      if(fill) fill.style.width="0";
     }
-  } catch(e) {
-    btn.disabled = false;
-    if (span) span.textContent = isOut ? "長按 2 秒完成去程報到 🚌" : "長按 2 秒完成回程報到 🔁";
-    if (fill) fill.style.width = "0";
+  } catch(e){
+    btn.disabled=false;
+    if(span) span.textContent=isOut?"長按 2 秒完成去程報到 🚌":"長按 2 秒完成回程報到 🔁";
+    if(fill) fill.style.width="0";
   }
 }
 
-function resetForm() {
-  document.getElementById("formArea").style.display = "block";
-  document.getElementById("resultArea").className = "result";
-  document.getElementById("errMsg").className = "err";
-  document.getElementById("inpName").value = "";
-  document.getElementById("inpPhone").value = "";
+function resetForm(){
+  document.getElementById("formArea").style.display="block";
+  document.getElementById("resultArea").className="result";
+  document.getElementById("errMsg").className="err";
+  document.getElementById("inpName").value="";
+  document.getElementById("inpPhone").value="";
 }
 </script>
 </body>
