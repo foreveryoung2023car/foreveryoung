@@ -396,38 +396,36 @@ function render() {
 // ── 出發 / 送達（寫入資料庫）──
 async function toggleDep() {
   const isOut = TRIP === "outbound";
-  const action = isOut ? "out_depart" : "ret_depart";
+  const action      = isOut ? "out_depart"     : "ret_depart";
   const clearAction = isOut ? "out_depart_clr" : "ret_depart_clr";
   const key = `${action}_${CAR}_${DATE}`;
+  const isClear = !!localStorage.getItem(key);
 
-  if (localStorage.getItem(key)) {
+  if (isClear) {
     if (!confirm("確定取消出發記錄？")) return;
     localStorage.removeItem(key);
-    await post(clearAction, null, true);
   } else {
-    const t = nowStr();
-    localStorage.setItem(key, t);
-    await post(action, null, true);
+    localStorage.setItem(key, nowStr());
   }
   render();
+  post(isClear ? clearAction : action, null, true);
 }
 
 async function toggleArr() {
   const isOut = TRIP === "outbound";
-  const action = isOut ? "out_arrive" : "ret_arrive";
+  const action      = isOut ? "out_arrive"     : "ret_arrive";
   const clearAction = isOut ? "out_arrive_clr" : "ret_arrive_clr";
   const key = `${action}_${CAR}_${DATE}`;
+  const isClear = !!localStorage.getItem(key);
 
-  if (localStorage.getItem(key)) {
+  if (isClear) {
     if (!confirm("確定取消送達記錄？")) return;
     localStorage.removeItem(key);
-    await post(clearAction, null, true);
   } else {
-    const t = nowStr();
-    localStorage.setItem(key, t);
-    await post(action, null, true);
+    localStorage.setItem(key, nowStr());
   }
   render();
+  post(isClear ? clearAction : action, null, true);
 }
 
 // ── 上車確認（樂觀更新：先改UI，再送API）──
