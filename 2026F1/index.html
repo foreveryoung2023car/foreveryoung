@@ -148,6 +148,16 @@ function jstToday() {
   return String(jst.getMonth()+1).padStart(2,"0") + "/" + String(jst.getDate()).padStart(2,"0");
 }
 
+function jstHour() {
+  try {
+    const s = new Date().toLocaleString("ja-JP",{timeZone:"Asia/Tokyo",hour:"2-digit",hour12:false});
+    return parseInt(s.replace(/[^\d]/g,""));
+  } catch(e) {
+    const d = new Date();
+    return new Date(d.getTime()+(9*60+d.getTimezoneOffset())*60000).getHours();
+  }
+}
+
 function clearResult() {
   document.getElementById("errMsg").className = "err";
   document.getElementById("resultArea").className = "result";
