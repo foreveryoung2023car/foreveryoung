@@ -211,8 +211,8 @@ body {
 
 <div class="toast" id="toast"></div>
 
+<script src="config.js"></script>
 <script>
-const API  = "https://script.google.com/macros/s/AKfycbzu_5oYwv98extikVU0RvC0mwKaGAIZakdFZMT8VLDjm2z5ksFTfT3qjgSt0wLEpFwS/exec";
 const qs   = new URLSearchParams(location.search);
 const CAR  = qs.get("car")  || "";
 const DATE = qs.get("date") || bestDate();
