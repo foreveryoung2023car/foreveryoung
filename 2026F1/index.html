@@ -68,20 +68,12 @@ body {
 /* 車輛資訊卡 */
 .car-card {
   background: var(--card); border: 1px solid var(--border);
-  border-radius: var(--r); padding: 16px 18px; margin-bottom: 12px;
+  border-radius: var(--r); padding: 18px 20px; margin-bottom: 12px;
   box-shadow: 0 1px 6px rgba(0,0,0,0.06);
 }
-.car-top { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-.plate {
-  background: var(--red); color: #fff;
-  font-size: 15px; font-weight: 800; letter-spacing: 1px;
-  padding: 5px 14px; border-radius: 7px;
-}
-.car-vid  { font-size: 18px; font-weight: 900; }
-.car-type { font-size: 13px; color: var(--muted); margin-top: 1px; }
-.car-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.car-item { font-size: 14px; color: var(--muted); }
-.car-item b { color: var(--text); font-weight: 700; }
+.car-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.car-item { font-size: 15px; color: var(--muted); font-weight: 500; }
+.car-item b { display: block; color: var(--text); font-weight: 800; font-size: 20px; margin-top: 3px; }
 
 /* 出發 / 送達 按鈕 */
 .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
@@ -296,21 +288,14 @@ function render() {
 
   let h = `<div class="wrap">`;
 
-  // ── 車輛資訊 ──
+  // ── 車輛資訊（只顯示4個關鍵資訊）──
   h += `
   <div class="car-card">
-    <div class="car-top">
-      <div class="plate">${carInfo.plate}</div>
-      <div>
-        <div class="car-vid">${carInfo.vid||""}</div>
-        <div class="car-type">${carInfo.vtype||""}</div>
-      </div>
-    </div>
     <div class="car-grid">
-      <div class="car-item">上車地點 <b>${pt}</b></div>
-      <div class="car-item">出發時間 <b>${carInfo.depTime}</b></div>
-      <div class="car-item">回程時段 <b>${carInfo.retTime}</b></div>
-      <div class="car-item">乘客總數 <b>${total} 人</b></div>
+      <div class="car-item">上車地點<b>${pt}</b></div>
+      <div class="car-item">出發時間<b>${carInfo.depTime}</b></div>
+      <div class="car-item">回程時段<b>${carInfo.retTime}</b></div>
+      <div class="car-item">乘客總數<b>${total} 人</b></div>
     </div>
   </div>`;
 
