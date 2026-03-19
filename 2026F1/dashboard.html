@@ -362,19 +362,19 @@ function render() {
   <div class="summary-bar">
     <div class="sum-card">
       <div class="sum-num">${summary.totalPax}</div>
-      <div class="sum-label">總乘客</div>
+      <div class="sum-label">總乘客人數</div>
     </div>
     <div class="sum-card">
       <div class="sum-num green">${totalConf}</div>
-      <div class="sum-label">已確認</div>
+      <div class="sum-label">${isOut?"去程":"回程"}已確認上車</div>
     </div>
     <div class="sum-card">
       <div class="sum-num orange">${totalPending}</div>
-      <div class="sum-label">待確認</div>
+      <div class="sum-label">${isOut?"去程":"回程"}未確認</div>
     </div>
     <div class="sum-card">
-      <div class="sum-num blue">${departedCars}/${cars.length}</div>
-      <div class="sum-label">已出發</div>
+      <div class="sum-num blue">${departedCars} / ${cars.length}</div>
+      <div class="sum-label">${isOut?"去程":"回程"}已出發車輛</div>
     </div>
   </div>`;
 
