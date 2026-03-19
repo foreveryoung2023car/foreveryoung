@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>旅乘 F1 鈴鹿接駁</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;900&display=swap');
+
+:root {
+  --red:    #e8002d;
+  --bg:     #f0f2f5;
+  --card:   #ffffff;
+  --border: #e2e8f0;
+  --text:   #0f172a;
+  --muted:  #64748b;
+  --green:  #16a34a;
+  --orange: #ea580c;
+  --purple: #7c3aed;
+  --r: 14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family:'Noto Sans TC',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+/* Header */
+.hdr {
+  background: var(--red); padding: 16px 20px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(232,0,45,0.3);
+}
+.hdr-logo { font-size:26px; font-weight:900; color:#fff; letter-spacing:-0.5px; }
+.hdr-sub  { font-size:12px; color:rgba(255,255,255,0.8); margin-top:3px; letter-spacing:2px; }
+
+/* 主容器 */
+.wrap { padding:20px 16px; max-width:480px; margin:0 auto; }
+
+/* 入口卡片 */
+.portal-card {
+  background: var(--card); border-radius: var(--r);
+  border: 1px solid var(--border); margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07); overflow: hidden;
+}
+.portal-head {
+  padding: 16px 20px; display: flex; align-items: center; gap: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.portal-icon { font-size: 28px; }
+.portal-title { font-size: 18px; font-weight: 900; }
+.portal-sub   { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.portal-body  { padding: 18px 20px; }
+
+/* 輸入框 */
+.input-wrap { margin-bottom: 12px; }
+.input-label { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 6px; display: block; }
+.inp {
+  width: 100%; padding: 13px 16px; border-radius: 10px;
+  border: 2px solid var(--border); font-size: 16px;
+  font-family: 'Noto Sans TC', sans-serif; color: var(--text);
+  background: #f8fafc; transition: border-color 0.2s;
+  -webkit-appearance: none;
+}
+.inp:focus { outline: none; border-color: var(--red); background: #fff; }
+.inp::placeholder { color: #cbd5e1; }
+
+/* 按鈕 */
+.btn-go {
+  width: 100%; padding: 15px; border-radius: 10px;
+  font-size: 16px; font-weight: 800; cursor: pointer; border: none;
+  transition: all 0.2s; margin-top: 4px;
+  font-family: 'Noto Sans TC', sans-serif;
+}
+.btn-driver { background: var(--text); color: #fff; }
+.btn-driver:hover { background: #1e293b; }
+.btn-pax    { background: var(--red);  color: #fff; }
+.btn-pax:hover { background: #c0001f; }
+
+/* 錯誤/結果 */
+.msg-error {
+  background: #fff5f5; border: 1px solid #fca5a5; border-radius: 10px;
+  padding: 12px 16px; font-size: 14px; color: #dc2626; margin-top: 12px;
+  display: none;
+}
+.msg-error.show { display: block; }
+
+/* 司機結果 */
+.driver-result {
+  margin-top: 14px; display: none;
+}
+.driver-result.show { display: block; }
+.car-option {
+  background: #f8fafc; border: 2px solid var(--border);
+  border-radius: 10px; padding: 14px 16px; margin-bottom: 10px;
+  cursor: pointer; transition: all 0.2s; display: flex;
+  align-items: center; justify-content: space-between;
+}
+.car-option:hover  { border-color: var(--text); background: #fff; }
+.car-option:active { transform: scale(0.98); }
+.car-opt-left { display: flex; align-items: center; gap: 10px; }
+.car-opt-plate {
+  background: var(--red); color: #fff;
+  font-size: 14px; font-weight: 800;
+  padding: 4px 12px; border-radius: 6px;
+}
+.car-opt-vid   { font-size: 17px; font-weight: 900; }
+.car-opt-info  { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.car-opt-arrow { font-size: 20px; color: var(--muted); }
+
+/* 客人結果 */
+.pax-result { margin-top: 14px; display: none; }
+.pax-result.show { display: block; }
+.pax-booking {
+  background: #fff; border: 2px solid var(--border);
+  border-radius: 10px; margin-bottom: 12px; overflow: hidden;
+}
+.pax-booking-head {
+  background: var(--red); padding: 10px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.pax-booking-date { font-size: 15px; font-weight: 800; color: #fff; }
+.pax-booking-status {
+  font-size: 12px; font-weight: 700; padding: 3px 10px;
+  border-radius: 12px; background: rgba(255,255,255,0.2); color: #fff;
+}
+.pax-booking-body { padding: 14px 16px; }
+.pax-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pax-item { font-size: 13px; color: var(--muted); }
+.pax-item b { display: block; font-size: 16px; font-weight: 800; color: var(--text); margin-top: 2px; }
+
+/* Loading */
+.loading-dot {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--muted); margin: 0 3px;
+  animation: dot 1.2s infinite;
+}
+.loading-dot:nth-child(2) { animation-delay: 0.2s; }
+.loading-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dot { 0%,80%,100%{opacity:0.2} 40%{opacity:1} }
+
+/* 分隔 */
+.divider { text-align: center; color: var(--muted); font-size: 12px; padding: 4px 0 16px; }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-logo">旅乘包車</div>
+  <div class="hdr-sub">F1 SUZUKA 2026 接駁服務</div>
+</div>
+
+<div class="wrap">
+
+  <!-- 司機入口 -->
+  <div class="portal-card">
+    <div class="portal-head">
+      <div class="portal-icon">🚌</div>
+      <div>
+        <div class="portal-title">司機入口</div>
+        <div class="portal-sub">輸入車牌號碼查看乘客名單</div>
+      </div>
+    </div>
+    <div class="portal-body">
+      <div class="input-wrap">
+        <label class="input-label">車牌號碼（數字即可，不用輸入橫線）</label>
+        <input class="inp" id="driverInput" type="number" placeholder="例如：5311" maxlength="6"
+          oninput="clearDriverResult()" onkeydown="if(event.key==='Enter')searchDriver()">
+      </div>
+      <button class="btn-go btn-driver" onclick="searchDriver()">查看乘客名單 →</button>
+      <div class="msg-error" id="driverError"></div>
+      <div class="driver-result" id="driverResult"></div>
+    </div>
+  </div>
+
+  <div class="divider">— 或 —</div>
+
+  <!-- 客人入口 -->
+  <div class="portal-card">
+    <div class="portal-head">
+      <div class="portal-icon">🎫</div>
+      <div>
+        <div class="portal-title">乘客查詢</div>
+        <div class="portal-sub">查看您的乘車安排</div>
+      </div>
+    </div>
+    <div class="portal-body">
+      <div class="input-wrap">
+        <label class="input-label">電話號碼（後4碼即可）</label>
+        <input class="inp" id="paxPhone" type="number" placeholder="例如：8888"
+          oninput="clearPaxResult()" onkeydown="if(event.key==='Enter')searchPax()">
+      </div>
+      <div class="input-wrap">
+        <label class="input-label">姓名</label>
+        <input class="inp" id="paxName" type="text" placeholder="請輸入您的姓名"
+          oninput="clearPaxResult()" onkeydown="if(event.key==='Enter')searchPax()">
+      </div>
+      <button class="btn-go btn-pax" onclick="searchPax()">查詢乘車資訊 →</button>
+      <div class="msg-error" id="paxError"></div>
+      <div class="pax-result" id="paxResult"></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="config.js"></script>
+<script>
+const DATE_LABEL = {
+  "03/26（四）":"03/26（四）","03/27（五）":"03/27（五）",
+  "03/28（六）":"03/28（六）","03/29（日）":"03/29（日）"
+};
+
+function simplePt(pt) {
+  if (!pt) return "";
+  if (pt.includes("名駅")||pt.includes("名古屋")) return "名古屋站";
+  if (pt.includes("榮")||pt.includes("栄"))       return "榮站";
+  return pt;
+}
+
+// ── 今天的日期（比對用）──
+function todayDate() {
+  const n = new Date();
+  // 用日本時間
+  const jst = new Date(n.getTime() + (9*60 + n.getTimezoneOffset())*60000);
+  const m = String(jst.getMonth()+1).padStart(2,"0");
+  const d = String(jst.getDate()).padStart(2,"0");
+  return `${m}/${d}`;
+}
+
+// =============================================
+// 司機查詢
+// =============================================
+async function searchDriver() {
+  const num = document.getElementById("driverInput").value.trim();
+  if (!num) { showDriverErr("請輸入車牌號碼"); return; }
+
+  const btn = document.querySelector(".btn-driver");
+  btn.innerHTML = `<span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span>`;
+  btn.disabled = true;
+
+  try {
+    const today = todayDate();
+    const r = await fetch(`${API}?action=findCar&num=${num}`);
+    const d = await r.json();
+    btn.innerHTML = "查看乘客名單 →"; btn.disabled = false;
+
+    if (d.error) { showDriverErr(d.error); return; }
+
+    const res = document.getElementById("driverResult");
+    res.className = "driver-result show";
+
+    if (d.results.length === 1) {
+      // 只有一個結果，直接跳轉
+      goDriver(d.results[0]);
+      return;
+    }
+
+    // 多個結果，讓司機選
+    let html = "";
+    d.results.forEach(car => {
+      const isToday = car.date.includes(today);
+      html += `
+      <div class="car-option" onclick='goDriver(${JSON.stringify(car)})'>
+        <div class="car-opt-left">
+          <div class="car-opt-plate">${car.plate}</div>
+          <div>
+            <div class="car-opt-vid">${car.vid}</div>
+            <div class="car-opt-info">${car.date} ｜ ${simplePt(car.depPt)} ${car.depTime} 出發${isToday?" 📌 今天":""}</div>
+          </div>
+        </div>
+        <div class="car-opt-arrow">›</div>
+      </div>`;
+    });
+    res.innerHTML = html;
+  } catch(e) {
+    btn.innerHTML = "查看乘客名單 →"; btn.disabled = false;
+    showDriverErr("查詢失敗，請重試");
+  }
+}
+
+function goDriver(car) {
+  // 從日期欄取 mm/dd
+  const dateMatch = car.date.match(/(\d{2})\/(\d{2})/);
+  const dateCode  = dateMatch ? dateMatch[1]+dateMatch[2] : "0329";
+  location.href = `driver.html?car=${car.plate}&date=${dateCode}`;
+}
+
+function showDriverErr(msg) {
+  const el = document.getElementById("driverError");
+  el.textContent = msg; el.className = "msg-error show";
+}
+function clearDriverResult() {
+  document.getElementById("driverError").className = "msg-error";
+  document.getElementById("driverResult").className = "driver-result";
+}
+
+// =============================================
+// 客人查詢
+// =============================================
+async function searchPax() {
+  const phone = document.getElementById("paxPhone").value.trim();
+  const name  = document.getElementById("paxName").value.trim();
+  if (!phone && !name) { showPaxErr("請輸入電話號碼與姓名"); return; }
+  if (!name) { showPaxErr("請輸入姓名"); return; }
+
+  const btn = document.querySelector(".btn-pax");
+  btn.innerHTML = `<span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span>`;
+  btn.disabled = true;
+
+  try {
+    const r = await fetch(`${API}?action=findPassenger&phone=${encodeURIComponent(phone)}&name=${encodeURIComponent(name)}`);
+    const d = await r.json();
+    btn.innerHTML = "查詢乘車資訊 →"; btn.disabled = false;
+
+    if (d.error) { showPaxErr(d.error); return; }
+
+    const res = document.getElementById("paxResult");
+    res.className = "pax-result show";
+
+    let html = `<div style="font-size:15px;font-weight:800;margin-bottom:12px">您好，${d.passengers[0].name}！以下是您的乘車安排：</div>`;
+
+    d.passengers.forEach(pax => {
+      pax.bookings.forEach(b => {
+        const outSt = b.outStatus === "✅" ? "✅ 去程已確認" : b.outStatus === "❌" ? "❌ 去程未到" : "⏳ 待確認";
+        const retSt = b.retStatus === "✅" ? "✅ 回程已確認" : b.retStatus === "❌" ? "❌ 回程未到" : "⏳ 待確認";
+        html += `
+        <div class="pax-booking">
+          <div class="pax-booking-head">
+            <div class="pax-booking-date">${b.date}</div>
+            <div class="pax-booking-status">${outSt}</div>
+          </div>
+          <div class="pax-booking-body">
+            <div class="pax-grid">
+              <div class="pax-item">車次<b>${b.vid}</b></div>
+              <div class="pax-item">車牌<b>${b.plate}</b></div>
+              <div class="pax-item">車種<b>${b.vtype}</b></div>
+              <div class="pax-item">人數<b>${b.pax} 人</b></div>
+              <div class="pax-item">去程上車<b>${simplePt(b.depPt)}</b></div>
+              <div class="pax-item">去程出發<b>${b.depTime}</b></div>
+              <div class="pax-item">回程下車<b>${simplePt(b.depPt)}</b></div>
+              <div class="pax-item">回程出發<b>${b.retTime}</b></div>
+            </div>
+          </div>
+        </div>`;
+      });
+    });
+
+    res.innerHTML = html;
+  } catch(e) {
+    btn.innerHTML = "查詢乘車資訊 →"; btn.disabled = false;
+    showPaxErr("查詢失敗，請重試");
+  }
+}
+
+function showPaxErr(msg) {
+  const el = document.getElementById("paxError");
+  el.textContent = msg; el.className = "msg-error show";
+}
+function clearPaxResult() {
+  document.getElementById("paxError").className = "msg-error";
+  document.getElementById("paxResult").className = "pax-result";
+}
+</script>
+</body>
+</html>
