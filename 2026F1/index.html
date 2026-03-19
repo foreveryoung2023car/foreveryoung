@@ -241,16 +241,8 @@ async function searchPassenger(phone, name) {
   res.className = "result show";
 
   const PT_FULL = {
-    "名古屋站": {
-      name: "名古屋車站",
-      addr: "Ministop ミニストップ 名駅椿町店",
-      map:  "https://maps.app.goo.gl/nyDsH6F7xdkRFesm8"
-    },
-    "榮站": {
-      name: "名古屋榮站",
-      addr: "榮站 10B 出口（洋食厨房ムギ）\n3 Chome-16-5 Nishiki, Naka Ward, Nagoya",
-      map:  "https://maps.app.goo.gl/5gH2Kz4oUSsyrNHHA"
-    },
+    "名古屋站": { name:"名古屋車站", addr:"Ministop ミニストップ 名駅椿町店", map:"https://maps.app.goo.gl/nyDsH6F7xdkRFesm8" },
+    "榮站":     { name:"名古屋榮站", addr:"榮站 10B 出口（洋食厨房ムギ）\n3 Chome-16-5 Nishiki, Naka Ward, Nagoya", map:"https://maps.app.goo.gl/5gH2Kz4oUSsyrNHHA" },
   };
   const RET_GATHER = {
     name: "apollostation セルフステーション鈴鹿南 SS 對面",
@@ -258,91 +250,122 @@ async function searchPassenger(phone, name) {
     map:  "https://maps.app.goo.gl/jQviaKfC8jvtxbED7"
   };
 
-  function locBlock(label, emoji, loc, time) {
-    return `
-    <div style="background:#f8fafc;border-radius:10px;padding:12px">
-      <div style="font-size:12px;color:var(--muted);font-weight:600;margin-bottom:6px">${emoji} ${label}</div>
-      <div style="font-size:15px;font-weight:900;color:var(--text)">${loc.name}</div>
-      <div style="font-size:12px;color:var(--muted);margin-top:2px;white-space:pre-line">${loc.addr}</div>
-      <div style="font-size:18px;font-weight:900;color:var(--red);margin-top:5px">${time}</div>
-      ${loc.map ? `<a href="${loc.map}" target="_blank" style="
-        display:inline-flex;align-items:center;gap:5px;margin-top:8px;
-        background:#fff;border:1px solid var(--border);border-radius:8px;
-        padding:6px 12px;font-size:12px;font-weight:700;color:#2563eb;
-        text-decoration:none;
-      ">🗺️ 開啟地圖</a>` : ""}
-    </div>`;
-  }
+  const pax0    = d.passengers[0];
+  const b0      = pax0.bookings[0];
+  const pt0     = simplePt(b0?.depPt || "");
+  const ptInfo0 = PT_FULL[pt0] || { name:pt0, addr:"", map:"" };
 
   let html = `
-  <div style="background:var(--red);border-radius:12px;padding:20px;text-align:center;margin-bottom:14px">
-    <div style="display:flex;align-items:baseline;justify-content:center;gap:10px;flex-wrap:wrap">
-      <div style="font-size:34px;font-weight:900;color:#fff;letter-spacing:-0.5px">${d.passengers[0].name}</div>
-      <div style="font-size:18px;font-weight:700;color:rgba(255,255,255,0.85)">${d.passengers[0].bookings.reduce((s,b)=>s+b.pax,0)} 位</div>
+  <div id="stickyName" style="
+    position:sticky;top:0;z-index:50;
+    background:var(--red);padding:14px 20px;
+    display:flex;align-items:center;justify-content:center;gap:12px;
+    box-shadow:0 2px 10px rgba(232,0,45,0.3);
+  ">
+    <div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-0.5px">${pax0.name}</div>
+    <div style="background:rgba(255,255,255,0.25);border:2px solid rgba(255,255,255,0.5);border-radius:10px;padding:5px 12px;text-align:center;flex-shrink:0">
+      <div style="font-size:20px;font-weight:900;color:#fff;line-height:1">${b0?.pax || ""}</div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.85);margin-top:1px;font-weight:600">位</div>
     </div>
+  </div>
+
+  <div style="padding:14px">
+
+  <div style="background:#f8fafc;border-radius:12px;padding:14px;margin-bottom:10px">
+    <div style="font-size:12px;color:var(--muted);font-weight:700;margin-bottom:8px;letter-spacing:1px">🚌 去程上車地點</div>
+    <div style="font-size:16px;font-weight:900;color:var(--text)">${ptInfo0.name}</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:3px;white-space:pre-line">${ptInfo0.addr}</div>
+    ${ptInfo0.map ? `<a href="${ptInfo0.map}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;color:#2563eb;text-decoration:none">🗺️ 開啟地圖導航</a>` : ""}
+  </div>
+
+  <div style="background:#fff7ed;border:1px solid #fde68a;border-radius:12px;padding:14px;margin-bottom:14px">
+    <div style="font-size:12px;color:var(--muted);font-weight:700;margin-bottom:8px;letter-spacing:1px">🔁 回程集合地點</div>
+    <div style="font-size:16px;font-weight:900;color:var(--text)">${RET_GATHER.name}</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:3px">${RET_GATHER.addr}</div>
+    <a href="${RET_GATHER.map}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;color:#2563eb;text-decoration:none">🗺️ 開啟地圖導航</a>
   </div>`;
 
   d.passengers.forEach(pax => {
     pax.bookings.forEach(b => {
-      const pt     = simplePt(b.depPt);
-      const ptInfo = PT_FULL[pt] || { name:pt, addr:"", map:"" };
-      const st     = b.outStatus==="✅" ? "✅ 已確認上車" : b.outStatus==="❌" ? "❌ 未到" : "⏳ 待確認";
+      const st   = b.outStatus==="✅" ? "✅ 已確認上車" : b.outStatus==="❌" ? "❌ 未到" : "⏳ 待確認";
+      const done = b.outStatus==="✅";
+      const oid  = pax.orderNo + "_" + b.date.replace(/[\/（）\s]/g,"");
 
       html += `
-      <div class="booking">
-        <div style="background:#1e293b;border-radius:12px 12px 0 0;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <div class="booking" style="margin-bottom:12px">
+        <div style="background:#1e293b;border-radius:12px 12px 0 0;padding:14px 18px;display:flex;align-items:center;justify-content:space-between">
           <div style="color:#fff;font-size:17px;font-weight:800">📅 ${b.date}</div>
-          <div style="background:rgba(255,255,255,0.12);color:#fff;font-size:13px;font-weight:700;padding:5px 14px;border-radius:20px">${st}</div>
+          <div id="st_${oid}" style="background:rgba(255,255,255,0.12);color:#fff;font-size:13px;font-weight:700;padding:5px 14px;border-radius:20px">${st}</div>
         </div>
-
         <div class="booking-body">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
             <div class="b-item">車次<b>${b.vid}</b></div>
             <div class="b-item">車牌<b>${b.plate}</b></div>
             <div class="b-item">車種<b>${b.vtype}</b></div>
-            <div class="b-item">訂單編號<b style="font-size:13px">${pax.orderNo}</b></div>
+            <div class="b-item">去程<b>${b.depTime}</b></div>
+            <div class="b-item">回程<b>${b.retTime}</b></div>
           </div>
-
-          <div style="background:#f8fafc;border-radius:10px;padding:14px;margin-bottom:10px">
-            <div style="font-size:12px;color:var(--muted);font-weight:700;margin-bottom:6px;letter-spacing:1px">🚌 去程上車地點</div>
-            <div style="font-size:16px;font-weight:900;color:var(--text)">${ptInfo.name}</div>
-            <div style="font-size:13px;color:var(--muted);margin-top:3px;white-space:pre-line">${ptInfo.addr}</div>
-            <div style="font-size:20px;font-weight:900;color:var(--red);margin-top:6px">${b.depTime} 出發</div>
-            ${ptInfo.map ? `<a href="${ptInfo.map}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;color:#2563eb;text-decoration:none">🗺️ 開啟地圖導航</a>` : ""}
-          </div>
-
-          <div style="background:#fff7ed;border:1px solid #fde68a;border-radius:10px;padding:14px">
-            <div style="font-size:12px;color:var(--muted);font-weight:700;margin-bottom:6px;letter-spacing:1px">🔁 回程集合地點</div>
-            <div style="font-size:16px;font-weight:900;color:var(--text)">${RET_GATHER.name}</div>
-            <div style="font-size:13px;color:var(--muted);margin-top:3px">${RET_GATHER.addr}</div>
-            <div style="font-size:20px;font-weight:900;color:var(--red);margin-top:6px">${b.retTime} 出發</div>
-            <a href="${RET_GATHER.map}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;color:#2563eb;text-decoration:none">🗺️ 開啟地圖導航</a>
-          </div>
+          <button id="btn_${oid}" onclick="selfCheckin('${pax.orderNo}','${b.date}','${oid}')"
+            style="width:100%;padding:16px;border-radius:12px;border:none;cursor:pointer;
+            font-size:16px;font-weight:900;font-family:'Noto Sans TC',sans-serif;
+            transition:all 0.2s;
+            ${done
+              ? "background:#f0fdf4;color:var(--green);border:2px solid var(--green);cursor:default;"
+              : "background:var(--green);color:#fff;box-shadow:0 4px 14px rgba(22,163,74,0.35);"
+            }"
+            ${done ? "disabled" : ""}>
+            ${done ? "✅ 已完成報到" : "✅ 點此報到"}
+          </button>
         </div>
       </div>`;
     });
   });
 
   html += `
-  <div style="
-    background: #f0fdf4; border: 1px solid #bbf7d0;
-    border-radius: 12px; padding: 16px 18px; margin-top: 4px;
-    font-size: 13px; color: #166534; line-height: 1.8;
-  ">
+  <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:14px;font-size:13px;color:#166534;line-height:1.8;margin-top:4px">
     📸 <b>溫馨提醒</b><br>
-    建議您截圖保存此頁面，作為乘車憑證。<br>
-    上車時請主動出示此畫面給司機確認，以保障您的乘車權益，祝您旅途愉快！🏎️
+    建議截圖保存此頁面作為乘車憑證，上車時請出示給司機確認，祝您旅途愉快！🏎️
   </div>
-
-  <div style="text-align:center;margin-top:16px">
-    <button onclick="resetForm()" style="
-      font-size:13px;color:var(--muted);background:#fff;
-      border:1px solid var(--border);border-radius:8px;
-      padding:8px 20px;cursor:pointer;font-family:'Noto Sans TC',sans-serif
-    ">重新查詢</button>
+  <div style="text-align:center;margin-top:14px;padding-bottom:10px">
+    <button onclick="resetForm()" style="font-size:13px;color:var(--muted);background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px 20px;cursor:pointer;font-family:'Noto Sans TC',sans-serif">重新查詢</button>
+  </div>
   </div>`;
 
   res.innerHTML = html;
+}
+
+async function selfCheckin(orderNo, dateStr, oid) {
+  const btn = document.getElementById("btn_"+oid);
+  const stEl = document.getElementById("st_"+oid);
+  if (!btn || btn.disabled) return;
+
+  btn.disabled = true;
+  btn.textContent = "報到中...";
+
+  const dateCode = dateStr.match(/(\d{2})\/(\d{2})/);
+  const date = dateCode ? dateCode[1]+dateCode[2] : "";
+
+  try {
+    const r = await fetch(API, {
+      method:"POST",
+      body: JSON.stringify({ action:"confirm", orderNo, date, trip:"outbound" })
+    });
+    const d = await r.json();
+    if (d.success) {
+      btn.textContent = "✅ 已完成報到";
+      btn.style.background = "#f0fdf4";
+      btn.style.color = "var(--green)";
+      btn.style.border = "2px solid var(--green)";
+      btn.style.boxShadow = "none";
+      if (stEl) stEl.textContent = "✅ 已確認上車";
+    } else {
+      btn.disabled = false;
+      btn.textContent = "✅ 點此報到";
+    }
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = "✅ 點此報到";
+  }
 }
 
 function resetForm() {
