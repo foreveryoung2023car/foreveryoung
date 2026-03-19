@@ -276,7 +276,10 @@ async function searchPassenger(phone, name) {
 
   let html = `
   <div style="background:var(--red);border-radius:12px;padding:20px;text-align:center;margin-bottom:14px">
-    <div style="font-size:34px;font-weight:900;color:#fff;letter-spacing:-0.5px">${d.passengers[0].name}</div>
+    <div style="display:flex;align-items:baseline;justify-content:center;gap:10px;flex-wrap:wrap">
+      <div style="font-size:34px;font-weight:900;color:#fff;letter-spacing:-0.5px">${d.passengers[0].name}</div>
+      <div style="font-size:18px;font-weight:700;color:rgba(255,255,255,0.85)">${d.passengers[0].bookings.reduce((s,b)=>s+b.pax,0)} 位</div>
+    </div>
   </div>`;
 
   d.passengers.forEach(pax => {
@@ -287,12 +290,9 @@ async function searchPassenger(phone, name) {
 
       html += `
       <div class="booking">
-        <div style="background:#1e293b;border-radius:12px 12px 0 0;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-          <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <div style="background:rgba(255,255,255,0.15);color:#fff;font-size:16px;font-weight:800;padding:6px 16px;border-radius:20px">📅 ${b.date}</div>
-            <div style="background:rgba(255,255,255,0.15);color:#fff;font-size:16px;font-weight:800;padding:6px 16px;border-radius:20px">👥 ${b.pax} 人</div>
-          </div>
-          <div style="background:rgba(255,255,255,0.1);color:#fff;font-size:13px;font-weight:700;padding:6px 14px;border-radius:20px">${st}</div>
+        <div style="background:#1e293b;border-radius:12px 12px 0 0;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div style="color:#fff;font-size:17px;font-weight:800">📅 ${b.date}</div>
+          <div style="background:rgba(255,255,255,0.12);color:#fff;font-size:13px;font-weight:700;padding:5px 14px;border-radius:20px">${st}</div>
         </div>
 
         <div class="booking-body">
