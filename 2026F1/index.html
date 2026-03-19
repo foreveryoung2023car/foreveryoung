@@ -212,7 +212,7 @@ body {
 <div class="toast" id="toast"></div>
 
 <script>
-const API  = "https://script.google.com/macros/s/AKfycbzxsafBGkY0u0cnbO7YxchmWTPwcqM3-EoDfBJnpZSrJH36D8HRFg7kvH0G8at77LF-/exec";
+const API  = "https://script.google.com/macros/s/AKfycbzu_5oYwv98extikVU0RvC0mwKaGAIZakdFZMT8VLDjm2z5ksFTfT3qjgSt0wLEpFwS/exec";
 const qs   = new URLSearchParams(location.search);
 const CAR  = qs.get("car")  || "";
 const DATE = qs.get("date") || bestDate();
@@ -282,9 +282,15 @@ function render() {
   document.getElementById("hdrInfo").textContent =
     `${carInfo.plate}｜${DATE_LABEL[DATE]||DATE}`;
 
-  // 出發/送達狀態（localStorage）
-  const depTime = localStorage.getItem(`dep_${CAR}_${DATE}`) || "";
-  const arrTime = localStorage.getItem(`arr_${CAR}_${DATE}`) || "";
+  // 去程/回程各自的出發送達（優先從API取，沒有再從localStorage）
+  const depAction = isOut ? "out_depart" : "ret_depart";
+  const arrAction = isOut ? "out_arrive" : "ret_arrive";
+  const depTime = isOut
+    ? (carInfo.outDepart || localStorage.getItem(`out_depart_${CAR}_${DATE}`) || "")
+    : (carInfo.retDepart || localStorage.getItem(`ret_depart_${CAR}_${DATE}`) || "");
+  const arrTime = isOut
+    ? (carInfo.outArrive || localStorage.getItem(`out_arrive_${CAR}_${DATE}`) || "")
+    : (carInfo.retArrive || localStorage.getItem(`ret_arrive_${CAR}_${DATE}`) || "");
 
   let h = `<div class="wrap">`;
 
@@ -360,24 +366,39 @@ function render() {
   document.getElementById("main").innerHTML = h;
 }
 
-// ── 出發 / 送達 ──
-function toggleDep() {
-  const k = `dep_${CAR}_${DATE}`;
-  if (localStorage.getItem(k)) {
-    if (!confirm("取消「已出發」記錄？")) return;
-    localStorage.removeItem(k);
+// ── 出發 / 送達（寫入資料庫）──
+async function toggleDep() {
+  const isOut = TRIP === "outbound";
+  const action = isOut ? "out_depart" : "ret_depart";
+  const clearAction = isOut ? "out_depart_clr" : "ret_depart_clr";
+  const key = `${action}_${CAR}_${DATE}`;
+
+  if (localStorage.getItem(key)) {
+    if (!confirm("確定取消出發記錄？")) return;
+    localStorage.removeItem(key);
+    await post(clearAction, null, true);
   } else {
-    localStorage.setItem(k, now());
+    const t = nowStr();
+    localStorage.setItem(key, t);
+    await post(action, null, true);
   }
   render();
 }
-function toggleArr() {
-  const k = `arr_${CAR}_${DATE}`;
-  if (localStorage.getItem(k)) {
-    if (!confirm("取消「已送達」記錄？")) return;
-    localStorage.removeItem(k);
+
+async function toggleArr() {
+  const isOut = TRIP === "outbound";
+  const action = isOut ? "out_arrive" : "ret_arrive";
+  const clearAction = isOut ? "out_arrive_clr" : "ret_arrive_clr";
+  const key = `${action}_${CAR}_${DATE}`;
+
+  if (localStorage.getItem(key)) {
+    if (!confirm("確定取消送達記錄？")) return;
+    localStorage.removeItem(key);
+    await post(clearAction, null, true);
   } else {
-    localStorage.setItem(k, now());
+    const t = nowStr();
+    localStorage.setItem(key, t);
+    await post(action, null, true);
   }
   render();
 }
@@ -394,18 +415,33 @@ async function allOk() {
   for (const p of pend) await post("confirm", p.orderNo);
 }
 
-async function post(action, orderNo) {
+async function post(action, orderNo, isCarAction) {
   try {
-    const r = await fetch(API, {
-      method: "POST",
-      body: JSON.stringify({ action, orderNo, date: DATE, trip: TRIP })
-    });
+    const body = isCarAction
+      ? { action, car:CAR, date:DATE, trip:TRIP, time:jstTime() }
+      : { action, orderNo, date:DATE, trip:TRIP };
+    const r = await fetch(API, { method:"POST", body:JSON.stringify(body) });
     const d = await r.json();
     if (d.success) {
-      toast(action==="confirm"?"✅ 已確認上車" : action==="absent"?"❌ 標記未到" : "已重置");
-      const fr = await fetch(`${API}?action=getPassengers&car=${CAR}&date=${DATE}`);
-      DATA = await fr.json();
-      render();
+      if (isCarAction) {
+        // 出發/送達成功 → 更新localStorage + 重新載入
+        const isClear = action.endsWith("_clr");
+        const key = action.replace("_clr","") + `_${CAR}_${DATE}`;
+        if (isClear) localStorage.removeItem(key);
+        else localStorage.setItem(key, jstTime());
+        toast(action.includes("depart") ? (isClear?"已取消出發":"🚀 已記錄出發時間") :
+                                          (isClear?"已取消送達":"🏁 已記錄送達時間"));
+        const fr = await fetch(`${API}?action=getPassengers&car=${CAR}&date=${DATE}`);
+        DATA = await fr.json();
+        render();
+      } else {
+        toast(action==="confirm"?"✅ 已確認上車" : action==="absent"?"❌ 標記未到" : "已重置");
+        const fr = await fetch(`${API}?action=getPassengers&car=${CAR}&date=${DATE}`);
+        DATA = await fr.json();
+        render();
+      }
+    } else {
+      toast("⚠️ 操作失敗：" + (d.error||"未知錯誤"));
     }
   } catch(e) { toast("操作失敗，請重試"); }
 }
@@ -429,9 +465,15 @@ function simplePt(pt) {
   return pt;
 }
 
-function now() {
-  return new Date().toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"});
+// 日本時間 JST (UTC+9) HH:MM
+function jstTime() {
+  const now = new Date();
+  const jst = new Date(now.getTime() + (9*60 - now.getTimezoneOffset()) * 60000);
+  return String(jst.getHours()).padStart(2,"0") + ":" + String(jst.getMinutes()).padStart(2,"0");
 }
+
+// 保留舊名稱相容
+function nowStr() { return jstTime(); }
 
 function toast(msg) {
   const t = document.getElementById("toast");
