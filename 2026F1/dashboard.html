@@ -250,9 +250,8 @@ body {
 
 <div id="main"><div class="loading"><div class="spin"></div></div></div>
 
+<script src="config.js"></script>
 <script>
-const API = "https://script.google.com/macros/s/AKfycbzu_5oYwv98extikVU0RvC0mwKaGAIZakdFZMT8VLDjm2z5ksFTfT3qjgSt0wLEpFwS/exec";
-
 const qs   = new URLSearchParams(location.search);
 let DATE   = qs.get("date") || bestDate();
 let TRIP   = qs.get("trip") || (new Date().getHours() < 12 ? "outbound" : "return");
