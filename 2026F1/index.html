@@ -321,13 +321,14 @@ function render() {
 
   let h = `<div class="wrap">`;
 
-  // ── 車輛資訊（只顯示4個關鍵資訊）──
+  // ── 車輛資訊（去程/回程顯示不同）──
+  const SUZUKA = "鈴鹿賽車場";
   h += `
   <div class="car-card">
     <div class="car-grid">
-      <div class="car-item">上車地點<b>${pt}</b></div>
-      <div class="car-item">出發時間<b>${carInfo.depTime}</b></div>
-      <div class="car-item">回程時段<b>${carInfo.retTime}</b></div>
+      <div class="car-item">上車地點<b>${isOut ? pt : SUZUKA}</b></div>
+      <div class="car-item">下車地點<b>${isOut ? SUZUKA : pt}</b></div>
+      <div class="car-item">出發時間<b>${isOut ? carInfo.depTime : carInfo.retTime}</b></div>
       <div class="car-item">乘客總數<b>${total} 人</b></div>
     </div>
   </div>`;
