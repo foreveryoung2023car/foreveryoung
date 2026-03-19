@@ -285,100 +285,69 @@ async function searchPassenger(phone, name) {
     <a href="${RET_GATHER.map}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;color:#2563eb;text-decoration:none">🗺️ 開啟地圖導航</a>
   </div>`;
 
-  // 取得今天 JST 日期 "03/26"
-  function jstToday() {
-    try {
-      const s = new Date().toLocaleString("ja-JP",{timeZone:"Asia/Tokyo",month:"2-digit",day:"2-digit"});
-      const p = s.replace(/[^\d\/]/g,"").split("/");
-      return p[0].padStart(2,"0")+"/"+p[1].padStart(2,"0");
-    } catch(e) {
-      const d = new Date();
-      const jst = new Date(d.getTime()+(9*60+d.getTimezoneOffset())*60000);
-      return String(jst.getMonth()+1).padStart(2,"0")+"/"+String(jst.getDate()).padStart(2,"0");
-    }
-  }
-
-  const today   = jstToday();
-  const hour    = jstHour();
-  const isOut   = hour < 12;
-  const trip    = isOut ? "outbound" : "return";
-
-  let todayBooking = null;
-  let upcomingDates = [];
+  const today = jstToday();
+  const hour  = jstHour();
+  const isOut = hour < 12;
+  const trip  = isOut ? "outbound" : "return";
 
   d.passengers.forEach(pax => {
     pax.bookings.forEach(b => {
-      const bDate = b.date.match(/(\d{2})\/(\d{2})/);
-      const bMD   = bDate ? bDate[1]+"/"+bDate[2] : "";
-      if (bMD === today) todayBooking = { pax, b };
-      else if (bMD > today) upcomingDates.push(b.date);
-    });
-  });
+      const bDate    = b.date.match(/(\d{2})\/(\d{2})/);
+      const bMD      = bDate ? bDate[1]+"/"+bDate[2] : "";
+      const isToday  = bMD === today;
+      const outDone  = b.outStatus==="✅";
+      const retDone  = b.retStatus==="✅";
+      const tripDone = isOut ? outDone : retDone;
+      const oid      = pax.orderNo + "_" + b.date.replace(/[\/（）\s]/g,"");
 
-  if (!todayBooking) {
-    // 當天沒有行程，顯示提示
-    const upcoming = [...new Set(upcomingDates)].sort().slice(0,3);
-    html += `
-    <div style="background:#fff;border-radius:12px;border:1px solid var(--border);padding:24px;text-align:center;margin-bottom:12px">
-      <div style="font-size:36px;margin-bottom:10px">🗓️</div>
-      <div style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:6px">今日暫無行程</div>
-      <div style="font-size:13px;color:var(--muted)">請於出發當天再次查詢</div>
-      ${upcoming.length ? `<div style="margin-top:14px;font-size:13px;color:var(--muted)">您的預訂日期：<b style="color:var(--text)">${upcoming.join("、")}</b></div>` : ""}
-    </div>`;
-  } else {
-    const { pax, b } = todayBooking;
-    const outDone  = b.outStatus==="✅";
-    const retDone  = b.retStatus==="✅";
-    const tripDone = isOut ? outDone : retDone;
-    const oid      = pax.orderNo + "_" + b.date.replace(/[\/（）\s]/g,"");
+      const st = outDone && retDone
+        ? "✅ 去回程已報到"
+        : outDone && !isOut ? "✅ 去程已報到　⏳ 回程待報到"
+        : outDone ? "✅ 去程已報到"
+        : retDone ? "✅ 回程已報到"
+        : b.outStatus==="❌" ? "❌ 未到"
+        : isToday ? (isOut ? "⏳ 去程待報到" : "⏳ 回程待報到")
+        : "－";
 
-    const st = outDone && retDone
-      ? "✅ 去程＋回程已報到"
-      : outDone && !isOut ? "✅ 去程已報到　⏳ 回程待報到"
-      : outDone ? "✅ 去程已報到"
-      : retDone ? "✅ 回程已報到"
-      : b.outStatus==="❌" ? "❌ 未到"
-      : isOut ? "⏳ 去程待報到" : "⏳ 回程待報到";
+      const btnLabel = tripDone
+        ? (isOut ? "✅ 去程已完成報到" : "✅ 回程已完成報到")
+        : (isOut ? "長按 2 秒完成去程報到 🚌" : "長按 2 秒完成回程報到 🔁");
 
-    const btnLabel = tripDone
-      ? (isOut ? "✅ 去程已完成報到" : "✅ 回程已完成報到")
-      : (isOut ? "長按 2 秒完成去程報到 🚌" : "長按 2 秒完成回程報到 🔁");
-
-    html += `
-    <div class="booking" style="margin-bottom:12px">
-      <div style="background:#1e293b;border-radius:12px 12px 0 0;padding:14px 18px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:#fff;font-size:17px;font-weight:800">📅 ${b.date}</div>
-        <div id="st_${oid}" style="background:rgba(255,255,255,0.12);color:#fff;font-size:13px;font-weight:700;padding:5px 14px;border-radius:20px">${st}</div>
-      </div>
-      <div class="booking-body">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-          <div class="b-item">車次<b>${b.vid}</b></div>
-          <div class="b-item">車牌<b>${b.plate}</b></div>
-          <div class="b-item">車種<b>${b.vtype}</b></div>
-          <div class="b-item">去程<b>${b.depTime}</b></div>
-          <div class="b-item">回程<b>${b.retTime}</b></div>
+      html += `
+      <div class="booking" style="margin-bottom:12px">
+        <div style="background:#1e293b;border-radius:12px 12px 0 0;padding:14px 18px;display:flex;align-items:center;justify-content:space-between">
+          <div style="color:#fff;font-size:17px;font-weight:800">📅 ${b.date}</div>
+          <div id="st_${oid}" style="background:rgba(255,255,255,0.12);color:#fff;font-size:13px;font-weight:700;padding:5px 14px;border-radius:20px">${st}</div>
         </div>
-        <button id="btn_${oid}"
-          onmousedown="startCheckin('${pax.orderNo}','${b.date}','${oid}','${trip}')"
-          ontouchstart="startCheckin('${pax.orderNo}','${b.date}','${oid}','${trip}')"
-          onmouseup="cancelCheckin('${oid}')" onmouseleave="cancelCheckin('${oid}')"
-          ontouchend="cancelCheckin('${oid}')" ontouchcancel="cancelCheckin('${oid}')"
-          style="width:100%;padding:16px;border-radius:12px;border:none;cursor:pointer;
-          font-size:16px;font-weight:900;font-family:'Noto Sans TC',sans-serif;
-          position:relative;overflow:hidden;transition:all 0.2s;
-          ${tripDone
-            ? "background:#f0fdf4;color:var(--green);border:2px solid var(--green);cursor:default;"
-            : isOut
-              ? "background:var(--green);color:#fff;box-shadow:0 4px 14px rgba(22,163,74,0.35);"
-              : "background:var(--purple);color:#fff;box-shadow:0 4px 14px rgba(124,58,237,0.35);"
-          }"
-          ${tripDone ? "disabled" : ""}>
-          <div id="fill_${oid}" style="position:absolute;top:0;left:0;height:100%;width:0;background:rgba(0,0,0,0.15);transition:none;border-radius:12px"></div>
-          <span style="position:relative;z-index:1">${btnLabel}</span>
-        </button>
-      </div>
-    </div>`;
-  }
+        <div class="booking-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;${isToday?"margin-bottom:14px":""}">
+            <div class="b-item">車次<b>${b.vid}</b></div>
+            <div class="b-item">車牌<b>${b.plate}</b></div>
+            <div class="b-item">車種<b>${b.vtype}</b></div>
+            <div class="b-item">去程<b>${b.depTime}</b></div>
+            <div class="b-item">回程<b>${b.retTime}</b></div>
+          </div>
+          ${isToday ? `
+          <button id="btn_${oid}"
+            onmousedown="startCheckin('${pax.orderNo}','${b.date}','${oid}','${trip}')"
+            ontouchstart="startCheckin('${pax.orderNo}','${b.date}','${oid}','${trip}')"
+            onmouseup="cancelCheckin('${oid}')" onmouseleave="cancelCheckin('${oid}')"
+            ontouchend="cancelCheckin('${oid}')" ontouchcancel="cancelCheckin('${oid}')"
+            style="width:100%;padding:16px;border-radius:12px;border:none;cursor:pointer;
+            font-size:16px;font-weight:900;font-family:'Noto Sans TC',sans-serif;
+            position:relative;overflow:hidden;transition:all 0.2s;
+            ${tripDone
+              ? "background:#f0fdf4;color:var(--green);border:2px solid var(--green);cursor:default;"
+              : isOut
+                ? "background:var(--green);color:#fff;box-shadow:0 4px 14px rgba(22,163,74,0.35);"
+                : "background:var(--purple);color:#fff;box-shadow:0 4px 14px rgba(124,58,237,0.35);"
+            }"
+            ${tripDone ? "disabled" : ""}>
+            <div id="fill_${oid}" style="position:absolute;top:0;left:0;height:100%;width:0;background:rgba(0,0,0,0.15);transition:none;border-radius:12px"></div>
+            <span style="position:relative;z-index:1">${btnLabel}</span>
+          </button>` : ""}
+        </div>
+      </div>`;
 
   html += `
   <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:14px;font-size:13px;color:#166534;line-height:1.8;margin-top:4px">
