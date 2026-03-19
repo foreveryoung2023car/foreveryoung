@@ -251,7 +251,7 @@ body {
 <div id="main"><div class="loading"><div class="spin"></div></div></div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbzi94Kme30FAimOJJT0sBFQzcbSj9czTD-aqomx71aYCzT5mNwjeJ2N_-C5nE1F6w/exec";
+const API = "https://script.google.com/macros/s/AKfycbzu_5oYwv98extikVU0RvC0mwKaGAIZakdFZMT8VLDjm2z5ksFTfT3qjgSt0wLEpFwS/exec";
 
 const qs   = new URLSearchParams(location.search);
 let DATE   = qs.get("date") || bestDate();
@@ -272,10 +272,22 @@ function bestDate() {
   return ["0326","0327","0328","0329"].find(d => d >= s) || "0329";
 }
 
-// ── 時鐘 ──
+// ── 時鐘（日本時間 JST）──
+function jstTime() {
+  const now = new Date();
+  const jst = new Date(now.getTime() + (9*60 - now.getTimezoneOffset()) * 60000);
+  return String(jst.getHours()).padStart(2,"0") + ":" + String(jst.getMinutes()).padStart(2,"0");
+}
+function jstTimeFull() {
+  const now = new Date();
+  const jst = new Date(now.getTime() + (9*60 - now.getTimezoneOffset()) * 60000);
+  return String(jst.getHours()).padStart(2,"0") + ":" +
+         String(jst.getMinutes()).padStart(2,"0") + ":" +
+         String(jst.getSeconds()).padStart(2,"0");
+}
+
 setInterval(() => {
-  document.getElementById("clock").textContent =
-    new Date().toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false});
+  document.getElementById("clock").textContent = jstTimeFull() + " JST";
 }, 1000);
 
 // ── 初始化 ──
@@ -326,7 +338,7 @@ async function load() {
 function render() {
   const { cars, summary } = DATA;
   const isOut = TRIP === "outbound";
-  const now   = new Date().toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit",hour12:false});
+  const now = jstTime();
 
   // 統計
   const totalConf    = isOut ? summary.outConfirmed : summary.retConfirmed;
