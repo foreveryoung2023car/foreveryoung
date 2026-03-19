@@ -271,22 +271,36 @@ function bestDate() {
   return ["0326","0327","0328","0329"].find(d => d >= s) || "0329";
 }
 
-// ── 時鐘（日本時間 JST）──
+// 日本時間 JST (UTC+9) - 使用 toLocaleString 最可靠
 function jstTime() {
-  const now = new Date();
-  const jst = new Date(now.getTime() + (9*60 - now.getTimezoneOffset()) * 60000);
-  return String(jst.getHours()).padStart(2,"0") + ":" + String(jst.getMinutes()).padStart(2,"0");
+  try {
+    const s = new Date().toLocaleString("ja-JP", {
+      timeZone: "Asia/Tokyo",
+      hour: "2-digit", minute: "2-digit", hour12: false
+    });
+    return s.replace(/[^\d:]/g,"").substring(0,5);
+  } catch(e) {
+    // fallback: UTC+9 手動計算
+    const d = new Date();
+    const utc = d.getTime() + d.getTimezoneOffset() * 60000;
+    const jst = new Date(utc + 9 * 3600000);
+    return String(jst.getHours()).padStart(2,"0") + ":" + String(jst.getMinutes()).padStart(2,"0");
+  }
 }
 function jstTimeFull() {
-  const now = new Date();
-  const jst = new Date(now.getTime() + (9*60 - now.getTimezoneOffset()) * 60000);
-  return String(jst.getHours()).padStart(2,"0") + ":" +
-         String(jst.getMinutes()).padStart(2,"0") + ":" +
-         String(jst.getSeconds()).padStart(2,"0");
+  try {
+    const s = new Date().toLocaleString("ja-JP", {
+      timeZone: "Asia/Tokyo",
+      hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false
+    });
+    return s.replace(/[^\d:]/g,"").substring(0,8) + " JST";
+  } catch(e) {
+    return jstTime() + ":00 JST";
+  }
 }
 
 setInterval(() => {
-  document.getElementById("clock").textContent = jstTimeFull() + " JST";
+  document.getElementById("clock").textContent = jstTimeFull();
 }, 1000);
 
 // ── 初始化 ──
