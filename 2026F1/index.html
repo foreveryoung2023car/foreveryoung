@@ -305,16 +305,21 @@ async function searchPassenger(phone, name) {
             <div class="b-item">去程<b>${b.depTime}</b></div>
             <div class="b-item">回程<b>${b.retTime}</b></div>
           </div>
-          <button id="btn_${oid}" onclick="selfCheckin('${pax.orderNo}','${b.date}','${oid}')"
+          <button id="btn_${oid}"
+            onmousedown="startCheckin('${pax.orderNo}','${b.date}','${oid}')"
+            ontouchstart="startCheckin('${pax.orderNo}','${b.date}','${oid}')"
+            onmouseup="cancelCheckin('${oid}')" onmouseleave="cancelCheckin('${oid}')"
+            ontouchend="cancelCheckin('${oid}')" ontouchcancel="cancelCheckin('${oid}')"
             style="width:100%;padding:16px;border-radius:12px;border:none;cursor:pointer;
             font-size:16px;font-weight:900;font-family:'Noto Sans TC',sans-serif;
-            transition:all 0.2s;
+            position:relative;overflow:hidden;transition:all 0.2s;
             ${done
               ? "background:#f0fdf4;color:var(--green);border:2px solid var(--green);cursor:default;"
               : "background:var(--green);color:#fff;box-shadow:0 4px 14px rgba(22,163,74,0.35);"
             }"
             ${done ? "disabled" : ""}>
-            ${done ? "✅ 已完成報到" : "✅ 點此報到"}
+            <div id="fill_${oid}" style="position:absolute;top:0;left:0;height:100%;width:0;background:rgba(0,0,0,0.15);transition:none;border-radius:12px"></div>
+            <span style="position:relative;z-index:1">${done ? "✅ 已完成報到" : "長按 2 秒完成報到"}</span>
           </button>
         </div>
       </div>`;
@@ -334,13 +339,47 @@ async function searchPassenger(phone, name) {
   res.innerHTML = html;
 }
 
-async function selfCheckin(orderNo, dateStr, oid) {
-  const btn = document.getElementById("btn_"+oid);
+let holdTimer = null;
+let holdOid   = null;
+
+function startCheckin(orderNo, dateStr, oid) {
+  if (holdTimer) return;
+  holdOid = oid;
+
+  const fill = document.getElementById("fill_"+oid);
+  if (fill) {
+    fill.style.transition = "width 2s linear";
+    fill.style.width = "100%";
+  }
+
+  holdTimer = setTimeout(() => {
+    holdTimer = null;
+    doSelfCheckin(orderNo, dateStr, oid);
+  }, 2000);
+}
+
+function cancelCheckin(oid) {
+  if (holdTimer) {
+    clearTimeout(holdTimer);
+    holdTimer = null;
+  }
+  if (oid !== holdOid) return;
+  const fill = document.getElementById("fill_"+oid);
+  if (fill) {
+    fill.style.transition = "width 0.2s linear";
+    fill.style.width = "0";
+  }
+}
+
+async function doSelfCheckin(orderNo, dateStr, oid) {
+  const btn  = document.getElementById("btn_"+oid);
   const stEl = document.getElementById("st_"+oid);
+  const fill = document.getElementById("fill_"+oid);
   if (!btn || btn.disabled) return;
 
   btn.disabled = true;
-  btn.textContent = "報到中...";
+  const span = btn.querySelector("span");
+  if (span) span.textContent = "確認中...";
 
   const dateCode = dateStr.match(/(\d{2})\/(\d{2})/);
   const date = dateCode ? dateCode[1]+dateCode[2] : "";
@@ -352,19 +391,22 @@ async function selfCheckin(orderNo, dateStr, oid) {
     });
     const d = await r.json();
     if (d.success) {
-      btn.textContent = "✅ 已完成報到";
+      if (fill) fill.style.width = "0";
       btn.style.background = "#f0fdf4";
       btn.style.color = "var(--green)";
       btn.style.border = "2px solid var(--green)";
       btn.style.boxShadow = "none";
+      if (span) span.textContent = "✅ 已完成報到";
       if (stEl) stEl.textContent = "✅ 已確認上車";
     } else {
       btn.disabled = false;
-      btn.textContent = "✅ 點此報到";
+      if (span) span.textContent = "長按 2 秒完成報到";
+      if (fill) fill.style.width = "0";
     }
   } catch(e) {
     btn.disabled = false;
-    btn.textContent = "✅ 點此報到";
+    if (span) span.textContent = "長按 2 秒完成報到";
+    if (fill) fill.style.width = "0";
   }
 }
 
