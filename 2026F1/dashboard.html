@@ -230,8 +230,6 @@ body {
     <span class="hdr-badge">F1 SUZUKA 2026</span>
   </div>
   <div class="hdr-right">
-    <button class="sound-btn" id="soundBtn" onclick="toggleSound()" title="通知音效">🔔</button>
-    <span class="hdr-time" id="clock">--:--:--</span>
     <button class="hdr-refresh" onclick="load()">🔄 更新</button>
   </div>
 </div>
@@ -299,9 +297,10 @@ function jstTimeFull() {
   }
 }
 
-setInterval(() => {
-  document.getElementById("clock").textContent = jstTimeFull();
-}, 1000);
+// 音效開關（保留功能但不顯示按鈕）
+function toggleSound() {
+  soundOn = !soundOn;
+}
 
 // ── 初始化 ──
 window.addEventListener("load", () => {
@@ -461,7 +460,11 @@ function render() {
           <div class="plate">${car.plate}</div>
           <div>
             <div class="car-vid">${car.vid}</div>
-            <div class="car-type">${simplePt(car.depPt)}｜回程 ${car.retTime}</div>
+            <div class="car-type">
+              ${isOut
+                ? `🚌 去程上車：${simplePt(car.depPt)}`
+                : `🔁 回程下車：${simplePt(car.depPt)}｜${car.retTime}`}
+            </div>
           </div>
         </div>
         <div class="car-head-right">
