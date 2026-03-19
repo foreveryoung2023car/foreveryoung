@@ -1,1 +1,688 @@
-index.html
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>旅乘 F1 鈴鹿接駁</title>
+<style>
+  /* ── 字型 ── */
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+
+  :root {
+    --red:    #e8002d;
+    --dark:   #0a0a0a;
+    --card:   #141414;
+    --border: #2a2a2a;
+    --text:   #f0f0f0;
+    --muted:  #888;
+    --green:  #00c853;
+    --orange: #ff6d00;
+    --yellow: #ffd600;
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--dark);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a0505 100%);
+    border-bottom: 2px solid var(--red);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .logo {
+    font-size: 22px; font-weight: 900; letter-spacing: -0.5px;
+    background: linear-gradient(90deg, var(--red), #ff6b6b);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .f1-badge {
+    background: var(--red); color: #fff;
+    font-size: 11px; font-weight: 700; letter-spacing: 2px;
+    padding: 3px 8px; border-radius: 4px;
+  }
+  .header-date { font-size: 13px; color: var(--muted); }
+
+  /* ── Tab 切換 ── */
+  .tabs {
+    display: flex; background: var(--card);
+    border-bottom: 1px solid var(--border);
+  }
+  .tab {
+    flex: 1; padding: 14px 8px; text-align: center;
+    font-size: 14px; font-weight: 500; color: var(--muted);
+    cursor: pointer; border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+  }
+  .tab.active { color: var(--text); border-bottom-color: var(--red); }
+
+  /* ── 主容器 ── */
+  .container { padding: 16px; max-width: 600px; margin: 0 auto; }
+
+  /* ── 車輛資訊卡 ── */
+  .car-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-bottom: 16px;
+  }
+  .car-title {
+    font-size: 20px; font-weight: 900;
+    display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+  }
+  .plate-badge {
+    background: var(--red); color: #fff;
+    font-size: 13px; font-weight: 700;
+    padding: 3px 10px; border-radius: 6px;
+  }
+  .car-meta {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px; margin-top: 10px;
+  }
+  .meta-item { font-size: 13px; color: var(--muted); }
+  .meta-item span { color: var(--text); font-weight: 500; }
+
+  /* ── 進度條 ── */
+  .progress-wrap { margin: 14px 0 4px; }
+  .progress-label {
+    display: flex; justify-content: space-between;
+    font-size: 13px; margin-bottom: 6px;
+  }
+  .progress-label .count { font-weight: 700; font-size: 16px; }
+  .progress-label .count.all { color: var(--green); }
+  .progress-bar {
+    height: 8px; background: var(--border); border-radius: 4px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, var(--green), #69f0ae);
+    transition: width 0.5s ease;
+  }
+
+  /* ── 乘客列表 ── */
+  .section-title {
+    font-size: 12px; font-weight: 700; letter-spacing: 2px;
+    color: var(--muted); text-transform: uppercase;
+    margin: 20px 0 10px;
+  }
+
+  .passenger-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 14px;
+    transition: all 0.2s;
+  }
+  .passenger-item.confirmed {
+    border-color: var(--green);
+    background: #001a0a;
+  }
+  .passenger-item.absent {
+    border-color: var(--red);
+    background: #1a0005;
+    opacity: 0.7;
+  }
+
+  .status-icon {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+    background: var(--border);
+  }
+  .status-icon.confirmed { background: var(--green); }
+  .status-icon.absent    { background: var(--red); }
+
+  .passenger-info { flex: 1; }
+  .passenger-name { font-size: 16px; font-weight: 700; }
+  .passenger-sub  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .pax-badge {
+    background: var(--border); color: var(--text);
+    font-size: 14px; font-weight: 700;
+    padding: 4px 12px; border-radius: 20px; flex-shrink: 0;
+  }
+
+  .btn-group { display: flex; gap: 8px; flex-direction: column; flex-shrink: 0; }
+  .btn {
+    padding: 8px 14px; border-radius: 8px;
+    font-size: 13px; font-weight: 700;
+    cursor: pointer; border: none;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .btn-confirm {
+    background: var(--green); color: #000;
+  }
+  .btn-confirm:hover { background: #69f0ae; }
+  .btn-absent {
+    background: transparent; color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-absent:hover { border-color: var(--red); color: var(--red); }
+  .btn-reset {
+    background: transparent; color: var(--muted);
+    border: 1px solid var(--border); font-size: 11px;
+  }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── 全部確認按鈕 ── */
+  .btn-all {
+    width: 100%; padding: 16px;
+    background: linear-gradient(135deg, var(--green), #00e676);
+    color: #000; font-size: 16px; font-weight: 900;
+    border: none; border-radius: var(--radius);
+    cursor: pointer; margin-top: 16px;
+    letter-spacing: 1px; transition: all 0.2s;
+  }
+  .btn-all:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,200,83,0.3); }
+  .btn-all:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* ── Dashboard ── */
+  .dash-summary {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px; margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px;
+    text-align: center;
+  }
+  .stat-num { font-size: 28px; font-weight: 900; }
+  .stat-num.green { color: var(--green); }
+  .stat-num.orange { color: var(--orange); }
+  .stat-label { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  .dash-car {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .dash-car-header {
+    display: flex; align-items: center;
+    justify-content: space-between; margin-bottom: 10px;
+  }
+  .dash-car-title { font-size: 15px; font-weight: 700; display: flex; gap: 8px; align-items: center; }
+  .dash-car-route { font-size: 12px; color: var(--muted); }
+
+  .dash-pax-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .pax-tag {
+    font-size: 12px; padding: 4px 10px; border-radius: 20px;
+    border: 1px solid var(--border); color: var(--muted);
+  }
+  .pax-tag.out-ok  { border-color: var(--green); color: var(--green); background: #001a0a; }
+  .pax-tag.out-no  { border-color: var(--red);   color: var(--red);   background: #1a0005; }
+  .pax-tag.ret-ok  { border-color: var(--yellow); color: var(--yellow); background: #1a1400; }
+
+  .mini-progress { display: flex; gap: 6px; align-items: center; font-size: 12px; }
+  .mini-bar {
+    flex: 1; height: 6px; background: var(--border);
+    border-radius: 3px; overflow: hidden;
+  }
+  .mini-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+  .mini-fill.out { background: var(--green); }
+  .mini-fill.ret { background: var(--yellow); }
+
+  /* ── 日期選擇器 ── */
+  .date-selector {
+    display: flex; gap: 8px; padding: 12px 16px;
+    background: var(--card); border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .date-btn {
+    padding: 8px 16px; border-radius: 20px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    border: 1px solid var(--border); color: var(--muted);
+    background: transparent; white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .date-btn.active {
+    background: var(--red); border-color: var(--red); color: #fff;
+  }
+
+  /* ── Loading ── */
+  .loading {
+    text-align: center; padding: 60px 20px; color: var(--muted);
+    font-size: 14px;
+  }
+  .spinner {
+    width: 36px; height: 36px; margin: 0 auto 16px;
+    border: 3px solid var(--border);
+    border-top-color: var(--red);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 14px; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: #222; color: #fff; padding: 12px 24px;
+    border-radius: 24px; font-size: 14px; font-weight: 500;
+    z-index: 999; opacity: 0; transition: opacity 0.3s;
+    pointer-events: none; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+
+  /* ── 更新時間 ── */
+  .update-info {
+    text-align: center; font-size: 11px; color: var(--muted);
+    padding: 8px; margin-top: 4px;
+  }
+
+  /* ── 手動更新按鈕 ── */
+  .refresh-btn {
+    display: block; margin: 12px auto; padding: 10px 24px;
+    background: transparent; border: 1px solid var(--border);
+    color: var(--muted); border-radius: 20px; font-size: 13px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .refresh-btn:hover { border-color: var(--text); color: var(--text); }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo">旅乘</div>
+    <div class="f1-badge">F1 SUZUKA 2026</div>
+  </div>
+  <div class="header-date" id="headerInfo">載入中...</div>
+</div>
+
+<!-- Tab -->
+<div class="tabs" id="tabBar">
+  <div class="tab active" onclick="switchTab('driver')" id="tab-driver">🚌 司機簽到</div>
+  <div class="tab" onclick="switchTab('dashboard')" id="tab-dashboard">📊 總覽</div>
+</div>
+
+<!-- 日期選擇 -->
+<div class="date-selector" id="dateSelector">
+  <button class="date-btn" onclick="selectDate('0326')" id="date-0326">03/26（四）</button>
+  <button class="date-btn" onclick="selectDate('0327')" id="date-0327">03/27（五）</button>
+  <button class="date-btn" onclick="selectDate('0328')" id="date-0328">03/28（六）</button>
+  <button class="date-btn active" onclick="selectDate('0329')" id="date-0329">03/29（日）</button>
+</div>
+
+<!-- 主內容 -->
+<div id="mainContent">
+  <div class="loading"><div class="spinner"></div>載入中...</div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// =============================================
+// 設定
+// =============================================
+const API_URL = "https://script.google.com/macros/s/AKfycbzi94Kme30FAimOJJT0sBFQzcbSj9czTD-aqomx71aYCzT5mNwjeJ2N_-C5nE1F6w/exec";
+
+// 從網址讀取參數
+const params   = new URLSearchParams(location.search);
+const CAR      = params.get("car")  || "";
+const INIT_TAB = params.get("view") === "dashboard" ? "dashboard" : "driver";
+
+let currentDate = params.get("date") || "0329";
+let currentTab  = INIT_TAB;
+let dashTimer   = null;
+
+// =============================================
+// 初始化
+// =============================================
+window.addEventListener("load", () => {
+  // 設定日期按鈕
+  document.querySelectorAll(".date-btn").forEach(b => b.classList.remove("active"));
+  const dateBtn = document.getElementById("date-" + currentDate);
+  if (dateBtn) dateBtn.classList.add("active");
+
+  // 如果是 dashboard 模式，切到總覽
+  if (currentTab === "dashboard") switchTab("dashboard");
+  else switchTab("driver");
+
+  // 更新 header
+  updateHeader();
+});
+
+function updateHeader() {
+  const dateMap = {
+    "0326":"03/26（四）","0327":"03/27（五）",
+    "0328":"03/28（六）","0329":"03/29（日）"
+  };
+  const d = dateMap[currentDate] || "";
+  if (currentTab === "driver" && CAR) {
+    document.getElementById("headerInfo").textContent = CAR + "　" + d;
+  } else {
+    document.getElementById("headerInfo").textContent = d;
+  }
+}
+
+// =============================================
+// Tab 切換
+// =============================================
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById("tab-driver").classList.toggle("active", tab === "driver");
+  document.getElementById("tab-dashboard").classList.toggle("active", tab === "dashboard");
+
+  if (dashTimer) { clearInterval(dashTimer); dashTimer = null; }
+
+  if (tab === "driver") {
+    if (!CAR) {
+      showNoCar();
+    } else {
+      loadDriver();
+    }
+  } else {
+    loadDashboard();
+    dashTimer = setInterval(loadDashboard, 30000);
+  }
+  updateHeader();
+}
+
+// =============================================
+// 選擇日期
+// =============================================
+function selectDate(date) {
+  currentDate = date;
+  document.querySelectorAll(".date-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById("date-" + date).classList.add("active");
+  updateHeader();
+  if (currentTab === "driver") loadDriver();
+  else loadDashboard();
+}
+
+// =============================================
+// 司機畫面
+// =============================================
+async function loadDriver() {
+  showLoading();
+  try {
+    const res  = await fetch(`${API_URL}?action=getPassengers&car=${CAR}&date=${currentDate}`);
+    const data = await res.json();
+    renderDriver(data, "outbound");
+  } catch(e) {
+    showError("載入失敗，請重試");
+  }
+}
+
+let currentTrip = "outbound";
+
+function renderDriver(data, trip) {
+  currentTrip = trip;
+  if (!data.carInfo) {
+    document.getElementById("mainContent").innerHTML =
+      `<div class="empty">找不到車牌 ${CAR} 的資料<br>請確認網址是否正確</div>`;
+    return;
+  }
+
+  const { carInfo, passengers, summary } = data;
+  const isOut = trip === "outbound";
+  const confirmed = isOut ? summary.outConfirmed : summary.retConfirmed;
+  const pending   = isOut ? summary.outPending   : summary.retPending;
+  const pct = summary.total > 0 ? Math.round(confirmed / summary.total * 100) : 0;
+  const allDone = pending === 0;
+
+  const dateMap = {"0326":"03/26（四）","0327":"03/27（五）","0328":"03/28（六）","0329":"03/29（日）"};
+
+  let html = `
+    <div class="container">
+      <div class="car-card">
+        <div class="car-title">
+          <span>${carInfo.vid}</span>
+          <div class="plate-badge">${carInfo.plate}</div>
+          <span style="font-size:14px;color:var(--muted)">${carInfo.vtype}</span>
+        </div>
+        <div class="car-meta">
+          <div class="meta-item">日期 <span>${dateMap[currentDate]||""}</span></div>
+          <div class="meta-item">出發 <span>${carInfo.depTime}</span></div>
+          <div class="meta-item">上車 <span>${simplePt(carInfo.depPt)}</span></div>
+          <div class="meta-item">回程 <span>${carInfo.retTime}</span></div>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-label">
+            <span>${isOut ? "🚌 去程上車確認" : "🔁 回程上車確認"}</span>
+            <span class="count ${allDone?"all":""}">${confirmed} / ${summary.total} 人</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width:${pct}%"></div>
+          </div>
+        </div>
+        <!-- 去程/回程切換 -->
+        <div style="display:flex;gap:8px;margin-top:14px">
+          <button class="btn" style="flex:1;${isOut?'background:var(--red);color:#fff':'background:var(--border);color:var(--muted)'}"
+            onclick="renderDriver(window._lastData,'outbound')">🚌 去程</button>
+          <button class="btn" style="flex:1;${!isOut?'background:var(--yellow);color:#000':'background:var(--border);color:var(--muted)'}"
+            onclick="renderDriver(window._lastData,'return')">🔁 回程</button>
+        </div>
+      </div>
+
+      <div class="section-title">乘客名單</div>
+  `;
+
+  passengers.forEach(p => {
+    const status = isOut ? p.outStatus : p.retStatus;
+    const time   = isOut ? p.outTime   : p.retTime;
+    const isConf = status === "✅";
+    const isAbs  = status === "❌";
+
+    html += `
+      <div class="passenger-item ${isConf?"confirmed":isAbs?"absent":""}" id="pax-${p.orderNo}">
+        <div class="status-icon ${isConf?"confirmed":isAbs?"absent":""}">
+          ${isConf?"✅":isAbs?"❌":"👤"}
+        </div>
+        <div class="passenger-info">
+          <div class="passenger-name">${p.name}</div>
+          <div class="passenger-sub">${p.orderNo}${time?" · "+time:""}</div>
+        </div>
+        <div class="pax-badge">×${p.pax}</div>
+        <div class="btn-group">
+          ${!isConf?`<button class="btn btn-confirm" onclick="confirm('${p.orderNo}')">✅ 上車</button>`:""}
+          ${!isAbs?`<button class="btn btn-absent" onclick="markAbsent('${p.orderNo}')">❌ 未到</button>`:""}
+          ${(isConf||isAbs)?`<button class="btn btn-reset" onclick="resetStatus('${p.orderNo}')">重置</button>`:""}
+        </div>
+      </div>
+    `;
+  });
+
+  html += `
+      <button class="btn-all" onclick="confirmAll()" ${allDone?"disabled":""}>
+        ${allDone ? "✅ 全部確認完成！" : "全部上車 一鍵確認"}
+      </button>
+    </div>
+  `;
+
+  window._lastData = data;
+  document.getElementById("mainContent").innerHTML = html;
+}
+
+function showNoCar() {
+  document.getElementById("mainContent").innerHTML = `
+    <div class="container">
+      <div class="empty" style="padding-top:60px">
+        <div style="font-size:48px;margin-bottom:16px">🚌</div>
+        <div style="font-size:16px;font-weight:700;margin-bottom:8px">請使用司機專屬連結</div>
+        <div style="font-size:13px;color:var(--muted)">網址需包含車牌號碼<br>例如：?car=25-11</div>
+      </div>
+    </div>
+  `;
+}
+
+// =============================================
+// 確認操作
+// =============================================
+async function confirm(orderNo) {
+  await postAction("confirm", orderNo);
+}
+async function markAbsent(orderNo) {
+  await postAction("absent", orderNo);
+}
+async function resetStatus(orderNo) {
+  await postAction("reset", orderNo);
+}
+async function confirmAll() {
+  if (!window._lastData) return;
+  const pending = window._lastData.passengers.filter(p => {
+    const s = currentTrip === "outbound" ? p.outStatus : p.retStatus;
+    return s !== "✅";
+  });
+  for (const p of pending) {
+    await postAction("confirm", p.orderNo);
+  }
+}
+
+async function postAction(action, orderNo) {
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({ action, orderNo, date: currentDate, trip: currentTrip })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast(action === "confirm" ? "✅ 已確認上車" : action === "absent" ? "❌ 標記未到" : "已重置");
+      // 重新載入
+      const fresh = await fetch(`${API_URL}?action=getPassengers&car=${CAR}&date=${currentDate}`);
+      const freshData = await fresh.json();
+      renderDriver(freshData, currentTrip);
+    }
+  } catch(e) {
+    showToast("操作失敗，請重試");
+  }
+}
+
+// =============================================
+// 總覽 Dashboard
+// =============================================
+async function loadDashboard() {
+  if (currentTab !== "dashboard") return;
+  const content = document.getElementById("mainContent");
+  if (!content.querySelector(".dash-summary")) showLoading();
+
+  try {
+    const res  = await fetch(`${API_URL}?action=getDashboard&date=${currentDate}`);
+    const data = await res.json();
+    renderDashboard(data);
+  } catch(e) {
+    showError("載入失敗");
+  }
+}
+
+function renderDashboard(data) {
+  const { cars, summary } = data;
+  const now = new Date().toLocaleTimeString("zh-TW", { hour:"2-digit", minute:"2-digit", second:"2-digit" });
+
+  let html = `
+    <div class="container">
+      <div class="dash-summary">
+        <div class="stat-card">
+          <div class="stat-num">${summary.totalPax}</div>
+          <div class="stat-label">總乘客</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num green">${summary.outConfirmed}</div>
+          <div class="stat-label">去程確認</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num orange">${summary.outPending}</div>
+          <div class="stat-label">去程待確認</div>
+        </div>
+      </div>
+
+      <div class="section-title">各車狀態</div>
+  `;
+
+  cars.forEach(car => {
+    const outPct = car.totalPax > 0 ? Math.round(car.outConfirmed / car.totalPax * 100) : 0;
+    const retPct = car.totalPax > 0 ? Math.round(car.retConfirmed / car.totalPax * 100) : 0;
+
+    html += `
+      <div class="dash-car">
+        <div class="dash-car-header">
+          <div class="dash-car-title">
+            <div class="plate-badge">${car.plate}</div>
+            <span>${car.vid}</span>
+            <span style="font-size:12px;color:var(--muted)">${car.vtype}</span>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:15px;font-weight:700">${car.outConfirmed}/${car.totalPax}人</div>
+            <div style="font-size:11px;color:var(--muted)">${simplePt(car.depPt)} · 回程${car.retTime}</div>
+          </div>
+        </div>
+
+        <div class="mini-progress" style="margin-bottom:6px">
+          <span style="font-size:11px;color:var(--muted);width:28px">去程</span>
+          <div class="mini-bar"><div class="mini-fill out" style="width:${outPct}%"></div></div>
+          <span style="font-size:11px;width:28px">${outPct}%</span>
+        </div>
+        <div class="mini-progress">
+          <span style="font-size:11px;color:var(--muted);width:28px">回程</span>
+          <div class="mini-bar"><div class="mini-fill ret" style="width:${retPct}%"></div></div>
+          <span style="font-size:11px;width:28px">${retPct}%</span>
+        </div>
+
+        <div class="dash-pax-list">
+          ${car.passengers.map(p => `
+            <span class="pax-tag ${p.outStatus==="✅"?"out-ok":p.outStatus==="❌"?"out-no":""}">
+              ${p.name}×${p.pax}
+            </span>
+          `).join("")}
+        </div>
+      </div>
+    `;
+  });
+
+  html += `
+      <button class="refresh-btn" onclick="loadDashboard()">🔄 手動更新</button>
+      <div class="update-info">最後更新：${now} · 每30秒自動更新</div>
+    </div>
+  `;
+
+  document.getElementById("mainContent").innerHTML = html;
+}
+
+// =============================================
+// 輔助
+// =============================================
+function simplePt(pt) {
+  if (!pt) return "";
+  if (pt.includes("名駅") || pt.includes("名古屋站") || pt.includes("名古屋車站")) return "名古屋站";
+  if (pt.includes("榮") || pt.includes("栄")) return "榮站";
+  return pt;
+}
+
+function showLoading() {
+  document.getElementById("mainContent").innerHTML =
+    `<div class="loading"><div class="spinner"></div>載入中...</div>`;
+}
+
+function showError(msg) {
+  document.getElementById("mainContent").innerHTML =
+    `<div class="empty">⚠️ ${msg}</div>`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2000);
+}
+</script>
+</body>
+</html>
