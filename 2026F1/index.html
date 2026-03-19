@@ -109,6 +109,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 
 <div class="wrap">
   <div class="card">
+    <div id="formArea">
     <div class="card-title">查詢乘車資訊</div>
     <div class="card-sub">請輸入姓名與電話號碼以查詢您的乘車安排</div>
 
@@ -127,6 +128,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
     <div class="hint">查無資料？請確認姓名與電話號碼是否正確<br>電話請輸入純數字，不需要符號</div>
 
     <div class="err" id="errMsg"></div>
+    </div>
     <div class="result" id="resultArea"></div>
   </div>
 </div>
@@ -237,14 +239,30 @@ async function searchPassenger(phone, name) {
 
   if (d.error) { showErr("查無資料，請確認電話號碼與姓名是否正確"); return; }
 
+  // 成功後隱藏輸入區
+  document.getElementById("formArea").style.display = "none";
+
   const res = document.getElementById("resultArea");
   res.className = "result show";
 
-  let html = `<div class="greeting">您好，${d.passengers[0].name}！以下是您的乘車安排：</div>`;
+  const PT_FULL = {
+    "名古屋站": "名古屋站\nMinistop 名駅椿町店",
+    "榮站":     "榮站\n10B出口（洋食厨房ムギ）",
+  };
+  const SUZUKA_FULL = "鈴鹿賽車場 Motopia\n〒510-0201 三重縣鈴鹿市井野町 7992";
+  const RET_GATHER  = "回程集合地點：\napollostation 鈴鹿南 SS 對面";
+
+  let html = `
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+    <div class="greeting" style="margin:0">您好，${d.passengers[0].name}！</div>
+    <button onclick="resetForm()" style="font-size:12px;color:var(--muted);background:none;border:1px solid var(--border);border-radius:8px;padding:5px 10px;cursor:pointer">重新查詢</button>
+  </div>`;
 
   d.passengers.forEach(pax => {
     pax.bookings.forEach(b => {
-      const st = b.outStatus==="✅"?"✅ 去程已確認":b.outStatus==="❌"?"❌ 去程未到":"⏳ 待確認上車";
+      const pt = simplePt(b.depPt);
+      const ptFull = PT_FULL[pt] || pt;
+      const st = b.outStatus==="✅"?"✅ 去程已確認" : b.outStatus==="❌"?"❌ 去程未到" : "⏳ 待確認上車";
       html += `
       <div class="booking">
         <div class="booking-head">
@@ -257,17 +275,34 @@ async function searchPassenger(phone, name) {
             <div class="b-item">車牌<b>${b.plate}</b></div>
             <div class="b-item">車種<b>${b.vtype}</b></div>
             <div class="b-item">乘坐人數<b>${b.pax} 人</b></div>
-            <div class="b-item">去程上車<b>${simplePt(b.depPt)}</b></div>
-            <div class="b-item">去程出發<b>${b.depTime}</b></div>
-            <div class="b-item">回程上車<b>鈴鹿賽車場</b></div>
-            <div class="b-item">回程時段<b>${b.retTime}</b></div>
           </div>
+          <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="b-item">
+              去程上車地點
+              <b style="font-size:14px;white-space:pre-line">${ptFull}</b>
+              <div style="font-size:13px;font-weight:700;color:var(--text);margin-top:2px">${b.depTime} 出發</div>
+            </div>
+            <div class="b-item">
+              回程上車地點
+              <b style="font-size:14px;white-space:pre-line">${SUZUKA_FULL}</b>
+              <div style="font-size:13px;font-weight:700;color:var(--text);margin-top:2px">${b.retTime} 出發</div>
+            </div>
+          </div>
+          <div style="margin-top:10px;padding:10px 12px;background:#f8fafc;border-radius:8px;font-size:12px;color:var(--muted);white-space:pre-line">${RET_GATHER}</div>
         </div>
       </div>`;
     });
   });
 
   res.innerHTML = html;
+}
+
+function resetForm() {
+  document.getElementById("formArea").style.display = "block";
+  document.getElementById("resultArea").className = "result";
+  document.getElementById("errMsg").className = "err";
+  document.getElementById("inpName").value = "";
+  document.getElementById("inpPhone").value = "";
 }
 </script>
 </body>
