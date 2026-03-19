@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>旅乘 F1 鈴鹿接駁 總表</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;900&display=swap');
+
+:root {
+  --red:    #e8002d;
+  --bg:     #f0f2f5;
+  --card:   #ffffff;
+  --border: #e2e8f0;
+  --text:   #0f172a;
+  --muted:  #64748b;
+  --green:  #16a34a;
+  --orange: #ea580c;
+  --yellow: #d97706;
+  --blue:   #2563eb;
+  --r: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Noto Sans TC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
+
+/* Header */
+.hdr {
+  background: var(--red);
+  padding: 14px 18px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 99;
+  box-shadow: 0 2px 10px rgba(232,0,45,0.3);
+}
+.hdr-left { display: flex; align-items: center; gap: 10px; }
+.hdr-logo { font-size: 20px; font-weight: 900; color: #fff; }
+.hdr-badge {
+  background: rgba(255,255,255,0.22); color: #fff;
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+  padding: 3px 7px; border-radius: 4px; margin-left: 8px;
+}
+.hdr-right { display: flex; align-items: center; gap: 10px; }
+.hdr-time { font-size: 13px; color: rgba(255,255,255,0.9); font-weight: 600; }
+.hdr-refresh {
+  background: rgba(255,255,255,0.2); color: #fff;
+  border: none; border-radius: 6px; padding: 5px 10px;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+}
+
+/* 日期選擇 */
+.date-bar {
+  display: flex; gap: 8px; padding: 12px 16px;
+  background: #fff; border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.date-btn {
+  padding: 8px 18px; border-radius: 20px; white-space: nowrap;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  border: 2px solid var(--border); color: var(--muted); background: #fff;
+  transition: all 0.2s;
+}
+.date-btn.active { background: var(--red); border-color: var(--red); color: #fff; }
+
+/* 去/回程切換 */
+.trip-bar {
+  display: flex; background: #fff;
+  border-bottom: 1px solid var(--border);
+}
+.trip-btn {
+  flex: 1; padding: 13px; text-align: center;
+  font-size: 15px; font-weight: 700; color: var(--muted);
+  border: none; border-bottom: 3px solid transparent;
+  background: none; cursor: pointer; transition: all 0.2s;
+}
+.trip-btn.out.active { color: var(--red);   border-bottom-color: var(--red); }
+.trip-btn.ret.active { color: #7c3aed; border-bottom-color: #7c3aed; }
+
+/* 整體統計 */
+.summary-bar {
+  display: grid; grid-template-columns: repeat(4,1fr);
+  gap: 10px; padding: 14px 16px;
+  max-width: 900px; margin: 0 auto;
+}
+.sum-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 12px 14px; text-align: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.sum-num { font-size: 26px; font-weight: 900; }
+.sum-num.green  { color: var(--green); }
+.sum-num.orange { color: var(--orange); }
+.sum-num.blue   { color: var(--blue); }
+.sum-label { font-size: 11px; color: var(--muted); margin-top: 3px; font-weight: 600; }
+
+/* 通知列表 */
+.notif-wrap { padding: 0 16px; max-width: 900px; margin: 0 auto; }
+.notif-title {
+  font-size: 12px; font-weight: 700; letter-spacing: 2px;
+  color: var(--muted); margin: 14px 0 8px;
+}
+.notif {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 14px; margin-bottom: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.notif.ready  { border-color: var(--yellow); background: #fffbeb; }
+.notif.depart { border-color: var(--orange); background: #fff7ed; }
+.notif.arrive { border-color: var(--green);  background: #f0fdf4; }
+.notif.absent { border-color: #fca5a5;       background: #fff5f5; }
+.notif-icon { font-size: 22px; flex-shrink: 0; }
+.notif-body { flex: 1; }
+.notif-msg  { font-size: 15px; font-weight: 700; }
+.notif-sub  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.notif-time { font-size: 13px; font-weight: 700; color: var(--muted); flex-shrink: 0; }
+
+/* 車輛清單 */
+.cars-wrap { padding: 0 16px; max-width: 900px; margin: 0 auto; }
+
+.car-row {
+  background: var(--card); border: 2px solid var(--border);
+  border-radius: var(--r); margin-bottom: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  overflow: hidden; transition: border-color 0.3s;
+}
+.car-row.all-ok    { border-color: var(--green); }
+.car-row.departed  { border-color: var(--orange); }
+.car-row.arrived   { border-color: #6366f1; }
+.car-row.has-absent { border-color: #fca5a5; }
+
+.car-head {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px; cursor: pointer;
+  justify-content: space-between;
+}
+.car-head-left { display: flex; align-items: center; gap: 10px; }
+.plate {
+  background: var(--red); color: #fff;
+  font-size: 13px; font-weight: 800; letter-spacing: 1px;
+  padding: 4px 12px; border-radius: 6px;
+}
+.car-vid  { font-size: 16px; font-weight: 900; }
+.car-type { font-size: 12px; color: var(--muted); }
+.car-head-right { display: flex; align-items: center; gap: 10px; }
+.car-pax { font-size: 16px; font-weight: 800; }
+.status-badge {
+  font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 12px;
+}
+.badge-wait    { background: #f1f5f9; color: var(--muted); }
+.badge-ready   { background: #fef3c7; color: #92400e; }
+.badge-depart  { background: #fff7ed; color: var(--orange); }
+.badge-arrive  { background: #f0fdf4; color: var(--green); }
+.badge-absent  { background: #fff5f5; color: #dc2626; }
+
+/* 時間軸 */
+.car-timeline {
+  display: flex; gap: 0;
+  padding: 10px 16px 14px;
+  border-top: 1px solid var(--border);
+  background: #fafafa;
+  overflow-x: auto;
+}
+.tl-item {
+  display: flex; flex-direction: column; align-items: center;
+  flex: 1; min-width: 60px; position: relative;
+}
+.tl-item:not(:last-child)::after {
+  content: "";
+  position: absolute; top: 12px; left: 50%;
+  width: 100%; height: 2px; background: var(--border);
+  z-index: 0;
+}
+.tl-item.done::after { background: var(--green); }
+.tl-dot {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--border); border: 2px solid #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; position: relative; z-index: 1;
+}
+.tl-dot.done    { background: var(--green); color: #fff; }
+.tl-dot.active  { background: var(--orange); color: #fff; }
+.tl-dot.partial { background: var(--yellow); color: #fff; }
+.tl-label { font-size: 10px; color: var(--muted); margin-top: 4px; font-weight: 600; }
+.tl-time  { font-size: 11px; color: var(--text); font-weight: 700; margin-top: 1px; }
+
+/* 乘客標籤 */
+.pax-tags { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 14px; }
+.pax-tag {
+  font-size: 12px; padding: 4px 10px; border-radius: 16px;
+  border: 1px solid var(--border); color: var(--muted); background: #f9fafb;
+}
+.pax-tag.ok     { border-color: var(--green); color: var(--green); background: #f0fdf4; }
+.pax-tag.absent { border-color: #fca5a5; color: #dc2626; background: #fff5f5; }
+
+/* 更新提示 */
+.update-bar {
+  text-align: center; font-size: 12px; color: var(--muted);
+  padding: 12px; margin-top: 4px;
+}
+
+/* Loading */
+.loading { text-align: center; padding: 60px 20px; color: var(--muted); }
+.spin {
+  width: 36px; height: 36px; margin: 0 auto 14px;
+  border: 3px solid #e2e8f0; border-top-color: var(--red);
+  border-radius: 50%; animation: rot 0.8s linear infinite;
+}
+@keyframes rot { to { transform: rotate(360deg); } }
+
+/* 通知音效開關 */
+.sound-btn {
+  background: rgba(255,255,255,0.2); color: #fff;
+  border: none; border-radius: 6px; padding: 5px 10px;
+  font-size: 14px; cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-left">
+    <span class="hdr-logo">旅乘</span>
+    <span class="hdr-badge">F1 SUZUKA 2026</span>
+  </div>
+  <div class="hdr-right">
+    <button class="sound-btn" id="soundBtn" onclick="toggleSound()" title="通知音效">🔔</button>
+    <span class="hdr-time" id="clock">--:--:--</span>
+    <button class="hdr-refresh" onclick="load()">🔄 更新</button>
+  </div>
+</div>
+
+<div class="date-bar">
+  <button class="date-btn" onclick="selDate('0326')" id="d0326">03/26（四）</button>
+  <button class="date-btn" onclick="selDate('0327')" id="d0327">03/27（五）</button>
+  <button class="date-btn" onclick="selDate('0328')" id="d0328">03/28（六）</button>
+  <button class="date-btn active" onclick="selDate('0329')" id="d0329">03/29（日）</button>
+</div>
+
+<div class="trip-bar">
+  <button class="trip-btn out active" id="btnOut" onclick="selTrip('outbound')">🚌 去程</button>
+  <button class="trip-btn ret"        id="btnRet" onclick="selTrip('return')">🔁 回程</button>
+</div>
+
+<div id="main"><div class="loading"><div class="spin"></div></div></div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbzi94Kme30FAimOJJT0sBFQzcbSj9czTD-aqomx71aYCzT5mNwjeJ2N_-C5nE1F6w/exec";
+
+const qs   = new URLSearchParams(location.search);
+let DATE   = qs.get("date") || bestDate();
+let TRIP   = qs.get("trip") || (new Date().getHours() < 12 ? "outbound" : "return");
+let DATA   = null;
+let timer  = null;
+let soundOn = true;
+let notified = new Set(); // 已通知過的車不重複叫
+
+const DATE_LABEL = {
+  "0326":"03/26（四）","0327":"03/27（五）",
+  "0328":"03/28（六）","0329":"03/29（日）"
+};
+
+function bestDate() {
+  const n = new Date();
+  const s = String(n.getMonth()+1).padStart(2,"0") + String(n.getDate()).padStart(2,"0");
+  return ["0326","0327","0328","0329"].find(d => d >= s) || "0329";
+}
+
+// ── 時鐘 ──
+setInterval(() => {
+  document.getElementById("clock").textContent =
+    new Date().toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false});
+}, 1000);
+
+// ── 初始化 ──
+window.addEventListener("load", () => {
+  updateUI();
+  load();
+  timer = setInterval(load, 30000);
+});
+
+function selDate(d) {
+  DATE = d;
+  notified.clear();
+  document.querySelectorAll(".date-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById("d"+d).classList.add("active");
+  load();
+}
+function selTrip(t) {
+  TRIP = t;
+  document.getElementById("btnOut").className = `trip-btn out ${t==="outbound"?"active":""}`;
+  document.getElementById("btnRet").className = `trip-btn ret ${t==="return"?"active":""}`;
+  if (DATA) render();
+}
+function updateUI() {
+  document.querySelectorAll(".date-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById("d"+DATE).classList.add("active");
+  document.getElementById("btnOut").className = `trip-btn out ${TRIP==="outbound"?"active":""}`;
+  document.getElementById("btnRet").className = `trip-btn ret ${TRIP==="return"?"active":""}`;
+}
+
+function toggleSound() {
+  soundOn = !soundOn;
+  document.getElementById("soundBtn").textContent = soundOn ? "🔔" : "🔕";
+}
+
+// ── 載入 ──
+async function load() {
+  try {
+    const r = await fetch(`${API}?action=getDashboard&date=${DATE}`);
+    DATA = await r.json();
+    render();
+  } catch(e) {
+    if (!DATA) document.getElementById("main").innerHTML =
+      `<div class="loading" style="color:#e8002d">⚠️ 載入失敗，請重新整理</div>`;
+  }
+}
+
+// ── 渲染 ──
+function render() {
+  const { cars, summary } = DATA;
+  const isOut = TRIP === "outbound";
+  const now   = new Date().toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit",hour12:false});
+
+  // 統計
+  const totalConf    = isOut ? summary.outConfirmed : summary.retConfirmed;
+  const totalPending = isOut ? summary.outPending   : summary.retPending;
+  const departedCars = cars.filter(c => isOut ? c.outDepart : c.retDepart).length;
+  const arrivedCars  = cars.filter(c => isOut ? c.outArrive : c.retArrive).length;
+
+  let html = `
+  <div class="summary-bar">
+    <div class="sum-card">
+      <div class="sum-num">${summary.totalPax}</div>
+      <div class="sum-label">總乘客</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-num green">${totalConf}</div>
+      <div class="sum-label">已確認</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-num orange">${totalPending}</div>
+      <div class="sum-label">待確認</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-num blue">${departedCars}/${cars.length}</div>
+      <div class="sum-label">已出發</div>
+    </div>
+  </div>`;
+
+  // ── 通知列表 ──
+  const notifs = [];
+  cars.forEach(car => {
+    const depT = isOut ? car.outDepart : car.retDepart;
+    const arrT = isOut ? car.outArrive : car.retArrive;
+    const conf = isOut ? car.outConfirmed : car.retConfirmed;
+    const hasAbsent = car.passengers.some(p =>
+      (isOut ? p.outStatus : p.retStatus) === "❌"
+    );
+    const allConf = conf === car.totalPax && car.totalPax > 0;
+    const nKey = `${car.plate}_${DATE}_${TRIP}`;
+
+    if (arrT) {
+      notifs.push({ type:"arrive", icon:"🏁", msg:`${car.vid} ${car.plate} 已送達`,
+        sub:`${simplePt(car.depPt)}`, time:arrT });
+    } else if (depT) {
+      notifs.push({ type:"depart", icon:"🚀", msg:`${car.vid} ${car.plate} 已出發`,
+        sub:`${simplePt(car.depPt)}｜${conf}/${car.totalPax}人`, time:depT });
+      // 出發通知音效
+      if (!notified.has(nKey+"_dep") && soundOn) {
+        beep(); notified.add(nKey+"_dep");
+      }
+    } else if (hasAbsent) {
+      notifs.push({ type:"absent", icon:"⚠️", msg:`${car.vid} ${car.plate} 有乘客未到`,
+        sub:`已確認 ${conf}/${car.totalPax}人`, time:"" });
+    } else if (allConf) {
+      notifs.push({ type:"ready", icon:"✅", msg:`${car.vid} ${car.plate} 人數到齊！`,
+        sub:`${car.totalPax}人 全部確認，可準備出發`, time:"" });
+      // 到齊通知音效
+      if (!notified.has(nKey+"_ready") && soundOn) {
+        beep(); notified.add(nKey+"_ready");
+      }
+    }
+  });
+
+  if (notifs.length > 0) {
+    html += `<div class="notif-wrap"><div class="notif-title">📢 即時動態</div>`;
+    notifs.forEach(n => {
+      html += `
+      <div class="notif ${n.type}">
+        <div class="notif-icon">${n.icon}</div>
+        <div class="notif-body">
+          <div class="notif-msg">${n.msg}</div>
+          <div class="notif-sub">${n.sub}</div>
+        </div>
+        ${n.time?`<div class="notif-time">${n.time}</div>`:""}
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // ── 車輛清單 ──
+  html += `<div class="cars-wrap"><div class="notif-title" style="margin-top:${notifs.length?8:14}px">🚌 各車狀況</div>`;
+
+  cars.forEach(car => {
+    const depT   = isOut ? car.outDepart : car.retDepart;
+    const arrT   = isOut ? car.outArrive : car.retArrive;
+    const conf   = isOut ? car.outConfirmed : car.retConfirmed;
+    const hasAbsent = car.passengers.some(p =>
+      (isOut ? p.outStatus : p.retStatus) === "❌"
+    );
+    const allConf = conf === car.totalPax && car.totalPax > 0;
+
+    // 狀態
+    let rowClass = "", badgeClass = "", badgeText = "";
+    if (arrT)            { rowClass="arrived";    badgeClass="badge-arrive"; badgeText=`🏁 已送達 ${arrT}`; }
+    else if (depT)       { rowClass="departed";   badgeClass="badge-depart"; badgeText=`🚀 已出發 ${depT}`; }
+    else if (hasAbsent)  { rowClass="has-absent"; badgeClass="badge-absent"; badgeText="⚠️ 有人未到"; }
+    else if (allConf)    { rowClass="all-ok";     badgeClass="badge-ready";  badgeText="✅ 人數到齊"; }
+    else                 { rowClass="";           badgeClass="badge-wait";   badgeText=`等待中 ${conf}/${car.totalPax}`; }
+
+    // 時間軸：上車確認 → 已出發 → 已送達
+    const tlConf  = conf === car.totalPax && car.totalPax > 0;
+    const tlPart  = conf > 0 && conf < car.totalPax;
+
+    html += `
+    <div class="car-row ${rowClass}">
+      <div class="car-head">
+        <div class="car-head-left">
+          <div class="plate">${car.plate}</div>
+          <div>
+            <div class="car-vid">${car.vid}</div>
+            <div class="car-type">${simplePt(car.depPt)}｜回程 ${car.retTime}</div>
+          </div>
+        </div>
+        <div class="car-head-right">
+          <div class="car-pax">${conf}/${car.totalPax}人</div>
+          <div class="status-badge ${badgeClass}">${badgeText}</div>
+        </div>
+      </div>
+
+      <!-- 時間軸 -->
+      <div class="car-timeline">
+        <div class="tl-item ${tlConf?"done":tlPart?"done":""}">
+          <div class="tl-dot ${tlConf?"done":tlPart?"partial":""}">
+            ${tlConf?"✓":tlPart?conf:""}
+          </div>
+          <div class="tl-label">上車確認</div>
+          <div class="tl-time">${conf}/${car.totalPax}</div>
+        </div>
+        <div class="tl-item ${depT?"done":""}">
+          <div class="tl-dot ${depT?"done":allConf?"active":""}">
+            ${depT?"✓":""}
+          </div>
+          <div class="tl-label">已出發</div>
+          <div class="tl-time">${depT||"–"}</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot ${arrT?"done":""}">
+            ${arrT?"✓":""}
+          </div>
+          <div class="tl-label">已送達</div>
+          <div class="tl-time">${arrT||"–"}</div>
+        </div>
+      </div>
+
+      <!-- 乘客標籤 -->
+      <div class="pax-tags">
+        ${car.passengers.map(p => {
+          const st = isOut ? p.outStatus : p.retStatus;
+          const cls = st==="✅"?"ok":st==="❌"?"absent":"";
+          return `<span class="pax-tag ${cls}">${p.name}×${p.pax}</span>`;
+        }).join("")}
+      </div>
+    </div>`;
+  });
+
+  html += `</div>
+  <div class="update-bar">最後更新：${now}｜每30秒自動更新</div>`;
+
+  document.getElementById("main").innerHTML = html;
+}
+
+// ── 通知音效 ──
+function beep() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value = 880;
+    g.gain.setValueAtTime(0.3, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    o.start(ctx.currentTime);
+    o.stop(ctx.currentTime + 0.5);
+  } catch(e) {}
+}
+
+function simplePt(pt) {
+  if (!pt) return "";
+  if (pt.includes("名駅")||pt.includes("名古屋")) return "名古屋站";
+  if (pt.includes("榮")||pt.includes("栄"))       return "榮站";
+  return pt;
+}
+</script>
+</body>
+</html>
