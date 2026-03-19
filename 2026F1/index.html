@@ -195,6 +195,13 @@ body {
   <div class="hdr-info" id="hdrInfo">載入中...</div>
 </div>
 
+<!-- 車號車牌顯示列 -->
+<div id="carBar" style="display:none;background:#1e293b;padding:10px 18px;display:flex;align-items:center;gap:12px">
+  <div id="carVid" style="font-size:18px;font-weight:900;color:#fff"></div>
+  <div id="carPlate" style="background:#e8002d;color:#fff;font-size:14px;font-weight:800;padding:4px 14px;border-radius:6px;letter-spacing:1px"></div>
+  <div id="carType" style="font-size:13px;color:#94a3b8"></div>
+</div>
+
 <div class="trip-bar" id="tripBar" style="display:none">
   <button class="trip-btn out active" id="btnOut" onclick="setTrip('outbound')">
     🚌 去程上車
@@ -291,7 +298,16 @@ function render() {
   const pt    = simplePt(carInfo.depPt);
 
   document.getElementById("hdrInfo").textContent =
-    `${carInfo.plate}｜${DATE_LABEL[DATE]||DATE}`;
+    `${DATE_LABEL[DATE]||DATE}`;
+
+  // 顯示車號車牌列
+  const carBar = document.getElementById("carBar");
+  if (carBar) {
+    carBar.style.display = "flex";
+    document.getElementById("carVid").textContent   = carInfo.vid || "";
+    document.getElementById("carPlate").textContent = carInfo.plate || CAR;
+    document.getElementById("carType").textContent  = carInfo.vtype || "";
+  }
 
   // 去程/回程各自的出發送達（優先從API取，沒有再從localStorage）
   const depAction = isOut ? "out_depart" : "ret_depart";
@@ -414,15 +430,52 @@ async function toggleArr() {
   render();
 }
 
-// ── 上車確認 ──
-async function doOk(no)  { await post("confirm", no); }
-async function doNo(no)  { await post("absent",  no); }
-async function doRst(no) { await post("reset",   no); }
+// ── 上車確認（樂觀更新：先改UI，再送API）──
+async function doOk(no) {
+  optimisticUpdate(no, "✅");
+  await post("confirm", no);
+}
+async function doNo(no) {
+  optimisticUpdate(no, "❌");
+  await post("absent", no);
+}
+async function doRst(no) {
+  optimisticUpdate(no, "");
+  await post("reset", no);
+}
+
+// 立即更新畫面，不等API
+function optimisticUpdate(orderNo, status) {
+  if (!DATA) return;
+  const p = DATA.passengers.find(p => p.orderNo === orderNo);
+  if (!p) return;
+  if (TRIP === "outbound") p.outStatus = status;
+  else p.retStatus = status;
+  // 更新統計
+  const outConf = DATA.passengers.filter(p=>p.outStatus==="✅").reduce((s,p)=>s+p.pax,0);
+  const retConf = DATA.passengers.filter(p=>p.retStatus==="✅").reduce((s,p)=>s+p.pax,0);
+  DATA.summary.outConfirmed = outConf;
+  DATA.summary.retConfirmed = retConf;
+  DATA.summary.outPending = DATA.summary.total - outConf;
+  DATA.summary.retPending = DATA.summary.total - retConf;
+  render(); // 立即重繪
+}
+
 async function allOk() {
   if (!DATA) return;
   const pend = DATA.passengers.filter(p =>
     (TRIP==="outbound" ? p.outStatus : p.retStatus) !== "✅"
   );
+  // 先全部樂觀更新
+  pend.forEach(p => {
+    if (TRIP==="outbound") p.outStatus = "✅";
+    else p.retStatus = "✅";
+  });
+  const total = DATA.summary.total;
+  if (TRIP==="outbound") { DATA.summary.outConfirmed = total; DATA.summary.outPending = 0; }
+  else { DATA.summary.retConfirmed = total; DATA.summary.retPending = 0; }
+  render();
+  // 再依序送API
   for (const p of pend) await post("confirm", p.orderNo);
 }
 
@@ -435,26 +488,44 @@ async function post(action, orderNo, isCarAction) {
     const d = await r.json();
     if (d.success) {
       if (isCarAction) {
-        // 出發/送達成功 → 更新localStorage + 重新載入
         const isClear = action.endsWith("_clr");
         const key = action.replace("_clr","") + `_${CAR}_${DATE}`;
         if (isClear) localStorage.removeItem(key);
         else localStorage.setItem(key, jstTime());
         toast(action.includes("depart") ? (isClear?"已取消出發":"🚀 已記錄出發時間") :
                                           (isClear?"已取消送達":"🏁 已記錄送達時間"));
+        // 重新載入取得正確時間
         const fr = await fetch(`${API}?action=getPassengers&car=${CAR}&date=${DATE}`);
         DATA = await fr.json();
         render();
       } else {
-        toast(action==="confirm"?"✅ 已確認上車" : action==="absent"?"❌ 標記未到" : "已重置");
+        // 乘客確認：靜默更新時間欄位，不重新 render（已樂觀更新）
         const fr = await fetch(`${API}?action=getPassengers&car=${CAR}&date=${DATE}`);
-        DATA = await fr.json();
-        render();
+        const fresh = await fr.json();
+        // 只更新時間，保持現有狀態
+        if (fresh.passengers) {
+          fresh.passengers.forEach(fp => {
+            const local = DATA.passengers.find(p => p.orderNo === fp.orderNo);
+            if (local) {
+              local.outTime = fp.outTime;
+              local.retTime = fp.retTime;
+            }
+          });
+        }
       }
     } else {
-      toast("⚠️ 操作失敗：" + (d.error||"未知錯誤"));
+      toast("⚠️ 操作失敗，請重試");
+      // API 失敗 → 重新載入真實狀態
+      const fr = await fetch(`${API}?action=getPassengers&car=${CAR}&date=${DATE}`);
+      DATA = await fr.json();
+      render();
     }
-  } catch(e) { toast("操作失敗，請重試"); }
+  } catch(e) {
+    toast("操作失敗，請重試");
+    const fr = await fetch(`${API}?action=getPassengers&car=${CAR}&date=${DATE}`);
+    DATA = await fr.json();
+    render();
+  }
 }
 
 // ── 輔助 ──
