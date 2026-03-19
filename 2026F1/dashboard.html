@@ -254,11 +254,11 @@ body {
 <script>
 const qs   = new URLSearchParams(location.search);
 let DATE   = qs.get("date") || bestDate();
-let TRIP   = qs.get("trip") || (new Date().getHours() < 12 ? "outbound" : "return");
+let TRIP   = qs.get("trip") || "outbound"; // 預設永遠是去程，手動切換回程
 let DATA   = null;
 let timer  = null;
 let soundOn = true;
-let notified = new Set(); // 已通知過的車不重複叫
+let notified = new Set();
 
 const DATE_LABEL = {
   "0326":"03/26（四）","0327":"03/27（五）",
