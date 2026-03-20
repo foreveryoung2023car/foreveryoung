@@ -348,25 +348,27 @@ async function load() {
 
 // ── 渲染 ──
 function render() {
-  const { cars, summary } = DATA;
+  if (!DATA) return;
   const isOut = TRIP === "outbound";
-  const now = jstTime();
+  const cars  = isOut ? (DATA.depCars||[]) : (DATA.retCars||[]);
+  const summ  = DATA.summary || {};
+  const now   = jstTime();
 
-  // 統計
-  const totalConf    = isOut ? summary.outConfirmed : summary.retConfirmed;
-  const totalPending = isOut ? summary.outPending   : summary.retPending;
+  const totalPax     = isOut ? (summ.depTotal||0)     : (summ.retTotal||0);
+  const totalConf    = isOut ? (summ.depConfirmed||0)  : (summ.retConfirmed||0);
+  const totalPending = isOut ? (summ.depPending||0)    : (summ.retPending||0);
   const departedCars = cars.filter(c => isOut ? c.outDepart : c.retDepart).length;
   const arrivedCars  = cars.filter(c => isOut ? c.outArrive : c.retArrive).length;
 
   let html = `
   <div class="summary-bar">
     <div class="sum-card">
-      <div class="sum-num">${summary.totalPax}</div>
+      <div class="sum-num">${totalPax}</div>
       <div class="sum-label">總乘客人數</div>
     </div>
     <div class="sum-card">
       <div class="sum-num green">${totalConf}</div>
-      <div class="sum-label">${isOut?"去程":"回程"}已確認上車</div>
+      <div class="sum-label">${isOut?"去程":"回程"}已確認</div>
     </div>
     <div class="sum-card">
       <div class="sum-num orange">${totalPending}</div>
@@ -374,42 +376,31 @@ function render() {
     </div>
     <div class="sum-card">
       <div class="sum-num blue">${departedCars}/${cars.length}</div>
-      <div class="sum-label">${isOut?"去程":"回程"}已出發車輛</div>
+      <div class="sum-label">${isOut?"去程":"回程"}已出發</div>
     </div>
   </div>`;
 
-  // ── 通知列表 ──
+  // ── 通知 ──
   const notifs = [];
   cars.forEach(car => {
     const depT = isOut ? car.outDepart : car.retDepart;
     const arrT = isOut ? car.outArrive : car.retArrive;
     const conf = isOut ? car.outConfirmed : car.retConfirmed;
-    const hasAbsent = car.passengers.some(p =>
-      (isOut ? p.outStatus : p.retStatus) === "❌"
-    );
-    const allConf = conf === car.totalPax && car.totalPax > 0;
-    const nKey = `${car.plate}_${DATE}_${TRIP}`;
+    const hasAbsent = car.passengers.some(p => (isOut?p.outStatus:p.retStatus)==="❌");
+    const allConf   = conf === car.totalPax && car.totalPax > 0;
+    const nKey = car.plate+"_"+DATE+"_"+TRIP;
+    const pt   = simplePt(car.depPt);
 
     if (arrT) {
-      notifs.push({ type:"arrive", icon:"🏁", msg:`${car.vid} ${car.plate} 已送達`,
-        sub:`${simplePt(car.depPt)}`, time:arrT });
+      notifs.push({type:"arrive",icon:"🏁",msg:`${car.vid} ${car.plate} 已送達`,sub:pt,time:arrT});
     } else if (depT) {
-      notifs.push({ type:"depart", icon:"🚀", msg:`${car.vid} ${car.plate} 已出發`,
-        sub:`${simplePt(car.depPt)}｜${conf}/${car.totalPax}人`, time:depT });
-      // 出發通知音效
-      if (!notified.has(nKey+"_dep") && soundOn) {
-        beep(); notified.add(nKey+"_dep");
-      }
+      notifs.push({type:"depart",icon:"🚀",msg:`${car.vid} ${car.plate} 已出發`,sub:pt+"｜"+conf+"/"+car.totalPax+"人",time:depT});
+      if (!notified.has(nKey+"_dep")&&soundOn){beep();notified.add(nKey+"_dep");}
     } else if (hasAbsent) {
-      notifs.push({ type:"absent", icon:"⚠️", msg:`${car.vid} ${car.plate} 有乘客未到`,
-        sub:`已確認 ${conf}/${car.totalPax}人`, time:"" });
+      notifs.push({type:"absent",icon:"⚠️",msg:`${car.vid} ${car.plate} 有乘客未到`,sub:"已確認 "+conf+"/"+car.totalPax+"人",time:""});
     } else if (allConf) {
-      notifs.push({ type:"ready", icon:"✅", msg:`${car.vid} ${car.plate} 人數到齊！`,
-        sub:`${car.totalPax}人 全部確認，可準備出發`, time:"" });
-      // 到齊通知音效
-      if (!notified.has(nKey+"_ready") && soundOn) {
-        beep(); notified.add(nKey+"_ready");
-      }
+      notifs.push({type:"ready",icon:"✅",msg:`${car.vid} ${car.plate} 人數到齊！`,sub:car.totalPax+"人全部確認，可準備出發",time:""});
+      if (!notified.has(nKey+"_ready")&&soundOn){beep();notified.add(nKey+"_ready");}
     }
   });
 
@@ -430,28 +421,32 @@ function render() {
   }
 
   // ── 車輛清單 ──
-  html += `<div class="cars-wrap"><div class="notif-title" style="margin-top:${notifs.length?8:14}px">🚌 各車狀況</div>`;
+  html += `<div class="cars-wrap"><div class="notif-title" style="margin-top:${notifs.length?8:14}px">${isOut?"🚌 去程":"🔁 回程"} 各車狀況</div>`;
+
+  if (cars.length === 0) {
+    html += `<div style="text-align:center;padding:40px;color:var(--muted)">暫無資料</div>`;
+  }
 
   cars.forEach(car => {
-    const depT   = isOut ? car.outDepart : car.retDepart;
-    const arrT   = isOut ? car.outArrive : car.retArrive;
-    const conf   = isOut ? car.outConfirmed : car.retConfirmed;
-    const hasAbsent = car.passengers.some(p =>
-      (isOut ? p.outStatus : p.retStatus) === "❌"
-    );
-    const allConf = conf === car.totalPax && car.totalPax > 0;
+    const depT = isOut ? car.outDepart : car.retDepart;
+    const arrT = isOut ? car.outArrive : car.retArrive;
+    const conf = isOut ? car.outConfirmed : car.retConfirmed;
+    const hasAbsent = car.passengers.some(p => (isOut?p.outStatus:p.retStatus)==="❌");
+    const allConf   = conf === car.totalPax && car.totalPax > 0;
+    const pt  = simplePt(car.depPt);
 
-    // 狀態
-    let rowClass = "", badgeClass = "", badgeText = "";
-    if (arrT)            { rowClass="arrived";    badgeClass="badge-arrive"; badgeText=`🏁 已送達 ${arrT}`; }
-    else if (depT)       { rowClass="departed";   badgeClass="badge-depart"; badgeText=`🚀 已出發 ${depT}`; }
-    else if (hasAbsent)  { rowClass="has-absent"; badgeClass="badge-absent"; badgeText="⚠️ 有人未到"; }
-    else if (allConf)    { rowClass="all-ok";     badgeClass="badge-ready";  badgeText="✅ 人數到齊"; }
-    else                 { rowClass="";           badgeClass="badge-wait";   badgeText=`等待中 ${conf}/${car.totalPax}`; }
+    let rowClass="", badgeClass="", badgeText="";
+    if      (arrT)       {rowClass="arrived";    badgeClass="badge-arrive";badgeText="🏁 已送達 "+arrT;}
+    else if (depT)       {rowClass="departed";   badgeClass="badge-depart";badgeText="🚀 已出發 "+depT;}
+    else if (hasAbsent)  {rowClass="has-absent"; badgeClass="badge-absent";badgeText="⚠️ 有人未到";}
+    else if (allConf)    {rowClass="all-ok";     badgeClass="badge-ready"; badgeText="✅ 人數到齊";}
+    else                 {rowClass="";           badgeClass="badge-wait";  badgeText="等待中 "+conf+"/"+car.totalPax;}
 
-    // 時間軸：上車確認 → 已出發 → 已送達
-    const tlConf  = conf === car.totalPax && car.totalPax > 0;
-    const tlPart  = conf > 0 && conf < car.totalPax;
+    const tlConf = conf === car.totalPax && car.totalPax > 0;
+    const tlPart = conf > 0 && conf < car.totalPax;
+    const depPtLabel = isOut
+      ? "🚌 上車："+pt
+      : "🔁 下車："+pt+(car.retTime?"｜"+car.retTime:"");
 
     html += `
     <div class="car-row ${rowClass}">
@@ -460,11 +455,7 @@ function render() {
           <div class="plate">${car.plate}</div>
           <div>
             <div class="car-vid">${car.vid}</div>
-            <div class="car-type">
-              ${isOut
-                ? `🚌 去程上車：${simplePt(car.depPt)}`
-                : `🔁 回程下車：${simplePt(car.depPt)}｜${car.retTime}`}
-            </div>
+            <div class="car-type">${depPtLabel}</div>
           </div>
         </div>
         <div class="car-head-right">
@@ -472,38 +463,27 @@ function render() {
           <div class="status-badge ${badgeClass}">${badgeText}</div>
         </div>
       </div>
-
-      <!-- 時間軸 -->
       <div class="car-timeline">
         <div class="tl-item ${tlConf?"done":tlPart?"done":""}">
-          <div class="tl-dot ${tlConf?"done":tlPart?"partial":""}">
-            ${tlConf?"✓":tlPart?conf:""}
-          </div>
+          <div class="tl-dot ${tlConf?"done":tlPart?"partial":""}">${tlConf?"✓":tlPart?conf:""}</div>
           <div class="tl-label">上車確認</div>
           <div class="tl-time">${conf}/${car.totalPax}</div>
         </div>
         <div class="tl-item ${depT?"done":""}">
-          <div class="tl-dot ${depT?"done":allConf?"active":""}">
-            ${depT?"✓":""}
-          </div>
+          <div class="tl-dot ${depT?"done":allConf?"active":""}">${depT?"✓":""}</div>
           <div class="tl-label">已出發</div>
           <div class="tl-time">${depT||"–"}</div>
         </div>
         <div class="tl-item">
-          <div class="tl-dot ${arrT?"done":""}">
-            ${arrT?"✓":""}
-          </div>
+          <div class="tl-dot ${arrT?"done":""}">${arrT?"✓":""}</div>
           <div class="tl-label">已送達</div>
           <div class="tl-time">${arrT||"–"}</div>
         </div>
       </div>
-
-      <!-- 乘客標籤 -->
       <div class="pax-tags">
         ${car.passengers.map(p => {
-          const st = isOut ? p.outStatus : p.retStatus;
-          const cls = st==="✅"?"ok":st==="❌"?"absent":"";
-          return `<span class="pax-tag ${cls}">${p.name}×${p.pax}</span>`;
+          const st = isOut?p.outStatus:p.retStatus;
+          return `<span class="pax-tag ${st==="✅"?"ok":st==="❌"?"absent":""}">${p.name}×${p.pax}</span>`;
         }).join("")}
       </div>
     </div>`;
