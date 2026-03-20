@@ -304,17 +304,18 @@ function render() {
 發車：${dateLabel} ${timeLabel}
 ${names} 尚未抵達乘車位置，請盡速上車，逾時不候。感謝～`;
 
+    const missingPaxCount = missingPax;
     h += `
     <div style="padding:0 0 16px">
-      <button onclick="copyMsg()" id="copyMsgBtn"
+      <button onclick="copyMsg(this)" id="copyMsgBtn"
+        data-msg="${msg.replace(/"/g,'&quot;').replace(/\n/g,'\\n')}"
         style="width:100%;padding:15px;border-radius:12px;border:none;
         background:#e8002d;color:#fff;font-size:15px;font-weight:900;
         cursor:pointer;font-family:'Noto Sans TC',sans-serif;
         box-shadow:0 4px 14px rgba(232,0,45,.3)">
-        📢 複製催車通知（${missingPax}人未到）
+        📢 複製催車通知（${missingPaxCount}人未到）
       </button>
     </div>`;
-    h += `<script>window._pendingMsg = ${JSON.stringify(msg)};<\/script>`;
   }
 
   h += '</div>';
@@ -429,27 +430,31 @@ function showToast(msg) {
   setTimeout(()=>{ t.className="toast"; }, 2000);
 }
 
-async function copyMsg() {
-  const msg = window._pendingMsg || "";
+async function copyMsg(btn) {
+  if (!btn) btn = document.getElementById("copyMsgBtn");
+  if (!btn) return;
+  const msg = (btn.getAttribute("data-msg") || "").replace(/\\n/g, "\n");
   if (!msg) return;
 
-  const btn = document.getElementById("copyMsgBtn");
+  const origText = btn.textContent;
 
-  // 方法1：navigator.clipboard（需HTTPS）
+  // 方法1：navigator.clipboard
   if (navigator.clipboard && window.isSecureContext) {
     try {
       await navigator.clipboard.writeText(msg);
+      btn.textContent = "✅ 已複製！";
+      btn.style.background = "#16a34a";
+      setTimeout(() => { btn.textContent = origText; btn.style.background = "#e8002d"; }, 2500);
       showToast("✅ 已複製！貼到 LINE 傳送給乘客");
-      if (btn) { btn.textContent = "✅ 已複製！"; setTimeout(()=>{ btn.textContent = "📢 複製催車通知"; }, 2000); }
       return;
     } catch(e) {}
   }
 
-  // 方法2：textarea + execCommand（舊版瀏覽器）
+  // 方法2：textarea + execCommand
   try {
     const ta = document.createElement("textarea");
     ta.value = msg;
-    ta.style.cssText = "position:fixed;top:0;left:0;width:2em;height:2em;padding:0;border:none;outline:none;box-shadow:none;background:transparent;opacity:0;";
+    ta.style.cssText = "position:fixed;top:0;left:0;width:2em;height:2em;padding:0;border:none;outline:none;opacity:0;";
     document.body.appendChild(ta);
     ta.focus();
     ta.select();
@@ -457,14 +462,16 @@ async function copyMsg() {
     const ok = document.execCommand("copy");
     document.body.removeChild(ta);
     if (ok) {
+      btn.textContent = "✅ 已複製！";
+      btn.style.background = "#16a34a";
+      setTimeout(() => { btn.textContent = origText; btn.style.background = "#e8002d"; }, 2500);
       showToast("✅ 已複製！貼到 LINE 傳送給乘客");
-      if (btn) { btn.textContent = "✅ 已複製！"; setTimeout(()=>{ btn.textContent = "📢 複製催車通知"; }, 2000); }
       return;
     }
   } catch(e) {}
 
-  // 方法3：都失敗就顯示訊息讓用戶手動複製
-  prompt("請手動複製以下訊息：", msg);
+  // 方法3：prompt 手動複製
+  prompt("請長按全選後複製：", msg);
 }
 </script>
 </body>
