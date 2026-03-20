@@ -1,478 +1,655 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>旅乘 F1 鈴鹿接駁 - 司機</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;900&display=swap');
-:root{--red:#e8002d;--bg:#f0f2f5;--card:#fff;--border:#e2e8f0;--text:#0f172a;--muted:#64748b;--green:#16a34a;--purple:#7c3aed;--orange:#ea580c;--r:14px}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:60px}
-.hdr{background:var(--red);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:99;box-shadow:0 2px 10px rgba(232,0,45,.3)}
-.hdr-left{display:flex;align-items:center;gap:8px}
-.hdr-logo{font-size:20px;font-weight:900;color:#fff}
-.hdr-badge{background:rgba(255,255,255,.22);color:#fff;font-size:10px;font-weight:700;letter-spacing:1.5px;padding:3px 7px;border-radius:4px}
-.hdr-info{font-size:13px;color:rgba(255,255,255,.92);font-weight:600}
-.car-bar{background:#1e293b;padding:10px 18px;display:none;align-items:center;gap:10px;flex-wrap:wrap}
-.car-bar.show{display:flex}
-.car-vid{font-size:18px;font-weight:900;color:#fff}
-.car-plate{background:var(--red);color:#fff;font-size:14px;font-weight:800;padding:4px 14px;border-radius:6px}
-.car-type{font-size:13px;color:#94a3b8}
-/* 去程/回程標籤 */
-.trip-bar{display:flex;background:#fff;border-bottom:2px solid var(--border);position:sticky;top:52px;z-index:98}
-.trip-btn{flex:1;padding:14px 8px;text-align:center;font-size:15px;font-weight:700;color:var(--muted);border:none;border-bottom:3px solid transparent;background:none;cursor:pointer;transition:all .2s;font-family:'Noto Sans TC',sans-serif;margin-bottom:-2px}
-.trip-btn.out.active{color:var(--red);border-bottom-color:var(--red)}
-.trip-btn.ret.active{color:var(--purple);border-bottom-color:var(--purple)}
-.wrap{padding:14px;max-width:560px;margin:0 auto}
-.car-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,.06)}
-.car-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.car-item{font-size:14px;color:var(--muted);font-weight:500}
-.car-item b{display:block;color:var(--text);font-weight:800;font-size:18px;margin-top:3px}
-.seg-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:800;margin-bottom:14px}
-.seg-out{background:#fee2e2;color:var(--red)}
-.seg-ret{background:#ede9fe;color:var(--purple)}
-.action-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.act-btn{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:16px 12px;text-align:center;cursor:pointer;transition:all .2s}
-.act-btn .icon{font-size:22px;display:block;margin-bottom:4px}
-.act-btn .label{font-size:14px;font-weight:700;color:var(--muted)}
-.act-btn .time{font-size:12px;font-weight:600;color:var(--green);margin-top:2px}
-.act-btn.dep-on{background:#fff7ed;border-color:var(--orange)}
-.act-btn.dep-on .label{color:var(--orange)}
-.act-btn.arr-on{background:#f0fdf4;border-color:var(--green)}
-.act-btn.arr-on .label{color:var(--green)}
-.prog-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:12px}
-.prog-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.prog-label{font-size:14px;font-weight:700}
-.prog-num{font-size:20px;font-weight:900}
-.prog-num.done{color:var(--green)}
-.prog-bar{height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden}
-.prog-fill{height:100%;background:var(--green);transition:width .4s}
-.pax-list{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px}
-.pax-hdr{padding:12px 18px;background:#f8fafc;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
-.pax-hdr-title{font-size:14px;font-weight:800}
-.confirm-all-btn{font-size:12px;font-weight:700;color:var(--green);background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:5px 12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif}
-.pax-row{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}
-.pax-row:last-child{border-bottom:none}
-.pax-info{}
-.pax-name{font-size:16px;font-weight:800}
-.pax-order{font-size:12px;color:var(--muted);margin-top:2px}
-.pax-count{background:#f1f5f9;border-radius:20px;padding:3px 10px;font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap}
-.pax-btns{display:flex;gap:6px;flex-shrink:0}
-.chk-btn{width:38px;height:38px;border-radius:10px;border:2px solid var(--border);font-size:18px;cursor:pointer;background:var(--card);transition:all .2s;display:flex;align-items:center;justify-content:center}
-.chk-btn.on-ok{background:#f0fdf4;border-color:var(--green)}
-.chk-btn.on-ng{background:#fff5f5;border-color:#ef4444}
-.empty{text-align:center;padding:60px 20px}
-.empty .ico{font-size:48px;margin-bottom:12px}
-.empty .ttl{font-size:18px;font-weight:800;margin-bottom:6px}
-.empty .sub{font-size:14px;color:var(--muted)}
-.loading{text-align:center;padding:60px 20px}
-.spin{width:40px;height:40px;border:4px solid var(--border);border-top-color:var(--red);border-radius:50%;animation:sp .8s linear infinite;margin:0 auto}
-@keyframes sp{to{transform:rotate(360deg)}}
-.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);background:#1e293b;color:#fff;padding:10px 24px;border-radius:30px;font-size:14px;font-weight:700;opacity:0;transition:all .3s;z-index:999;pointer-events:none;white-space:nowrap}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.refresh-btn{background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:16px}
-.no-pax{text-align:center;padding:30px;color:var(--muted);font-size:14px}
-</style>
-</head>
-<body>
+/**
+ * 鈴鹿賽車接駁 - 司機簽到系統 API v3
+ * 配合 writeAssignment_v7 的新統整表結構
+ *
+ * 統整Sheet 欄位（A~V，共22欄）：
+ * A  區段（去程/回程）
+ * B  日期
+ * C  出發時間
+ * D  預計抵達
+ * E  車號
+ * F  車牌
+ * G  車款
+ * H  客座
+ * I  上/下車地點
+ * J  回程時段
+ * K  訂單編號
+ * L  姓名
+ * M  當日人數
+ * N  車上總人數
+ * O  去程確認
+ * P  去程確認時間
+ * Q  回程確認
+ * R  回程確認時間
+ * S  去程已出發
+ * T  去程已送達
+ * U  回程已出發
+ * V  回程已送達
+ */
 
-<div class="hdr">
-  <div class="hdr-left">
-    <div class="hdr-logo">旅乘包車</div>
-    <div class="hdr-badge">司機</div>
-  </div>
-  <div style="display:flex;align-items:center;gap:8px">
-    <div class="hdr-info" id="hdrInfo"></div>
-    <button class="refresh-btn" onclick="load()" title="重新整理">🔄</button>
-  </div>
-</div>
+const SHEET_NAME = "統整";
 
-<div class="car-bar" id="carBar">
-  <div class="car-vid"   id="carVid"></div>
-  <div class="car-plate" id="carPlate"></div>
-  <div class="car-type"  id="carType"></div>
-</div>
+const COL = {
+  SEGMENT:    0,  // A 區段（去程/回程）
+  DATE:       1,  // B 日期
+  DEP_TIME:   2,  // C 出發時間
+  ARR_TIME:   3,  // D 預計抵達
+  VID:        4,  // E 車號
+  PLATE:      5,  // F 車牌
+  VTYPE:      6,  // G 車款
+  CAP:        7,  // H 客座
+  DEP_PT:     8,  // I 上/下車地點
+  RET_TIME:   9,  // J 回程時段
+  ORDER_NO:   10, // K 訂單編號
+  NAME:       11, // L 姓名
+  PAX:        12, // M 當日人數
+  TOTAL:      13, // N 車上總人數
+  OUT_STATUS: 14, // O 去程確認
+  OUT_TIME:   15, // P 去程確認時間
+  RET_STATUS: 16, // Q 回程確認
+  RET_TIME2:  17, // R 回程確認時間
+  OUT_DEPART: 18, // S 去程已出發
+  OUT_ARRIVE: 19, // T 去程已送達
+  RET_DEPART: 20, // U 回程已出發
+  RET_ARRIVE: 21, // V 回程已送達
+};
 
-<div class="trip-bar" id="tripBar" style="display:none">
-  <button class="trip-btn out active" id="btnOut" onclick="setTrip('outbound')">🚌 去程</button>
-  <button class="trip-btn ret"        id="btnRet" onclick="setTrip('return')">🔁 回程</button>
-</div>
-
-<div id="main"><div class="loading"><div class="spin"></div></div></div>
-<div class="toast" id="toast"></div>
-
-<script src="config.js"></script>
-<script>
-const qs   = new URLSearchParams(location.search);
-const CAR  = qs.get("car")  || "";
-const DATE = qs.get("date") || bestDate();
-const DATE_LABEL = {"0326":"03/26（四）","0327":"03/27（五）","0328":"03/28（六）","0329":"03/29（日）"};
-const SUZUKA = "鈴鹿賽車場 Motopia";
-
-function bestDate() {
-  const n = new Date();
-  const jst = new Date(n.getTime()+(9*60+n.getTimezoneOffset())*60000);
-  const s = String(jst.getMonth()+1).padStart(2,"0")+String(jst.getDate()).padStart(2,"0");
-  return ["0326","0327","0328","0329"].find(d=>d>=s)||"0329";
-}
-function jstHour() {
+// =============================================
+// GET
+// =============================================
+function doGet(e) {
+  const action = e.parameter.action || "";
+  const car    = e.parameter.car    || "";
+  const date   = e.parameter.date   || "";
+  let result;
   try {
-    const s = new Date().toLocaleString("ja-JP",{timeZone:"Asia/Tokyo",hour:"2-digit",hour12:false});
-    return parseInt(s.replace(/[^\d]/g,""));
-  } catch(e) {
-    const d = new Date();
-    return new Date(d.getTime()+(9*60+d.getTimezoneOffset())*60000).getHours();
-  }
+    if      (action === "getPassengers") result = getPassengers(car, date);
+    else if (action === "getDashboard")  result = getDashboard(date);
+    else if (action === "findCar")       result = findCar(e.parameter.num || "", date);
+    else if (action === "findPassenger") result = findPassenger(e.parameter.phone || "", e.parameter.name || "");
+    else if (action === "debug")         result = debugSheet();
+    else if (action === "stats")         result = getStats();
+    else result = { error: "未知 action" };
+  } catch(err) { result = { error: err.message }; }
+  return jsonOut(result);
 }
-function jstTime() {
+
+// =============================================
+// POST
+// =============================================
+function doPost(e) {
+  let body;
+  try { body = JSON.parse(e.postData.contents); }
+  catch(err) { return jsonOut({ error: "JSON 格式錯誤" }); }
+
+  const { action, orderNo, date, trip, car, time } = body;
+  let result;
   try {
-    return new Date().toLocaleString("ja-JP",{timeZone:"Asia/Tokyo",hour:"2-digit",minute:"2-digit",hour12:false}).replace(/[^\d:]/g,"").substring(0,5);
-  } catch(e) {
-    const jst = new Date(new Date().getTime()+(9*60+new Date().getTimezoneOffset())*60000);
-    return String(jst.getHours()).padStart(2,"0")+":"+String(jst.getMinutes()).padStart(2,"0");
+    if      (action === "confirm")        result = updateStatus(orderNo, date, trip, "✅");
+    else if (action === "absent")         result = updateStatus(orderNo, date, trip, "❌");
+    else if (action === "reset")          result = updateStatus(orderNo, date, trip, "");
+    else if (action === "out_depart")     result = updateCarCol(car, date, "去程", COL.OUT_DEPART, time||now());
+    else if (action === "out_arrive")     result = updateCarCol(car, date, "去程", COL.OUT_ARRIVE, time||now());
+    else if (action === "ret_depart")     result = updateCarCol(car, date, "回程", COL.RET_DEPART, time||now());
+    else if (action === "ret_arrive")     result = updateCarCol(car, date, "回程", COL.RET_ARRIVE, time||now());
+    else if (action === "out_depart_clr") result = updateCarCol(car, date, "去程", COL.OUT_DEPART, "");
+    else if (action === "out_arrive_clr") result = updateCarCol(car, date, "去程", COL.OUT_ARRIVE, "");
+    else if (action === "ret_depart_clr") result = updateCarCol(car, date, "回程", COL.RET_DEPART, "");
+    else if (action === "ret_arrive_clr") result = updateCarCol(car, date, "回程", COL.RET_ARRIVE, "");
+    else result = { error: "未知 action" };
+  } catch(err) { result = { error: err.message }; }
+  return jsonOut(result);
+}
+
+function jsonOut(data) {
+  return ContentService
+    .createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// =============================================
+// 取得乘客名單（司機用）
+// car: 車牌, date: "0329", trip: "outbound"/"return"
+// =============================================
+function getPassengers(car, date) {
+  const sheet   = getSheet();
+  const data    = sheet.getDataRange().getValues();
+  const dateStr = fmtDate(date);
+
+  // 去程資訊
+  let depInfo = null;
+  const depPassengers = [];
+  // 回程資訊
+  let retInfo = null;
+  const retPassengers = [];
+
+  let lastSegment = "";
+  let lastDate    = "";
+  let lastPlate   = "";
+  let lastVid     = "";
+  let lastVtype   = "";
+  let lastDepPt   = "";
+  let lastDepTime = "";
+  let lastRetTime = "";
+  let lastCap     = 0;
+  let lastTotal   = 0;
+  let lastOutDepart = "";
+  let lastOutArrive = "";
+  let lastRetDepart = "";
+  let lastRetArrive = "";
+
+  for (let i = 1; i < data.length; i++) {
+    const row       = data[i];
+    const rowSeg    = String(row[COL.SEGMENT] || "").trim();
+    const rowDate   = String(row[COL.DATE]    || "").trim();
+    const rowPlate  = String(row[COL.PLATE]   || "").trim();
+    const rowOrder  = String(row[COL.ORDER_NO]|| "").trim();
+
+    if (rowSeg)   lastSegment = rowSeg;
+    if (rowDate)  lastDate    = rowDate;
+
+    if (!lastDate.includes(dateStr)) continue;
+
+    if (rowPlate && rowPlate !== "？") {
+      lastPlate     = rowPlate;
+      lastVid       = String(row[COL.VID]).trim();
+      lastVtype     = String(row[COL.VTYPE]).trim();
+      lastDepPt     = String(row[COL.DEP_PT]).trim();
+      lastDepTime   = fmtTime(row[COL.DEP_TIME]);
+      lastRetTime   = fmtTime(row[COL.RET_TIME]);
+      lastCap       = Number(row[COL.CAP]);
+      lastTotal     = Number(row[COL.TOTAL]);
+      lastOutDepart = fmtTime(row[COL.OUT_DEPART] || "");
+      lastOutArrive = fmtTime(row[COL.OUT_ARRIVE] || "");
+      lastRetDepart = fmtTime(row[COL.RET_DEPART] || "");
+      lastRetArrive = fmtTime(row[COL.RET_ARRIVE] || "");
+    }
+
+    if (lastPlate !== car) continue;
+    if (!rowOrder || rowOrder === "－") continue;
+
+    const paxObj = {
+      orderNo:   rowOrder,
+      name:      String(row[COL.NAME]).trim(),
+      pax:       Number(row[COL.PAX]),
+      outStatus: String(row[COL.OUT_STATUS] || "").trim(),
+      outTime:   fmtTime(row[COL.OUT_TIME]  || ""),
+      retStatus: String(row[COL.RET_STATUS] || "").trim(),
+      retTime:   fmtTime(row[COL.RET_TIME2] || ""),
+    };
+
+    if (lastSegment === "去程") {
+      if (!depInfo) {
+        depInfo = {
+          vid: lastVid, plate: lastPlate, vtype: lastVtype,
+          cap: lastCap, depPt: lastDepPt, depTime: lastDepTime,
+          total: lastTotal, outDepart: lastOutDepart, outArrive: lastOutArrive,
+        };
+      }
+      depPassengers.push(paxObj);
+    } else if (lastSegment === "回程") {
+      if (!retInfo) {
+        retInfo = {
+          vid: lastVid, plate: lastPlate, vtype: lastVtype,
+          cap: lastCap, retPt: lastDepPt, retTime: lastRetTime,
+          total: lastTotal, retDepart: lastRetDepart, retArrive: lastRetArrive,
+        };
+      }
+      retPassengers.push(paxObj);
+    }
   }
+
+  const outConf = depPassengers.filter(p=>p.outStatus==="✅").reduce((s,p)=>s+p.pax,0);
+  const retConf = retPassengers.filter(p=>p.retStatus==="✅").reduce((s,p)=>s+p.pax,0);
+  const depTotal = depPassengers.reduce((s,p)=>s+p.pax,0);
+  const retTotal = retPassengers.reduce((s,p)=>s+p.pax,0);
+
+  return {
+    depInfo, retInfo,
+    depPassengers, retPassengers,
+    summary: {
+      depTotal, retTotal,
+      outConfirmed: outConf, outPending: depTotal - outConf,
+      retConfirmed: retConf, retPending: retTotal - retConf,
+    }
+  };
 }
 
-function simplePt(pt) {
-  if (!pt) return "";
-  if (pt.includes("榮")||pt.includes("栄")) return "榮站";
-  if (pt.includes("名駅")||pt.includes("名古屋")) return "名古屋站";
-  return pt;
-}
+// =============================================
+// 取得總表
+// =============================================
+function getDashboard(date) {
+  const sheet   = getSheet();
+  const data    = sheet.getDataRange().getValues();
+  const dateStr = fmtDate(date);
 
-let TRIP = qs.get("trip") || (jstHour() < 12 ? "outbound" : "return");
-let DATA = null;
+  const depMap = {};
+  const retMap = {};
 
-window.addEventListener("load", () => {
-  if (!CAR) { showNoCar(); return; }
-  document.getElementById("tripBar").style.display = "flex";
-  document.getElementById("hdrInfo").textContent = DATE_LABEL[DATE]||DATE;
-  updateTripUI();
-  load();
-});
+  let lastSegment = "";
+  let lastDate    = "";
+  let lastPlate   = "";
+  let lastVid     = "";
+  let lastVtype   = "";
+  let lastDepPt   = "";
+  let lastDepTime = "";
+  let lastRetTime = "";
+  let lastOutDepart = "";
+  let lastOutArrive = "";
+  let lastRetDepart = "";
+  let lastRetArrive = "";
 
-function setTrip(trip) {
-  TRIP = trip;
-  updateTripUI();
-  if (DATA) render();
-}
-function updateTripUI() {
-  document.getElementById("btnOut").className = "trip-btn out "+(TRIP==="outbound"?"active":"");
-  document.getElementById("btnRet").className = "trip-btn ret "+(TRIP==="return"?"active":"");
-}
+  for (let i = 1; i < data.length; i++) {
+    const row      = data[i];
+    const rowSeg   = String(row[COL.SEGMENT] || "").trim();
+    const rowDate  = String(row[COL.DATE]    || "").trim();
+    const rowPlate = String(row[COL.PLATE]   || "").trim();
+    const rowOrder = String(row[COL.ORDER_NO]|| "").trim();
 
-async function load() {
-  document.getElementById("main").innerHTML = '<div class="loading"><div class="spin"></div></div>';
-  try {
-    const r = await fetch(API+"?action=getPassengers&car="+encodeURIComponent(CAR)+"&date="+DATE);
-    DATA = await r.json();
-    render();
-  } catch(e) {
-    document.getElementById("main").innerHTML =
-      '<div class="empty"><div class="ico">⚠️</div><div class="ttl">載入失敗</div><div class="sub">請重新整理頁面</div></div>';
-  }
-}
+    if (rowSeg)  lastSegment = rowSeg;
+    if (rowDate) lastDate    = rowDate;
 
-function render() {
-  const isOut = TRIP === "outbound";
+    if (!lastDate.includes(dateStr)) continue;
 
-  // 根據去程/回程取對應資訊
-  const info  = isOut ? DATA.depInfo  : DATA.retInfo;
-  const paxList = isOut ? DATA.depPassengers : DATA.retPassengers;
-  const summ  = DATA.summary;
+    if (rowPlate && rowPlate !== "？") {
+      lastPlate     = rowPlate;
+      lastVid       = String(row[COL.VID]).trim();
+      lastVtype     = String(row[COL.VTYPE]).trim();
+      lastDepPt     = String(row[COL.DEP_PT]).trim();
+      lastDepTime   = fmtTime(row[COL.DEP_TIME]);
+      lastRetTime   = fmtTime(row[COL.RET_TIME]);
+      lastOutDepart = fmtTime(row[COL.OUT_DEPART] || "");
+      lastOutArrive = fmtTime(row[COL.OUT_ARRIVE] || "");
+      lastRetDepart = fmtTime(row[COL.RET_DEPART] || "");
+      lastRetArrive = fmtTime(row[COL.RET_ARRIVE] || "");
+    }
 
-  // 更新車號列
-  const carBar = document.getElementById("carBar");
-  carBar.className = "car-bar show";
+    if (!lastPlate) continue;
+    if (!rowOrder || rowOrder === "－") continue;
 
-  if (info) {
-    document.getElementById("carVid").textContent   = info.vid   || "";
-    document.getElementById("carPlate").textContent = info.plate || CAR;
-    document.getElementById("carType").textContent  = info.vtype || "";
-  } else {
-    document.getElementById("carVid").textContent   = CAR;
-    document.getElementById("carPlate").textContent = "";
-    document.getElementById("carType").textContent  = "";
-  }
+    const carKey = lastVid + "_" + lastDate;
+    const map    = lastSegment === "去程" ? depMap : retMap;
 
-  const conf  = isOut ? summ.outConfirmed : summ.retConfirmed;
-  const total = isOut ? summ.depTotal     : summ.retTotal;
-  const pct   = total > 0 ? Math.round(conf/total*100) : 0;
-  const done  = conf === total && total > 0;
-
-  const pt = info ? simplePt(info.depPt || info.retPt || "") : "";
-  const depKey = (isOut?"out_depart":"ret_depart")+"_"+CAR+"_"+DATE;
-  const arrKey = (isOut?"out_arrive":"ret_arrive")+"_"+CAR+"_"+DATE;
-  const depT   = (isOut ? info?.outDepart : info?.retDepart) || localStorage.getItem(depKey) || "";
-  const arrT   = (isOut ? info?.outArrive : info?.retArrive) || localStorage.getItem(arrKey) || "";
-
-  let h = '<div class="wrap">';
-
-  // 區段標籤
-  h += '<div class="seg-badge '+(isOut?"seg-out":"seg-ret")+'">'+(isOut?"🚌 去程上車確認":"🔁 回程上車確認")+'</div>';
-
-  // 車輛資訊卡
-  if (info) {
-    const fromPt = isOut ? pt   : SUZUKA;
-    const toPt   = isOut ? SUZUKA : pt;
-    const depTime = isOut ? (info.depTime||"07:00") : (info.retTime||"--:--");
-    h += `
-    <div class="car-card">
-      <div class="car-grid">
-        <div class="car-item">上車地點<b>${fromPt}</b></div>
-        <div class="car-item">下車地點<b>${toPt}</b></div>
-        <div class="car-item">出發時間<b>${depTime}</b></div>
-        <div class="car-item">乘客<b>${total} 人</b></div>
-      </div>
-    </div>`;
-  } else {
-    h += '<div class="car-card"><div style="text-align:center;color:var(--muted);padding:10px">此行程無此台車的'+(isOut?"去程":"回程")+'資料</div></div>';
-  }
-
-  // 已出發/已送達
-  h += `
-  <div class="action-row">
-    <div class="act-btn ${depT?"dep-on":""}" onclick="toggleDep()">
-      <span class="icon">🚀</span>
-      <span class="label">${depT?"已出發":"標記已出發"}</span>
-      ${depT?'<div class="time">'+depT+'</div>':""}
-    </div>
-    <div class="act-btn ${arrT?"arr-on":""}" onclick="toggleArr()">
-      <span class="icon">🏁</span>
-      <span class="label">${arrT?"已送達":"標記已送達"}</span>
-      ${arrT?'<div class="time">'+arrT+'</div>':""}
-    </div>
-  </div>`;
-
-  // 進度條
-  h += `
-  <div class="prog-card">
-    <div class="prog-top">
-      <div class="prog-label">${isOut?"去程上車":"回程上車"}確認</div>
-      <div class="prog-num ${done?"done":""}">${conf} / ${total} 人</div>
-    </div>
-    <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
-  </div>`;
-
-  // 乘客名單
-  if (!paxList || paxList.length === 0) {
-    h += '<div class="car-card"><div class="no-pax">此行程無乘客資料</div></div>';
-  } else {
-    h += `
-    <div class="pax-list">
-      <div class="pax-hdr">
-        <div class="pax-hdr-title">乘客名單（${paxList.length} 組）</div>
-        <button class="confirm-all-btn" onclick="confirmAll()">一鍵全確認</button>
-      </div>`;
-
-    paxList.forEach(p => {
-      const st     = isOut ? p.outStatus : p.retStatus;
-      const isOk   = st === "✅";
-      const isNg   = st === "❌";
-      h += `
-      <div class="pax-row" id="row_${p.orderNo}">
-        <div class="pax-info">
-          <div class="pax-name">${p.name}</div>
-          <div class="pax-order">${p.orderNo}</div>
-        </div>
-        <div class="pax-count">×${p.pax}人</div>
-        <div class="pax-btns">
-          <button class="chk-btn ${isOk?"on-ok":""}" onclick="setPax('${p.orderNo}','confirm')" title="確認">✅</button>
-          <button class="chk-btn ${isNg?"on-ng":""}" onclick="setPax('${p.orderNo}','absent')"  title="未到">❌</button>
-        </div>
-      </div>`;
+    if (!map[carKey]) {
+      map[carKey] = {
+        vid: lastVid, plate: lastPlate, vtype: lastVtype,
+        depPt: lastDepPt, depTime: lastDepTime, retTime: lastRetTime,
+        outDepart: lastOutDepart, outArrive: lastOutArrive,
+        retDepart: lastRetDepart, retArrive: lastRetArrive,
+        passengers: [],
+      };
+    }
+    map[carKey].passengers.push({
+      orderNo:   rowOrder,
+      name:      String(row[COL.NAME]).trim(),
+      pax:       Number(row[COL.PAX]),
+      outStatus: String(row[COL.OUT_STATUS] || "").trim(),
+      retStatus: String(row[COL.RET_STATUS] || "").trim(),
     });
-    h += '</div>';
   }
 
-  // ── 一鍵複製催車通知（未確認 + 標記未到 都算）──
-  const missingList = (paxList || []).filter(p => {
-    const st = isOut ? p.outStatus : p.retStatus;
-    return st !== "✅"; // 空白或❌都算未到
+  function summarizeCars(map) {
+    return Object.values(map).map(car => {
+      const total   = car.passengers.reduce((s,p)=>s+p.pax, 0);
+      const outConf = car.passengers.filter(p=>p.outStatus==="✅").reduce((s,p)=>s+p.pax, 0);
+      const retConf = car.passengers.filter(p=>p.retStatus==="✅").reduce((s,p)=>s+p.pax, 0);
+      return { ...car, totalPax:total, outConfirmed:outConf, retConfirmed:retConf,
+               outPending:total-outConf, retPending:total-retConf };
+    });
+  }
+
+  const depCars = summarizeCars(depMap);
+  const retCars = summarizeCars(retMap);
+
+  const depTotal = depCars.reduce((s,c)=>s+c.totalPax, 0);
+  const retTotal = retCars.reduce((s,c)=>s+c.totalPax, 0);
+  const depConf  = depCars.reduce((s,c)=>s+c.outConfirmed, 0);
+  const retConf  = retCars.reduce((s,c)=>s+c.retConfirmed, 0);
+
+  return {
+    date: dateStr,
+    depCars, retCars,
+    summary: {
+      depTotal, retTotal, depConfirmed: depConf, retConfirmed: retConf,
+      depPending: depTotal-depConf, retPending: retTotal-retConf,
+    }
+  };
+}
+
+// =============================================
+// 更新乘客確認狀態
+// =============================================
+function updateStatus(orderNo, date, trip, status) {
+  const sheet   = getSheet();
+  const data    = sheet.getDataRange().getValues();
+  const dateStr = fmtDate(date);
+  const segment = trip === "outbound" ? "去程" : "回程";
+  let updated   = 0;
+  let lastSeg   = "";
+  let lastDate  = "";
+
+  for (let i = 1; i < data.length; i++) {
+    const row      = data[i];
+    const rowSeg   = String(row[COL.SEGMENT] || "").trim();
+    const rowDate  = String(row[COL.DATE]    || "").trim();
+    const rowOrder = String(row[COL.ORDER_NO]|| "").trim();
+
+    if (rowSeg)  lastSeg  = rowSeg;
+    if (rowDate) lastDate = rowDate;
+
+    if (!lastDate.includes(dateStr)) continue;
+    if (lastSeg !== segment) continue;
+    if (rowOrder !== orderNo) continue;
+
+    if (trip === "outbound") {
+      sheet.getRange(i+1, COL.OUT_STATUS+1).setValue(status);
+      sheet.getRange(i+1, COL.OUT_TIME+1).setValue(status ? now() : "");
+    } else {
+      sheet.getRange(i+1, COL.RET_STATUS+1).setValue(status);
+      sheet.getRange(i+1, COL.RET_TIME2+1).setValue(status ? now() : "");
+    }
+    updated++;
+  }
+  return { success:true, updated, orderNo, trip, status };
+}
+
+// =============================================
+// 更新車輛出發/送達（找該區段第一列）
+// =============================================
+function updateCarCol(car, date, segment, colIndex, value) {
+  const sheet   = getSheet();
+  const data    = sheet.getDataRange().getValues();
+  const dateStr = fmtDate(date);
+  let lastSeg   = "";
+  let lastDate  = "";
+
+  for (let i = 1; i < data.length; i++) {
+    const row      = data[i];
+    const rowSeg   = String(row[COL.SEGMENT] || "").trim();
+    const rowDate  = String(row[COL.DATE]    || "").trim();
+    const rowPlate = String(row[COL.PLATE]   || "").trim();
+
+    if (rowSeg)  lastSeg  = rowSeg;
+    if (rowDate) lastDate = rowDate;
+
+    if (!lastDate.includes(dateStr)) continue;
+    if (lastSeg !== segment) continue;
+    if (rowPlate !== car) continue;
+
+    sheet.getRange(i+1, colIndex+1).setValue(value);
+    return { success:true, car, segment, col:colIndex, value };
+  }
+  return { success:false, error:"找不到該車" };
+}
+
+// =============================================
+// 司機查詢：輸入車牌數字找車
+// =============================================
+function findCar(num, date) {
+  if (!num) return { error: "請輸入車牌號碼" };
+  const sheet   = getSheet();
+  const data    = sheet.getDataRange().getValues();
+  const dateStr = date ? fmtDate(date) : "";
+  const results = [];
+  let lastDate  = "";
+  let lastSeg   = "";
+
+  for (let i = 1; i < data.length; i++) {
+    const row      = data[i];
+    const rowSeg   = String(row[COL.SEGMENT] || "").trim();
+    const rowDate  = String(row[COL.DATE]    || "").trim();
+    const rowPlate = String(row[COL.PLATE]   || "").trim();
+    const rowVid   = String(row[COL.VID]     || "").trim();
+
+    if (rowSeg)  lastSeg  = rowSeg;
+    if (rowDate) lastDate = rowDate;
+
+    if (dateStr && !lastDate.includes(dateStr)) continue;
+    if (!rowPlate || rowPlate === "？") continue;
+    if (lastSeg !== "去程") continue; // 只用去程找車
+
+    const plateNum = rowPlate.replace(/-/g, "");
+    if (!plateNum.includes(num) && !rowPlate.includes(num)) continue;
+
+    const key = rowPlate + "_" + lastDate;
+    if (!results.find(r => r.key === key)) {
+      results.push({
+        key, date: lastDate, plate: rowPlate, vid: rowVid,
+        vtype:   String(row[COL.VTYPE]).trim(),
+        depPt:   String(row[COL.DEP_PT]).trim(),
+        depTime: fmtTime(row[COL.DEP_TIME]),
+        retTime: fmtTime(row[COL.RET_TIME]),
+      });
+    }
+  }
+
+  if (results.length === 0) return { error: "找不到此車牌，請確認號碼" };
+  return { success:true, results };
+}
+
+// =============================================
+// 客人查詢：電話+姓名
+// =============================================
+function findPassenger(phone, name) {
+  if (!phone && !name) return { error: "請輸入電話號碼與姓名" };
+
+  const ss   = SpreadsheetApp.getActiveSpreadsheet();
+  const form = ss.getSheetByName("Form Responses 1");
+  if (!form) return { error: "找不到訂單資料" };
+
+  const fData = form.getDataRange().getValues();
+  const stat  = getSheet();
+  const sData = stat.getDataRange().getValues();
+
+  const matched = [];
+
+  for (let i = 1; i < fData.length; i++) {
+    const row    = fData[i];
+    const fName  = String(row[1]).trim();
+    const fPhone = String(row[2]).trim();
+    const fOrder = String(row[12]).trim();
+    const fPaid  = row[14];
+
+    if (fPaid !== true && String(fPaid).toUpperCase() !== "TRUE") continue;
+    if (!fOrder) continue;
+
+    const phoneClean = fPhone.replace(/[-\s\(\)]/g,"");
+    const inputClean = phone.replace(/[-\s\(\)]/g,"");
+    const nameMatch  = name  && fName.includes(name);
+    const phoneMatch = inputClean && (
+      phoneClean === inputClean ||
+      phoneClean.endsWith(inputClean) ||
+      phoneClean.includes(inputClean)
+    );
+
+    // 姓名有輸入時：電話+姓名都要符合（防止同電話多人）
+    // 姓名沒輸入時：只看電話
+    if (name) {
+      if (!phoneMatch || !nameMatch) continue;
+    } else {
+      if (!phoneMatch) continue;
+    }
+
+    // 從統整Sheet 找此訂單的乘車資訊（去程+回程）
+    const bookings = {};
+    let lastSeg   = "";
+    let lastDate  = "";
+    let lastPlate = "";
+    let lastVid   = "";
+    let lastVtype = "";
+    let lastDepPt = "";
+    let lastDepTime = "";
+    let lastRetTime = "";
+
+    for (let j = 1; j < sData.length; j++) {
+      const sr      = sData[j];
+      const srSeg   = String(sr[COL.SEGMENT] || "").trim();
+      const srDate  = String(sr[COL.DATE]    || "").trim();
+      const srPlate = String(sr[COL.PLATE]   || "").trim();
+      const srOrder = String(sr[COL.ORDER_NO]|| "").trim();
+
+      if (srSeg)   lastSeg   = srSeg;
+      if (srDate)  lastDate  = srDate;
+      if (srPlate && srPlate !== "？") {
+        lastPlate   = srPlate;
+        lastVid     = String(sr[COL.VID]).trim();
+        lastVtype   = String(sr[COL.VTYPE]).trim();
+        lastDepPt   = String(sr[COL.DEP_PT]).trim();
+        lastDepTime = fmtTime(sr[COL.DEP_TIME]);
+        lastRetTime = fmtTime(sr[COL.RET_TIME]);
+      }
+
+      if (srOrder !== fOrder) continue;
+
+      const key = lastDate;
+      if (!bookings[key]) {
+        bookings[key] = {
+          date: lastDate, pax: Number(sr[COL.PAX]),
+          depPt: lastDepPt, depTime: lastDepTime,
+          depPlate: "", depVid: "", depVtype: "",
+          retPlate: "", retVid: "", retVtype: "", retTime: "",
+          outStatus: "", retStatus: "",
+          groupLink: "",
+        };
+      }
+
+      if (lastSeg === "去程") {
+        bookings[key].depPlate = lastPlate;
+        bookings[key].depVid   = lastVid;
+        bookings[key].depVtype = lastVtype;
+        bookings[key].outStatus = String(sr[COL.OUT_STATUS]||"").trim();
+      } else if (lastSeg === "回程") {
+        bookings[key].retPlate  = lastPlate;
+        bookings[key].retVid    = lastVid;
+        bookings[key].retVtype  = lastVtype;
+        bookings[key].retTime   = lastRetTime;
+        bookings[key].retStatus = String(sr[COL.RET_STATUS]||"").trim();
+      }
+    }
+
+    // 加入群組連結（按日期+站點 A/B）
+    const groupLinks = getGroupLinks();
+    const bList = Object.values(bookings).sort((a,b)=>a.date.localeCompare(b.date));
+    bList.forEach(b => {
+      const dc = b.date.match(/(\d{2})\/(\d{2})/);
+      const dateCode = dc ? dc[1]+dc[2] : "";
+      const pt = (b.depPt||"").includes("榮")||(b.depPt||"").includes("栄") ? "B" : "A";
+      b.groupLink = dateCode ? (groupLinks[dateCode+"_"+pt] || "") : "";
+    });
+
+    matched.push({ name: fName, orderNo: fOrder, bookings: bList });
+  }
+
+  if (matched.length === 0) return { error: "查無資料，請確認姓名與電話" };
+  return { success:true, passengers: matched };
+}
+
+// =============================================
+// 群組連結
+// =============================================
+// =============================================
+// 群組連結（每天分A、B兩個群組）
+// =============================================
+function getGroupLinks() {
+  return {
+    "0326_A": "https://line.me/R/ti/g/QLD2kXx4Gj",
+    "0326_B": "https://line.me/R/ti/g/6J9yc_CwhC",
+    "0327_A": "https://line.me/R/ti/g/7K-gwYQc9R",
+    "0327_B": "https://line.me/R/ti/g/3Dpp4t9KAK",
+    "0328_A": "https://line.me/R/ti/g/WkPKrb7n4G",
+    "0328_B": "https://line.me/R/ti/g/wEskGN7Kse",
+    "0329_A": "https://line.me/R/ti/g/u6CgwrbMhE",
+    "0329_B": "https://line.me/R/ti/g/JzEfyS4j7d",
+  };
+}
+
+// =============================================
+// Debug
+// =============================================
+function debugSheet() {
+  const sheet = getSheet();
+  const data  = sheet.getDataRange().getValues();
+  const result = [];
+  for (let i = 0; i < Math.min(20, data.length); i++) {
+    result.push({
+      row: i+1,
+      A: String(data[i][0]).trim(),
+      B: String(data[i][1]).trim(),
+      E: String(data[i][4]).trim(),
+      F: String(data[i][5]).trim(),
+      I: String(data[i][8]).trim(),
+      K: String(data[i][10]).trim(),
+      L: String(data[i][11]).trim(),
+    });
+  }
+  return result;
+}
+
+function getStats() {
+  const ss   = SpreadsheetApp.getActiveSpreadsheet();
+  const form = ss.getSheetByName("Form Responses 1");
+  if (!form) return { error: "找不到 Form Responses 1" };
+  const data = form.getDataRange().getValues();
+  const days = ["03/26","03/27","03/28","03/29"];
+  const stats = {};
+  days.forEach(d => {
+    stats[d] = { "A17":[],"A19":[],"B17":[],"B19":[] };
   });
-  const missingPax = missingList.reduce((s,p) => s+p.pax, 0);
-
-  if (missingList.length > 0 && info) {
-    const vidLabel  = info.vid   || "";
-    const plateLabel= info.plate || CAR;
-    const timeLabel = isOut ? (info.depTime||"07:00") : (info.retTime||"--:--");
-    const dateLabel = DATE_LABEL[DATE] || DATE;
-    const names     = missingList.map(p => p.name+"×"+p.pax+"位").join("、");
-    const msg =
-`【${vidLabel} 車牌 ${plateLabel}】
-發車：${dateLabel} ${timeLabel}
-${names} 尚未抵達乘車位置，請盡速上車，逾時不候。感謝～`;
-
-    const missingPaxCount = missingPax;
-    h += `
-    <div style="padding:0 0 16px">
-      <button onclick="copyMsg(this)" id="copyMsgBtn"
-        data-msg="${msg.replace(/"/g,'&quot;').replace(/\n/g,'\\n')}"
-        style="width:100%;padding:15px;border-radius:12px;border:none;
-        background:#e8002d;color:#fff;font-size:15px;font-weight:900;
-        cursor:pointer;font-family:'Noto Sans TC',sans-serif;
-        box-shadow:0 4px 14px rgba(232,0,45,.3)">
-        📢 複製催車通知（${missingPaxCount}人未到）
-      </button>
-    </div>`;
+  for (let i = 1; i < data.length; i++) {
+    const row    = data[i];
+    const paid   = row[14];
+    const manual = String(row[16]||"").trim();
+    const name   = String(row[1] ||"").trim();
+    const order  = String(row[12]||"").trim();
+    if (paid!==true && String(paid).toUpperCase()!=="TRUE") continue;
+    if (!manual) continue;
+    manual.split(/[；;]/).forEach(seg => {
+      seg = seg.trim();
+      const m = seg.match(/(\d{2}\/\d{2})\s+(\d+)([AB])(1[79]:\d{2})/);
+      if (!m) return;
+      const date = m[1], pax=parseInt(m[2]), pt=m[3], ret=m[4];
+      const key = pt+("17" in ret?"17":"19");
+      if (stats[date] && stats[date][key]!==undefined) {
+        stats[date][key].push({name,pax,order});
+      }
+    });
   }
-
-  h += '</div>';
-  document.getElementById("main").innerHTML = h;
+  return { success:true, stats };
 }
 
-// ── 出發/送達 ──
-async function toggleDep() {
-  const isOut  = TRIP === "outbound";
-  const action = isOut ? "out_depart" : "ret_depart";
-  const clrAct = isOut ? "out_depart_clr" : "ret_depart_clr";
-  const key    = (isOut?"out_depart":"ret_depart")+"_"+CAR+"_"+DATE;
-  const cur    = (isOut ? DATA.depInfo?.outDepart : DATA.retInfo?.retDepart) || localStorage.getItem(key) || "";
-  const seg    = isOut ? "去程" : "回程";
-
-  if (cur) {
-    await postAction({action: clrAct, car: CAR, date: DATE, segment: seg});
-    localStorage.removeItem(key);
-    if (isOut && DATA.depInfo) DATA.depInfo.outDepart = "";
-    else if (DATA.retInfo)     DATA.retInfo.retDepart = "";
-  } else {
-    const t = jstTime();
-    await postAction({action, car: CAR, date: DATE, segment: seg, time: t});
-    localStorage.setItem(key, t);
-    if (isOut && DATA.depInfo) DATA.depInfo.outDepart = t;
-    else if (DATA.retInfo)     DATA.retInfo.retDepart = t;
-  }
-  render();
+// =============================================
+// 輔助
+// =============================================
+function getSheet() {
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_NAME);
+  if (!sheet) throw new Error("找不到「統整」Sheet");
+  return sheet;
 }
 
-async function toggleArr() {
-  const isOut  = TRIP === "outbound";
-  const action = isOut ? "out_arrive" : "ret_arrive";
-  const clrAct = isOut ? "out_arrive_clr" : "ret_arrive_clr";
-  const key    = (isOut?"out_arrive":"ret_arrive")+"_"+CAR+"_"+DATE;
-  const cur    = (isOut ? DATA.depInfo?.outArrive : DATA.retInfo?.retArrive) || localStorage.getItem(key) || "";
-  const seg    = isOut ? "去程" : "回程";
-
-  if (cur) {
-    await postAction({action: clrAct, car: CAR, date: DATE, segment: seg});
-    localStorage.removeItem(key);
-    if (isOut && DATA.depInfo) DATA.depInfo.outArrive = "";
-    else if (DATA.retInfo)     DATA.retInfo.retArrive = "";
-  } else {
-    const t = jstTime();
-    await postAction({action, car: CAR, date: DATE, segment: seg, time: t});
-    localStorage.setItem(key, t);
-    if (isOut && DATA.depInfo) DATA.depInfo.outArrive = t;
-    else if (DATA.retInfo)     DATA.retInfo.retArrive = t;
-  }
-  render();
+function fmtDate(date) {
+  if (!date || date.length < 4) return "";
+  const c = date.replace(/\//g,"");
+  return c.substring(0,2)+"/"+c.substring(2,4);
 }
 
-// ── 乘客確認 ──
-async function setPax(orderNo, action) {
-  const isOut = TRIP === "outbound";
-  const trip  = isOut ? "outbound" : "return";
-  const pax   = (isOut ? DATA.depPassengers : DATA.retPassengers).find(p=>p.orderNo===orderNo);
-  if (!pax) return;
-
-  const cur    = isOut ? pax.outStatus : pax.retStatus;
-  const newSt  = (action==="confirm" && cur!=="✅") ? "confirm"
-               : (action==="absent"  && cur!=="❌") ? "absent"
-               : "reset";
-
-  // 樂觀更新
-  const newVal = newSt==="confirm"?"✅" : newSt==="absent"?"❌" : "";
-  if (isOut) pax.outStatus = newVal;
-  else       pax.retStatus = newVal;
-  if (newSt==="confirm") {
-    if (isOut) DATA.summary.outConfirmed += pax.pax;
-    else       DATA.summary.retConfirmed += pax.pax;
+function fmtTime(val) {
+  if (!val || val==="") return "";
+  if (val instanceof Date) {
+    return String(val.getHours()).padStart(2,"0")+":"+String(val.getMinutes()).padStart(2,"0");
   }
-  render();
-
+  const s = String(val).trim();
+  if (!s) return "";
+  if (/^\d{1,2}:\d{2}$/.test(s)) return s.padStart(5,"0");
   try {
-    await postAction({action: newSt, orderNo, date: DATE, trip});
-    showToast(newSt==="confirm"?"✅ 已確認" : newSt==="absent"?"❌ 標記未到" : "↩️ 已重置");
-  } catch(e) {
-    showToast("⚠️ 更新失敗");
-  }
-}
-
-async function confirmAll() {
-  const isOut  = TRIP === "outbound";
-  const paxList = isOut ? DATA.depPassengers : DATA.retPassengers;
-  for (const p of paxList) {
-    if ((isOut ? p.outStatus : p.retStatus) === "✅") continue;
-    if (isOut) { p.outStatus = "✅"; DATA.summary.outConfirmed += p.pax; }
-    else       { p.retStatus = "✅"; DATA.summary.retConfirmed += p.pax; }
-    postAction({action:"confirm", orderNo:p.orderNo, date:DATE, trip: isOut?"outbound":"return"});
-  }
-  render();
-  showToast("✅ 全部確認完成");
-}
-
-// ── API ──
-async function postAction(body) {
-  const r = await fetch(API, {method:"POST", body:JSON.stringify(body)});
-  return await r.json();
-}
-
-function showNoCar() {
-  document.getElementById("main").innerHTML =
-    '<div class="empty"><div class="ico">🚗</div><div class="ttl">請從查詢頁面進入</div><div class="sub">輸入車牌號碼後點選進入</div></div>';
-}
-
-function showToast(msg) {
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.className = "toast show";
-  setTimeout(()=>{ t.className="toast"; }, 2000);
-}
-
-async function copyMsg(btn) {
-  if (!btn) btn = document.getElementById("copyMsgBtn");
-  if (!btn) return;
-  const msg = (btn.getAttribute("data-msg") || "").replace(/\\n/g, "\n");
-  if (!msg) return;
-
-  const origText = btn.textContent;
-
-  // 方法1：navigator.clipboard
-  if (navigator.clipboard && window.isSecureContext) {
-    try {
-      await navigator.clipboard.writeText(msg);
-      btn.textContent = "✅ 已複製！";
-      btn.style.background = "#16a34a";
-      setTimeout(() => { btn.textContent = origText; btn.style.background = "#e8002d"; }, 2500);
-      showToast("✅ 已複製！貼到 LINE 傳送給乘客");
-      return;
-    } catch(e) {}
-  }
-
-  // 方法2：textarea + execCommand
-  try {
-    const ta = document.createElement("textarea");
-    ta.value = msg;
-    ta.style.cssText = "position:fixed;top:0;left:0;width:2em;height:2em;padding:0;border:none;outline:none;opacity:0;";
-    document.body.appendChild(ta);
-    ta.focus();
-    ta.select();
-    ta.setSelectionRange(0, 99999);
-    const ok = document.execCommand("copy");
-    document.body.removeChild(ta);
-    if (ok) {
-      btn.textContent = "✅ 已複製！";
-      btn.style.background = "#16a34a";
-      setTimeout(() => { btn.textContent = origText; btn.style.background = "#e8002d"; }, 2500);
-      showToast("✅ 已複製！貼到 LINE 傳送給乘客");
-      return;
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) {
+      return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
     }
   } catch(e) {}
-
-  // 方法3：prompt 手動複製
-  prompt("請長按全選後複製：", msg);
+  return s.substring(0,5);
 }
-</script>
-</body>
-</html>
+
+function now() {
+  return Utilities.formatDate(new Date(),"Asia/Tokyo","HH:mm");
+}
