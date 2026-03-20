@@ -432,21 +432,39 @@ function showToast(msg) {
 async function copyMsg() {
   const msg = window._pendingMsg || "";
   if (!msg) return;
+
+  const btn = document.getElementById("copyMsgBtn");
+
+  // 方法1：navigator.clipboard（需HTTPS）
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(msg);
+      showToast("✅ 已複製！貼到 LINE 傳送給乘客");
+      if (btn) { btn.textContent = "✅ 已複製！"; setTimeout(()=>{ btn.textContent = "📢 複製催車通知"; }, 2000); }
+      return;
+    } catch(e) {}
+  }
+
+  // 方法2：textarea + execCommand（舊版瀏覽器）
   try {
-    await navigator.clipboard.writeText(msg);
-    showToast("✅ 已複製！貼到 LINE 傳送給乘客");
-  } catch(e) {
-    // fallback for older browsers
     const ta = document.createElement("textarea");
     ta.value = msg;
-    ta.style.position = "fixed";
-    ta.style.opacity  = "0";
+    ta.style.cssText = "position:fixed;top:0;left:0;width:2em;height:2em;padding:0;border:none;outline:none;box-shadow:none;background:transparent;opacity:0;";
     document.body.appendChild(ta);
+    ta.focus();
     ta.select();
-    document.execCommand("copy");
+    ta.setSelectionRange(0, 99999);
+    const ok = document.execCommand("copy");
     document.body.removeChild(ta);
-    showToast("✅ 已複製！貼到 LINE 傳送給乘客");
-  }
+    if (ok) {
+      showToast("✅ 已複製！貼到 LINE 傳送給乘客");
+      if (btn) { btn.textContent = "✅ 已複製！"; setTimeout(()=>{ btn.textContent = "📢 複製催車通知"; }, 2000); }
+      return;
+    }
+  } catch(e) {}
+
+  // 方法3：都失敗就顯示訊息讓用戶手動複製
+  prompt("請手動複製以下訊息：", msg);
 }
 </script>
 </body>
