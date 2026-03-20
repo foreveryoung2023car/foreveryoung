@@ -244,11 +244,12 @@ async function searchPassenger(phone, name) {
       </div>
       <div class="booking-body">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;${isToday?"margin-bottom:14px":""}">
-          <div class="b-item">車次<b>${b.vid}</b></div>
-          <div class="b-item">車牌<b>${b.plate}</b></div>
-          <div class="b-item">車種<b>${b.vtype}</b></div>
-          <div class="b-item">去程<b>${b.depTime}</b></div>
-          <div class="b-item">回程<b>${b.retTime}</b></div>
+          <div class="b-item">去程車次<b>${b.depVid||"－"}</b></div>
+          <div class="b-item">去程車牌<b>${b.depPlate||"－"}</b></div>
+          <div class="b-item">回程車次<b>${b.retVid||"－"}</b></div>
+          <div class="b-item">回程車牌<b>${b.retPlate||"－"}</b></div>
+          <div class="b-item">去程出發<b>${b.depTime||"07:00"}</b></div>
+          <div class="b-item">回程時間<b>${b.retTime||"－"}</b></div>
         </div>
         ${isToday?`
         <button id="btn_${oid}"
