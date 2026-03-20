@@ -286,6 +286,37 @@ function render() {
     h += '</div>';
   }
 
+  // ── 一鍵複製催車通知（未確認 + 標記未到 都算）──
+  const missingList = (paxList || []).filter(p => {
+    const st = isOut ? p.outStatus : p.retStatus;
+    return st !== "✅"; // 空白或❌都算未到
+  });
+  const missingPax = missingList.reduce((s,p) => s+p.pax, 0);
+
+  if (missingList.length > 0 && info) {
+    const vidLabel  = info.vid   || "";
+    const plateLabel= info.plate || CAR;
+    const timeLabel = isOut ? (info.depTime||"07:00") : (info.retTime||"--:--");
+    const dateLabel = DATE_LABEL[DATE] || DATE;
+    const names     = missingList.map(p => p.name+"×"+p.pax+"位").join("、");
+    const msg =
+`【${vidLabel} 車牌 ${plateLabel}】
+發車：${dateLabel} ${timeLabel}
+${names} 尚未抵達乘車位置，請盡速上車，逾時不候。感謝～`;
+
+    h += `
+    <div style="padding:0 0 16px">
+      <button onclick="copyMsg()" id="copyMsgBtn"
+        style="width:100%;padding:15px;border-radius:12px;border:none;
+        background:#e8002d;color:#fff;font-size:15px;font-weight:900;
+        cursor:pointer;font-family:'Noto Sans TC',sans-serif;
+        box-shadow:0 4px 14px rgba(232,0,45,.3)">
+        📢 複製催車通知（${missingPax}人未到）
+      </button>
+    </div>`;
+    h += `<script>window._pendingMsg = ${JSON.stringify(msg)};<\/script>`;
+  }
+
   h += '</div>';
   document.getElementById("main").innerHTML = h;
 }
@@ -396,6 +427,26 @@ function showToast(msg) {
   t.textContent = msg;
   t.className = "toast show";
   setTimeout(()=>{ t.className="toast"; }, 2000);
+}
+
+async function copyMsg() {
+  const msg = window._pendingMsg || "";
+  if (!msg) return;
+  try {
+    await navigator.clipboard.writeText(msg);
+    showToast("✅ 已複製！貼到 LINE 傳送給乘客");
+  } catch(e) {
+    // fallback for older browsers
+    const ta = document.createElement("textarea");
+    ta.value = msg;
+    ta.style.position = "fixed";
+    ta.style.opacity  = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    showToast("✅ 已複製！貼到 LINE 傳送給乘客");
+  }
 }
 </script>
 </body>
