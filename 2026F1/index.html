@@ -120,16 +120,18 @@ function showErr(msg) {
 async function doSearch() {
   const phone = document.getElementById("inpPhone").value.trim();
   const name  = document.getElementById("inpName").value.trim();
+  const isDriver = /^\d{1,4}$/.test(phone);
 
   if (!phone) { showErr("請輸入電話號碼"); return; }
-  if (!name)  { showErr("請輸入姓名"); return; }
+  if (!isDriver && !name) { showErr("請輸入姓名"); return; }
 
   const btn = document.getElementById("searchBtn");
   btn.innerHTML = '<div class="dots"><span></span><span></span><span></span></div>';
   btn.disabled = true;
 
   try {
-    await searchPassenger(phone, name);
+    if (isDriver) await searchDriver(phone);
+    else await searchPassenger(phone, name);
   } catch(e) {
     showErr("查詢失敗，請稍後再試");
     console.error(e);
