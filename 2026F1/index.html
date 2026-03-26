@@ -248,7 +248,7 @@ async function searchPassenger(phone, name) {
   allBks.forEach(({pax, b}) => {
     const bm      = b.date.match(/(\d{2})\/(\d{2})/);
     const bMD     = bm ? bm[1]+"/"+bm[2] : "";
-    const isToday = bMD === today;
+    const isToday = bMD === today || b.date.startsWith(today);
     const outDone = b.outStatus==="✅";
     const retDone = b.retStatus==="✅";
     const tripDone= isOut ? outDone : retDone;
