@@ -294,38 +294,30 @@ async function searchPassenger(phone, name) {
           return loc;
         })()}
         ${isToday?`
-        <button id="btn_${oid}"
-          onmousedown="startCheckin('${pax.orderNo}','${b.date}','${oid}','${trip}')"
-          ontouchstart="startCheckin('${pax.orderNo}','${b.date}','${oid}','${trip}')"
-          onmouseup="cancelCheckin('${oid}')" onmouseleave="cancelCheckin('${oid}')"
-          ontouchend="cancelCheckin('${oid}')" ontouchcancel="cancelCheckin('${oid}')"
+        <button id="btn_${oid}_out"
+          onmousedown="startCheckin('${pax.orderNo}','${b.date}','${oid}_out','out')"
+          ontouchstart="startCheckin('${pax.orderNo}','${b.date}','${oid}_out','out')"
+          onmouseup="cancelCheckin('${oid}_out')" onmouseleave="cancelCheckin('${oid}_out')"
+          ontouchend="cancelCheckin('${oid}_out')" ontouchcancel="cancelCheckin('${oid}_out')"
+          style="width:100%;padding:16px;border-radius:12px;border:none;cursor:pointer;font-size:16px;font-weight:900;font-family:'Noto Sans TC',sans-serif;position:relative;overflow:hidden;transition:all .2s;margin-bottom:8px;
+          ${outDone?"background:#f0fdf4;color:var(--green);border:2px solid var(--green);cursor:default;"
+                   :"background:var(--green);color:#fff;box-shadow:0 4px 14px rgba(22,163,74,.35);"}"
+          ${outDone?"disabled":""}>
+          <div id="fill_${oid}_out" style="position:absolute;top:0;left:0;height:100%;width:0;background:rgba(0,0,0,.15);transition:none;border-radius:12px"></div>
+          <span style="position:relative;z-index:1">${outDone?"✅ 去程已完成報到":"長按 2 秒完成去程報到 🚌"}</span>
+        </button>
+        <button id="btn_${oid}_ret"
+          onmousedown="startCheckin('${pax.orderNo}','${b.date}','${oid}_ret','ret')"
+          ontouchstart="startCheckin('${pax.orderNo}','${b.date}','${oid}_ret','ret')"
+          onmouseup="cancelCheckin('${oid}_ret')" onmouseleave="cancelCheckin('${oid}_ret')"
+          ontouchend="cancelCheckin('${oid}_ret')" ontouchcancel="cancelCheckin('${oid}_ret')"
           style="width:100%;padding:16px;border-radius:12px;border:none;cursor:pointer;font-size:16px;font-weight:900;font-family:'Noto Sans TC',sans-serif;position:relative;overflow:hidden;transition:all .2s;
-          ${tripDone?"background:#f0fdf4;color:var(--green);border:2px solid var(--green);cursor:default;"
-            :isOut?"background:var(--green);color:#fff;box-shadow:0 4px 14px rgba(22,163,74,.35);"
+          ${retDone?"background:#f0fdf4;color:var(--purple);border:2px solid var(--purple);cursor:default;"
                    :"background:var(--purple);color:#fff;box-shadow:0 4px 14px rgba(124,58,237,.35);"}"
-          ${tripDone?"disabled":""}>
-          <div id="fill_${oid}" style="position:absolute;top:0;left:0;height:100%;width:0;background:rgba(0,0,0,.15);transition:none;border-radius:12px"></div>
-          <span style="position:relative;z-index:1">${btnLabel}</span>
+          ${retDone?"disabled":""}>
+          <div id="fill_${oid}_ret" style="position:absolute;top:0;left:0;height:100%;width:0;background:rgba(0,0,0,.15);transition:none;border-radius:12px"></div>
+          <span style="position:relative;z-index:1">${retDone?"✅ 回程已完成報到":"長按 2 秒完成回程報到 🔁"}</span>
         </button>`:""}
-        ${(() => {
-          const bdc   = b.date.match(/(\d{2})\/(\d{2})/);
-          const bCode = bdc ? bdc[1]+bdc[2] : "";
-          const bPt   = (b.depPt||"").includes("榮")||(b.depPt||"").includes("栄") ? "B" : "A";
-          const glUrl = bCode ? (GROUP_LINKS[bCode+"_"+bPt]||"") : "";
-          if (!glUrl) return "";
-          const lineIcon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.2-.04-.28-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.25.38-.51 1.07-.78 4.19-1.82 6.98-3.02 8.38-3.59 3.99-1.66 4.82-1.95 5.36-1.96.12 0 .38.03.55.18.14.12.18.29.2.45-.02.05-.02.16-.04.27z"/></svg>';
-          return '<div style="display:flex;gap:8px;margin-top:10px">'
-            + '<a href="' + glUrl + '" target="_blank" id="grpBtn_' + oid + '" '
-            + 'style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-radius:12px;background:#06C755;color:#fff;font-size:15px;font-weight:900;text-decoration:none;font-family:\'Noto Sans TC\',sans-serif;box-shadow:0 4px 14px rgba(6,199,85,.3)">'
-            + lineIcon
-            + '加入 ' + b.date + ' ' + bPt + '站 LINE 群組'
-            + '</a>'
-            + '<button onclick="toggleJoined(\'' + oid + '\')" id="joinedBtn_' + oid + '" '
-            + 'style="flex-shrink:0;padding:0 14px;border-radius:12px;border:2px solid var(--border);background:#fff;color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:\'Noto Sans TC\',sans-serif;white-space:nowrap">'
-            + '標記已加入'
-            + '</button>'
-            + '</div>';
-        })()}
       </div>
     </div>`;
   });
