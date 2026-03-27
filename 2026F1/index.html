@@ -239,11 +239,28 @@ async function searchPassenger(phone, name) {
     <a href="${RET.map}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:13px;font-weight:700;color:#2563eb;text-decoration:none">🗺️ 開啟地圖</a>
   </div>`;
 
+  // 排序：今天 → 未來 → 過去（收合）
+  allBks.sort((a, b) => {
+    const am = a.b.date.match(/(\d{2})\/(\d{2})/);
+    const bm = b.b.date.match(/(\d{2})\/(\d{2})/);
+    const aMD = am ? am[1]+"/"+am[2] : "";
+    const bMD = bm ? bm[1]+"/"+bm[2] : "";
+    const aIsToday = aMD === today || a.b.date.startsWith(today);
+    const bIsToday = bMD === today || b.b.date.startsWith(today);
+    const aIsPast  = aMD < today && !aIsToday;
+    const bIsPast  = bMD < today && !bIsToday;
+    if (aIsToday && !bIsToday) return -1;
+    if (!aIsToday && bIsToday) return 1;
+    if (aIsPast && !bIsPast) return 1;
+    if (!aIsPast && bIsPast) return -1;
+    return aMD.localeCompare(bMD);
+  });
+
   allBks.forEach(({pax, b}) => {
     const bm      = b.date.match(/(\d{2})\/(\d{2})/);
     const bMD     = bm ? bm[1]+"/"+bm[2] : "";
     const isToday = bMD === today || b.date.startsWith(today);
-    console.log("today="+today+" bMD="+bMD+" b.date="+b.date+" isToday="+isToday);
+    const isPast  = bMD < today && !isToday;
     const outDone = b.outStatus==="✅";
     const retDone = b.retStatus==="✅";
     const tripDone= isOut ? outDone : retDone;
@@ -261,11 +278,16 @@ async function searchPassenger(phone, name) {
       : (isOut?"長按 2 秒完成去程報到 🚌":"長按 2 秒完成回程報到 🔁");
 
     html += `
-    <div class="booking">
-      <div style="background:#1e293b;padding:14px 18px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:#fff;font-size:17px;font-weight:800">📅 ${b.date}</div>
-        <div id="st_${oid}" style="background:rgba(255,255,255,.12);color:#fff;font-size:13px;font-weight:700;padding:5px 14px;border-radius:20px">${st}</div>
+    <div class="booking" style="${isPast?'opacity:0.7':''}">
+      <div style="background:${isPast?'#64748b':'#1e293b'};padding:14px 18px;display:flex;align-items:center;justify-content:space-between;${isPast?'cursor:pointer;':''}"
+        ${isPast?`onclick="togglePast('past_${oid}')"`:''}>
+        <div style="color:#fff;font-size:17px;font-weight:800">📅 ${b.date}${isPast?' <span style="font-size:12px;font-weight:400;opacity:.7">（已結束）</span>':''}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div id="st_${oid}" style="background:rgba(255,255,255,.12);color:#fff;font-size:13px;font-weight:700;padding:5px 14px;border-radius:20px">${st}</div>
+          ${isPast?`<div id="arr_past_${oid}" style="color:#fff;font-size:18px;transition:transform .3s">›</div>`:''}
+        </div>
       </div>
+      <div id="past_${oid}" style="${isPast?'display:none;':''}">
       <div class="booking-body">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
           <div class="b-item">去程車次<b>${b.depVid||"－"}</b></div>
@@ -313,6 +335,7 @@ async function searchPassenger(phone, name) {
           <div id="fill_${oid}_ret" style="position:absolute;top:0;left:0;height:100%;width:0;background:rgba(0,0,0,.15);transition:none;border-radius:12px"></div>
           <span style="position:relative;z-index:1">${retDone?"✅ 回程已完成報到":"長按 2 秒完成回程報到 🔁"}</span>
         </button>`:""}
+      </div>
       </div>
     </div>`;
   });
@@ -411,6 +434,15 @@ async function doSelfCheckin(orderNo,dateStr,oid,trip){
     if(span) span.textContent=isOut?"長按 2 秒完成去程報到 🚌":"長按 2 秒完成回程報到 🔁";
     if(fill) fill.style.width="0";
   }
+}
+
+function togglePast(id) {
+  const el  = document.getElementById(id);
+  const arr = document.getElementById("arr_" + id);
+  if (!el) return;
+  const open = el.style.display !== "none";
+  el.style.display = open ? "none" : "block";
+  if (arr) arr.style.transform = open ? "" : "rotate(90deg)";
 }
 
 function resetForm(){
