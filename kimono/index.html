@@ -1,1 +1,1279 @@
-test
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旅乘 x 和服 | Foreveryoung 官方預約平台</title>
+    <meta name="description" content="旅乘 x Foreveryoung 和服租借體驗，京都、大阪、東京、淺草精選門市，職人著裝、髮型設計、旅拍攝影一站式服務。">
+    <!-- Open Graph -->
+    <meta property="og:title" content="旅乘 x 和服 | Foreveryoung 官方預約平台">
+    <meta property="og:description" content="穿上優雅，漫步時光。日本和服租借體驗，職人著裝、專業髮型、旅拍攝影。">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1528114039593-4366cc08227d?auto=format&fit=crop&q=80&w=1200">
+    <meta property="og:type" content="website">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- lucide：等 script onload 後再 createIcons，確保所有 icon 正確渲染 -->
+    <script>
+        function initLucide() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            } else {
+                setTimeout(initLucide, 50);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', () => setTimeout(initLucide, 100));
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Serif TC', serif; scroll-behavior: smooth; }
+        .font-sans { font-family: 'Noto Sans TC', sans-serif; }
+        /* 全站最小字體保底 12px */
+        * { -webkit-text-size-adjust: 100%; }
+        .text-\[10px\] { font-size: 11px !important; }
+        .text-xs { font-size: 13px !important; }
+        /* tracking 過寬在手機難讀，縮小 */
+        @media (max-width: 768px) {
+            .tracking-\[0\.8em\] { letter-spacing: 0.3em !important; }
+            .tracking-\[0\.5em\] { letter-spacing: 0.2em !important; }
+            .tracking-\[0\.4em\] { letter-spacing: 0.15em !important; }
+            .tracking-\[0\.3em\] { letter-spacing: 0.1em !important; }
+            .text-5xl { font-size: 2.5rem !important; }
+            .text-8xl { font-size: 3.5rem !important; }
+        }
+ 
+        /* 櫻花動畫 */
+        .sakura-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; overflow: hidden; }
+        .sakura { position: absolute; background: #FFB7C5; border-radius: 100% 0 100% 0; opacity: 0.15; animation: fall linear infinite; }
+        @keyframes fall {
+            0% { transform: translateY(-50px) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.15; }
+            90% { opacity: 0.15; }
+            100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+        }
+ 
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+ 
+        .step-content { display: none; }
+        .step-content.active { display: block; animation: fadeIn 0.6s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+ 
+        /* FAQ 修正：用 max-height 讓動畫正常跑 */
+        .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.45s ease, opacity 0.35s ease, padding 0.3s ease; opacity: 0; padding-top: 0; padding-bottom: 0; }
+        .faq-answer.active { max-height: 600px; padding-top: 1rem; padding-bottom: 1.5rem; opacity: 1; }
+ 
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+ 
+        .nav-scrolled { background-color: white !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); padding-top: 1rem !important; padding-bottom: 1rem !important; }
+ 
+        /* 手機選單動畫 */
+        #mobile-menu { transform: translateY(-100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); }
+        #mobile-menu.open { transform: translateY(0); }
+ 
+        /* 上傳區域 hover */
+        .upload-zone { cursor: pointer; }
+        .upload-zone:hover { border-color: #f9a8d4; color: #ec4899; }
+ 
+        /* 檔案選取後顯示名稱 */
+        #file-label-text { transition: color 0.2s; }
+    </style>
+</head>
+<body class="bg-[#FDFCF8] text-[#1A365D] selection:bg-pink-100 overflow-x-hidden">
+ 
+    <!-- 櫻花背景 -->
+    <div id="sakura-container" class="sakura-container"></div>
+ 
+    <!-- 右側懸浮客服（全部用 inline SVG，不依賴 lucide 載入時序） -->
+    <div class="fixed right-6 bottom-32 z-[480] flex flex-col gap-3">
+        <!-- LINE -->
+        <a href="https://lin.ee/TgFCvYQ" target="_blank" rel="noopener" class="w-14 h-14 bg-[#06C755] text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-all" aria-label="LINE 客服">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+        </a>
+        <!-- Facebook -->
+        <a href="https://m.me/foreveryoung2023car" target="_blank" rel="noopener" class="w-14 h-14 bg-[#1877F2] text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-all" aria-label="Facebook 粉專">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+        </a>
+        <!-- TOP -->
+        <button id="topBtn" onclick="window.scrollTo({top:0, behavior:'smooth'})" class="w-14 h-14 bg-white/90 backdrop-blur-md text-[#1A365D] border border-slate-100 rounded-full shadow-xl flex items-center justify-center cursor-pointer opacity-0 transition-all hover:bg-pink-50 pointer-events-none" aria-label="回到頂端">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+        </button>
+    </div>
+ 
+    <!-- 導航欄 -->
+    <nav id="navbar" class="fixed top-0 w-full z-[450] transition-all duration-500 py-6 bg-transparent">
+        <div class="max-w-7xl mx-auto px-6 md:px-10 flex items-center justify-between">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+                <div id="logo-box" class="w-10 h-10 text-white rounded-sm flex items-center justify-center font-bold text-xl bg-white/20 backdrop-blur-md transition-all">旅</div>
+                <div class="flex flex-col text-left">
+                    <span id="nav-title" class="text-xl font-bold tracking-widest uppercase text-white drop-shadow-md transition-all font-sans">Foreveryoung</span>
+                    <span id="nav-sub" class="text-[8px] font-medium uppercase italic text-white/70 transition-all font-sans tracking-tighter">Official Booking</span>
+                </div>
+            </div>
+            <!-- 桌機選單 -->
+            <div class="hidden lg:flex gap-10 items-center">
+                <button onclick="scrollToId('sec-process')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">體驗流程</button>
+                <button onclick="scrollToId('sec-0')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">方案價格</button>
+                <button onclick="scrollToId('sec-reviews')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">旅客好評</button>
+                <button onclick="scrollToId('sec-hair')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">髮型美學</button>
+                <button onclick="scrollToId('sec-faq')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">常見問題</button>
+                <button onclick="scrollToId('sec-3')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">門市資訊</button>
+                <button onclick="scrollToId('booking')" id="nav-booking-btn" class="ml-4 px-8 py-2 text-[10px] font-bold rounded-sm border border-white/40 text-white hover:bg-white hover:text-[#1A365D] transition-all cursor-pointer uppercase font-sans shadow-sm">立即預約</button>
+            </div>
+            <!-- 手機漢堡按鈕 -->
+            <button id="hamburger-btn" class="lg:hidden w-10 h-10 flex flex-col justify-center items-center gap-1.5 rounded-sm transition-all" aria-label="開啟選單" onclick="toggleMobileMenu()">
+                <span id="ham-line1" class="block w-6 h-0.5 bg-white transition-all duration-300"></span>
+                <span id="ham-line2" class="block w-6 h-0.5 bg-white transition-all duration-300"></span>
+                <span id="ham-line3" class="block w-6 h-0.5 bg-white transition-all duration-300"></span>
+            </button>
+        </div>
+    </nav>
+ 
+    <!-- 手機選單 (全螢幕下拉) -->
+    <div id="mobile-menu" class="fixed top-0 left-0 w-full h-screen z-[440] bg-[#1A365D] flex flex-col items-center justify-center gap-10 lg:hidden">
+        <button onclick="closeMobileMenu(); scrollToId('sec-process')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">體驗流程</button>
+        <button onclick="closeMobileMenu(); scrollToId('sec-0')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">方案價格</button>
+        <button onclick="closeMobileMenu(); scrollToId('sec-reviews')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">旅客好評</button>
+        <button onclick="closeMobileMenu(); scrollToId('sec-hair')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">髮型美學</button>
+        <button onclick="closeMobileMenu(); scrollToId('sec-faq')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">常見問題</button>
+        <button onclick="closeMobileMenu(); scrollToId('sec-3')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">門市資訊</button>
+        <button onclick="closeMobileMenu(); scrollToId('booking')" class="mt-4 px-12 py-4 border-2 border-white/50 text-white font-bold tracking-widest uppercase text-sm font-sans rounded-sm hover:bg-white hover:text-[#1A365D] transition-all">立即預約</button>
+        <div class="absolute bottom-16 text-white/30 text-xs font-sans tracking-widest uppercase">© 2026 FOREVERYOUNG</div>
+    </div>
+ 
+    <!-- Hero Section -->
+    <header class="relative h-[95vh] flex items-center justify-center overflow-hidden text-center bg-[#1A365D]">
+        <div class="absolute inset-0 z-0">
+            <!-- 換成更聚焦的和服人物照 -->
+            <img src="https://images.unsplash.com/photo-1528114039593-4366cc08227d?auto=format&fit=crop&q=100&w=2000" class="w-full h-full object-cover opacity-35 scale-105" alt="和服體驗 Hero">
+            <div class="absolute inset-0 bg-gradient-to-b from-[#1A365D]/40 via-transparent to-[#1A365D]/20"></div>
+        </div>
+        <div class="relative z-10 px-6 max-w-4xl">
+            <div class="w-12 h-px bg-white/40 mx-auto mb-10"></div>
+            <h1 class="text-5xl md:text-8xl font-bold text-white tracking-[0.2em] mb-6 uppercase">旅乘 <span class="font-extralight italic opacity-60 mx-2 text-4xl md:text-6xl">X</span> 和服</h1>
+            <p class="text-base md:text-lg text-white font-light tracking-[0.5em] mb-14 opacity-90 uppercase font-sans">穿上優雅，漫步時光，紀錄專屬於您的和風瞬間</p>
+            <div class="flex flex-wrap justify-center gap-6">
+                <button onclick="scrollToId('sec-process')" class="px-12 py-4 bg-white text-[#1A365D] font-bold tracking-[0.2em] rounded-sm hover:bg-pink-500 hover:text-white transition-all cursor-pointer shadow-2xl uppercase text-[10px] font-sans">了解體驗流程</button>
+                <button onclick="scrollToId('booking')" class="px-12 py-4 bg-transparent text-white border border-white/50 font-bold tracking-[0.2em] rounded-sm hover:bg-white/10 transition-all cursor-pointer shadow-2xl uppercase text-[10px] font-sans">立即開啟預約</button>
+            </div>
+        </div>
+    </header>
+ 
+    <!-- ★ 社會證明數字 bar（Hero 正下方，深色背景延伸感） -->
+    <div class="bg-[#12274A] text-white py-8 px-6">
+        <div class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div class="space-y-1">
+                <div class="text-3xl font-bold font-sans text-white">5,000<span class="text-pink-400">+</span></div>
+                <div class="text-[10px] tracking-[0.3em] uppercase text-white/50 font-sans">服務旅客組數</div>
+            </div>
+            <div class="space-y-1">
+                <div class="text-3xl font-bold font-sans text-white">4<span class="text-pink-400"> 間</span></div>
+                <div class="text-[10px] tracking-[0.3em] uppercase text-white/50 font-sans">京都 大阪 東京 祇園</div>
+            </div>
+            <div class="space-y-1">
+                <div class="text-3xl font-bold font-sans text-white">98<span class="text-white">%</span><span class="text-pink-400">+</span></div>
+                <div class="text-[10px] tracking-[0.3em] uppercase text-white/50 font-sans">顧客滿意度</div>
+            </div>
+            <div class="space-y-1">
+                <div class="text-3xl font-bold font-sans text-white">300<span class="text-pink-400">+</span></div>
+                <div class="text-[10px] tracking-[0.3em] uppercase text-white/50 font-sans">款式供選擇</div>
+            </div>
+        </div>
+    </div>
+ 
+    <!-- ★ 顧客評價區 -->
+    <section id="sec-reviews" class="py-28 bg-[#FDFCF8]">
+        <div class="max-w-7xl mx-auto px-6 md:px-10">
+            <div class="flex flex-col items-center mb-16 text-center">
+                <span class="text-pink-400 font-bold tracking-[0.8em] text-[10px] mb-5 uppercase italic font-sans">Guest Reviews</span>
+                <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] tracking-[0.2em] uppercase font-sans">旅客真實 <span class="text-pink-300 font-light italic">好評回饋</span></h2>
+                <div class="mt-6 w-12 h-0.5 bg-pink-100"></div>
+                <!-- 總評分 -->
+                <div class="mt-10 flex items-center gap-4">
+                    <div class="text-6xl font-bold text-[#1A365D] font-sans leading-none">4.9</div>
+                    <div class="text-left">
+                        <div class="flex gap-1 mb-1">
+                            <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                        </div>
+                        <div class="text-xs text-slate-400 font-sans font-bold">綜合評分 · 500+ 則評價</div>
+                    </div>
+                </div>
+            </div>
+ 
+            <!-- 手機橫滑 / 桌機三欄 -->
+            <div class="md:hidden flex gap-5 overflow-x-auto pb-6 scrollbar-hide snap-x -mx-6 px-6" id="reviews-mobile"></div>
+            <div class="hidden md:grid grid-cols-3 gap-8" id="reviews-desktop"></div>
+        </div>
+    </section>
+ 
+    <main>
+        <!-- 1. 租借流程 -->
+        <section id="sec-process" class="py-32 bg-white">
+            <div class="max-w-7xl mx-auto px-6 md:px-10">
+                <div class="flex flex-col items-center mb-24 text-center">
+                    <span class="text-pink-400 font-bold tracking-[0.8em] text-[10px] mb-5 uppercase italic font-sans">Experience Guide</span>
+                    <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] tracking-[0.2em] uppercase font-sans">和服體驗 <span class="text-pink-300 font-light italic">六步驟</span></h2>
+                    <div class="mt-6 w-12 h-0.5 bg-pink-100"></div>
+                </div>
+                <div class="relative max-w-6xl mx-auto">
+                    <!-- 虛線由 JS 動態插入，精準對齊步驟號碼中心 -->
+                    <div id="process-lines" class="hidden lg:block"></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 relative z-10" id="process-grid"></div>
+                </div>
+            </div>
+        </section>
+ 
+        <!-- 2. 方案價格 -->
+        <section id="sec-0" class="py-32 bg-[#FDFCF8]">
+            <div class="max-w-7xl mx-auto px-6 md:px-10 text-center">
+                <div class="flex flex-col items-center mb-24">
+                    <span class="text-pink-400 font-bold tracking-[0.8em] text-[10px] mb-5 uppercase italic font-sans">Premium Selection</span>
+                    <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] tracking-[0.2em] uppercase font-sans">精選方案 <span class="text-pink-300 font-light italic">& 價格</span></h2>
+                    <div class="mt-6 w-12 h-0.5 bg-pink-100"></div>
+                    <p class="text-slate-400 text-xs mt-4 font-sans md:hidden">← 左右滑動瀏覽 →</p>
+                </div>
+                <!-- 手機：橫向滑動；桌機：4 欄 grid -->
+                <div class="md:hidden flex gap-5 overflow-x-auto pb-6 scrollbar-hide snap-x -mx-6 px-6" id="plan-container-mobile"></div>
+                <div class="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-8 text-left" id="plan-container"></div>
+            </div>
+        </section>
+ 
+        <!-- 3. 旅程時光影誌 -->
+        <section id="sec-video" class="py-32 bg-white overflow-hidden text-center">
+            <div class="max-w-7xl mx-auto px-6 md:px-10 mb-20">
+                <span class="text-pink-400 font-bold tracking-[0.6em] text-[10px] uppercase font-sans">Visual Story</span>
+                <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] mt-4 tracking-[0.2em] uppercase font-sans">和風 <span class="text-pink-300 font-light italic">瞬間映像</span></h2>
+                <p class="text-slate-400 text-sm mt-4 font-sans">← 左右滑動瀏覽更多 →</p>
+            </div>
+            <div class="flex gap-6 overflow-x-auto px-6 md:px-10 pb-10 scrollbar-hide snap-x" id="video-container"></div>
+        </section>
+ 
+        <!-- 4. 職人髮型美學 -->
+        <section id="sec-hair" class="py-32 bg-[#FDFCF8]">
+            <div class="max-w-7xl mx-auto px-6 md:px-10">
+                <div class="grid lg:grid-cols-2 gap-20 items-center mb-24 text-left">
+                    <div class="space-y-8">
+                        <span class="text-pink-400 font-bold tracking-[0.6em] text-[10px] uppercase italic font-sans">Artisan Hair Styling</span>
+                        <h2 class="text-3xl md:text-5xl font-bold text-[#1A365D] leading-tight font-sans tracking-wide">職人 <span class="text-pink-300 font-light italic">髮型美學</span></h2>
+                        <div class="w-16 h-1 bg-pink-200"></div>
+                        <p class="text-slate-500 text-lg leading-relaxed italic">專業髮型師依您的臉型與和服，編織如藝術品般的專屬造型。髮型是完美和服體驗的靈魂。</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6 font-bold text-[#1A365D]/80 italic">
+                            <div class="flex items-center gap-3 text-sm"><i data-lucide="check-circle-2" class="text-pink-400 w-5 h-5"></i> 精細職人編髮</div>
+                            <div class="flex items-center gap-3 text-sm"><i data-lucide="check-circle-2" class="text-pink-400 w-5 h-5"></i> 和風髮飾點綴</div>
+                            <div class="flex items-center gap-3 text-sm"><i data-lucide="check-circle-2" class="text-pink-400 w-5 h-5"></i> 專業技術培訓</div>
+                            <div class="flex items-center gap-3 text-sm"><i data-lucide="check-circle-2" class="text-pink-400 w-5 h-5"></i> 蓬鬆空氣感造型</div>
+                        </div>
+                    </div>
+                    <div class="relative rounded-sm overflow-hidden shadow-2xl aspect-[4/5]">
+                        <img src="https://images.unsplash.com/photo-1527015175922-36a306cf0e20?auto=format&fit=crop&q=80&w=800" class="w-full h-full object-cover" alt="和服髮型展示">
+                    </div>
+                </div>
+                <!-- 現場挑選說明 -->
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+                    <div class="bg-white border border-slate-100 rounded-sm p-8 flex gap-5 items-start shadow-sm">
+                        <div class="w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                        </div>
+                        <div>
+                            <p class="font-bold text-[#1A365D] font-sans text-sm mb-1">依臉型量身設計</p>
+                            <p class="text-slate-400 text-xs font-sans leading-relaxed">專業髮型師現場依您的臉型、和服款式與個人氣質，打造最適合的專屬造型。</p>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-slate-100 rounded-sm p-8 flex gap-5 items-start shadow-sm">
+                        <div class="w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        </div>
+                        <div>
+                            <p class="font-bold text-[#1A365D] font-sans text-sm mb-1">現場參考造型冊</p>
+                            <p class="text-slate-400 text-xs font-sans leading-relaxed">門市備有豐富造型參考冊，您可以直接指定喜歡的風格，讓師傅為您重現。</p>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-slate-100 rounded-sm p-8 flex gap-5 items-start shadow-sm">
+                        <div class="w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/></svg>
+                        </div>
+                        <div>
+                            <p class="font-bold text-[#1A365D] font-sans text-sm mb-1">約 20 分鐘完成</p>
+                            <p class="text-slate-400 text-xs font-sans leading-relaxed">髮型設計約 20 分鐘，含和風髮飾點綴，讓您快速出發開始漫步體驗。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+ 
+        <!-- 5. FAQ -->
+        <section id="sec-faq" class="py-32 bg-white text-center">
+            <div class="max-w-5xl mx-auto px-6 md:px-10">
+                <div class="flex flex-col items-center mb-20">
+                    <span class="text-pink-400 font-bold tracking-[0.8em] text-[10px] mb-5 uppercase italic font-sans">FAQ Center</span>
+                    <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] tracking-[0.2em] uppercase font-sans">常見問題 <span class="text-pink-300 font-light italic">Q&A</span></h2>
+                    <div class="mt-6 w-12 h-0.5 bg-pink-100"></div>
+                </div>
+                <!-- 強制四個一排：grid 4 col -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-12" id="faq-tabs"></div>
+                <div id="faq-content" class="bg-[#FDFCF8] border border-slate-100 rounded-sm shadow-xl px-8 md:px-12 text-left divide-y divide-slate-100 border-t-0"></div>
+            </div>
+        </section>
+ 
+ 
+        <!-- 6. 店舖門市 -->
+        <section id="sec-3" class="py-32 bg-[#FDFCF8]">
+            <div class="max-w-7xl mx-auto px-6 md:px-10 text-center">
+                <div class="flex flex-col items-center mb-14">
+                    <span class="text-pink-400 font-bold tracking-[0.8em] text-[10px] mb-5 uppercase italic font-sans">Our Locations</span>
+                    <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] tracking-[0.2em] uppercase font-sans">精選門市 <span class="text-pink-300 font-light italic">Locations</span></h2>
+                    <div class="mt-6 w-12 h-0.5 bg-pink-100"></div>
+                </div>
+                <div class="flex gap-3 flex-wrap justify-center mb-12" id="store-tabs"></div>
+                <div id="store-content" class="bg-white shadow-2xl overflow-hidden min-h-[500px] border border-slate-50 rounded-sm grid grid-cols-1 lg:grid-cols-12 text-left"></div>
+            </div>
+        </section>
+ 
+        <!-- 7. 預約表單 -->
+        <section id="booking" class="py-40 bg-[#FCFBFA] px-6">
+            <div class="max-w-4xl mx-auto bg-white p-8 md:p-20 shadow-2xl relative rounded-sm border border-[#1A365D]/5 text-center">
+ 
+                <!-- 進度條 -->
+                <div class="flex items-center justify-center gap-4 mb-20">
+                    <div id="step-dot-1" class="w-10 h-10 rounded-full flex items-center justify-center font-bold bg-[#1A365D] text-white transition-all shadow-lg font-sans">1</div>
+                    <div id="step-line-1" class="w-12 h-0.5 bg-slate-100 transition-all"></div>
+                    <div id="step-dot-2" class="w-10 h-10 rounded-full flex items-center justify-center font-bold bg-slate-100 text-slate-400 transition-all font-sans">2</div>
+                    <div id="step-line-2" class="w-12 h-0.5 bg-slate-100 transition-all"></div>
+                    <div id="step-dot-3" class="w-10 h-10 rounded-full flex items-center justify-center font-bold bg-slate-100 text-slate-400 transition-all font-sans"><i data-lucide="check" class="w-5 h-5"></i></div>
+                </div>
+ 
+                <!-- 階段 1 -->
+                <div id="form-step-1" class="step-content active text-left">
+                    <div class="mb-12 text-center">
+                        <h3 class="text-3xl font-bold text-[#1A365D] mb-4 italic uppercase font-sans">需求選擇 / Step 1</h3>
+                        <p class="text-slate-400 text-xs tracking-[0.4em] uppercase font-bold italic font-sans">請填寫預約細節與正式聯絡資料</p>
+                    </div>
+                    <form id="booking-form-1" class="space-y-12">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 font-sans uppercase">
+                            <label class="block border-b border-slate-100 pb-2">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase">預約姓名 / Name</span>
+                                <input required type="text" id="input-name" placeholder="您的姓名" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent">
+                            </label>
+                            <label class="block border-b border-slate-100 pb-2">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase">電話 / Phone (台灣手機 10 碼)</span>
+                                <!-- 修正：更嚴格的電話驗證 -->
+                                <input required type="tel" id="input-phone" pattern="[0-9]{8,12}" minlength="8" maxlength="12" placeholder="例: 0912345678" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent font-mono" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                            </label>
+                        </div>
+                        <div class="grid grid-cols-1 gap-10 font-sans uppercase">
+                            <label class="block border-b border-slate-100 pb-2">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase">電子郵件 / Email (寄送正式確認信)</span>
+                                <input required type="email" id="input-email" placeholder="example@gmail.com" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent">
+                            </label>
+                        </div>
+ 
+                        <!-- 人數計數器 -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                            <div class="flex items-center justify-between p-5 bg-[#FDFCF8] rounded-xl border border-slate-100">
+                                <div class="flex flex-col"><span class="text-sm font-bold text-[#1A365D] font-sans">大人人數</span><span class="text-[10px] text-slate-400 uppercase font-sans mt-1">Adults</span></div>
+                                <div class="flex items-center gap-4">
+                                    <button type="button" onclick="changeGuest('adults', -1)" class="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-[#1A365D] hover:text-white transition-all text-slate-400 font-bold">-</button>
+                                    <span id="count-adults" class="font-mono font-bold text-xl w-6 text-center">1</span>
+                                    <button type="button" onclick="changeGuest('adults', 1)" class="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-[#1A365D] hover:text-white transition-all text-slate-400 font-bold">+</button>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between p-5 bg-[#FDFCF8] rounded-xl border border-slate-100">
+                                <div class="flex flex-col"><span class="text-sm font-bold text-[#1A365D] font-sans">兒童人數</span><span class="text-[10px] text-slate-400 uppercase font-sans mt-1">Children</span></div>
+                                <div class="flex items-center gap-4">
+                                    <button type="button" onclick="changeGuest('children', -1)" class="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-[#1A365D] hover:text-white transition-all text-slate-400 font-bold">-</button>
+                                    <span id="count-children" class="font-mono font-bold text-xl w-6 text-center">0</span>
+                                    <button type="button" onclick="changeGuest('children', 1)" class="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-[#1A365D] hover:text-white transition-all text-slate-400 font-bold">+</button>
+                                </div>
+                            </div>
+                        </div>
+ 
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <label class="block border-b border-slate-100 pb-2"><span class="text-[10px] font-bold text-slate-400 uppercase font-sans">預定款式</span>
+                                <select id="input-plan" class="w-full py-2 mt-1 outline-none font-bold text-base bg-transparent cursor-pointer font-sans"></select>
+                            </label>
+                            <label class="block border-b border-slate-100 pb-2"><span class="text-[10px] font-bold text-slate-400 uppercase font-sans">妝造需求</span>
+                                <select id="input-hair" class="w-full py-2 mt-1 outline-none font-bold text-base bg-transparent cursor-pointer font-sans">
+                                    <option value="No">不需要妝造</option><option value="Yes">需要髮型設計 (+1500 JPY)</option>
+                                </select>
+                            </label>
+                            <label class="block border-b border-slate-100 pb-2"><span class="text-[10px] font-bold text-slate-400 uppercase font-sans">攝影方案</span>
+                                <select id="input-photo" class="w-full py-2 mt-1 outline-none font-bold text-base bg-transparent cursor-pointer font-sans">
+                                    <option value="No">不需要攝影</option><option value="Yes">需要專業攝影</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="grid grid-cols-1 gap-10">
+                            <label class="block border-b border-slate-100 pb-2">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase font-sans">預約日期 (限明日以後)</span>
+                                <input required type="date" id="input-date" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent cursor-pointer font-sans">
+                            </label>
+                        </div>
+                        <div class="p-8 bg-[#FDFCF8] border-l-4 border-[#1A365D] text-left rounded-r-lg">
+                            <p class="font-bold text-[#1A365D] font-sans">應付預約訂金：<span class="text-pink-500 italic text-xl ml-2 font-bold">新台幣 NT$ 220 元（依即時匯率含手續費換算）</span></p>
+                            <p class="text-[11px] text-slate-400 font-bold mt-2 italic font-sans">* 此訂金將於體驗當日全額折抵現場結帳消費。實際匯率以當日為準。</p>
+                        </div>
+                        <div class="flex justify-center pt-8">
+                            <button type="submit" class="w-full max-w-sm px-8 py-5 bg-[#1A365D] text-white font-bold tracking-[0.2em] rounded-sm hover:bg-blue-800 transition-all cursor-pointer shadow-xl uppercase font-sans text-xs">下一步：匯款憑證與編號鎖定</button>
+                        </div>
+                    </form>
+                </div>
+ 
+                <!-- 階段 2 -->
+                <div id="form-step-2" class="step-content text-left">
+                    <div class="mb-12 text-center">
+                        <h3 class="text-3xl font-bold text-pink-500 mb-4 italic uppercase font-sans">對帳證明 / Step 2</h3>
+                        <p class="text-slate-400 text-xs tracking-[0.2em] uppercase font-bold italic font-sans">請匯款後提交資訊以正式鎖定編號</p>
+                    </div>
+                    <div class="bg-[#1A365D] text-white p-10 rounded-xl mb-12 shadow-inner relative overflow-hidden">
+                        <i data-lucide="credit-card" class="absolute top-4 right-4 w-32 h-32 opacity-10 rotate-12"></i>
+                        <h4 class="text-pink-300 font-bold mb-6 flex items-center gap-2 uppercase font-sans">指定匯款帳戶 / Bank Info</h4>
+                        <div class="space-y-4 font-sans tracking-widest font-bold">
+                            <p class="text-sm opacity-70">銀行代碼：<span class="text-lg opacity-100 ml-2">822 (中國信託)</span></p>
+                            <p class="text-sm opacity-70">匯款帳號：<span class="text-2xl italic opacity-100 ml-2 font-mono">1234-5678-9012-3456</span></p>
+                            <p class="text-sm text-pink-400 font-bold uppercase underline underline-offset-8 pt-4">需付金額：NT$ 220</p>
+                        </div>
+                    </div>
+                    <form id="booking-form-2" class="space-y-10">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 font-sans uppercase">
+                            <label class="block border-b border-slate-100 pb-2">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase mb-1">匯款後 5 碼 (僅數字)</span>
+                                <!-- 修正：即時過濾非數字 + 視覺驗證 -->
+                                <input required type="text" id="input-last5" maxlength="5" pattern="[0-9]{5}" placeholder="請輸入 5 位數字" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent font-mono" oninput="this.value=this.value.replace(/[^0-9]/g,''); validateLast5(this)">
+                                <span id="last5-hint" class="text-[10px] text-slate-300 font-sans normal-case"></span>
+                            </label>
+                            <div class="block">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase mb-2 block font-sans">上傳憑證 / Proof Image</span>
+                                <!-- 修正：真實 file input -->
+                                <label for="proof-upload" class="upload-zone w-full h-14 border-2 border-dashed border-slate-200 rounded-lg flex items-center justify-center bg-slate-50 text-xs text-slate-400 font-bold transition-all font-sans cursor-pointer hover:border-pink-300 hover:text-pink-500">
+                                    <i data-lucide="image" class="w-4 h-4 mr-2"></i>
+                                    <span id="file-label-text">點擊上傳截圖</span>
+                                </label>
+                                <input type="file" id="proof-upload" accept="image/*" class="hidden" onchange="handleFileUpload(this)">
+                            </div>
+                        </div>
+                        <div class="flex flex-col md:flex-row gap-4 pt-10">
+                            <button type="button" onclick="setStep(1)" class="flex-1 py-4 text-slate-400 font-bold text-xs uppercase tracking-widest border-none bg-transparent cursor-pointer font-sans hover:bg-slate-50 rounded-sm transition-colors">返回修改預約資訊</button>
+                            <button type="submit" id="finalSubmitBtn" class="flex-[2] py-4 bg-[#1A365D] text-white font-bold tracking-[0.2em] rounded-sm hover:bg-blue-800 transition-all cursor-pointer shadow-xl uppercase font-sans text-xs">確認提交並取得編號</button>
+                        </div>
+                    </form>
+                </div>
+ 
+                <!-- 階段 3 -->
+                <div id="form-step-3" class="step-content text-center">
+                    <div class="text-center space-y-8">
+                        <!-- 成功圖示 -->
+                        <div class="w-24 h-24 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.955 11.955 0 010 12c0 6.627 5.373 12 12 12s12-5.373 12-12c0-2.954-1.07-5.663-2.833-7.757"/></svg>
+                        </div>
+ 
+                        <div>
+                            <h3 class="text-3xl font-bold text-[#1A365D] mb-2 uppercase font-sans">提交成功！</h3>
+                            <p class="text-slate-400 text-sm font-sans">您的預約資料已收到，請完成以下步驟</p>
+                        </div>
+ 
+                        <!-- 編號卡 -->
+                        <div class="bg-[#1A365D] text-white p-8 rounded-xl shadow-inner">
+                            <p class="text-white/60 text-xs uppercase tracking-widest font-sans mb-2">您的專屬預約編號</p>
+                            <p id="finalOrderId" class="font-mono text-4xl font-bold tracking-tighter text-pink-300">#20000001</p>
+                            <p class="text-white/50 text-xs italic font-sans mt-3">憑證已命名為 <span id="file-name-display" class="underline text-white/70"></span></p>
+                        </div>
+ 
+                        <!-- ★ 承諾時間軸 -->
+                        <div class="bg-white border border-slate-100 rounded-xl p-8 text-left shadow-sm space-y-5">
+                            <p class="text-[#1A365D] font-bold font-sans text-sm tracking-widest uppercase mb-4">接下來會發生什麼？</p>
+ 
+                            <div class="flex gap-4 items-start">
+                                <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0 font-bold text-sm font-sans">✓</div>
+                                <div>
+                                    <p class="font-bold text-[#1A365D] font-sans text-sm">現在 — 傳送編號給客服</p>
+                                    <p class="text-slate-400 text-xs font-sans mt-1">點擊下方 LINE 或 Messenger，將您的編號 <span id="finalOrderIdDisplay" class="font-bold text-[#1A365D]"></span> 傳送給我們</p>
+                                </div>
+                            </div>
+ 
+                            <div class="flex gap-4 items-start">
+                                <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 font-bold text-sm font-sans">2</div>
+                                <div>
+                                    <p class="font-bold text-[#1A365D] font-sans text-sm">2 小時內 — 我們確認匯款</p>
+                                    <p class="text-slate-400 text-xs font-sans mt-1">客服人員核對您的匯款資訊後，將回傳<span class="text-green-600 font-bold">「預約確認通知」</span>。收到通知才算正式預約成功。</p>
+                                </div>
+                            </div>
+ 
+                            <div class="flex gap-4 items-start">
+                                <div class="w-8 h-8 rounded-full bg-pink-100 text-pink-500 flex items-center justify-center shrink-0 font-bold text-sm font-sans">3</div>
+                                <div>
+                                    <p class="font-bold text-[#1A365D] font-sans text-sm">體驗當日 — 訂金全額折抵</p>
+                                    <p class="text-slate-400 text-xs font-sans mt-1">抵達門市時出示編號，NT$220 訂金將直接折抵當日消費，輕鬆體驗。</p>
+                                </div>
+                            </div>
+                        </div>
+ 
+                        <!-- 聯絡按鈕 -->
+                        <div class="space-y-3">
+                            <p class="text-slate-500 text-xs font-sans font-bold uppercase tracking-widest">請選擇您習慣的聯絡方式</p>
+                            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                                <a href="https://lin.ee/TgFCvYQ" target="_blank" rel="noopener"
+                                   class="bg-[#06C755] text-white px-8 py-4 rounded-full font-bold text-sm shadow-lg transition-transform hover:scale-105 flex items-center justify-center gap-3 font-sans">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+                                    LINE 傳送編號
+                                </a>
+                                <a href="https://m.me/foreveryoung2023car" target="_blank" rel="noopener"
+                                   class="bg-[#1877F2] text-white px-8 py-4 rounded-full font-bold text-sm shadow-lg transition-transform hover:scale-105 flex items-center justify-center gap-3 font-sans">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                                    Messenger 傳送編號
+                                </a>
+                            </div>
+                        </div>
+ 
+                        <button onclick="location.reload()" class="text-slate-300 font-bold text-xs uppercase tracking-[0.3em] underline decoration-pink-200 underline-offset-8 bg-transparent border-none cursor-pointer font-sans hover:text-[#1A365D] transition-colors">回到預約首頁</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+ 
+    <!-- Footer 重新設計 -->
+    <footer class="bg-[#1A365D] text-white px-6 md:px-10 pt-20 pb-10">
+        <div class="max-w-7xl mx-auto">
+ 
+            <!-- 上半：三欄資訊 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-14 pb-16 border-b border-white/10">
+ 
+                <!-- 品牌欄 -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-white text-[#1A365D] flex items-center justify-center font-bold text-2xl rounded-sm shrink-0">旅</div>
+                        <div>
+                            <div class="text-xl font-bold tracking-widest uppercase font-sans">Foreveryoung</div>
+                            <div class="text-[10px] text-pink-300 tracking-widest uppercase font-sans mt-0.5">和服體驗 × 旅遊包車</div>
+                        </div>
+                    </div>
+                    <p class="text-slate-400 text-sm leading-relaxed font-sans">
+                        日本深度文化體驗專家。<br>專業和服租借、私人包車、旅拍攝影，讓每段旅程都成為難忘回憶。
+                    </p>
+                    <!-- 社群按鈕 -->
+                    <div class="flex gap-3 pt-2">
+                        <a href="https://lin.ee/TgFCvYQ" target="_blank" rel="noopener"
+                           class="flex items-center gap-2 px-5 py-2.5 bg-[#06C755] text-white rounded-full text-xs font-bold font-sans hover:scale-105 transition-transform">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+                            LINE 聯絡
+                        </a>
+                        <a href="https://m.me/foreveryoung2023car" target="_blank" rel="noopener"
+                           class="flex items-center gap-2 px-5 py-2.5 bg-[#1877F2] text-white rounded-full text-xs font-bold font-sans hover:scale-105 transition-transform">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                            Messenger
+                        </a>
+                    </div>
+                </div>
+ 
+                <!-- 快速導覽 -->
+                <div class="space-y-6">
+                    <h4 class="text-xs font-bold tracking-[0.5em] text-pink-300 uppercase font-sans">快速導覽</h4>
+                    <ul class="space-y-3 text-sm font-sans text-slate-400">
+                        <li><button onclick="scrollToId('sec-process')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">→ 和服體驗流程</button></li>
+                        <li><button onclick="scrollToId('sec-0')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">→ 方案價格一覽</button></li>
+                        <li><button onclick="scrollToId('sec-reviews')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">→ 旅客真實好評</button></li>
+                        <li><button onclick="scrollToId('sec-hair')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">→ 職人髮型美學</button></li>
+                        <li><button onclick="scrollToId('sec-faq')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">→ 常見問題 Q&A</button></li>
+                        <li><button onclick="scrollToId('sec-3')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">→ 精選門市據點</button></li>
+                        <li><button onclick="scrollToId('booking')" class="hover:text-pink-300 text-pink-400 transition-colors bg-transparent border-none cursor-pointer text-left font-bold font-sans text-sm">→ 立即線上預約 ↗</button></li>
+                    </ul>
+                </div>
+ 
+                <!-- 聯絡資訊 + 門市 -->
+                <div class="space-y-6">
+                    <h4 class="text-xs font-bold tracking-[0.5em] text-pink-300 uppercase font-sans">聯絡資訊</h4>
+                    <div class="space-y-4 text-sm font-sans text-slate-400">
+                        <div class="flex items-start gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0 mt-0.5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                            <div>
+                                <div class="text-white font-bold mb-0.5">日本客服</div>
+                                <a href="tel:+818037055176" class="hover:text-white transition-colors">+81 80-3705-5176</a>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0 mt-0.5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            <div>
+                                <div class="text-white font-bold mb-1">門市據點</div>
+                                <div class="space-y-1 text-slate-400">
+                                    <div>· 京都清水寺店</div>
+                                    <div>· 京都祇園店</div>
+                                    <div>· 大阪日本橋店</div>
+                                    <div>· 東京淺草寺店</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            <span>每日營業 09:30 – 17:30</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+ 
+            <!-- 下半：版權 + 快速預約 CTA -->
+            <div class="pt-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                <p class="text-[11px] text-white/30 font-sans tracking-widest uppercase">© 2026 Foreveryoung × Ouka Kimono. All Rights Reserved.</p>
+                <button onclick="scrollToId('booking')"
+                    class="px-10 py-3 border border-white/20 text-white/70 text-xs font-bold uppercase tracking-widest font-sans rounded-sm hover:bg-white hover:text-[#1A365D] transition-all">
+                    立即預約 Book Now ↗
+                </button>
+            </div>
+        </div>
+    </footer>
+ 
+    <script>
+        // 日本標準時間（JST = UTC+9）計算明日
+        const nowJST = new Date(Date.now() + 9 * 60 * 60 * 1000);
+        const tomorrowJST = new Date(nowJST);
+        tomorrowJST.setUTCDate(tomorrowJST.getUTCDate() + 1);
+        const tomorrowStr = tomorrowJST.toISOString().split('T')[0];
+ 
+        const plans = [
+            { name: "素雅和服", sub: "Elegant Kimono", price: "3,000", desc: "追求簡約大方的經典款式，適合初次體驗。", img: "https://images.unsplash.com/photo-1528114039593-4366cc08227d?auto=format&fit=crop&q=80&w=800" },
+            { name: "俏麗和服", sub: "Pretty Kimono", price: "5,000", desc: "花色繁多亮眼，是最受歡迎的首選款式。", img: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&q=80&w=800" },
+            { name: "精緻和服", sub: "Delica Plan", price: "8,000", desc: "高品質面料與精細刺繡，凸顯典雅氣質。", img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&q=80&w=800" },
+            { name: "女士浴衣", sub: "Yukata", price: "3,000", desc: "夏季限定，輕便涼爽，最適合煙火祭典。", img: "https://images.unsplash.com/photo-1503640538573-148065ba4904?auto=format&fit=crop&q=80&w=800" },
+            { name: "豪華振袖", sub: "Furisode", price: "38,000", desc: "最隆重的正式禮裝，成人式、婚禮首選。", img: "https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?auto=format&fit=crop&q=80&w=800" },
+            { name: "男士和服", sub: "Men's Plan", price: "5,000", desc: "款式沉穩帥氣，適合情侶、家庭同遊。", img: "https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&q=80&w=800" },
+            { name: "武士畢業袴", sub: "Hakama Plan", price: "20,000", desc: "帥氣俐落的層次美感，紀念人生里程碑。", img: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&q=80&w=800" },
+            { name: "兒童和服", sub: "Children Plan", price: "5,000", desc: "適合全家同樂，3-12 歲均有尺寸。", img: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?auto=format&fit=crop&q=80&w=800" }
+        ];
+ 
+        const processItems = [
+            { step: "01", time: "10 min", title: "門市報到", desc: "抵達後寄放行李，專人確認預約資訊。" },
+            { step: "02", time: "20 min", title: "和服挑選", desc: "在數百款職人和服中尋找最契合的一席。" },
+            { step: "03", time: "25 min", title: "職人著裝", desc: "專業老師協助，打造端莊完美的身型。" },
+            { step: "04", time: "20 min", title: "髮型設計", desc: "由髮型師編織您的專屬優雅造型。" },
+            { step: "05", time: "Enjoy", title: "漫步體驗", desc: "開始古都漫步，開啟影像紀錄旅程。" },
+            { step: "06", time: "10 min", title: "輕鬆歸還", desc: "於 17:00 前回到門市換裝領取行李。" }
+        ];
+ 
+        const hairStyles = [
+            { title: "職人優雅盤髮", type: "Signature Updo", img: "https://images.unsplash.com/photo-1611042553365-9b101441c135?auto=format&fit=crop&q=80&w=600" },
+            { title: "清新空氣編織", type: "Airy Braid", img: "https://images.unsplash.com/photo-1595475243692-3929201c3420?auto=format&fit=crop&q=80&w=600" },
+            { title: "和風妝髮點綴", type: "Chic Styling", img: "https://images.unsplash.com/photo-1527015175922-36a306cf0e20?auto=format&fit=crop&q=80&w=600" }
+        ];
+ 
+        const stores = [
+            { name: '京都清水寺店', addr: '京都東山區五條橋東4-432-13 對嵐坊大廈1樓', map: 'https://maps.google.com/?q=京都市東山区五条橋東4丁目432-13', img: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&q=100&w=1000" },
+            { name: '大阪日本橋店', addr: '大阪中央區日本橋1-18-14 芝大廈7樓', map: 'https://maps.google.com/?q=大阪市中央区日本橋1-18-14', img: "https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&q=100&w=1000" },
+            { name: '京都祇園店', addr: '京都東山區常盤町169 常盤大廈', map: 'https://maps.google.com/?q=京都市東山区常盤町169', img: "https://images.unsplash.com/photo-1528114039593-4366cc08227d?auto=format&fit=crop&q=100&w=1000" },
+            { name: '東京淺草寺店', addr: '東京都台東區淺草1-33-8 A-one大廈9樓', map: 'https://maps.google.com/?q=東京都台東区浅草1-33-8', img: "https://images.unsplash.com/photo-1513407030348-c983a97b98d8?auto=format&fit=crop&q=100&w=1000" }
+        ];
+ 
+        const faqData = [
+            { category: "預約、遲到與門市", icon: "calendar", items: [
+                { q: "要怎麼預約方案？可以現場過去嗎？", a: "本服務需全面提前預約。請填單提交憑證後，主動聯繫客服核對編號，未聯繫者預約不生效。訂金可現場折抵消費。" },
+                { q: "店鋪資訊在哪裡？我該去哪裡開始行程？", a: "我們在淺草、清水寺、祇園、日本橋均有分店。預約成功後客服會發送詳細地圖指引。" },
+                { q: "如果當天我因為交通遲到了怎麼辦？", a: "採嚴格預約制。遲到逾 30 分鐘預約可能自動取消，訂金恕不退還。若遇突發狀況請第一時間與客服聯絡，我們將盡力協助。" },
+                { q: "不會日文可以溝通嗎？", a: "沒問題！店內有精通中文的工作人員，溝通完全無礙。" },
+                { q: "可以指定特定門市嗎？不同門市庫存一樣嗎？", a: "可以在表單中指定門市。各門市和服款式略有不同，建議提前告知特別想要的款式，客服會協助確認庫存。" },
+                { q: "預約當天要帶什麼去門市？", a: "憑預約編號至門市報到即可，無需攜帶紙本資料。建議穿著易穿脫的衣物，並事先完妝（如需妝髮加購請提前告知）。" }
+            ]},
+            { category: "款式、妝髮與穿著", icon: "scissors", items: [
+                { q: "我該穿和服還是浴衣？冬天夏天一樣嗎？", a: "夏季（6-9月）提供浴衣，其餘季節提供正式和服。冬天冷天會貼心準備羽織（外套）或暖暖包，請放心。" },
+                { q: "方案包含妝髮嗎？可以只做頭髮嗎？", a: "方案可加購髮型設計（+1,500 JPY），但不包含臉部彩妝。強烈建議到店前自行完妝，避免和服著裝後難以補妝。" },
+                { q: "男生和小孩也可以體驗嗎？孕婦可以嗎？", a: "提供完整的男士（袴、和服）與兒童方案（3-12歲）。出於安全考量，孕婦及行動不便者不建議體驗，請見諒。" },
+                { q: "如果當天遇到生理期怎麼辦？", a: "可以正常體驗，但請務必注意自身舒適度。建議穿著顏色較深的內搭衣物，並告知店員讓我們為您留意。" },
+                { q: "可以現場改款式嗎？升等要加錢嗎？", a: "可以。現場依現貨狀況調整或升等方案，預付訂金全額折抵，差額現場補足即可。" },
+                { q: "和服尺寸怎麼選？有大尺碼嗎？", a: "和服以腰帶（帶）調整，適合多數體型。身高約 150-175cm 均有對應款式，特殊尺寸建議提前告知客服確認。" },
+                { q: "可以自帶配件或髮飾嗎？", a: "歡迎攜帶個人喜歡的配件！師傅會幫您搭配融入整體造型，但需注意配件風格與和服的協調性。" }
+            ]},
+            { category: "費用、退款與保險", icon: "credit-card", items: [
+                { q: "訂金是什麼？為什麼要先匯款？", a: "訂金 NT$220（依即時匯率含手續費換算）為保留預約名額的費用，確保體驗資源的公平分配。訂金於體驗當日100% 全額折抵消費，等同於免費預約。" },
+                { q: "預約後想取消，退款政策是什麼？", a: "預約日 7 天前取消：全額退款。2-6 天前：退 50%。前一日或當日：恕不退費。建議確定行程後再預約。" },
+                { q: "下雨天可以取消或改期嗎？", a: "雨天仍可體驗，店內提供和服專用傘，雨中漫步別有風味！不可因天氣退費，但可於體驗日 2 天前申請改期一次。" },
+                { q: "弄髒或損壞和服要賠償嗎？", a: "一般小髒汙（灰塵、輕微沾染）不收費。嚴重損毀如菸頭燒破、染色無法修補等，將依損壞程度收取賠償費。建議現場加購「安心保險」方案。" },
+                { q: "安心保險是什麼？費用多少？", a: "安心保險為現場加購項目，費用約 500-800 JPY，可涵蓋輕微損壞的賠償責任。詳細內容請至門市詢問。" },
+                { q: "可以刷卡或電子支付嗎？", a: "各門市接受現金（日圓）付款。部分門市支援信用卡，建議事先備妥日圓現金，詳情請在預約時向客服確認。" }
+            ]},
+            { category: "包車、攝影與行李", icon: "camera", items: [
+                { q: "旅乘包車和和服體驗可以一起預約嗎？", a: "可以！旅乘包車可搭配和服體驗，由專屬司機接送您往返門市與景點，行李全程代管，不必穿著和服拖行李箱，非常推薦！" },
+                { q: "攝影方案包含門票嗎？", a: "攝影費用不含景點門票。若進入收費景區（如金閣寺、嵐山竹林等），攝影師的門票費需由客人一同支付。" },
+                { q: "攝影師會拍多少張？何時交件？", a: "60 分鐘約拍攝 100-200 張，精選精修後交付 50-100 張電子檔。通常於體驗後 7 個工作天內透過雲端連結交付。" },
+                { q: "可以自己拍照或請朋友幫拍嗎？", a: "當然可以！穿著和服自拍或請朋友拍照完全沒有限制，加購攝影師是為了獲得更專業的構圖與修圖品質。" },
+                { q: "行李可以寄放在門市嗎？", a: "可以在體驗期間將行李寄放於門市，歸還和服後即可取回。若搭配旅乘包車服務，行李可直接放在車上全程代管。" },
+                { q: "最晚幾點要歸還和服？可以隔日還嗎？", a: "最晚歸還時間為 17:00（部分門市 17:30），請務必準時回店。如需隔日歸還，需提前告知並支付額外費用，詳情請洽客服。" }
+            ]}
+        ];
+ 
+        // 影片資料 - 之後把 youtubeId 換成你自己的 YouTube 影片 ID 即可
+        // 若是 IG / FB 連結，type 改成 'link'，url 填入完整網址
+        const reels = [
+            { title: "京都清水寺漫步", label: "京都 Kyoto", type: "youtube", youtubeId: "dQw4w9WgXcQ", img: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&q=80&w=600" },
+            { title: "振袖正式禮裝", label: "振袖 Furisode", type: "youtube", youtubeId: "dQw4w9WgXcQ", img: "https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?auto=format&fit=crop&q=80&w=600" },
+            { title: "祇園花街漫步", label: "祇園 Gion", type: "youtube", youtubeId: "dQw4w9WgXcQ", img: "https://images.unsplash.com/photo-1528114039593-4366cc08227d?auto=format&fit=crop&q=80&w=600" },
+            { title: "和服著裝體驗", label: "著裝 Dressing", type: "youtube", youtubeId: "dQw4w9WgXcQ", img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&q=80&w=600" },
+            { title: "東京淺草和風", label: "淺草 Asakusa", type: "youtube", youtubeId: "dQw4w9WgXcQ", img: "https://images.unsplash.com/photo-1513407030348-c983a97b98d8?auto=format&fit=crop&q=80&w=600" },
+            { title: "大阪街頭風情", label: "大阪 Osaka", type: "youtube", youtubeId: "dQw4w9WgXcQ", img: "https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&q=80&w=600" },
+            { title: "夏日浴衣煙火", label: "浴衣 Yukata", type: "youtube", youtubeId: "dQw4w9WgXcQ", img: "https://images.unsplash.com/photo-1503640538573-148065ba4904?auto=format&fit=crop&q=80&w=600" },
+            { title: "職人髮型美學", label: "髮型 Styling", type: "youtube", youtubeId: "dQw4w9WgXcQ", img: "https://images.unsplash.com/photo-1611042553365-9b101441c135?auto=format&fit=crop&q=80&w=600" }
+        ];
+ 
+        // 顧客評價資料（替換為真實評語即可）
+        const reviews = [
+            {
+                name: "Joyce C.",
+                avatar: "JC",
+                location: "台灣 · 京都清水寺店",
+                stars: 5,
+                tag: "閨蜜旅遊",
+                text: "三個人一起去穿振袖，店員超級有耐心幫我們搭配！髮型也做得非常漂亮，走在清水寺一直被拍照哈哈。訂金也有折抵，完全值得！",
+                img: "https://images.unsplash.com/photo-1528114039593-4366cc08227d?auto=format&fit=crop&q=80&w=400"
+            },
+            {
+                name: "Mia & Ken",
+                avatar: "MK",
+                location: "香港 · 京都祇園店",
+                stars: 5,
+                tag: "情侶紀念",
+                text: "男女款式都很好看，老公穿起來完全是武士風格，我穿精緻和服，搭配一起拍照超有fu！工作人員中文說得很好，完全不用擔心語言問題。",
+                img: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&q=80&w=400"
+            },
+            {
+                name: "小雅媽咪",
+                avatar: "小雅",
+                location: "台灣 · 東京淺草寺店",
+                stars: 5,
+                tag: "親子同樂",
+                text: "帶小朋友一起穿，兒童款好可愛！全程大概一個半小時就完成了，孩子很興奮。LINE客服回覆很快，預約流程清楚，推薦給要帶小孩去日本的家庭！",
+                img: "https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?auto=format&fit=crop&q=80&w=400"
+            },
+            {
+                name: "Amber L.",
+                avatar: "AL",
+                location: "馬來西亞 · 大阪日本橋店",
+                stars: 5,
+                tag: "生日紀念",
+                text: "生日紀念日特地訂這個體驗，旅拍攝影師超厲害，每張都很有質感！和服款式真的很多，花了快半小時才選好 XD 下次去京都還會再訂！",
+                img: "https://images.unsplash.com/photo-1503640538573-148065ba4904?auto=format&fit=crop&q=80&w=400"
+            },
+            {
+                name: "Lily Wang",
+                avatar: "LW",
+                location: "台灣 · 京都清水寺店",
+                stars: 5,
+                tag: "好友同遊",
+                text: "朋友推薦來的，沒想到體驗這麼好！髮型師幫我設計了傳統編髮，整個人變了一個樣。價格合理，服務很貼心，下午茶和服漫步根本是夢幻行程。",
+                img: "https://images.unsplash.com/photo-1611042553365-9b101441c135?auto=format&fit=crop&q=80&w=400"
+            },
+            {
+                name: "Ray & Sandy",
+                avatar: "RS",
+                location: "新加坡 · 京都祇園店",
+                stars: 5,
+                tag: "蜜月旅行",
+                text: "蜜月旅行選擇來這裡穿和服，真的是超棒的決定！浴衣夏季款清涼好看，穿著逛祇園一整個下午完全不累。工作人員拍照技巧也很好，每個景點都幫我們找到最美角度。",
+                img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&q=80&w=400"
+            }
+        ];
+        function initContent() {
+            document.getElementById('process-grid').innerHTML = processItems.map(item => `
+                <div class="process-card bg-[#FDFCF8] p-8 border border-slate-100 rounded-sm relative z-10 shadow-sm hover:shadow-lg transition-all text-left">
+                    <div class="flex justify-between items-center mb-6">
+                        <span class="step-num text-4xl font-bold text-pink-100 font-sans italic">${item.step}</span>
+                        <div class="flex items-center gap-1.5 bg-white px-3 py-1 rounded-full text-[10px] font-bold border border-slate-100 uppercase font-sans">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            ${item.time}
+                        </div>
+                    </div>
+                    <h4 class="text-xl font-bold text-[#1A365D] mb-3 font-sans">${item.title}</h4>
+                    <p class="text-slate-500 text-sm leading-relaxed font-sans">${item.desc}</p>
+                </div>
+            `).join('');
+ 
+            // 方案卡片：桌機 grid + 手機橫滑（卡片寬固定 240px）
+            const planHTML = plans.map(p => `
+                <div class="group bg-white border border-slate-100 rounded-sm overflow-hidden flex flex-col shadow-sm hover:shadow-xl transition-all duration-700 flex-none w-[240px] md:w-auto snap-center">
+                    <div class="aspect-[4/5] relative overflow-hidden"><img src="${p.img}" class="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition-transform duration-1000 group-hover:scale-105" loading="lazy" alt="${p.name}"></div>
+                    <div class="p-6 flex flex-col flex-grow text-left"><h4 class="text-lg font-bold text-[#1A365D] mb-1 uppercase italic font-sans">${p.name}</h4><p class="text-[10px] text-pink-400 font-bold uppercase mb-3 tracking-widest font-sans">${p.sub}</p><p class="text-slate-500 text-sm leading-relaxed mb-4 flex-grow font-sans">${p.desc}</p><p class="mt-auto text-2xl font-bold font-sans">¥${p.price}<span class="text-xs ml-1 opacity-50 uppercase font-sans">起</span></p></div>
+                </div>
+            `).join('');
+            const planMobile = document.getElementById('plan-container-mobile');
+            const planDesktop = document.getElementById('plan-container');
+            if (planMobile) planMobile.innerHTML = planHTML;
+            if (planDesktop) planDesktop.innerHTML = planHTML;
+ 
+            document.getElementById('video-container').innerHTML = reels.map((v, i) => `
+                <div class="flex-none w-[240px] md:w-[280px] aspect-[9/16] bg-slate-900 rounded-2xl overflow-hidden relative group snap-center shadow-xl cursor-pointer select-none"
+                     onclick="openLightbox(${i})" role="button" aria-label="播放：${v.title}">
+                    <img src="${v.img}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:brightness-75" loading="lazy" alt="${v.title}" />
+                    <!-- 漸層遮罩 -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
+                    <!-- 播放按鈕 -->
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div class="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/60 flex items-center justify-center group-hover:scale-110 group-hover:bg-white/30 transition-all duration-300 shadow-2xl">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-white ml-1" fill="white" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        </div>
+                    </div>
+                    <!-- 底部文字 -->
+                    <div class="absolute bottom-0 left-0 right-0 p-6 text-left">
+                        <span class="text-[10px] text-pink-300 font-bold tracking-widest uppercase font-sans block mb-1">${v.label}</span>
+                        <h4 class="text-white font-bold text-base font-sans leading-tight">${v.title}</h4>
+                    </div>
+                </div>
+            `).join('');
+ 
+            // 髮型卡片：桌機 grid + 手機橫滑
+            // 顧客評價渲染
+            const starsHTML = '<div class="flex gap-0.5 mb-3">' + Array(5).fill('<svg class="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>').join('') + '</div>';
+ 
+            const reviewHTML = reviews.map(r => `
+                <div class="bg-white border border-slate-100 rounded-sm shadow-sm hover:shadow-lg transition-all flex flex-col overflow-hidden flex-none w-[260px] md:w-auto snap-center">
+                    <div class="aspect-[3/4] overflow-hidden relative">
+                        <img src="${r.img}" class="w-full h-full object-cover transition-transform duration-700 hover:scale-105" loading="lazy" alt="${r.name}">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#1A365D]/70 via-transparent to-transparent"></div>
+                        <span class="absolute bottom-3 left-4 text-[10px] font-bold text-white/90 bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full font-sans uppercase tracking-widest">${r.tag}</span>
+                    </div>
+                    <div class="p-6 flex flex-col flex-grow">
+                        ${starsHTML}
+                        <p class="text-slate-600 text-sm leading-relaxed font-sans flex-grow italic">&ldquo;${r.text}&rdquo;</p>
+                        <div class="mt-5 pt-5 border-t border-slate-50 flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-full bg-[#1A365D] text-white flex items-center justify-center text-xs font-bold font-sans shrink-0">${r.avatar.slice(0,2)}</div>
+                            <div>
+                                <p class="text-[#1A365D] font-bold text-sm font-sans">${r.name}</p>
+                                <p class="text-slate-400 text-[10px] font-sans">${r.location}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+ 
+            const revMobile = document.getElementById('reviews-mobile');
+            const revDesktop = document.getElementById('reviews-desktop');
+            if (revMobile) revMobile.innerHTML = reviewHTML;
+            // 桌機只顯示前 3 則，其餘收起（避免版面過長）
+            if (revDesktop) revDesktop.innerHTML = reviews.slice(0, 3).map(r => `
+                <div class="bg-white border border-slate-100 rounded-sm shadow-sm hover:shadow-lg transition-all flex flex-col overflow-hidden">
+                    <div class="aspect-[3/4] overflow-hidden relative">
+                        <img src="${r.img}" class="w-full h-full object-cover transition-transform duration-700 hover:scale-105" loading="lazy" alt="${r.name}">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#1A365D]/70 via-transparent to-transparent"></div>
+                        <span class="absolute bottom-3 left-4 text-[10px] font-bold text-white/90 bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full font-sans uppercase tracking-widest">${r.tag}</span>
+                    </div>
+                    <div class="p-6 flex flex-col flex-grow">
+                        ${starsHTML}
+                        <p class="text-slate-600 text-sm leading-relaxed font-sans flex-grow italic">&ldquo;${r.text}&rdquo;</p>
+                        <div class="mt-5 pt-5 border-t border-slate-50 flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-full bg-[#1A365D] text-white flex items-center justify-center text-xs font-bold font-sans shrink-0">${r.avatar.slice(0,2)}</div>
+                            <div>
+                                <p class="text-[#1A365D] font-bold text-sm font-sans">${r.name}</p>
+                                <p class="text-slate-400 text-[10px] font-sans">${r.location}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+ 
+            document.getElementById('faq-tabs').innerHTML = faqData.map((cat, idx) => `
+                <button onclick="switchFaq(${idx})" id="faq-tab-${idx}" class="faq-tab-btn flex items-center gap-2 px-6 py-3 rounded-sm text-sm font-bold border-2 transition-all cursor-pointer ${idx === 0 ? 'bg-[#1A365D] border-[#1A365D] text-white shadow-lg scale-105' : 'bg-[#FDFCF8] border-slate-100 text-slate-400 hover:border-pink-200'}">
+                    <i data-lucide="${cat.icon}" class="w-4 h-4"></i> <span class="font-sans">${cat.category}</span>
+                </button>
+            `).join('');
+            switchFaq(0);
+ 
+            document.getElementById('store-tabs').innerHTML = stores.map((s, i) => `
+                <button onclick="switchStore(${i})" id="store-tab-${i}" class="store-tab-btn px-10 py-4 text-sm font-bold border-2 transition-all uppercase rounded-sm cursor-pointer ${i === 0 ? 'bg-[#1A365D] border-[#1A365D] text-white shadow-xl' : 'bg-white text-slate-400 border-slate-100 hover:border-pink-200 font-sans'}">${s.name}</button>
+            `).join('');
+            switchStore(0);
+ 
+            document.getElementById('input-plan').innerHTML = plans.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+ 
+ 
+        // --- 流程虛線（initContent 後才執行） ---
+        function drawProcessLines() {
+            const grid = document.getElementById('process-grid');
+            const linesWrap = document.getElementById('process-lines');
+            if (!grid || !linesWrap || window.innerWidth < 1024) return;
+            const cards = grid.querySelectorAll('.process-card');
+            if (cards.length < 6) return;
+            linesWrap.innerHTML = '';
+            const wrapEl = linesWrap.parentElement;
+            const wrapRect = wrapEl.getBoundingClientRect();
+            [0, 3].forEach(cardIdx => {
+                const numEl = cards[cardIdx].querySelector('.step-num');
+                if (!numEl) return;
+                const numRect = numEl.getBoundingClientRect();
+                const centerY = numRect.top + numRect.height / 2 - wrapRect.top + wrapEl.scrollTop;
+                const line = document.createElement('div');
+                line.style.cssText = 'position:absolute;left:8%;right:8%;top:' + centerY + 'px;height:0;border-top:2px dashed #fbcfe8;z-index:0;transform:translateY(-50%);pointer-events:none;';
+                linesWrap.appendChild(line);
+            });
+        }
+ 
+        // --- 選單互動 ---
+        let mobileMenuOpen = false;
+        function toggleMobileMenu() {
+            mobileMenuOpen = !mobileMenuOpen;
+            const menu = document.getElementById('mobile-menu');
+            const l1 = document.getElementById('ham-line1');
+            const l2 = document.getElementById('ham-line2');
+            const l3 = document.getElementById('ham-line3');
+            if (mobileMenuOpen) {
+                menu.classList.add('open');
+                l1.style.transform = 'rotate(45deg) translate(4px, 4px)';
+                l2.style.opacity = '0';
+                l3.style.transform = 'rotate(-45deg) translate(4px, -4px)';
+            } else {
+                menu.classList.remove('open');
+                l1.style.transform = '';
+                l2.style.opacity = '';
+                l3.style.transform = '';
+            }
+        }
+        function closeMobileMenu() {
+            mobileMenuOpen = true;
+            toggleMobileMenu();
+        }
+ 
+        function scrollToId(id) {
+            const el = document.getElementById(id);
+            const offset = 80;
+            window.scrollTo({ top: el.offsetTop - offset, behavior: 'smooth' });
+        }
+ 
+        function switchFaq(idx) {
+            document.querySelectorAll('.faq-tab-btn').forEach(btn => {
+                btn.classList.remove('bg-[#1A365D]', 'border-[#1A365D]', 'text-white', 'shadow-lg', 'scale-105');
+                btn.classList.add('bg-[#FDFCF8]', 'border-slate-100', 'text-slate-400');
+            });
+            const activeBtn = document.getElementById(`faq-tab-${idx}`);
+            activeBtn.classList.add('bg-[#1A365D]', 'border-[#1A365D]', 'text-white', 'shadow-lg', 'scale-105');
+            activeBtn.classList.remove('bg-[#FDFCF8]', 'border-slate-100', 'text-slate-400');
+ 
+            document.getElementById('faq-content').innerHTML = faqData[idx].items.map((item, i) => `
+                <div class="py-6 text-left">
+                    <button onclick="toggleAccordion('faq-item-${idx}-${i}')" class="w-full flex items-center justify-between text-left cursor-pointer group outline-none bg-transparent border-none">
+                        <span class="text-base font-bold group-hover:text-pink-500 transition-colors font-sans text-[#1A365D]">Q. ${item.q}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-300 group-hover:text-pink-400 transition-transform flex-shrink-0 ml-4" id="faq-icon-${idx}-${i}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div id="faq-item-${idx}-${i}" class="faq-answer text-slate-500 text-sm italic leading-relaxed font-sans">A: ${item.a}</div>
+                </div>
+            `).join('');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+ 
+        function toggleAccordion(id) {
+            const el = document.getElementById(id);
+            const icon = document.getElementById(id.replace('item', 'icon'));
+            el.classList.toggle('active');
+            if (el.classList.contains('active')) {
+                icon.classList.add('rotate-180', 'text-pink-500');
+            } else {
+                icon.classList.remove('rotate-180', 'text-pink-500');
+            }
+        }
+ 
+        function switchStore(idx) {
+            document.querySelectorAll('.store-tab-btn').forEach(btn => {
+                btn.classList.remove('bg-[#1A365D]', 'border-[#1A365D]', 'text-white', 'shadow-xl');
+                btn.classList.add('bg-white', 'text-slate-400', 'border-slate-100');
+            });
+            document.getElementById(`store-tab-${idx}`).classList.add('bg-[#1A365D]', 'border-[#1A365D]', 'text-white', 'shadow-xl');
+            document.getElementById(`store-tab-${idx}`).classList.remove('bg-white', 'text-slate-400', 'border-slate-100');
+ 
+            const s = stores[idx];
+            // 全部改用 inline SVG，避免 lucide createIcons 時序問題
+            document.getElementById('store-content').innerHTML = `
+                <div class="lg:col-span-5 p-12 lg:p-20 flex flex-col justify-center text-left">
+                    <h3 class="text-4xl font-bold text-[#1A365D] mb-8 italic font-sans">${s.name}</h3>
+                    <div class="space-y-8 text-[#1A365D]/90 font-bold">
+                        <div class="flex items-start gap-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-pink-400 shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="#f9a8d4" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            <p class="text-lg leading-relaxed font-sans">${s.addr}</p>
+                        </div>
+                        <div class="flex items-center gap-4 opacity-60">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="#f9a8d4" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            <p class="text-sm uppercase tracking-widest font-sans">每日 09:30 – 17:30</p>
+                        </div>
+                    </div>
+                    <div class="mt-14">
+                        <a href="${s.map}" target="_blank" rel="noopener" class="inline-flex items-center gap-3 px-8 py-4 bg-[#1A365D] text-white rounded-sm font-bold text-xs uppercase tracking-[0.2em] hover:bg-pink-500 transition-colors font-sans">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                            查看 Google 地圖
+                        </a>
+                    </div>
+                </div>
+                <div class="lg:col-span-7 h-[350px] lg:h-auto overflow-hidden relative">
+                    <img src="${s.img}" class="absolute inset-0 w-full h-full object-cover object-center transition-all duration-1000 hover:scale-105" alt="${s.name}" loading="lazy">
+                </div>
+            `;
+        }
+ 
+        // --- 表單 ---
+        let guestData = { adults: 1, children: 0 };
+        function changeGuest(type, delta) {
+            const min = type === 'adults' ? 1 : 0;
+            guestData[type] = Math.max(min, guestData[type] + delta);
+            document.getElementById(`count-${type}`).innerText = guestData[type];
+        }
+ 
+        function validateLast5(input) {
+            const hint = document.getElementById('last5-hint');
+            if (input.value.length > 0 && input.value.length < 5) {
+                hint.textContent = `還需輸入 ${5 - input.value.length} 位數字`;
+                hint.style.color = '#f59e0b';
+            } else if (input.value.length === 5) {
+                hint.textContent = '✓ 格式正確';
+                hint.style.color = '#22c55e';
+            } else {
+                hint.textContent = '';
+            }
+        }
+ 
+        function handleFileUpload(input) {
+            const label = document.getElementById('file-label-text');
+            if (input.files && input.files[0]) {
+                const fileName = input.files[0].name;
+                label.textContent = '✓ ' + fileName;
+                label.style.color = '#22c55e';
+            }
+        }
+ 
+        function setStep(step) {
+            document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(`form-step-${step}`).classList.add('active');
+            document.getElementById('step-dot-1').className = `w-10 h-10 rounded-full flex items-center justify-center font-bold font-sans transition-all ${step >= 1 ? 'bg-[#1A365D] text-white shadow-lg' : 'bg-slate-100 text-slate-400'}`;
+            document.getElementById('step-dot-2').className = `w-10 h-10 rounded-full flex items-center justify-center font-bold font-sans transition-all ${step >= 2 ? 'bg-[#1A365D] text-white shadow-lg' : 'bg-slate-100 text-slate-400'}`;
+            document.getElementById('step-dot-3').className = `w-10 h-10 rounded-full flex items-center justify-center font-bold font-sans transition-all ${step >= 3 ? 'bg-[#1A365D] text-white shadow-lg' : 'bg-slate-100 text-slate-400'}`;
+            document.getElementById('step-line-1').className = `w-12 h-0.5 transition-all ${step >= 2 ? 'bg-[#1A365D]' : 'bg-slate-100'}`;
+            document.getElementById('step-line-2').className = `w-12 h-0.5 transition-all ${step >= 3 ? 'bg-[#1A365D]' : 'bg-slate-100'}`;
+        }
+ 
+        // ★ Google Apps Script Web App URL
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx32in5ZDp_WtfHaoxuQj48hzooDJ99GnWOyuke0prxaBbqE7uiDoLikaG1E0UCZpDa/exec';
+ 
+        document.getElementById('booking-form-1').onsubmit = (e) => {
+            e.preventDefault();
+            // Step 1 資料暫存，進到 Step 2
+            setStep(2);
+            scrollToId('booking');
+        };
+ 
+        document.getElementById('booking-form-2').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('finalSubmitBtn');
+            btn.innerHTML = '鎖定編號中...';
+            btn.disabled = true;
+ 
+            // 防止短時間重複送出
+            let lastTime = null;
+            try { lastTime = localStorage.getItem('last_booking'); } catch(err) {}
+            if (lastTime && Date.now() - Number(lastTime) < 60000) {
+                alert('提交過於頻繁，請於一分鐘後再試。');
+                btn.disabled = false;
+                btn.innerHTML = '確認提交並取得編號';
+                return;
+            }
+ 
+            // 收集 Step 1 + Step 2 所有欄位
+            // 先產生編號（送出前就決定好，確保前後端一致）
+            let lastOrderNum = 20000000;
+            try {
+                const stored = localStorage.getItem('last_order_num');
+                if (stored) lastOrderNum = parseInt(stored);
+            } catch(err) {}
+            const nextOrderNum = lastOrderNum + 1;
+            const finalId = '#' + nextOrderNum;
+ 
+            const payload = {
+                orderId:     finalId,
+                name:        document.getElementById('input-name').value.trim(),
+                phone:       document.getElementById('input-phone').value.trim(),
+                email:       document.getElementById('input-email').value.trim(),
+                bookingDate: document.getElementById('input-date').value,
+                platform:    'LINE',
+                adults:      guestData.adults,
+                children:    guestData.children,
+                plan:        document.getElementById('input-plan').value,
+                hair:        document.getElementById('input-hair').value === 'Yes' ? '是' : '否',
+                photo:       document.getElementById('input-photo').value === 'Yes' ? '是' : '否',
+                source:      '官網',
+                last5:       document.getElementById('input-last5').value.trim()
+            };
+ 
+            try {
+                // fetch 送 JSON 到 Apps Script（no-cors 模式，GAS CORS 限制）
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify(payload)
+                });
+ 
+                // 編號已在 payload 階段產生，直接使用
+                document.getElementById('finalOrderId').innerText = finalId;
+                document.getElementById('finalOrderIdDisplay').innerText = finalId;
+                document.getElementById('file-name-display').innerText = finalId.replace('#','') + '_proof.jpg';
+ 
+                // 儲存流水號到 localStorage（下次從這個數字繼續往上）
+                try { localStorage.setItem('last_order_num', nextOrderNum); } catch(err) {}
+                try { localStorage.setItem('last_booking', Date.now()); } catch(err) {}
+ 
+                setStep(3);
+                scrollToId('booking');
+ 
+            } catch (err) {
+                // 網路錯誤才會進這裡
+                console.error('送出失敗:', err);
+                btn.disabled = false;
+                btn.innerHTML = '確認提交並取得編號';
+                alert('網路異常，請檢查連線後再試，或直接聯繫 LINE 客服。\n錯誤：' + err.message);
+            }
+        };
+ 
+        window.onload = () => {
+            document.getElementById('input-date').setAttribute('min', tomorrowStr);
+ 
+            // 櫻花特效
+            const container = document.getElementById('sakura-container');
+            for (let i = 0; i < 8; i++) {
+                const petal = document.createElement('div');
+                petal.className = 'sakura';
+                petal.style.width = Math.random() * 8 + 8 + 'px';
+                petal.style.height = petal.style.width;
+                petal.style.left = Math.random() * 100 + 'vw';
+                petal.style.animationDuration = Math.random() * 10 + 20 + 's';
+                petal.style.animationDelay = Math.random() * 15 + 's';
+                container.appendChild(petal);
+            }
+ 
+            // 捲動導航
+            window.addEventListener('scroll', () => {
+                const nav = document.getElementById('navbar');
+                const isScrolled = window.scrollY > 50;
+                const isTopVisible = window.scrollY > 500;
+ 
+                nav.classList.toggle('nav-scrolled', isScrolled);
+ 
+                document.querySelectorAll('.nav-link, #nav-title').forEach(el => {
+                    el.style.color = isScrolled ? '#1A365D' : 'white';
+                });
+                // 漢堡線條也跟著變色
+                ['ham-line1','ham-line2','ham-line3'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.backgroundColor = isScrolled ? '#1A365D' : 'white';
+                });
+ 
+                document.getElementById('logo-box').style.backgroundColor = isScrolled ? '#1A365D' : 'rgba(255,255,255,0.2)';
+                document.getElementById('logo-box').style.color = 'white';
+                document.getElementById('nav-sub').style.color = isScrolled ? 'rgba(26,54,93,0.7)' : 'rgba(255,255,255,0.7)';
+ 
+                const btn = document.getElementById('nav-booking-btn');
+                if (btn) {
+                    btn.style.borderColor = isScrolled ? '#1A365D' : 'rgba(255,255,255,0.4)';
+                    btn.style.color = isScrolled ? '#1A365D' : 'white';
+                }
+ 
+                const topBtn = document.getElementById('topBtn');
+                topBtn.style.opacity = isTopVisible ? '1' : '0';
+                topBtn.style.pointerEvents = isTopVisible ? 'auto' : 'none';
+            });
+ 
+            initContent();
+            setTimeout(drawProcessLines, 400);
+            window.addEventListener('resize', drawProcessLines);
+            // 再確認一次所有靜態 icon 都渲染
+            setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 200);
+        };
+ 
+        // --- 燈箱邏輯 ---
+        let lbCurrentIdx = 0;
+ 
+        function openLightbox(idx) {
+            lbCurrentIdx = idx;
+            const lb = document.getElementById('video-lightbox');
+            lb.style.removeProperty('display');
+            lb.style.display = 'flex';
+            loadLightboxVideo(idx);
+            document.body.style.overflow = 'hidden';
+            document.onkeydown = (e) => {
+                if (e.key === 'Escape') closeLightbox();
+                if (e.key === 'ArrowLeft') prevVideo();
+                if (e.key === 'ArrowRight') nextVideo();
+            };
+        }
+ 
+        function loadLightboxVideo(idx) {
+            const v = reels[idx];
+            const iframe = document.getElementById('lb-iframe');
+            if (v.type === 'youtube') {
+                iframe.src = `https://www.youtube.com/embed/${v.youtubeId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
+            } else if (v.type === 'link') {
+                closeLightbox();
+                window.open(v.url, '_blank', 'noopener');
+                return;
+            }
+            document.getElementById('lb-title').textContent = v.title;
+            document.getElementById('lb-label').textContent = v.label;
+            document.getElementById('lb-count').textContent = `${idx + 1} / ${reels.length}`;
+        }
+ 
+        function closeLightbox() {
+            document.getElementById('video-lightbox').style.display = 'none';
+            document.getElementById('lb-iframe').src = 'about:blank';
+            document.body.style.overflow = '';
+            document.onkeydown = null;
+        }
+ 
+        function prevVideo() {
+            lbCurrentIdx = (lbCurrentIdx - 1 + reels.length) % reels.length;
+            document.getElementById('lb-iframe').src = 'about:blank';
+            setTimeout(() => loadLightboxVideo(lbCurrentIdx), 80);
+        }
+ 
+        function nextVideo() {
+            lbCurrentIdx = (lbCurrentIdx + 1) % reels.length;
+            document.getElementById('lb-iframe').src = 'about:blank';
+            setTimeout(() => loadLightboxVideo(lbCurrentIdx), 80);
+        }
+    </script>
+    <!-- 燈箱 Modal -->
+    <div id="video-lightbox" class="fixed inset-0 z-[900] flex items-center justify-center p-4 md:p-8"
+         style="display:none; background:rgba(0,0,0,0.92); backdrop-filter:blur(8px);">
+        <!-- 關閉背景點擊 -->
+        <div class="absolute inset-0" onclick="closeLightbox()"></div>
+        <!-- 燈箱主體：直式 9:16 -->
+        <div class="relative z-10 w-full max-w-[360px] md:max-w-[400px]" style="aspect-ratio:9/16;">
+            <!-- X 關閉按鈕 -->
+            <button onclick="closeLightbox()"
+                class="absolute -top-12 right-0 w-10 h-10 rounded-full bg-white/10 border border-white/20 text-white flex items-center justify-center hover:bg-white/20 transition-all z-20"
+                aria-label="關閉影片">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            <!-- 左右切換 -->
+            <button onclick="prevVideo()" id="lb-prev"
+                class="absolute left-[-52px] top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 border border-white/20 text-white hidden md:flex items-center justify-center hover:bg-white/20 transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <button onclick="nextVideo()" id="lb-next"
+                class="absolute right-[-52px] top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 border border-white/20 text-white hidden md:flex items-center justify-center hover:bg-white/20 transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <!-- iframe 容器 -->
+            <div id="lb-frame-wrap" class="w-full h-full rounded-2xl overflow-hidden bg-black shadow-2xl">
+                <iframe id="lb-iframe"
+                    class="w-full h-full border-0"
+                    allow="autoplay; fullscreen; picture-in-picture"
+                    allowfullscreen
+                    src="about:blank">
+                </iframe>
+            </div>
+            <!-- 標題 + 計數 -->
+            <div class="absolute -bottom-12 left-0 right-0 flex items-center justify-between">
+                <div>
+                    <span id="lb-label" class="text-pink-300 text-[10px] font-bold tracking-widest uppercase font-sans block"></span>
+                    <span id="lb-title" class="text-white text-sm font-bold font-sans"></span>
+                </div>
+                <span id="lb-count" class="text-white/40 text-xs font-sans font-bold"></span>
+            </div>
+        </div>
+    </div>
+ 
+</body>
+</html>
