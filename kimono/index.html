@@ -434,7 +434,7 @@
                             <p class="text-sm opacity-70">銀行代碼：<span class="text-lg opacity-100 ml-2">008 (華南銀行)</span></p>
                             <p class="text-sm opacity-70">分行：<span class="text-lg opacity-100 ml-2">營業部</span></p>
                             <p class="text-sm opacity-70">戶名：<span class="text-lg opacity-100 ml-2">佳遊國際旅行社有限公司</span></p>
-                            <p class="text-sm opacity-70">匯款帳號：<span class="text-2xl italic opacity-100 ml-2 font-mono">100100344320</span></p>
+                            <p class="text-sm opacity-70">匯款帳號：<span class="text-2xl italic opacity-100 ml-2" style="font-family:'Noto Sans TC',sans-serif; letter-spacing:0.12em; font-weight:700;">100100344320</span></p>
                             <p class="text-sm text-pink-400 font-bold uppercase underline underline-offset-8 pt-4">需付金額：NT$ 220</p>
                         </div>
                     </div>
@@ -467,8 +467,11 @@
                 <div id="form-step-3" class="step-content text-center">
                     <div class="text-center space-y-8">
                         <!-- 成功圖示 -->
-                        <div class="w-24 h-24 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto shadow-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.955 11.955 0 010 12c0 6.627 5.373 12 12 12s12-5.373 12-12c0-2.954-1.07-5.663-2.833-7.757"/></svg>
+                        <div class="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mx-auto shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14" viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="12" r="12" fill="#22c55e"/>
+                                <path d="M7 12.5l3.5 3.5 6.5-7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
                         </div>
 
                         <div>
@@ -478,8 +481,15 @@
 
                         <!-- 編號卡 -->
                         <div class="bg-[#1A365D] text-white p-8 rounded-xl shadow-inner">
-                            <p class="text-white/60 text-xs uppercase tracking-widest font-sans mb-2">您的專屬預約編號</p>
-                            <p id="finalOrderId" class="text-4xl font-bold tracking-widest text-pink-300" style="font-family: 'Noto Sans TC', sans-serif; letter-spacing: 0.15em;">#20000001</p>
+                            <p class="text-white/60 text-xs uppercase tracking-widest font-sans mb-3">您的專屬預約編號</p>
+                            <div class="flex items-center justify-center gap-4">
+                                <p id="finalOrderId" class="text-4xl font-bold tracking-widest text-pink-300" style="font-family: 'Noto Sans TC', sans-serif; letter-spacing: 0.15em;">K260417011</p>
+                                <button onclick="copyOrderId()" id="copyBtn"
+                                    class="flex items-center gap-1.5 px-4 py-2 bg-white/15 hover:bg-white/25 text-white text-xs font-bold rounded-full transition-all font-sans border border-white/30 cursor-pointer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                                    複製編號
+                                </button>
+                            </div>
                             <p class="text-white/50 text-xs italic font-sans mt-3">憑證已命名為 <span id="file-name-display" class="underline text-white/70"></span></p>
                         </div>
 
@@ -1042,6 +1052,29 @@
             }
         }
 
+        function copyOrderId() {
+            const id  = document.getElementById('finalOrderId').innerText;
+            const btn = document.getElementById('copyBtn');
+            navigator.clipboard.writeText(id).then(() => {
+                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 已複製！`;
+                btn.style.background = 'rgba(34,197,94,0.3)';
+                setTimeout(() => {
+                    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> 複製編號`;
+                    btn.style.background = '';
+                }, 2500);
+            }).catch(() => {
+                // 舊版瀏覽器 fallback
+                const el = document.createElement('textarea');
+                el.value = id;
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+                btn.innerHTML = '✓ 已複製！';
+                setTimeout(() => { btn.innerHTML = '複製編號'; }, 2500);
+            });
+        }
+
         function setStep(step) {
             document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
             document.getElementById(`form-step-${step}`).classList.add('active');
@@ -1053,7 +1086,7 @@
         }
 
         // ★ Google Apps Script Web App URL
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzQrd2thmcXuhbH3BZrcFG-20aW9KHHYu3I0trBBGAd_BTV8Zg3okrnyIOuG8fOOdLP/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw_GNRR4cduM1TzOJ-V7R5tqwXaNkEOxE-DG2GWGThAroGi0JeKoju0I6tNxUf171xr/exec';
 
         document.getElementById('booking-form-1').onsubmit = (e) => {
             e.preventDefault();
@@ -1086,12 +1119,12 @@
             const dd  = String(nowJST.getUTCDate()).padStart(2,'0');      // 17
             const dateKey = yy + mm + dd;   // 260417
 
-            // 取今天的流水號（存在 localStorage，每天重置）
-            let todaySeq = 1;
+            // 取今天的流水號（存在 localStorage，每天重置，從 011 開始）
+            let todaySeq = 11;
             try {
                 const storedDate = localStorage.getItem('order_date');
-                const storedSeq  = parseInt(localStorage.getItem('order_seq') || '0');
-                if (storedDate === dateKey && storedSeq > 0) {
+                const storedSeq  = parseInt(localStorage.getItem('order_seq') || '10');
+                if (storedDate === dateKey && storedSeq >= 11) {
                     todaySeq = storedSeq + 1;
                 }
             } catch(err) {}
