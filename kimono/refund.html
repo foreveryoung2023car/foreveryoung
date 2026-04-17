@@ -322,7 +322,6 @@
     <script>
         // ★ 設定從 config.js 讀取
         const APPS_SCRIPT_URL = KIMONO_CONFIG.APPS_SCRIPT_URL;
-        const SECURITY_TOKEN  = KIMONO_CONFIG.SECURITY_TOKEN;
 
         // 暫存驗證後的訂單資料
         let verifiedOrder = null;
@@ -362,7 +361,6 @@
 
             try {
                 const payload = {
-                    token:   SECURITY_TOKEN,
                     action:  'verify',
                     orderId: orderId,
                     email:   email
@@ -441,7 +439,6 @@
             const submitDate = nowTWN.toISOString().slice(0, 10);
 
             const payload = {
-                token:       SECURITY_TOKEN,
                 action:      'refund',
                 orderId:     verifiedOrder.orderId,
                 email:       verifiedOrder.email,
