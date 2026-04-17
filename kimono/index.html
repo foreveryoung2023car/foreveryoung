@@ -12,6 +12,8 @@
     <meta property="og:type" content="website">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- 全站設定檔，修改 config.js 即可同步所有頁面 -->
+    <script src="./config.js"></script>
     <!-- lucide：等 script onload 後再 createIcons，確保所有 icon 正確渲染 -->
     <script>
         function initLucide() {
@@ -431,11 +433,11 @@
                         <i data-lucide="credit-card" class="absolute top-4 right-4 w-32 h-32 opacity-10 rotate-12"></i>
                         <h4 class="text-pink-300 font-bold mb-6 flex items-center gap-2 uppercase font-sans">指定匯款帳戶 / Bank Info</h4>
                         <div class="space-y-4 font-sans tracking-widest font-bold">
-                            <p class="text-sm opacity-70">銀行代碼：<span class="text-lg opacity-100 ml-2">008 (華南銀行)</span></p>
-                            <p class="text-sm opacity-70">分行：<span class="text-lg opacity-100 ml-2">營業部</span></p>
-                            <p class="text-sm opacity-70">戶名：<span class="text-lg opacity-100 ml-2">佳遊國際旅行社有限公司</span></p>
-                            <p class="text-sm opacity-70">匯款帳號：<span class="text-2xl italic opacity-100 ml-2" style="font-family:'Noto Sans TC',sans-serif; letter-spacing:0.12em; font-weight:700;">100100344320</span></p>
-                            <p class="text-sm text-pink-400 font-bold uppercase underline underline-offset-8 pt-4">需付金額：NT$ 220</p>
+                            <p class="text-sm opacity-70">銀行代碼：<span class="text-lg opacity-100 ml-2" id="bank-info-code"></span></p>
+                            <p class="text-sm opacity-70">分行：<span class="text-lg opacity-100 ml-2" id="bank-info-branch"></span></p>
+                            <p class="text-sm opacity-70">戶名：<span class="text-lg opacity-100 ml-2" id="bank-info-holder"></span></p>
+                            <p class="text-sm opacity-70">匯款帳號：<span class="text-2xl italic opacity-100 ml-2" id="bank-info-account" style="font-family:'Noto Sans TC',sans-serif; letter-spacing:0.12em; font-weight:700;"></span></p>
+                            <p class="text-sm text-pink-400 font-bold uppercase underline underline-offset-8 pt-4" id="bank-info-amount"></p>
                         </div>
                     </div>
                     <form id="booking-form-2" class="space-y-10">
@@ -1085,8 +1087,9 @@
             document.getElementById('step-line-2').className = `w-12 h-0.5 transition-all ${step >= 3 ? 'bg-[#1A365D]' : 'bg-slate-100'}`;
         }
 
-        // ★ Google Apps Script Web App URL
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxYTXDMpvItw2syvqltzRtseYqfckDEJ9GQxLWrIsKP5GGiiM-kJ9FVz45YKlEeRXGC/exec';
+        // ★ 設定從 config.js 讀取，只需修改 config.js 即可
+        const APPS_SCRIPT_URL = KIMONO_CONFIG.APPS_SCRIPT_URL;
+        const SECURITY_TOKEN  = KIMONO_CONFIG.SECURITY_TOKEN;
 
         document.getElementById('booking-form-1').onsubmit = (e) => {
             e.preventDefault();
@@ -1183,6 +1186,21 @@
         };
 
         window.onload = () => {
+            // 從 config.js 填入銀行資訊與連結
+            const cfg = KIMONO_CONFIG;
+            const fillEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+            const fillHref = (id, val) => { const el = document.getElementById(id); if (el) el.href = val; };
+
+            fillEl('bank-info-code',    `${cfg.BANK_CODE} (${cfg.BANK_NAME})`);
+            fillEl('bank-info-branch',  cfg.BANK_BRANCH);
+            fillEl('bank-info-holder',  cfg.BANK_HOLDER);
+            fillEl('bank-info-account', cfg.BANK_ACCOUNT);
+            fillEl('bank-info-amount',  `需付金額：NT$ ${cfg.DEPOSIT_TWD}`);
+
+            // 動態填入所有 LINE / Messenger 連結
+            document.querySelectorAll('a[data-line]').forEach(a => a.href = cfg.LINE_URL);
+            document.querySelectorAll('a[data-messenger]').forEach(a => a.href = cfg.MESSENGER_URL);
+
             document.getElementById('input-date').setAttribute('min', tomorrowStr);
 
             // 櫻花特效
