@@ -40,7 +40,7 @@
             .text-5xl { font-size: 2.5rem !important; }
             .text-8xl { font-size: 3.5rem !important; }
         }
- 
+
         /* 櫻花動畫 */
         .sakura-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; overflow: hidden; }
         .sakura { position: absolute; background: #FFB7C5; border-radius: 100% 0 100% 0; opacity: 0.15; animation: fall linear infinite; }
@@ -50,40 +50,40 @@
             90% { opacity: 0.15; }
             100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
         }
- 
+
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
- 
+
         .step-content { display: none; }
         .step-content.active { display: block; animation: fadeIn 0.6s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
- 
+
         /* FAQ 修正：用 max-height 讓動畫正常跑 */
         .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.45s ease, opacity 0.35s ease, padding 0.3s ease; opacity: 0; padding-top: 0; padding-bottom: 0; }
         .faq-answer.active { max-height: 600px; padding-top: 1rem; padding-bottom: 1.5rem; opacity: 1; }
- 
+
         input[type="number"]::-webkit-inner-spin-button,
         input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
- 
+
         .nav-scrolled { background-color: white !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); padding-top: 1rem !important; padding-bottom: 1rem !important; }
- 
+
         /* 手機選單動畫 */
         #mobile-menu { transform: translateY(-100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); }
         #mobile-menu.open { transform: translateY(0); }
- 
+
         /* 上傳區域 hover */
         .upload-zone { cursor: pointer; }
         .upload-zone:hover { border-color: #f9a8d4; color: #ec4899; }
- 
+
         /* 檔案選取後顯示名稱 */
         #file-label-text { transition: color 0.2s; }
     </style>
 </head>
 <body class="bg-[#FDFCF8] text-[#1A365D] selection:bg-pink-100 overflow-x-hidden">
- 
+
     <!-- 櫻花背景 -->
     <div id="sakura-container" class="sakura-container"></div>
- 
+
     <!-- 右側懸浮客服（全部用 inline SVG，不依賴 lucide 載入時序） -->
     <div class="fixed right-6 bottom-32 z-[480] flex flex-col gap-3">
         <!-- LINE -->
@@ -99,7 +99,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
         </button>
     </div>
- 
+
     <!-- 導航欄 -->
     <nav id="navbar" class="fixed top-0 w-full z-[450] transition-all duration-500 py-6 bg-transparent">
         <div class="max-w-7xl mx-auto px-6 md:px-10 flex items-center justify-between">
@@ -128,7 +128,7 @@
             </button>
         </div>
     </nav>
- 
+
     <!-- 手機選單 (全螢幕下拉) -->
     <div id="mobile-menu" class="fixed top-0 left-0 w-full h-screen z-[440] bg-[#1A365D] flex flex-col items-center justify-center gap-10 lg:hidden">
         <button onclick="closeMobileMenu(); scrollToId('sec-process')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">體驗流程</button>
@@ -140,7 +140,7 @@
         <button onclick="closeMobileMenu(); scrollToId('booking')" class="mt-4 px-12 py-4 border-2 border-white/50 text-white font-bold tracking-widest uppercase text-sm font-sans rounded-sm hover:bg-white hover:text-[#1A365D] transition-all">立即預約</button>
         <div class="absolute bottom-16 text-white/30 text-xs font-sans tracking-widest uppercase">© 2026 FOREVERYOUNG</div>
     </div>
- 
+
     <!-- Hero Section -->
     <header class="relative h-[95vh] flex items-center justify-center overflow-hidden text-center bg-[#1A365D]">
         <div class="absolute inset-0 z-0">
@@ -158,7 +158,7 @@
             </div>
         </div>
     </header>
- 
+
     <!-- ★ 社會證明數字 bar（Hero 正下方，深色背景延伸感） -->
     <div class="bg-[#12274A] text-white py-8 px-6">
         <div class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
@@ -180,7 +180,7 @@
             </div>
         </div>
     </div>
- 
+
     <!-- ★ 顧客評價區 -->
     <section id="sec-reviews" class="py-28 bg-[#FDFCF8]">
         <div class="max-w-7xl mx-auto px-6 md:px-10">
@@ -203,13 +203,13 @@
                     </div>
                 </div>
             </div>
- 
+
             <!-- 手機橫滑 / 桌機三欄 -->
             <div class="md:hidden flex gap-5 overflow-x-auto pb-6 scrollbar-hide snap-x -mx-6 px-6" id="reviews-mobile"></div>
             <div class="hidden md:grid grid-cols-3 gap-8" id="reviews-desktop"></div>
         </div>
     </section>
- 
+
     <main>
         <!-- 1. 租借流程 -->
         <section id="sec-process" class="py-32 bg-white">
@@ -226,7 +226,7 @@
                 </div>
             </div>
         </section>
- 
+
         <!-- 2. 方案價格 -->
         <section id="sec-0" class="py-32 bg-[#FDFCF8]">
             <div class="max-w-7xl mx-auto px-6 md:px-10 text-center">
@@ -241,7 +241,7 @@
                 <div class="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-8 text-left" id="plan-container"></div>
             </div>
         </section>
- 
+
         <!-- 3. 旅程時光影誌 -->
         <section id="sec-video" class="py-32 bg-white overflow-hidden text-center">
             <div class="max-w-7xl mx-auto px-6 md:px-10 mb-20">
@@ -251,7 +251,7 @@
             </div>
             <div class="flex gap-6 overflow-x-auto px-6 md:px-10 pb-10 scrollbar-hide snap-x" id="video-container"></div>
         </section>
- 
+
         <!-- 4. 職人髮型美學 -->
         <section id="sec-hair" class="py-32 bg-[#FDFCF8]">
             <div class="max-w-7xl mx-auto px-6 md:px-10">
@@ -304,7 +304,7 @@
                 </div>
             </div>
         </section>
- 
+
         <!-- 5. FAQ -->
         <section id="sec-faq" class="py-32 bg-white text-center">
             <div class="max-w-5xl mx-auto px-6 md:px-10">
@@ -318,8 +318,8 @@
                 <div id="faq-content" class="bg-[#FDFCF8] border border-slate-100 rounded-sm shadow-xl px-8 md:px-12 text-left divide-y divide-slate-100 border-t-0"></div>
             </div>
         </section>
- 
- 
+
+
         <!-- 6. 店舖門市 -->
         <section id="sec-3" class="py-32 bg-[#FDFCF8]">
             <div class="max-w-7xl mx-auto px-6 md:px-10 text-center">
@@ -332,11 +332,11 @@
                 <div id="store-content" class="bg-white shadow-2xl overflow-hidden min-h-[500px] border border-slate-50 rounded-sm grid grid-cols-1 lg:grid-cols-12 text-left"></div>
             </div>
         </section>
- 
+
         <!-- 7. 預約表單 -->
         <section id="booking" class="py-40 bg-[#FCFBFA] px-6">
             <div class="max-w-4xl mx-auto bg-white p-8 md:p-20 shadow-2xl relative rounded-sm border border-[#1A365D]/5 text-center">
- 
+
                 <!-- 進度條 -->
                 <div class="flex items-center justify-center gap-4 mb-20">
                     <div id="step-dot-1" class="w-10 h-10 rounded-full flex items-center justify-center font-bold bg-[#1A365D] text-white transition-all shadow-lg font-sans">1</div>
@@ -345,7 +345,7 @@
                     <div id="step-line-2" class="w-12 h-0.5 bg-slate-100 transition-all"></div>
                     <div id="step-dot-3" class="w-10 h-10 rounded-full flex items-center justify-center font-bold bg-slate-100 text-slate-400 transition-all font-sans"><i data-lucide="check" class="w-5 h-5"></i></div>
                 </div>
- 
+
                 <!-- 階段 1 -->
                 <div id="form-step-1" class="step-content active text-left">
                     <div class="mb-12 text-center">
@@ -370,7 +370,7 @@
                                 <input required type="email" id="input-email" placeholder="example@gmail.com" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent">
                             </label>
                         </div>
- 
+
                         <!-- 人數計數器 -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
                             <div class="flex items-center justify-between p-5 bg-[#FDFCF8] rounded-xl border border-slate-100">
@@ -390,7 +390,7 @@
                                 </div>
                             </div>
                         </div>
- 
+
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                             <label class="block border-b border-slate-100 pb-2"><span class="text-[10px] font-bold text-slate-400 uppercase font-sans">預定款式</span>
                                 <select id="input-plan" class="w-full py-2 mt-1 outline-none font-bold text-base bg-transparent cursor-pointer font-sans"></select>
@@ -421,7 +421,7 @@
                         </div>
                     </form>
                 </div>
- 
+
                 <!-- 階段 2 -->
                 <div id="form-step-2" class="step-content text-left">
                     <div class="mb-12 text-center">
@@ -432,8 +432,10 @@
                         <i data-lucide="credit-card" class="absolute top-4 right-4 w-32 h-32 opacity-10 rotate-12"></i>
                         <h4 class="text-pink-300 font-bold mb-6 flex items-center gap-2 uppercase font-sans">指定匯款帳戶 / Bank Info</h4>
                         <div class="space-y-4 font-sans tracking-widest font-bold">
-                            <p class="text-sm opacity-70">銀行代碼：<span class="text-lg opacity-100 ml-2">822 (中國信託)</span></p>
-                            <p class="text-sm opacity-70">匯款帳號：<span class="text-2xl italic opacity-100 ml-2 font-mono">1234-5678-9012-3456</span></p>
+                            <p class="text-sm opacity-70">銀行代碼：<span class="text-lg opacity-100 ml-2">008 (華南銀行)</span></p>
+                            <p class="text-sm opacity-70">分行：<span class="text-lg opacity-100 ml-2">營業部</span></p>
+                            <p class="text-sm opacity-70">戶名：<span class="text-lg opacity-100 ml-2">佳遊國際旅行社有限公司</span></p>
+                            <p class="text-sm opacity-70">匯款帳號：<span class="text-2xl italic opacity-100 ml-2 font-mono">100100344320</span></p>
                             <p class="text-sm text-pink-400 font-bold uppercase underline underline-offset-8 pt-4">需付金額：NT$ 220</p>
                         </div>
                     </div>
@@ -461,7 +463,7 @@
                         </div>
                     </form>
                 </div>
- 
+
                 <!-- 階段 3 -->
                 <div id="form-step-3" class="step-content text-center">
                     <div class="text-center space-y-8">
@@ -469,23 +471,23 @@
                         <div class="w-24 h-24 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto shadow-sm">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.955 11.955 0 010 12c0 6.627 5.373 12 12 12s12-5.373 12-12c0-2.954-1.07-5.663-2.833-7.757"/></svg>
                         </div>
- 
+
                         <div>
                             <h3 class="text-3xl font-bold text-[#1A365D] mb-2 uppercase font-sans">提交成功！</h3>
                             <p class="text-slate-400 text-sm font-sans">您的預約資料已收到，請完成以下步驟</p>
                         </div>
- 
+
                         <!-- 編號卡 -->
                         <div class="bg-[#1A365D] text-white p-8 rounded-xl shadow-inner">
                             <p class="text-white/60 text-xs uppercase tracking-widest font-sans mb-2">您的專屬預約編號</p>
                             <p id="finalOrderId" class="font-mono text-4xl font-bold tracking-tighter text-pink-300">#20000001</p>
                             <p class="text-white/50 text-xs italic font-sans mt-3">憑證已命名為 <span id="file-name-display" class="underline text-white/70"></span></p>
                         </div>
- 
+
                         <!-- ★ 承諾時間軸 -->
                         <div class="bg-white border border-slate-100 rounded-xl p-8 text-left shadow-sm space-y-5">
                             <p class="text-[#1A365D] font-bold font-sans text-sm tracking-widest uppercase mb-4">接下來會發生什麼？</p>
- 
+
                             <div class="flex gap-4 items-start">
                                 <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0 font-bold text-sm font-sans">✓</div>
                                 <div>
@@ -493,7 +495,7 @@
                                     <p class="text-slate-400 text-xs font-sans mt-1">點擊下方 LINE 或 Messenger，將您的編號 <span id="finalOrderIdDisplay" class="font-bold text-[#1A365D]"></span> 傳送給我們</p>
                                 </div>
                             </div>
- 
+
                             <div class="flex gap-4 items-start">
                                 <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 font-bold text-sm font-sans">2</div>
                                 <div>
@@ -501,7 +503,7 @@
                                     <p class="text-slate-400 text-xs font-sans mt-1">客服人員核對您的匯款資訊後，將回傳<span class="text-green-600 font-bold">「預約確認通知」</span>。收到通知才算正式預約成功。</p>
                                 </div>
                             </div>
- 
+
                             <div class="flex gap-4 items-start">
                                 <div class="w-8 h-8 rounded-full bg-pink-100 text-pink-500 flex items-center justify-center shrink-0 font-bold text-sm font-sans">3</div>
                                 <div>
@@ -510,7 +512,7 @@
                                 </div>
                             </div>
                         </div>
- 
+
                         <!-- 聯絡按鈕 -->
                         <div class="space-y-3">
                             <p class="text-slate-500 text-xs font-sans font-bold uppercase tracking-widest">請選擇您習慣的聯絡方式</p>
@@ -527,21 +529,21 @@
                                 </a>
                             </div>
                         </div>
- 
+
                         <button onclick="location.reload()" class="text-slate-300 font-bold text-xs uppercase tracking-[0.3em] underline decoration-pink-200 underline-offset-8 bg-transparent border-none cursor-pointer font-sans hover:text-[#1A365D] transition-colors">回到預約首頁</button>
                     </div>
                 </div>
             </div>
         </section>
     </main>
- 
+
     <!-- Footer 重新設計 -->
     <footer class="bg-[#1A365D] text-white px-6 md:px-10 pt-20 pb-10">
         <div class="max-w-7xl mx-auto">
- 
+
             <!-- 上半：三欄資訊 -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-14 pb-16 border-b border-white/10">
- 
+
                 <!-- 品牌欄 -->
                 <div class="space-y-6">
                     <div class="flex items-center gap-4">
@@ -568,7 +570,7 @@
                         </a>
                     </div>
                 </div>
- 
+
                 <!-- 快速導覽 -->
                 <div class="space-y-6">
                     <h4 class="text-xs font-bold tracking-[0.5em] text-pink-300 uppercase font-sans">快速導覽</h4>
@@ -582,7 +584,7 @@
                         <li><button onclick="scrollToId('booking')" class="hover:text-pink-300 text-pink-400 transition-colors bg-transparent border-none cursor-pointer text-left font-bold font-sans text-sm">→ 立即線上預約 ↗</button></li>
                     </ul>
                 </div>
- 
+
                 <!-- 聯絡資訊 + 門市 -->
                 <div class="space-y-6">
                     <h4 class="text-xs font-bold tracking-[0.5em] text-pink-300 uppercase font-sans">聯絡資訊</h4>
@@ -613,7 +615,7 @@
                     </div>
                 </div>
             </div>
- 
+
             <!-- 下半：版權 + 快速預約 CTA -->
             <div class="pt-10 flex flex-col md:flex-row items-center justify-between gap-6">
                 <p class="text-[11px] text-white/30 font-sans tracking-widest uppercase">© 2026 Foreveryoung × Ouka Kimono. All Rights Reserved.</p>
@@ -624,14 +626,14 @@
             </div>
         </div>
     </footer>
- 
+
     <script>
         // 日本標準時間（JST = UTC+9）計算明日
         const nowJST = new Date(Date.now() + 9 * 60 * 60 * 1000);
         const tomorrowJST = new Date(nowJST);
         tomorrowJST.setUTCDate(tomorrowJST.getUTCDate() + 1);
         const tomorrowStr = tomorrowJST.toISOString().split('T')[0];
- 
+
         const plans = [
             { name: "素雅和服", sub: "Elegant Kimono", price: "3,000", desc: "追求簡約大方的經典款式，適合初次體驗。", img: "https://images.unsplash.com/photo-1528114039593-4366cc08227d?auto=format&fit=crop&q=80&w=800" },
             { name: "俏麗和服", sub: "Pretty Kimono", price: "5,000", desc: "花色繁多亮眼，是最受歡迎的首選款式。", img: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&q=80&w=800" },
@@ -642,7 +644,7 @@
             { name: "武士畢業袴", sub: "Hakama Plan", price: "20,000", desc: "帥氣俐落的層次美感，紀念人生里程碑。", img: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&q=80&w=800" },
             { name: "兒童和服", sub: "Children Plan", price: "5,000", desc: "適合全家同樂，3-12 歲均有尺寸。", img: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?auto=format&fit=crop&q=80&w=800" }
         ];
- 
+
         const processItems = [
             { step: "01", time: "10 min", title: "門市報到", desc: "抵達後寄放行李，專人確認預約資訊。" },
             { step: "02", time: "20 min", title: "和服挑選", desc: "在數百款職人和服中尋找最契合的一席。" },
@@ -651,20 +653,20 @@
             { step: "05", time: "Enjoy", title: "漫步體驗", desc: "開始古都漫步，開啟影像紀錄旅程。" },
             { step: "06", time: "10 min", title: "輕鬆歸還", desc: "於 17:00 前回到門市換裝領取行李。" }
         ];
- 
+
         const hairStyles = [
             { title: "職人優雅盤髮", type: "Signature Updo", img: "https://images.unsplash.com/photo-1611042553365-9b101441c135?auto=format&fit=crop&q=80&w=600" },
             { title: "清新空氣編織", type: "Airy Braid", img: "https://images.unsplash.com/photo-1595475243692-3929201c3420?auto=format&fit=crop&q=80&w=600" },
             { title: "和風妝髮點綴", type: "Chic Styling", img: "https://images.unsplash.com/photo-1527015175922-36a306cf0e20?auto=format&fit=crop&q=80&w=600" }
         ];
- 
+
         const stores = [
             { name: '京都清水寺店', addr: '京都東山區五條橋東4-432-13 對嵐坊大廈1樓', map: 'https://maps.google.com/?q=京都市東山区五条橋東4丁目432-13', img: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&q=100&w=1000" },
             { name: '大阪日本橋店', addr: '大阪中央區日本橋1-18-14 芝大廈7樓', map: 'https://maps.google.com/?q=大阪市中央区日本橋1-18-14', img: "https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&q=100&w=1000" },
             { name: '京都祇園店', addr: '京都東山區常盤町169 常盤大廈', map: 'https://maps.google.com/?q=京都市東山区常盤町169', img: "https://images.unsplash.com/photo-1528114039593-4366cc08227d?auto=format&fit=crop&q=100&w=1000" },
             { name: '東京淺草寺店', addr: '東京都台東區淺草1-33-8 A-one大廈9樓', map: 'https://maps.google.com/?q=東京都台東区浅草1-33-8', img: "https://images.unsplash.com/photo-1513407030348-c983a97b98d8?auto=format&fit=crop&q=100&w=1000" }
         ];
- 
+
         const faqData = [
             { category: "預約、遲到與門市", icon: "calendar", items: [
                 { q: "要怎麼預約方案？可以現場過去嗎？", a: "本服務需全面提前預約。請填單提交憑證後，主動聯繫客服核對編號，未聯繫者預約不生效。訂金可現場折抵消費。" },
@@ -700,7 +702,7 @@
                 { q: "最晚幾點要歸還和服？可以隔日還嗎？", a: "最晚歸還時間為 17:00（部分門市 17:30），請務必準時回店。如需隔日歸還，需提前告知並支付額外費用，詳情請洽客服。" }
             ]}
         ];
- 
+
         // 影片資料 - 之後把 youtubeId 換成你自己的 YouTube 影片 ID 即可
         // 若是 IG / FB 連結，type 改成 'link'，url 填入完整網址
         const reels = [
@@ -713,7 +715,7 @@
             { title: "夏日浴衣煙火", label: "浴衣 Yukata", type: "youtube", youtubeId: "dQw4w9WgXcQ", img: "https://images.unsplash.com/photo-1503640538573-148065ba4904?auto=format&fit=crop&q=80&w=600" },
             { title: "職人髮型美學", label: "髮型 Styling", type: "youtube", youtubeId: "dQw4w9WgXcQ", img: "https://images.unsplash.com/photo-1611042553365-9b101441c135?auto=format&fit=crop&q=80&w=600" }
         ];
- 
+
         // 顧客評價資料（替換為真實評語即可）
         const reviews = [
             {
@@ -785,7 +787,7 @@
                     <p class="text-slate-500 text-sm leading-relaxed font-sans">${item.desc}</p>
                 </div>
             `).join('');
- 
+
             // 方案卡片：桌機 grid + 手機橫滑（卡片寬固定 240px）
             const planHTML = plans.map(p => `
                 <div class="group bg-white border border-slate-100 rounded-sm overflow-hidden flex flex-col shadow-sm hover:shadow-xl transition-all duration-700 flex-none w-[240px] md:w-auto snap-center">
@@ -797,7 +799,7 @@
             const planDesktop = document.getElementById('plan-container');
             if (planMobile) planMobile.innerHTML = planHTML;
             if (planDesktop) planDesktop.innerHTML = planHTML;
- 
+
             document.getElementById('video-container').innerHTML = reels.map((v, i) => `
                 <div class="flex-none w-[240px] md:w-[280px] aspect-[9/16] bg-slate-900 rounded-2xl overflow-hidden relative group snap-center shadow-xl cursor-pointer select-none"
                      onclick="openLightbox(${i})" role="button" aria-label="播放：${v.title}">
@@ -817,11 +819,11 @@
                     </div>
                 </div>
             `).join('');
- 
+
             // 髮型卡片：桌機 grid + 手機橫滑
             // 顧客評價渲染
             const starsHTML = '<div class="flex gap-0.5 mb-3">' + Array(5).fill('<svg class="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>').join('') + '</div>';
- 
+
             const reviewHTML = reviews.map(r => `
                 <div class="bg-white border border-slate-100 rounded-sm shadow-sm hover:shadow-lg transition-all flex flex-col overflow-hidden flex-none w-[260px] md:w-auto snap-center">
                     <div class="aspect-[3/4] overflow-hidden relative">
@@ -842,7 +844,7 @@
                     </div>
                 </div>
             `).join('');
- 
+
             const revMobile = document.getElementById('reviews-mobile');
             const revDesktop = document.getElementById('reviews-desktop');
             if (revMobile) revMobile.innerHTML = reviewHTML;
@@ -867,24 +869,24 @@
                     </div>
                 </div>
             `).join('');
- 
+
             document.getElementById('faq-tabs').innerHTML = faqData.map((cat, idx) => `
                 <button onclick="switchFaq(${idx})" id="faq-tab-${idx}" class="faq-tab-btn flex items-center gap-2 px-6 py-3 rounded-sm text-sm font-bold border-2 transition-all cursor-pointer ${idx === 0 ? 'bg-[#1A365D] border-[#1A365D] text-white shadow-lg scale-105' : 'bg-[#FDFCF8] border-slate-100 text-slate-400 hover:border-pink-200'}">
                     <i data-lucide="${cat.icon}" class="w-4 h-4"></i> <span class="font-sans">${cat.category}</span>
                 </button>
             `).join('');
             switchFaq(0);
- 
+
             document.getElementById('store-tabs').innerHTML = stores.map((s, i) => `
                 <button onclick="switchStore(${i})" id="store-tab-${i}" class="store-tab-btn px-10 py-4 text-sm font-bold border-2 transition-all uppercase rounded-sm cursor-pointer ${i === 0 ? 'bg-[#1A365D] border-[#1A365D] text-white shadow-xl' : 'bg-white text-slate-400 border-slate-100 hover:border-pink-200 font-sans'}">${s.name}</button>
             `).join('');
             switchStore(0);
- 
+
             document.getElementById('input-plan').innerHTML = plans.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
- 
- 
+
+
         // --- 流程虛線（initContent 後才執行） ---
         function drawProcessLines() {
             const grid = document.getElementById('process-grid');
@@ -905,7 +907,7 @@
                 linesWrap.appendChild(line);
             });
         }
- 
+
         // --- 選單互動 ---
         let mobileMenuOpen = false;
         function toggleMobileMenu() {
@@ -930,13 +932,13 @@
             mobileMenuOpen = true;
             toggleMobileMenu();
         }
- 
+
         function scrollToId(id) {
             const el = document.getElementById(id);
             const offset = 80;
             window.scrollTo({ top: el.offsetTop - offset, behavior: 'smooth' });
         }
- 
+
         function switchFaq(idx) {
             document.querySelectorAll('.faq-tab-btn').forEach(btn => {
                 btn.classList.remove('bg-[#1A365D]', 'border-[#1A365D]', 'text-white', 'shadow-lg', 'scale-105');
@@ -945,7 +947,7 @@
             const activeBtn = document.getElementById(`faq-tab-${idx}`);
             activeBtn.classList.add('bg-[#1A365D]', 'border-[#1A365D]', 'text-white', 'shadow-lg', 'scale-105');
             activeBtn.classList.remove('bg-[#FDFCF8]', 'border-slate-100', 'text-slate-400');
- 
+
             document.getElementById('faq-content').innerHTML = faqData[idx].items.map((item, i) => `
                 <div class="py-6 text-left">
                     <button onclick="toggleAccordion('faq-item-${idx}-${i}')" class="w-full flex items-center justify-between text-left cursor-pointer group outline-none bg-transparent border-none">
@@ -957,7 +959,7 @@
             `).join('');
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
- 
+
         function toggleAccordion(id) {
             const el = document.getElementById(id);
             const icon = document.getElementById(id.replace('item', 'icon'));
@@ -968,7 +970,7 @@
                 icon.classList.remove('rotate-180', 'text-pink-500');
             }
         }
- 
+
         function switchStore(idx) {
             document.querySelectorAll('.store-tab-btn').forEach(btn => {
                 btn.classList.remove('bg-[#1A365D]', 'border-[#1A365D]', 'text-white', 'shadow-xl');
@@ -976,7 +978,7 @@
             });
             document.getElementById(`store-tab-${idx}`).classList.add('bg-[#1A365D]', 'border-[#1A365D]', 'text-white', 'shadow-xl');
             document.getElementById(`store-tab-${idx}`).classList.remove('bg-white', 'text-slate-400', 'border-slate-100');
- 
+
             const s = stores[idx];
             // 全部改用 inline SVG，避免 lucide createIcons 時序問題
             document.getElementById('store-content').innerHTML = `
@@ -1004,7 +1006,7 @@
                 </div>
             `;
         }
- 
+
         // --- 表單 ---
         let guestData = { adults: 1, children: 0 };
         function changeGuest(type, delta) {
@@ -1012,7 +1014,7 @@
             guestData[type] = Math.max(min, guestData[type] + delta);
             document.getElementById(`count-${type}`).innerText = guestData[type];
         }
- 
+
         function validateLast5(input) {
             const hint = document.getElementById('last5-hint');
             if (input.value.length > 0 && input.value.length < 5) {
@@ -1025,7 +1027,7 @@
                 hint.textContent = '';
             }
         }
- 
+
         function handleFileUpload(input) {
             const label = document.getElementById('file-label-text');
             if (input.files && input.files[0]) {
@@ -1034,7 +1036,7 @@
                 label.style.color = '#22c55e';
             }
         }
- 
+
         function setStep(step) {
             document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
             document.getElementById(`form-step-${step}`).classList.add('active');
@@ -1044,23 +1046,23 @@
             document.getElementById('step-line-1').className = `w-12 h-0.5 transition-all ${step >= 2 ? 'bg-[#1A365D]' : 'bg-slate-100'}`;
             document.getElementById('step-line-2').className = `w-12 h-0.5 transition-all ${step >= 3 ? 'bg-[#1A365D]' : 'bg-slate-100'}`;
         }
- 
+
         // ★ Google Apps Script Web App URL
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx32in5ZDp_WtfHaoxuQj48hzooDJ99GnWOyuke0prxaBbqE7uiDoLikaG1E0UCZpDa/exec';
- 
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxgSN_e46lN5WBrrh1CWJ9xtn3tdxMAtSfRa2r9L9ZpxQrwyXU3A46v4fVygqDqjxCU/exec';
+
         document.getElementById('booking-form-1').onsubmit = (e) => {
             e.preventDefault();
             // Step 1 資料暫存，進到 Step 2
             setStep(2);
             scrollToId('booking');
         };
- 
+
         document.getElementById('booking-form-2').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('finalSubmitBtn');
             btn.innerHTML = '鎖定編號中...';
             btn.disabled = true;
- 
+
             // 防止短時間重複送出
             let lastTime = null;
             try { lastTime = localStorage.getItem('last_booking'); } catch(err) {}
@@ -1070,18 +1072,29 @@
                 btn.innerHTML = '確認提交並取得編號';
                 return;
             }
- 
+
             // 收集 Step 1 + Step 2 所有欄位
-            // 先產生編號（送出前就決定好，確保前後端一致）
-            let lastOrderNum = 20000000;
+            // 產生編號：K + 年(2碼) + 月(2碼) + 日(2碼) + 流水號(3碼) 例：K260417001
+            const nowJST = new Date(Date.now() + 9 * 60 * 60 * 1000);
+            const yy  = String(nowJST.getUTCFullYear()).slice(2);       // 26
+            const mm  = String(nowJST.getUTCMonth() + 1).padStart(2,'0'); // 04
+            const dd  = String(nowJST.getUTCDate()).padStart(2,'0');      // 17
+            const dateKey = yy + mm + dd;   // 260417
+
+            // 取今天的流水號（存在 localStorage，每天重置）
+            let todaySeq = 1;
             try {
-                const stored = localStorage.getItem('last_order_num');
-                if (stored) lastOrderNum = parseInt(stored);
+                const storedDate = localStorage.getItem('order_date');
+                const storedSeq  = parseInt(localStorage.getItem('order_seq') || '0');
+                if (storedDate === dateKey && storedSeq > 0) {
+                    todaySeq = storedSeq + 1;
+                }
             } catch(err) {}
-            const nextOrderNum = lastOrderNum + 1;
-            const finalId = '#' + nextOrderNum;
- 
+            const seqStr  = String(todaySeq).padStart(3, '0');  // 001
+            const finalId = 'K' + dateKey + seqStr;              // K260417001
+
             const payload = {
+                token:       'FY_KIMONO_2026_SECRET',  // 安全驗證 token
                 orderId:     finalId,
                 name:        document.getElementById('input-name').value.trim(),
                 phone:       document.getElementById('input-phone').value.trim(),
@@ -1096,7 +1109,7 @@
                 source:      '官網',
                 last5:       document.getElementById('input-last5').value.trim()
             };
- 
+
             try {
                 // fetch 送 JSON 到 Apps Script（no-cors 模式，GAS CORS 限制）
                 await fetch(APPS_SCRIPT_URL, {
@@ -1105,19 +1118,22 @@
                     headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify(payload)
                 });
- 
+
                 // 編號已在 payload 階段產生，直接使用
                 document.getElementById('finalOrderId').innerText = finalId;
                 document.getElementById('finalOrderIdDisplay').innerText = finalId;
-                document.getElementById('file-name-display').innerText = finalId.replace('#','') + '_proof.jpg';
- 
-                // 儲存流水號到 localStorage（下次從這個數字繼續往上）
-                try { localStorage.setItem('last_order_num', nextOrderNum); } catch(err) {}
+                document.getElementById('file-name-display').innerText = finalId + '_proof.jpg';
+
+                // 儲存流水號（同一天繼續往上加，隔天重置）
+                try {
+                    localStorage.setItem('order_date', dateKey);
+                    localStorage.setItem('order_seq', todaySeq);
+                } catch(err) {}
                 try { localStorage.setItem('last_booking', Date.now()); } catch(err) {}
- 
+
                 setStep(3);
                 scrollToId('booking');
- 
+
             } catch (err) {
                 // 網路錯誤才會進這裡
                 console.error('送出失敗:', err);
@@ -1126,10 +1142,10 @@
                 alert('網路異常，請檢查連線後再試，或直接聯繫 LINE 客服。\n錯誤：' + err.message);
             }
         };
- 
+
         window.onload = () => {
             document.getElementById('input-date').setAttribute('min', tomorrowStr);
- 
+
             // 櫻花特效
             const container = document.getElementById('sakura-container');
             for (let i = 0; i < 8; i++) {
@@ -1142,15 +1158,15 @@
                 petal.style.animationDelay = Math.random() * 15 + 's';
                 container.appendChild(petal);
             }
- 
+
             // 捲動導航
             window.addEventListener('scroll', () => {
                 const nav = document.getElementById('navbar');
                 const isScrolled = window.scrollY > 50;
                 const isTopVisible = window.scrollY > 500;
- 
+
                 nav.classList.toggle('nav-scrolled', isScrolled);
- 
+
                 document.querySelectorAll('.nav-link, #nav-title').forEach(el => {
                     el.style.color = isScrolled ? '#1A365D' : 'white';
                 });
@@ -1159,32 +1175,32 @@
                     const el = document.getElementById(id);
                     if (el) el.style.backgroundColor = isScrolled ? '#1A365D' : 'white';
                 });
- 
+
                 document.getElementById('logo-box').style.backgroundColor = isScrolled ? '#1A365D' : 'rgba(255,255,255,0.2)';
                 document.getElementById('logo-box').style.color = 'white';
                 document.getElementById('nav-sub').style.color = isScrolled ? 'rgba(26,54,93,0.7)' : 'rgba(255,255,255,0.7)';
- 
+
                 const btn = document.getElementById('nav-booking-btn');
                 if (btn) {
                     btn.style.borderColor = isScrolled ? '#1A365D' : 'rgba(255,255,255,0.4)';
                     btn.style.color = isScrolled ? '#1A365D' : 'white';
                 }
- 
+
                 const topBtn = document.getElementById('topBtn');
                 topBtn.style.opacity = isTopVisible ? '1' : '0';
                 topBtn.style.pointerEvents = isTopVisible ? 'auto' : 'none';
             });
- 
+
             initContent();
             setTimeout(drawProcessLines, 400);
             window.addEventListener('resize', drawProcessLines);
             // 再確認一次所有靜態 icon 都渲染
             setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 200);
         };
- 
+
         // --- 燈箱邏輯 ---
         let lbCurrentIdx = 0;
- 
+
         function openLightbox(idx) {
             lbCurrentIdx = idx;
             const lb = document.getElementById('video-lightbox');
@@ -1198,7 +1214,7 @@
                 if (e.key === 'ArrowRight') nextVideo();
             };
         }
- 
+
         function loadLightboxVideo(idx) {
             const v = reels[idx];
             const iframe = document.getElementById('lb-iframe');
@@ -1213,20 +1229,20 @@
             document.getElementById('lb-label').textContent = v.label;
             document.getElementById('lb-count').textContent = `${idx + 1} / ${reels.length}`;
         }
- 
+
         function closeLightbox() {
             document.getElementById('video-lightbox').style.display = 'none';
             document.getElementById('lb-iframe').src = 'about:blank';
             document.body.style.overflow = '';
             document.onkeydown = null;
         }
- 
+
         function prevVideo() {
             lbCurrentIdx = (lbCurrentIdx - 1 + reels.length) % reels.length;
             document.getElementById('lb-iframe').src = 'about:blank';
             setTimeout(() => loadLightboxVideo(lbCurrentIdx), 80);
         }
- 
+
         function nextVideo() {
             lbCurrentIdx = (lbCurrentIdx + 1) % reels.length;
             document.getElementById('lb-iframe').src = 'about:blank';
@@ -1274,6 +1290,6 @@
             </div>
         </div>
     </div>
- 
+
 </body>
 </html>
