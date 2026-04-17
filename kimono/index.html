@@ -234,7 +234,6 @@
                     <span class="text-pink-400 font-bold tracking-[0.8em] text-[10px] mb-5 uppercase italic font-sans">Premium Selection</span>
                     <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] tracking-[0.2em] uppercase font-sans">精選方案 <span class="text-pink-300 font-light italic">& 價格</span></h2>
                     <div class="mt-6 w-12 h-0.5 bg-pink-100"></div>
-                    <p class="text-slate-400 text-xs mt-4 font-sans md:hidden">← 左右滑動瀏覽 →</p>
                 </div>
                 <!-- 手機：橫向滑動；桌機：4 欄 grid -->
                 <div class="md:hidden flex gap-5 overflow-x-auto pb-6 scrollbar-hide snap-x -mx-6 px-6" id="plan-container-mobile"></div>
@@ -247,7 +246,7 @@
             <div class="max-w-7xl mx-auto px-6 md:px-10 mb-20">
                 <span class="text-pink-400 font-bold tracking-[0.6em] text-[10px] uppercase font-sans">Visual Story</span>
                 <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] mt-4 tracking-[0.2em] uppercase font-sans">和風 <span class="text-pink-300 font-light italic">瞬間映像</span></h2>
-                <p class="text-slate-400 text-sm mt-4 font-sans">← 左右滑動瀏覽更多 →</p>
+                <p class="text-slate-400 text-sm mt-4 font-sans md:hidden">← 左右滑動瀏覽 →</p>
             </div>
             <div class="flex gap-6 overflow-x-auto px-6 md:px-10 pb-10 scrollbar-hide snap-x" id="video-container"></div>
         </section>
@@ -480,7 +479,7 @@
                         <!-- 編號卡 -->
                         <div class="bg-[#1A365D] text-white p-8 rounded-xl shadow-inner">
                             <p class="text-white/60 text-xs uppercase tracking-widest font-sans mb-2">您的專屬預約編號</p>
-                            <p id="finalOrderId" class="font-mono text-4xl font-bold tracking-tighter text-pink-300">#20000001</p>
+                            <p id="finalOrderId" class="text-4xl font-bold tracking-widest text-pink-300" style="font-family: 'Noto Sans TC', sans-serif; letter-spacing: 0.15em;">#20000001</p>
                             <p class="text-white/50 text-xs italic font-sans mt-3">憑證已命名為 <span id="file-name-display" class="underline text-white/70"></span></p>
                         </div>
 
@@ -628,11 +627,17 @@
     </footer>
 
     <script>
-        // 日本標準時間（JST = UTC+9）計算明日
+        // 日期計算：
+        // ・input-date 的 min（最早可選日期）→ 用日本時間（JST, UTC+9）的明日
+        // ・填單日期送到 Sheet → 用台灣時間（TWN, UTC+8）
         const nowJST = new Date(Date.now() + 9 * 60 * 60 * 1000);
         const tomorrowJST = new Date(nowJST);
         tomorrowJST.setUTCDate(tomorrowJST.getUTCDate() + 1);
         const tomorrowStr = tomorrowJST.toISOString().split('T')[0];
+
+        // 台灣時間（UTC+8）用於填單日期顯示
+        const nowTWN = new Date(Date.now() + 8 * 60 * 60 * 1000);
+        const submitDateTWN = nowTWN.toISOString().slice(0, 10); // yyyy-MM-dd
 
         const plans = [
             { name: "素雅和服", sub: "Elegant Kimono", price: "3,000", desc: "追求簡約大方的經典款式，適合初次體驗。", img: "https://images.unsplash.com/photo-1528114039593-4366cc08227d?auto=format&fit=crop&q=80&w=800" },
@@ -1048,7 +1053,7 @@
         }
 
         // ★ Google Apps Script Web App URL
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxgSN_e46lN5WBrrh1CWJ9xtn3tdxMAtSfRa2r9L9ZpxQrwyXU3A46v4fVygqDqjxCU/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyo-cblBmYTI5PV69KFQyB5UXWB7Oxr-U4ppHb05_8_9yYfBUrqDOhWMoj_-QvmgdY/exec';
 
         document.getElementById('booking-form-1').onsubmit = (e) => {
             e.preventDefault();
@@ -1094,8 +1099,9 @@
             const finalId = 'K' + dateKey + seqStr;              // K260417001
 
             const payload = {
-                token:       'FY_KIMONO_2026_SECRET',  // 安全驗證 token
+                token:       'FY_KIMONO_2026_SECRET',
                 orderId:     finalId,
+                submitDate:  submitDateTWN,          // 填單日期（台灣時間）
                 name:        document.getElementById('input-name').value.trim(),
                 phone:       document.getElementById('input-phone').value.trim(),
                 email:       document.getElementById('input-email').value.trim(),
