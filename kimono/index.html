@@ -250,7 +250,7 @@
                 <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] mt-4 tracking-[0.2em] uppercase font-sans">和風 <span class="text-pink-300 font-light italic">瞬間映像</span></h2>
                 <p class="text-slate-400 text-sm mt-4 font-sans md:hidden">← 左右滑動瀏覽 →</p>
             </div>
-            <div class="flex gap-6 overflow-x-auto px-6 md:px-10 pb-10 scrollbar-hide snap-x" id="video-container"></div>
+            <div id="video-container"></div>
         </section>
 
         <!-- 4. 職人髮型美學 -->
@@ -840,6 +840,15 @@
             if (planMobile) planMobile.innerHTML = planHTML;
             if (planDesktop) planDesktop.innerHTML = planHTML;
 
+            // 四則以內置中，超過改橫滑
+            const videoContainer = document.getElementById('video-container');
+            if (reels.length <= 4) {
+                videoContainer.className = 'flex flex-wrap justify-center gap-6 px-6 md:px-10 pb-10';
+            } else {
+                videoContainer.className = 'flex gap-6 overflow-x-auto px-6 md:px-10 pb-10 scrollbar-hide snap-x';
+            }
+            
+            document.getElementById('video-container').innerHTML = reels.map((v, i) => `
             document.getElementById('video-container').innerHTML = reels.map((v, i) => `
                 <div class="flex-none w-[240px] md:w-[280px] aspect-[9/16] bg-slate-900 rounded-2xl overflow-hidden relative group snap-center shadow-xl cursor-pointer select-none"
                      onclick="openLightbox(${i})" role="button" aria-label="播放：${v.title}">
