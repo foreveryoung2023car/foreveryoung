@@ -746,7 +746,7 @@
         // 影片資料 - 之後把 youtubeId 換成你自己的 YouTube 影片 ID 即可
         // 若是 IG / FB 連結，type 改成 'link'，url 填入完整網址
         const reels = [
-            { title: "京都清水寺漫步", label: "京都 Kyoto",     type: "link",    url: "https://www.facebook.com/reel/1286218553433400", img: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&q=80&w=600" },
+            { title: "京都清水寺漫步", label: "京都 Kyoto", type: "facebook", url: "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1286218553433400%2F&show_text=false&width=267&t=0", img: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&q=80&w=600" },
             { title: "振袖正式禮裝",   label: "振袖 Furisode",  type: "youtube", youtubeId: "dQw4w9WgXcQ", img: "https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?auto=format&fit=crop&q=80&w=600" },
             { title: "祇園花街漫步",   label: "祇園 Gion",      type: "youtube", youtubeId: "dQw4w9WgXcQ", img: "https://images.unsplash.com/photo-1528114039593-4366cc08227d?auto=format&fit=crop&q=80&w=600" },
             { title: "和服著裝體驗",   label: "著裝 Dressing",  type: "youtube", youtubeId: "dQw4w9WgXcQ", img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&q=80&w=600" },
@@ -1311,6 +1311,8 @@
             const iframe = document.getElementById('lb-iframe');
             if (v.type === 'youtube') {
                 iframe.src = `https://www.youtube.com/embed/${v.youtubeId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
+            } else if (v.type === 'facebook') {
+                iframe.src = v.url;
             } else if (v.type === 'link') {
                 closeLightbox();
                 window.open(v.url, '_blank', 'noopener');
@@ -1366,8 +1368,9 @@
             <div id="lb-frame-wrap" class="w-full h-full rounded-2xl overflow-hidden bg-black shadow-2xl">
                 <iframe id="lb-iframe"
                     class="w-full h-full border-0"
-                    allow="autoplay; fullscreen; picture-in-picture"
+                    allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share; fullscreen"
                     allowfullscreen
+                    scrolling="no"
                     src="about:blank">
                 </iframe>
             </div>
