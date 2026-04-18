@@ -118,6 +118,7 @@
                 <button onclick="scrollToId('sec-0')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">方案價格</button>
                 <button onclick="scrollToId('sec-reviews')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">旅客好評</button>
                 <button onclick="scrollToId('sec-hair')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">髮型美學</button>
+                <button onclick="scrollToId('sec-photo')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">旅拍攝影</button>
                 <button onclick="scrollToId('sec-faq')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">常見問題</button>
                 <button onclick="scrollToId('sec-3')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">門市資訊</button>
                 <button onclick="scrollToId('booking')" id="nav-booking-btn" class="ml-4 px-8 py-2 text-[10px] font-bold rounded-sm border border-white/40 text-white hover:bg-white hover:text-[#1A365D] transition-all cursor-pointer uppercase font-sans shadow-sm">立即預約</button>
@@ -137,6 +138,7 @@
         <button onclick="closeMobileMenu(); scrollToId('sec-0')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">方案價格</button>
         <button onclick="closeMobileMenu(); scrollToId('sec-reviews')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">旅客好評</button>
         <button onclick="closeMobileMenu(); scrollToId('sec-hair')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">髮型美學</button>
+        <button onclick="closeMobileMenu(); scrollToId('sec-photo')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">旅拍攝影</button>
         <button onclick="closeMobileMenu(); scrollToId('sec-faq')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">常見問題</button>
         <button onclick="closeMobileMenu(); scrollToId('sec-3')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">門市資訊</button>
         <button onclick="closeMobileMenu(); scrollToId('booking')" class="mt-4 px-12 py-4 border-2 border-white/50 text-white font-bold tracking-widest uppercase text-sm font-sans rounded-sm hover:bg-white hover:text-[#1A365D] transition-all">立即預約</button>
@@ -306,6 +308,106 @@
             </div>
         </section>
 
+        <!-- 攝影方案 -->
+        <section id="sec-photo" class="py-32 bg-white">
+            <div class="max-w-7xl mx-auto px-6 md:px-10">
+                <div class="flex flex-col items-center mb-20 text-center">
+                    <span class="text-pink-400 font-bold tracking-[0.8em] text-[10px] mb-5 uppercase italic font-sans">Photography Plan</span>
+                    <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] tracking-[0.2em] uppercase font-sans">旅拍攝影 <span class="text-pink-300 font-light italic">Photography</span></h2>
+                    <div class="mt-6 w-12 h-0.5 bg-pink-100"></div>
+                    <p class="text-slate-400 text-sm mt-8 font-sans leading-relaxed">
+                        專業攝影師全程陪同，捕捉每個和風瞬間。<br>Selecting kimono → Dressing → Hair → Return 全程記錄。
+                    </p>
+                </div>
+        
+                <!-- 三個方案卡片 -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        
+                    <!-- 30分鐘 -->
+                    <div class="bg-[#FDFCF8] border border-slate-100 rounded-sm p-10 text-center shadow-sm hover:shadow-xl transition-all group">
+                        <div class="w-12 h-12 rounded-full bg-pink-50 flex items-center justify-center mx-auto mb-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </div>
+                        <p class="text-[10px] font-bold text-pink-400 tracking-[0.5em] uppercase font-sans mb-3">30 min</p>
+                        <h3 class="text-2xl font-bold text-[#1A365D] font-sans mb-2">Photographer</h3>
+                        <p class="text-slate-400 text-xs font-sans mb-8 leading-relaxed">撮影 30 分鐘<br>輕量記錄，適合單一景點</p>
+                        <div class="border-t border-slate-100 pt-8">
+                            <p class="text-4xl font-bold text-[#1A365D] font-sans">¥12,800</p>
+                            <p class="text-xs text-slate-400 font-sans mt-1 uppercase tracking-widest">JPY / 組</p>
+                        </div>
+                    </div>
+        
+                    <!-- 1小時（推薦） -->
+                    <div class="bg-[#1A365D] border border-[#1A365D] rounded-sm p-10 text-center shadow-2xl relative group scale-105">
+                        <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-pink-400 text-white text-[10px] font-bold px-5 py-1.5 rounded-full uppercase tracking-widest font-sans">Most Popular</div>
+                        <div class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-pink-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </div>
+                        <p class="text-[10px] font-bold text-pink-300 tracking-[0.5em] uppercase font-sans mb-3">1 hour</p>
+                        <h3 class="text-2xl font-bold text-white font-sans mb-2">Photographer</h3>
+                        <p class="text-white/60 text-xs font-sans mb-8 leading-relaxed">撮影 一時間<br>漫步景點完整記錄</p>
+                        <div class="border-t border-white/10 pt-8">
+                            <p class="text-4xl font-bold text-white font-sans">¥21,000</p>
+                            <p class="text-xs text-white/40 font-sans mt-1 uppercase tracking-widest">JPY / 組</p>
+                        </div>
+                    </div>
+        
+                    <!-- 2小時 -->
+                    <div class="bg-[#FDFCF8] border border-slate-100 rounded-sm p-10 text-center shadow-sm hover:shadow-xl transition-all group">
+                        <div class="w-12 h-12 rounded-full bg-pink-50 flex items-center justify-center mx-auto mb-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </div>
+                        <p class="text-[10px] font-bold text-pink-400 tracking-[0.5em] uppercase font-sans mb-3">2 hours</p>
+                        <h3 class="text-2xl font-bold text-[#1A365D] font-sans mb-2">Photographer</h3>
+                        <p class="text-slate-400 text-xs font-sans mb-8 leading-relaxed">撮影 二時間<br>多景點深度全程記錄</p>
+                        <div class="border-t border-slate-100 pt-8">
+                            <p class="text-4xl font-bold text-[#1A365D] font-sans">¥42,000</p>
+                            <p class="text-xs text-slate-400 font-sans mt-1 uppercase tracking-widest">JPY / 組</p>
+                        </div>
+                    </div>
+                </div>
+        
+                <!-- 流程說明 -->
+                <div class="mt-16 max-w-3xl mx-auto">
+                    <div class="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-0">
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="w-10 h-10 rounded-full bg-[#1A365D] text-white flex items-center justify-center text-xs font-bold font-sans">1</div>
+                            <span class="text-xs font-bold text-[#1A365D] font-sans text-center">Selecting<br>Kimono</span>
+                        </div>
+                        <div class="w-8 h-px bg-pink-200 hidden md:block mx-3"></div>
+                        <div class="w-px h-6 bg-pink-200 md:hidden"></div>
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="w-10 h-10 rounded-full bg-[#1A365D] text-white flex items-center justify-center text-xs font-bold font-sans">2</div>
+                            <span class="text-xs font-bold text-[#1A365D] font-sans text-center">Dressing</span>
+                        </div>
+                        <div class="w-8 h-px bg-pink-200 hidden md:block mx-3"></div>
+                        <div class="w-px h-6 bg-pink-200 md:hidden"></div>
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="w-10 h-10 rounded-full bg-[#1A365D] text-white flex items-center justify-center text-xs font-bold font-sans">3</div>
+                            <span class="text-xs font-bold text-[#1A365D] font-sans text-center">Hair<br>Styling</span>
+                        </div>
+                        <div class="w-8 h-px bg-pink-200 hidden md:block mx-3"></div>
+                        <div class="w-px h-6 bg-pink-200 md:hidden"></div>
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="w-10 h-10 rounded-full bg-pink-400 text-white flex items-center justify-center text-xs font-bold font-sans">📸</div>
+                            <span class="text-xs font-bold text-pink-400 font-sans text-center">Shooting<br>Start</span>
+                        </div>
+                        <div class="w-8 h-px bg-pink-200 hidden md:block mx-3"></div>
+                        <div class="w-px h-6 bg-pink-200 md:hidden"></div>
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="w-10 h-10 rounded-full bg-[#1A365D] text-white flex items-center justify-center text-xs font-bold font-sans">5</div>
+                            <span class="text-xs font-bold text-[#1A365D] font-sans text-center">Return</span>
+                        </div>
+                    </div>
+                    <p class="text-center text-slate-400 text-xs font-sans mt-8 leading-relaxed">
+                        * 攝影費用不含景點門票，進入收費景區時攝影師門票費由客人一同支付。<br>
+                        * 精選修圖後電子檔，於體驗後 7 個工作天內透過雲端連結交付。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        
         <!-- 5. FAQ -->
         <section id="sec-faq" class="py-32 bg-white text-center">
             <div class="max-w-5xl mx-auto px-6 md:px-10">
@@ -613,6 +715,7 @@
                         <li><button onclick="scrollToId('sec-0')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">→ 方案價格一覽</button></li>
                         <li><button onclick="scrollToId('sec-reviews')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">→ 旅客真實好評</button></li>
                         <li><button onclick="scrollToId('sec-hair')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">→ 職人髮型美學</button></li>
+                        <li><button onclick="scrollToId('sec-photo')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">→ 旅拍攝影方案</button></li>
                         <li><button onclick="scrollToId('sec-faq')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">→ 常見問題 Q&A</button></li>
                         <li><button onclick="scrollToId('sec-3')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">→ 精選門市據點</button></li>
                         <li><button onclick="scrollToId('booking')" class="hover:text-pink-300 text-pink-400 transition-colors bg-transparent border-none cursor-pointer text-left font-bold font-sans text-sm">→ 立即線上預約 ↗</button></li>
