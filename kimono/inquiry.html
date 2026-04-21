@@ -6,12 +6,8 @@
 <title>訂單查詢 — 旅乘 x 和服體驗</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600&family=Shippori+Mincho:wght@400;600&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
-
-<!-- ★ 共用設定（路徑依你的實際位置調整） -->
 <script src="./config.js"></script>
-
 <style>
-/* ── 變數 ── */
 :root {
   --ink:       #1a1410;
   --ink-soft:  #4a3f35;
@@ -24,9 +20,7 @@
   --border:    rgba(184,134,11,0.25);
   --shadow:    rgba(26,20,16,0.08);
 }
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
 body {
   background: var(--paper);
   color: var(--ink);
@@ -35,8 +29,6 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
 }
-
-/* ── 背景紋理 ── */
 body::before {
   content: '';
   position: fixed;
@@ -48,8 +40,6 @@ body::before {
   pointer-events: none;
   z-index: 0;
 }
-
-/* ── 外框 ── */
 .wrapper {
   position: relative;
   z-index: 1;
@@ -57,12 +47,7 @@ body::before {
   margin: 0 auto;
   padding: 40px 20px 80px;
 }
-
-/* ── 標題 ── */
-.site-header {
-  text-align: center;
-  margin-bottom: 48px;
-}
+.site-header { text-align: center; margin-bottom: 48px; }
 .site-header .mon {
   font-family: 'Shippori Mincho', serif;
   font-size: 36px;
@@ -79,26 +64,10 @@ body::before {
   color: var(--ink-soft);
   margin-top: 8px;
 }
-.divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 16px auto 0;
-  max-width: 220px;
-}
-.divider::before, .divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
-.divider span {
-  color: var(--gold);
-  font-size: 10px;
-  letter-spacing: 0.2em;
-}
+.hd { display:flex; align-items:center; gap:12px; margin:16px auto 0; max-width:220px; }
+.hd::before,.hd::after { content:''; flex:1; height:1px; background:var(--border); }
+.hd span { color:var(--gold); font-size:10px; letter-spacing:0.2em; }
 
-/* ── 卡片 ── */
 .card {
   background: white;
   border: 1px solid var(--border);
@@ -110,12 +79,11 @@ body::before {
 .card::before {
   content: '';
   position: absolute;
-  top: 6px; left: 6px; right: -6px; bottom: -6px;
+  top:6px; left:6px; right:-6px; bottom:-6px;
   border: 1px solid var(--border);
   border-radius: 2px;
   z-index: -1;
 }
-
 .card-title {
   font-family: 'Noto Serif JP', serif;
   font-size: 13px;
@@ -126,8 +94,6 @@ body::before {
   padding-bottom: 16px;
   border-bottom: 1px solid var(--border);
 }
-
-/* ── 表單 ── */
 .form-group { margin-bottom: 20px; }
 .form-group label {
   display: block;
@@ -154,295 +120,173 @@ body::before {
   box-shadow: 0 0 0 3px rgba(184,134,11,0.08);
 }
 .form-group input::placeholder { color: #bbb; font-size: 13px; }
-
 .or-divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  display: flex; align-items: center; gap: 12px;
   margin: 4px 0 20px;
-  color: var(--ink-soft);
-  font-size: 11px;
-  letter-spacing: 0.15em;
+  color: var(--ink-soft); font-size: 11px; letter-spacing: 0.15em;
 }
-.or-divider::before, .or-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
+.or-divider::before,.or-divider::after { content:''; flex:1; height:1px; background:var(--border); }
 
-/* ── 按鈕 ── */
 .btn-primary {
-  width: 100%;
-  padding: 14px;
-  background: var(--ink);
-  color: var(--gold-light);
-  border: none;
-  border-radius: 1px;
+  width: 100%; padding: 14px;
+  background: var(--ink); color: var(--gold-light);
+  border: none; border-radius: 1px;
   font-family: 'Noto Serif JP', serif;
-  font-size: 13px;
-  letter-spacing: 0.3em;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
-  margin-top: 8px;
+  font-size: 13px; letter-spacing: 0.3em;
+  cursor: pointer; transition: background 0.2s, transform 0.1s; margin-top: 8px;
 }
 .btn-primary:hover { background: #2d2420; }
 .btn-primary:active { transform: scale(0.99); }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .btn-refund {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+  display: inline-flex; align-items: center; gap: 8px;
   padding: 11px 24px;
-  background: transparent;
-  color: var(--red);
-  border: 1px solid var(--red);
-  border-radius: 1px;
+  background: transparent; color: var(--red);
+  border: 1px solid var(--red); border-radius: 1px;
   font-family: 'Noto Sans TC', sans-serif;
-  font-size: 12px;
-  letter-spacing: 0.15em;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-decoration: none;
+  font-size: 12px; letter-spacing: 0.15em;
+  cursor: pointer; transition: all 0.2s; text-decoration: none;
 }
 .btn-refund:hover { background: var(--red); color: white; }
 
 .btn-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: none;
-  border: none;
-  color: var(--ink-soft);
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  cursor: pointer;
-  padding: 0;
-  margin-bottom: 24px;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: none; border: none;
+  color: var(--ink-soft); font-size: 12px; letter-spacing: 0.1em;
+  cursor: pointer; padding: 0; margin-bottom: 24px;
 }
 .btn-back:hover { color: var(--ink); }
 
-/* ── 載入中 ── */
-.loading {
-  text-align: center;
-  padding: 40px 0;
-  display: none;
-}
+/* 載入 */
+.loading { text-align: center; padding: 40px 0; display: none; }
 .loading-dots span {
-  display: inline-block;
-  width: 6px; height: 6px;
-  background: var(--gold);
-  border-radius: 50%;
-  margin: 0 3px;
+  display: inline-block; width:6px; height:6px;
+  background: var(--gold); border-radius: 50%; margin: 0 3px;
   animation: dot 1.2s infinite;
 }
 .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
 .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes dot {
-  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-  40% { transform: scale(1); opacity: 1; }
+  0%,80%,100% { transform:scale(0.6); opacity:0.4; }
+  40% { transform:scale(1); opacity:1; }
 }
-.loading p {
-  margin-top: 16px;
-  font-size: 12px;
-  letter-spacing: 0.2em;
-  color: var(--ink-soft);
-}
+.loading p { margin-top:16px; font-size:12px; letter-spacing:0.2em; color:var(--ink-soft); }
 
-/* ── 錯誤訊息 ── */
 .error-msg {
   display: none;
   background: #fff5f5;
   border: 1px solid rgba(139,26,26,0.2);
   border-left: 3px solid var(--red);
-  padding: 12px 16px;
-  margin-top: 16px;
-  font-size: 13px;
-  color: var(--red);
-  letter-spacing: 0.05em;
-  border-radius: 1px;
+  padding: 12px 16px; margin-top: 16px;
+  font-size: 13px; color: var(--red); letter-spacing: 0.05em; border-radius: 1px;
 }
 
-/* ── 結果 ── */
 .result { display: none; }
 
+/* 狀態標籤 */
 .status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 14px;
-  border-radius: 20px;
-  font-size: 11px;
-  letter-spacing: 0.15em;
-  font-weight: 500;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 14px; border-radius: 20px;
+  font-size: 11px; letter-spacing: 0.15em; font-weight: 500;
 }
-.status-pending   { background: #fff8e1; color: #b8860b; border: 1px solid rgba(184,134,11,0.3); }
-.status-confirmed { background: #f0faf0; color: var(--green); border: 1px solid rgba(45,90,39,0.25); }
-.status-refunding { background: #fff0f0; color: var(--red); border: 1px solid rgba(139,26,26,0.2); }
-.status-refunded  { background: #f5f5f5; color: #666; border: 1px solid #ddd; }
+.status-pending   { background:#fff8e1; color:#b8860b; border:1px solid rgba(184,134,11,0.3); }
+.status-confirmed { background:#f0faf0; color:var(--green); border:1px solid rgba(45,90,39,0.25); }
+.status-refunding { background:#fff0f0; color:var(--red); border:1px solid rgba(139,26,26,0.2); }
+.status-refunded  { background:#f5f5f5; color:#666; border:1px solid #ddd; }
 
 .order-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 28px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--border);
-  flex-wrap: wrap;
+  display: flex; align-items: flex-start;
+  justify-content: space-between; gap: 12px;
+  margin-bottom: 28px; padding-bottom: 20px;
+  border-bottom: 1px solid var(--border); flex-wrap: wrap;
 }
-.order-id-wrap .label {
-  font-size: 10px;
-  letter-spacing: 0.25em;
-  color: var(--ink-soft);
-}
+.order-id-wrap .label { font-size:10px; letter-spacing:0.25em; color:var(--ink-soft); }
 .order-id-wrap .id {
   font-family: 'Shippori Mincho', serif;
-  font-size: 20px;
-  letter-spacing: 0.1em;
-  color: var(--ink);
-  margin-top: 4px;
+  font-size: 20px; letter-spacing:0.1em; color:var(--ink); margin-top:4px;
 }
 
 .section { margin-bottom: 28px; }
 .section-title {
-  font-size: 10px;
-  letter-spacing: 0.3em;
-  color: var(--gold);
-  margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  font-size: 10px; letter-spacing: 0.3em; color: var(--gold);
+  margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
 }
-.section-title::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
+.section-title::after { content:''; flex:1; height:1px; background:var(--border); }
 
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px 20px;
-}
-.info-item .key {
-  font-size: 10px;
-  letter-spacing: 0.15em;
-  color: var(--ink-soft);
-  margin-bottom: 3px;
-}
-.info-item .val { font-size: 14px; color: var(--ink); }
+.info-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px 20px; }
+.info-item .key { font-size:10px; letter-spacing:0.15em; color:var(--ink-soft); margin-bottom:3px; }
+.info-item .val { font-size:14px; color:var(--ink); }
 .info-item.full { grid-column: 1 / -1; }
 
-.fee-table { width: 100%; border-collapse: collapse; }
+.fee-table { width:100%; border-collapse:collapse; }
 .fee-table tr td {
-  padding: 9px 0;
-  font-size: 13px;
+  padding: 9px 0; font-size:13px;
   border-bottom: 1px dashed rgba(184,134,11,0.15);
 }
-.fee-table tr:last-child td { border-bottom: none; }
-.fee-table td:last-child { text-align: right; color: var(--ink); }
-.fee-table td:first-child { color: var(--ink-soft); }
-.fee-table .highlight td {
-  font-weight: 500;
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
-  border-bottom: none;
-  font-size: 14px;
+.fee-table tr:last-child td { border-bottom:none; }
+.fee-table td:last-child { text-align:right; color:var(--ink); }
+.fee-table td:first-child { color:var(--ink-soft); }
+.fee-table .discount-row td:first-child { color:var(--green); }
+.fee-table .discount-row td:last-child  { color:var(--green); }
+.fee-table .total-row td {
+  font-weight:500; padding-top:14px;
+  border-top:1px solid var(--border); border-bottom:none; font-size:14px;
 }
-.fee-table .highlight td:last-child { color: var(--red); }
-.fee-table .discount-row td:first-child { color: var(--green); }
-.fee-table .discount-row td:last-child { color: var(--green); }
+.fee-table .total-row td:last-child { color:var(--red); }
 
 .onsite-box {
-  background: var(--paper-dark);
-  border: 1px solid var(--border);
-  padding: 20px;
-  text-align: center;
-  margin: 20px 0;
+  background: var(--paper-dark); border:1px solid var(--border);
+  padding: 20px; text-align:center; margin:20px 0;
 }
-.onsite-box .label {
-  font-size: 10px;
-  letter-spacing: 0.3em;
-  color: var(--ink-soft);
-  margin-bottom: 8px;
-}
+.onsite-box .label { font-size:10px; letter-spacing:0.3em; color:var(--ink-soft); margin-bottom:8px; }
 .onsite-box .amount {
-  font-family: 'Shippori Mincho', serif;
-  font-size: 32px;
-  color: var(--ink);
-  letter-spacing: 0.05em;
+  font-family:'Shippori Mincho', serif;
+  font-size:32px; color:var(--ink); letter-spacing:0.05em;
 }
-.onsite-box .amount span {
-  font-size: 16px;
-  color: var(--ink-soft);
-  margin-left: 4px;
-}
-.onsite-box .note {
-  font-size: 11px;
-  color: var(--ink-soft);
-  margin-top: 6px;
-  letter-spacing: 0.1em;
+.onsite-box .amount span { font-size:16px; color:var(--ink-soft); margin-left:4px; }
+.onsite-box .note { font-size:11px; color:var(--ink-soft); margin-top:6px; letter-spacing:0.1em; }
+
+.notice-box {
+  background:#fff8e1; border:1px solid rgba(184,134,11,0.25);
+  border-left:3px solid var(--gold);
+  padding:12px 16px; margin-top:16px;
+  font-size:12px; color:var(--ink-soft);
+  letter-spacing:0.05em; line-height:1.7; border-radius:1px;
 }
 
 .refund-section {
-  margin-top: 28px;
-  padding-top: 24px;
-  border-top: 1px solid var(--border);
-  text-align: center;
+  margin-top:28px; padding-top:24px;
+  border-top:1px solid var(--border); text-align:center;
 }
 .refund-section p {
-  font-size: 12px;
-  color: var(--ink-soft);
-  letter-spacing: 0.1em;
-  margin-bottom: 14px;
-}
-
-.notice-box {
-  background: #fff8e1;
-  border: 1px solid rgba(184,134,11,0.25);
-  border-left: 3px solid var(--gold);
-  padding: 12px 16px;
-  margin-top: 16px;
-  font-size: 12px;
-  color: var(--ink-soft);
-  letter-spacing: 0.05em;
-  line-height: 1.7;
-  border-radius: 1px;
+  font-size:12px; color:var(--ink-soft);
+  letter-spacing:0.1em; margin-bottom:14px;
 }
 
 .footer {
-  text-align: center;
-  margin-top: 48px;
-  font-size: 11px;
-  color: #aaa;
-  letter-spacing: 0.15em;
+  text-align:center; margin-top:48px;
+  font-size:11px; color:#aaa; letter-spacing:0.15em;
 }
-.footer a { color: var(--gold); text-decoration: none; }
+.footer a { color:var(--gold); text-decoration:none; }
 
-/* ── RWD ── */
-@media (max-width: 480px) {
-  .card { padding: 24px 20px; }
-  .info-grid { grid-template-columns: 1fr; }
-  .order-header { flex-direction: column; }
-  .onsite-box .amount { font-size: 26px; }
+@media (max-width:480px) {
+  .card { padding:24px 20px; }
+  .info-grid { grid-template-columns:1fr; }
+  .order-header { flex-direction:column; }
+  .onsite-box .amount { font-size:26px; }
 }
 </style>
 </head>
 <body>
-
 <div class="wrapper">
 
-  <!-- 標題 -->
   <header class="site-header">
     <span class="mon">着物</span>
     <h1>KIMONO EXPERIENCE — ORDER INQUIRY</h1>
-    <div class="divider"><span>旅乘 x Foreveryoung</span></div>
+    <div class="hd"><span>旅乘 x Foreveryoung</span></div>
   </header>
 
-  <!-- ══ 查詢表單 ══ -->
+  <!-- 查詢表單 -->
   <div class="card" id="formCard">
     <div class="card-title">訂單查詢　ORDER LOOKUP</div>
 
@@ -469,27 +313,20 @@ body::before {
       ※ 請填寫 Email 或手機號碼其中一項即可
     </p>
 
-    <button class="btn-primary" id="queryBtn" onclick="doQuery()">
-      查　詢　訂　單
-    </button>
-
+    <button class="btn-primary" onclick="doQuery()">查　詢　訂　單</button>
     <div class="error-msg" id="errorMsg"></div>
   </div>
 
-  <!-- ══ 載入中 ══ -->
+  <!-- 載入中 -->
   <div class="card loading" id="loadingCard">
-    <div class="loading-dots">
-      <span></span><span></span><span></span>
-    </div>
+    <div class="loading-dots"><span></span><span></span><span></span></div>
     <p>查詢中，請稍候</p>
   </div>
 
-  <!-- ══ 查詢結果 ══ -->
+  <!-- 結果 -->
   <div class="card result" id="resultCard">
-
     <button class="btn-back" onclick="goBack()">← 重新查詢</button>
 
-    <!-- 訂單標題 -->
     <div class="order-header">
       <div class="order-id-wrap">
         <div class="label">BOOKING NO.</div>
@@ -498,7 +335,6 @@ body::before {
       <div id="r-statusBadge"></div>
     </div>
 
-    <!-- 預約內容 -->
     <div class="section">
       <div class="section-title">預約內容</div>
       <div class="info-grid">
@@ -525,68 +361,55 @@ body::before {
       </div>
     </div>
 
-    <!-- 費用明細 -->
     <div class="section">
       <div class="section-title">費用明細</div>
       <table class="fee-table" id="feeTable"></table>
     </div>
 
-    <!-- 現場應付 -->
     <div class="onsite-box">
       <div class="label">現場應付金額　AMOUNT DUE ON SITE</div>
       <div class="amount" id="r-onsiteDue">— <span>JPY</span></div>
-      <div class="note" id="r-depositNote">（已折抵訂金）</div>
+      <div class="note" id="r-depositNote"></div>
     </div>
 
-    <!-- 費用待確認提示（P欄尚未填入時顯示） -->
     <div class="notice-box" id="pendingNotice" style="display:none">
-      📋 和服方案費用確認後將同步更新，如有疑問請聯繫客服。
+      📋 和服方案費用將於訂單確認後更新，如有疑問請聯繫客服。
     </div>
 
-    <!-- 退款區塊 -->
     <div class="refund-section" id="refundSection" style="display:none">
       <p>如需取消預約，請點下方按鈕填寫退款申請</p>
       <a id="refundLink" href="#" class="btn-refund">✦ 申請退款 / 取消預約</a>
     </div>
-
-  </div><!-- /resultCard -->
+  </div>
 
   <div class="footer">
     <p>旅乘 x Foreveryoung 和服體驗</p>
     <p style="margin-top:6px">
-      <a id="lineLink" href="#" target="_blank">LINE 客服</a>
-      　·　
+      <a id="lineLink" href="#" target="_blank">LINE 客服</a>　·　
       <a id="messengerLink" href="#" target="_blank">Messenger</a>
     </p>
   </div>
 
-</div><!-- /wrapper -->
+</div>
 
 <script>
-// ══ 從 KIMONO_CONFIG 讀取設定 ══
+// ══ 設定 ══
 const GAS_URL    = KIMONO_CONFIG.APPS_SCRIPT_URL;
 const REFUND_URL = KIMONO_CONFIG.REFUND_URL;
-
-// 底部連結
 document.getElementById('lineLink').href      = KIMONO_CONFIG.LINE_URL      || '#';
 document.getElementById('messengerLink').href = KIMONO_CONFIG.MESSENGER_URL || '#';
 
-// ══ 日期格式化：ISO / yyyy-MM-dd / Date → yyyy-MM-dd ══
+// ══ 日期格式化 ══
 function fmtDate(val) {
   if (!val) return '—';
-  // Google Sheets 回傳的 Date 物件序列化成 ISO 字串
-  // 例如 "2026-05-10T07:00:00.000Z" → 取前10碼再轉
   const str = String(val);
-  // ISO 格式
   if (str.includes('T')) {
-    // 直接取 UTC 日期避免時區偏移問題
     const d = new Date(str);
     const y = d.getUTCFullYear();
     const m = String(d.getUTCMonth() + 1).padStart(2, '0');
     const day = String(d.getUTCDate()).padStart(2, '0');
     return `${y}-${m}-${day}`;
   }
-  // 已經是 yyyy-MM-dd 格式
   if (/^\d{4}-\d{2}-\d{2}/.test(str)) return str.slice(0, 10);
   return str;
 }
@@ -594,8 +417,7 @@ function fmtDate(val) {
 // ══ 數字格式化 ══
 function fmtJPY(n) {
   const num = Number(n);
-  if (isNaN(num)) return '—';
-  return num.toLocaleString('ja-JP');
+  return isNaN(num) ? '—' : num.toLocaleString('ja-JP');
 }
 
 // ══ 查詢 ══
@@ -604,7 +426,6 @@ async function doQuery() {
   const email   = document.getElementById('email').value.trim();
   const phone   = document.getElementById('phone').value.trim();
 
-  // 前端驗證
   hideError();
   if (!orderId) return showError('請輸入訂單編號');
   if (!email && !phone) return showError('請輸入 Email 或手機號碼');
@@ -612,7 +433,7 @@ async function doQuery() {
   showLoading();
 
   try {
-    const res = await fetch(GAS_URL, {
+    const res  = await fetch(GAS_URL, {
       method : 'POST',
       body   : JSON.stringify({ action: 'query', orderId, email, phone }),
       headers: { 'Content-Type': 'text/plain;charset=utf-8' }
@@ -636,20 +457,19 @@ async function doQuery() {
   }
 }
 
-// ══ 渲染結果 ══
+// ══ 渲染結果（任何狀態都顯示） ══
 function renderResult(d) {
-
   // 訂單編號
   document.getElementById('r-orderId').textContent = d.orderId || '—';
 
-  // 狀態標籤
+  // ★ 狀態標籤（用 statusCode 判斷，不受 status 欄位影響）
   const statusMap = {
     pending  : ['核對中',    'status-pending'],
     confirmed: ['✓ 已確認', 'status-confirmed'],
     refunding: ['退款處理中','status-refunding'],
     refunded : ['已退款',   'status-refunded'],
   };
-  const [statusText, statusClass] = statusMap[d.statusCode] || ['—', ''];
+  const [statusText, statusClass] = statusMap[d.statusCode] || ['核對中', 'status-pending'];
   document.getElementById('r-statusBadge').innerHTML =
     `<span class="status-badge ${statusClass}">${statusText}</span>`;
 
@@ -662,32 +482,22 @@ function renderResult(d) {
 
   // 費用明細
   const rows = [];
-  const hasPlanPrice = d.planPrice && Number(d.planPrice) > 0;
-  const hasDiscount  = d.couponCode && d.discount && Number(d.discount) < 10;
+  const hasPlanPrice = Number(d.planPrice) > 0;
+  const hasDiscount  = d.couponCode && Number(d.discount) > 0 && Number(d.discount) < 10;
 
   if (hasPlanPrice) {
-    rows.push({ key: '和服方案原價', val: `${fmtJPY(d.planPrice)} JPY` });
+    rows.push({ key:'和服方案原價', val:`${fmtJPY(d.planPrice)} JPY` });
+    if (hasDiscount) {
+      const saving = Number(d.planPrice) - Number(d.planActual);
+      rows.push({ key:`優惠折扣（${d.couponCode}・${d.discount}折）`, val:`- ${fmtJPY(saving)} JPY`, cls:'discount-row' });
+      rows.push({ key:'實收和服費', val:`${fmtJPY(d.planActual)} JPY` });
+    } else {
+      rows.push({ key:'和服費用', val:`${fmtJPY(d.planActual || d.planPrice)} JPY` });
+    }
   }
-  if (hasPlanPrice && hasDiscount) {
-    const saving = Number(d.planPrice) - Number(d.planActual);
-    rows.push({
-      key: `優惠折扣（${d.couponCode}・${d.discount}折）`,
-      val: `- ${fmtJPY(saving)} JPY`,
-      cls: 'discount-row'
-    });
-    rows.push({ key: '實收和服費', val: `${fmtJPY(d.planActual)} JPY` });
-  } else if (hasPlanPrice) {
-    rows.push({ key: '和服費用', val: `${fmtJPY(d.planActual || d.planPrice)} JPY` });
-  }
-  if (Number(d.hairFee) > 0) {
-    rows.push({ key: '妝髮造型費', val: `${fmtJPY(d.hairFee)} JPY` });
-  }
-  if (Number(d.photoFee) > 0) {
-    rows.push({ key: '旅拍攝影費', val: `${fmtJPY(d.photoFee)} JPY` });
-  }
-  if (Number(d.depositJPY) > 0) {
-    rows.push({ key: '已付訂金折抵', val: `- ${fmtJPY(d.depositJPY)} JPY` });
-  }
+  if (Number(d.hairFee)  > 0) rows.push({ key:'妝髮造型費', val:`${fmtJPY(d.hairFee)} JPY` });
+  if (Number(d.photoFee) > 0) rows.push({ key:'旅拍攝影費', val:`${fmtJPY(d.photoFee)} JPY` });
+  if (Number(d.depositJPY) > 0) rows.push({ key:'已付訂金折抵', val:`- ${fmtJPY(d.depositJPY)} JPY` });
 
   const table = document.getElementById('feeTable');
   if (rows.length > 0) {
@@ -695,30 +505,28 @@ function renderResult(d) {
       `<tr class="${r.cls||''}"><td>${r.key}</td><td>${r.val}</td></tr>`
     ).join('');
   } else {
-    table.innerHTML = `<tr><td colspan="2" style="color:#aaa;font-size:12px;padding:12px 0;text-align:center;letter-spacing:0.1em">和服方案費用確認後顯示</td></tr>`;
+    table.innerHTML = `<tr><td colspan="2" style="color:#aaa;font-size:12px;padding:16px 0;text-align:center;letter-spacing:0.1em">費用明細確認後顯示</td></tr>`;
   }
 
   // 現場應付
-  const hasOnsite = d.onsiteDue !== '' && d.onsiteDue !== null && d.onsiteDue !== undefined && Number(d.onsiteDue) >= 0;
-  if (hasOnsite && hasPlanPrice) {
+  const hasOnsite = hasPlanPrice && d.onsiteDue !== '' && d.onsiteDue !== null;
+  if (hasOnsite) {
     document.getElementById('r-onsiteDue').innerHTML = `${fmtJPY(d.onsiteDue)} <span>JPY</span>`;
-    document.getElementById('r-depositNote').textContent =
-      `台幣訂金 NT$${d.twdDeposit} 已折抵`;
+    document.getElementById('r-depositNote').textContent = `台幣訂金 NT$${d.twdDeposit} 已折抵`;
     document.getElementById('pendingNotice').style.display = 'none';
   } else {
     document.getElementById('r-onsiteDue').innerHTML = `待確認 <span>JPY</span>`;
-    document.getElementById('r-depositNote').textContent = '';
+    document.getElementById('r-depositNote').textContent = `已付台幣訂金 NT$${d.twdDeposit}`;
     document.getElementById('pendingNotice').style.display = 'block';
   }
 
-  // 退款按鈕（只有已確認才顯示）
-  const refundSection = document.getElementById('refundSection');
+  // 退款按鈕（已確認才顯示）
   if (d.canRefund) {
-    const refundHref = `${REFUND_URL}?orderId=${encodeURIComponent(d.orderId)}`;
-    document.getElementById('refundLink').href = refundHref;
-    refundSection.style.display = 'block';
+    document.getElementById('refundLink').href =
+      `${REFUND_URL}?orderId=${encodeURIComponent(d.orderId)}`;
+    document.getElementById('refundSection').style.display = 'block';
   } else {
-    refundSection.style.display = 'none';
+    document.getElementById('refundSection').style.display = 'none';
   }
 
   showResult();
@@ -730,36 +538,15 @@ function showLoading() {
   document.getElementById('loadingCard').style.display = 'block';
   document.getElementById('resultCard').style.display  = 'none';
 }
-function hideLoading() {
-  document.getElementById('loadingCard').style.display = 'none';
-}
-function showForm() {
-  document.getElementById('formCard').style.display   = 'block';
-  document.getElementById('resultCard').style.display = 'none';
-}
-function showResult() {
-  document.getElementById('resultCard').style.display = 'block';
-}
-function goBack() {
-  document.getElementById('resultCard').style.display = 'none';
-  document.getElementById('formCard').style.display   = 'block';
-  hideError();
-}
+function hideLoading() { document.getElementById('loadingCard').style.display = 'none'; }
+function showForm()    { document.getElementById('formCard').style.display = 'block'; document.getElementById('resultCard').style.display = 'none'; }
+function showResult()  { document.getElementById('resultCard').style.display = 'block'; }
+function goBack()      { document.getElementById('resultCard').style.display = 'none'; document.getElementById('formCard').style.display = 'block'; hideError(); }
 
-// ══ 錯誤訊息 ══
-function showError(msg) {
-  const el = document.getElementById('errorMsg');
-  el.textContent = msg;
-  el.style.display = 'block';
-}
-function hideError() {
-  document.getElementById('errorMsg').style.display = 'none';
-}
+function showError(msg) { const el = document.getElementById('errorMsg'); el.textContent = msg; el.style.display = 'block'; }
+function hideError()    { document.getElementById('errorMsg').style.display = 'none'; }
 
-// Enter 鍵觸發查詢
-document.addEventListener('keydown', e => {
-  if (e.key === 'Enter') doQuery();
-});
+document.addEventListener('keydown', e => { if (e.key === 'Enter') doQuery(); });
 </script>
 </body>
 </html>
