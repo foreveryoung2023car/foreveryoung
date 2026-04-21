@@ -1,552 +1,413 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>訂單查詢 — 旅乘 x 和服體驗</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600&family=Shippori+Mincho:wght@400;600&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<meta name="description" content="旅乘 x Foreveryoung 和服體驗訂單查詢，查看預約狀態與費用明細。">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="./config.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --ink:       #1a1410;
-  --ink-soft:  #4a3f35;
-  --paper:     #faf7f2;
-  --paper-dark:#f0ebe2;
-  --gold:      #b8860b;
-  --gold-light:#d4a843;
-  --red:       #8b1a1a;
-  --green:     #2d5a27;
-  --border:    rgba(184,134,11,0.25);
-  --shadow:    rgba(26,20,16,0.08);
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  background: var(--paper);
-  color: var(--ink);
-  font-family: 'Noto Sans TC', sans-serif;
-  font-weight: 300;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image:
-    radial-gradient(ellipse at 20% 50%, rgba(184,134,11,0.04) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 20%, rgba(139,26,26,0.03) 0%, transparent 50%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M0 30 Q15 0 30 30 Q45 60 60 30' fill='none' stroke='%23b8860b' stroke-width='0.3' opacity='0.15'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 0;
-}
-.wrapper {
-  position: relative;
-  z-index: 1;
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 40px 20px 80px;
-}
-.site-header { text-align: center; margin-bottom: 48px; }
-.site-header .mon {
-  font-family: 'Shippori Mincho', serif;
-  font-size: 36px;
-  letter-spacing: 0.15em;
-  color: var(--gold);
-  display: block;
-  line-height: 1;
-}
-.site-header h1 {
-  font-family: 'Noto Serif JP', serif;
-  font-size: 14px;
-  font-weight: 300;
-  letter-spacing: 0.3em;
-  color: var(--ink-soft);
-  margin-top: 8px;
-}
-.hd { display:flex; align-items:center; gap:12px; margin:16px auto 0; max-width:220px; }
-.hd::before,.hd::after { content:''; flex:1; height:1px; background:var(--border); }
-.hd span { color:var(--gold); font-size:10px; letter-spacing:0.2em; }
+  body { font-family: 'Noto Serif TC', serif; scroll-behavior: smooth; }
+  .font-sans { font-family: 'Noto Sans TC', sans-serif; }
+  * { -webkit-text-size-adjust: 100%; }
 
-.card {
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 2px;
-  padding: 36px 32px;
-  box-shadow: 0 4px 24px var(--shadow);
-  position: relative;
-}
-.card::before {
-  content: '';
-  position: absolute;
-  top:6px; left:6px; right:-6px; bottom:-6px;
-  border: 1px solid var(--border);
-  border-radius: 2px;
-  z-index: -1;
-}
-.card-title {
-  font-family: 'Noto Serif JP', serif;
-  font-size: 13px;
-  font-weight: 400;
-  letter-spacing: 0.25em;
-  color: var(--ink-soft);
-  margin-bottom: 28px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border);
-}
-.form-group { margin-bottom: 20px; }
-.form-group label {
-  display: block;
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  color: var(--ink-soft);
-  margin-bottom: 8px;
-}
-.form-group label span { color: var(--red); margin-left: 2px; }
-.form-group input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid rgba(184,134,11,0.3);
-  border-radius: 1px;
-  background: var(--paper);
-  font-family: 'Noto Sans TC', sans-serif;
-  font-size: 14px;
-  color: var(--ink);
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.form-group input:focus {
-  border-color: var(--gold);
-  box-shadow: 0 0 0 3px rgba(184,134,11,0.08);
-}
-.form-group input::placeholder { color: #bbb; font-size: 13px; }
-.or-divider {
-  display: flex; align-items: center; gap: 12px;
-  margin: 4px 0 20px;
-  color: var(--ink-soft); font-size: 11px; letter-spacing: 0.15em;
-}
-.or-divider::before,.or-divider::after { content:''; flex:1; height:1px; background:var(--border); }
+  .sakura-container { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:100; overflow:hidden; }
+  .sakura { position:absolute; background:#FFB7C5; border-radius:100% 0 100% 0; opacity:0.12; animation:fall linear infinite; }
+  @keyframes fall {
+    0%   { transform:translateY(-50px) rotate(0deg); opacity:0; }
+    10%  { opacity:0.12; }
+    90%  { opacity:0.12; }
+    100% { transform:translateY(110vh) rotate(360deg); opacity:0; }
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .fade-up { animation:fadeUp 0.45s ease-out forwards; }
 
-.btn-primary {
-  width: 100%; padding: 14px;
-  background: var(--ink); color: var(--gold-light);
-  border: none; border-radius: 1px;
-  font-family: 'Noto Serif JP', serif;
-  font-size: 13px; letter-spacing: 0.3em;
-  cursor: pointer; transition: background 0.2s, transform 0.1s; margin-top: 8px;
-}
-.btn-primary:hover { background: #2d2420; }
-.btn-primary:active { transform: scale(0.99); }
+  .badge-pending   { background:#fffbeb; color:#92400e; border:1px solid #fde68a; }
+  .badge-confirmed { background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; }
+  .badge-refunding { background:#fff1f2; color:#9f1239; border:1px solid #fecdd3; }
+  .badge-refunded  { background:#f8fafc; color:#64748b; border:1px solid #e2e8f0; }
 
-.btn-refund {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 11px 24px;
-  background: transparent; color: var(--red);
-  border: 1px solid var(--red); border-radius: 1px;
-  font-family: 'Noto Sans TC', sans-serif;
-  font-size: 12px; letter-spacing: 0.15em;
-  cursor: pointer; transition: all 0.2s; text-decoration: none;
-}
-.btn-refund:hover { background: var(--red); color: white; }
+  .fee-row:nth-child(even) { background:#f8fafc; }
 
-.btn-back {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: none; border: none;
-  color: var(--ink-soft); font-size: 12px; letter-spacing: 0.1em;
-  cursor: pointer; padding: 0; margin-bottom: 24px;
-}
-.btn-back:hover { color: var(--ink); }
-
-/* 載入 */
-.loading { text-align: center; padding: 40px 0; display: none; }
-.loading-dots span {
-  display: inline-block; width:6px; height:6px;
-  background: var(--gold); border-radius: 50%; margin: 0 3px;
-  animation: dot 1.2s infinite;
-}
-.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes dot {
-  0%,80%,100% { transform:scale(0.6); opacity:0.4; }
-  40% { transform:scale(1); opacity:1; }
-}
-.loading p { margin-top:16px; font-size:12px; letter-spacing:0.2em; color:var(--ink-soft); }
-
-.error-msg {
-  display: none;
-  background: #fff5f5;
-  border: 1px solid rgba(139,26,26,0.2);
-  border-left: 3px solid var(--red);
-  padding: 12px 16px; margin-top: 16px;
-  font-size: 13px; color: var(--red); letter-spacing: 0.05em; border-radius: 1px;
-}
-
-.result { display: none; }
-
-/* 狀態標籤 */
-.status-badge {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 5px 14px; border-radius: 20px;
-  font-size: 11px; letter-spacing: 0.15em; font-weight: 500;
-}
-.status-pending   { background:#fff8e1; color:#b8860b; border:1px solid rgba(184,134,11,0.3); }
-.status-confirmed { background:#f0faf0; color:var(--green); border:1px solid rgba(45,90,39,0.25); }
-.status-refunding { background:#fff0f0; color:var(--red); border:1px solid rgba(139,26,26,0.2); }
-.status-refunded  { background:#f5f5f5; color:#666; border:1px solid #ddd; }
-
-.order-header {
-  display: flex; align-items: flex-start;
-  justify-content: space-between; gap: 12px;
-  margin-bottom: 28px; padding-bottom: 20px;
-  border-bottom: 1px solid var(--border); flex-wrap: wrap;
-}
-.order-id-wrap .label { font-size:10px; letter-spacing:0.25em; color:var(--ink-soft); }
-.order-id-wrap .id {
-  font-family: 'Shippori Mincho', serif;
-  font-size: 20px; letter-spacing:0.1em; color:var(--ink); margin-top:4px;
-}
-
-.section { margin-bottom: 28px; }
-.section-title {
-  font-size: 10px; letter-spacing: 0.3em; color: var(--gold);
-  margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
-}
-.section-title::after { content:''; flex:1; height:1px; background:var(--border); }
-
-.info-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px 20px; }
-.info-item .key { font-size:10px; letter-spacing:0.15em; color:var(--ink-soft); margin-bottom:3px; }
-.info-item .val { font-size:14px; color:var(--ink); }
-.info-item.full { grid-column: 1 / -1; }
-
-.fee-table { width:100%; border-collapse:collapse; }
-.fee-table tr td {
-  padding: 9px 0; font-size:13px;
-  border-bottom: 1px dashed rgba(184,134,11,0.15);
-}
-.fee-table tr:last-child td { border-bottom:none; }
-.fee-table td:last-child { text-align:right; color:var(--ink); }
-.fee-table td:first-child { color:var(--ink-soft); }
-.fee-table .discount-row td:first-child { color:var(--green); }
-.fee-table .discount-row td:last-child  { color:var(--green); }
-.fee-table .total-row td {
-  font-weight:500; padding-top:14px;
-  border-top:1px solid var(--border); border-bottom:none; font-size:14px;
-}
-.fee-table .total-row td:last-child { color:var(--red); }
-
-.onsite-box {
-  background: var(--paper-dark); border:1px solid var(--border);
-  padding: 20px; text-align:center; margin:20px 0;
-}
-.onsite-box .label { font-size:10px; letter-spacing:0.3em; color:var(--ink-soft); margin-bottom:8px; }
-.onsite-box .amount {
-  font-family:'Shippori Mincho', serif;
-  font-size:32px; color:var(--ink); letter-spacing:0.05em;
-}
-.onsite-box .amount span { font-size:16px; color:var(--ink-soft); margin-left:4px; }
-.onsite-box .note { font-size:11px; color:var(--ink-soft); margin-top:6px; letter-spacing:0.1em; }
-
-.notice-box {
-  background:#fff8e1; border:1px solid rgba(184,134,11,0.25);
-  border-left:3px solid var(--gold);
-  padding:12px 16px; margin-top:16px;
-  font-size:12px; color:var(--ink-soft);
-  letter-spacing:0.05em; line-height:1.7; border-radius:1px;
-}
-
-.refund-section {
-  margin-top:28px; padding-top:24px;
-  border-top:1px solid var(--border); text-align:center;
-}
-.refund-section p {
-  font-size:12px; color:var(--ink-soft);
-  letter-spacing:0.1em; margin-bottom:14px;
-}
-
-.footer {
-  text-align:center; margin-top:48px;
-  font-size:11px; color:#aaa; letter-spacing:0.15em;
-}
-.footer a { color:var(--gold); text-decoration:none; }
-
-@media (max-width:480px) {
-  .card { padding:24px 20px; }
-  .info-grid { grid-template-columns:1fr; }
-  .order-header { flex-direction:column; }
-  .onsite-box .amount { font-size:26px; }
-}
+  @media (max-width:640px) {
+    .tracking-\[0\.8em\] { letter-spacing:0.3em !important; }
+    .tracking-\[0\.5em\] { letter-spacing:0.2em !important; }
+  }
 </style>
 </head>
-<body>
-<div class="wrapper">
+<body class="bg-[#FDFCF8] text-[#1A365D] overflow-x-hidden">
 
-  <header class="site-header">
-    <span class="mon">着物</span>
-    <h1>KIMONO EXPERIENCE — ORDER INQUIRY</h1>
-    <div class="hd"><span>旅乘 x Foreveryoung</span></div>
-  </header>
+<div id="sakura-container" class="sakura-container"></div>
+
+<!-- 回頂端 -->
+<button id="topBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})"
+  class="fixed right-5 bottom-10 z-[480] w-12 h-12 bg-white/90 backdrop-blur-md text-[#1A365D] border border-slate-100 rounded-full shadow-xl flex items-center justify-center opacity-0 transition-all hover:bg-pink-50 pointer-events-none">
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m18 15-6-6-6 6"/></svg>
+</button>
+
+<!-- Navbar -->
+<nav class="fixed top-0 w-full z-[450] bg-[#1A365D]/95 backdrop-blur-md shadow-sm py-4">
+  <div class="max-w-5xl mx-auto px-5 flex items-center justify-between">
+    <a href="./index.html" class="flex items-center gap-3">
+      <div class="w-9 h-9 bg-white/20 text-white rounded-sm flex items-center justify-center font-bold text-lg">旅</div>
+      <div>
+        <div class="text-white font-bold tracking-widest text-sm uppercase font-sans">Foreveryoung</div>
+        <div class="text-white/40 text-[9px] uppercase tracking-wider font-sans">Order Inquiry</div>
+      </div>
+    </a>
+    <a href="./index.html#booking"
+      class="px-5 py-2 text-[10px] font-bold border border-white/30 text-white hover:bg-white hover:text-[#1A365D] transition-all rounded-sm uppercase font-sans tracking-widest">
+      立即預約
+    </a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="pt-20 pb-14 bg-[#1A365D] text-center relative overflow-hidden">
+  <div class="absolute inset-0 opacity-[0.06]"
+    style="background-image:radial-gradient(circle,#FFB7C5 1px,transparent 1px);background-size:32px 32px"></div>
+  <div class="relative z-10 max-w-lg mx-auto px-5">
+    <p class="text-pink-300 font-bold tracking-[0.8em] text-[10px] mb-4 uppercase italic font-sans">Order Inquiry</p>
+    <h1 class="text-3xl md:text-4xl font-bold text-white tracking-[0.2em] uppercase mb-3">訂單查詢</h1>
+    <p class="text-white/40 text-xs tracking-[0.3em] uppercase font-sans">輸入訂單編號確認預約狀態與費用</p>
+    <div class="mt-5 w-10 h-0.5 bg-pink-400/50 mx-auto"></div>
+  </div>
+</header>
+
+<!-- 主體 -->
+<main class="max-w-lg mx-auto px-4 py-10 pb-24">
 
   <!-- 查詢表單 -->
-  <div class="card" id="formCard">
-    <div class="card-title">訂單查詢　ORDER LOOKUP</div>
-
-    <div class="form-group">
-      <label>訂單編號<span>*</span></label>
-      <input type="text" id="orderId" placeholder="K260421001"
-             autocomplete="off" style="text-transform:uppercase"
-             oninput="this.value=this.value.toUpperCase()">
+  <div id="formCard" class="bg-white shadow-2xl rounded-sm border border-slate-50 p-8 md:p-10 fade-up">
+    <div class="mb-8 text-center">
+      <h2 class="text-lg font-bold text-[#1A365D] uppercase tracking-[0.3em] font-sans">查詢我的訂單</h2>
+      <p class="text-slate-400 text-xs mt-2 font-sans tracking-wider">請輸入預約時的聯絡資料</p>
     </div>
 
-    <div class="form-group">
-      <label>Email<span>*</span></label>
-      <input type="email" id="email" placeholder="your@email.com" autocomplete="off">
+    <div class="mb-6">
+      <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">
+        訂單編號 <span class="text-pink-400">*</span>
+      </label>
+      <input type="text" id="orderId" placeholder="K260421001" autocomplete="off"
+        oninput="this.value=this.value.toUpperCase()"
+        class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-xl font-bold bg-transparent transition-colors font-sans tracking-[0.1em] placeholder:text-slate-200 placeholder:font-normal placeholder:text-base">
     </div>
 
-    <div class="or-divider">或</div>
-
-    <div class="form-group" style="margin-bottom:0">
-      <label>手機號碼</label>
-      <input type="tel" id="phone" placeholder="0912345678" autocomplete="off">
+    <div class="mb-5">
+      <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">
+        Email <span class="text-pink-400">*</span>
+      </label>
+      <input type="email" id="email" placeholder="your@email.com" autocomplete="off"
+        class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-base font-bold bg-transparent transition-colors font-sans placeholder:text-slate-200 placeholder:font-normal">
     </div>
 
-    <p style="font-size:11px;color:#aaa;margin:8px 0 20px;letter-spacing:0.05em">
-      ※ 請填寫 Email 或手機號碼其中一項即可
-    </p>
+    <div class="flex items-center gap-3 my-5">
+      <div class="flex-1 h-px bg-slate-100"></div>
+      <span class="text-slate-300 text-xs font-sans font-bold tracking-[0.3em] uppercase">或</span>
+      <div class="flex-1 h-px bg-slate-100"></div>
+    </div>
 
-    <button class="btn-primary" onclick="doQuery()">查　詢　訂　單</button>
-    <div class="error-msg" id="errorMsg"></div>
+    <div class="mb-8">
+      <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">手機號碼</label>
+      <input type="tel" id="phone" placeholder="0912345678" autocomplete="off"
+        class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-base font-bold bg-transparent transition-colors font-sans placeholder:text-slate-200 placeholder:font-normal">
+      <p class="text-[10px] text-slate-300 mt-2 font-sans">※ Email 或手機號碼填寫其中一項即可</p>
+    </div>
+
+    <button onclick="doQuery()"
+      class="w-full py-4 bg-[#1A365D] text-white font-bold tracking-[0.2em] rounded-sm hover:bg-blue-900 active:scale-[0.99] transition-all shadow-xl uppercase text-xs font-sans">
+      查　詢　訂　單
+    </button>
+
+    <div id="errorMsg" class="hidden mt-4 p-4 bg-red-50 border-l-4 border-red-400 text-red-600 text-sm font-sans leading-relaxed rounded-r-sm"></div>
   </div>
 
   <!-- 載入中 -->
-  <div class="card loading" id="loadingCard">
-    <div class="loading-dots"><span></span><span></span><span></span></div>
-    <p>查詢中，請稍候</p>
+  <div id="loadingCard" class="hidden bg-white shadow-2xl rounded-sm border border-slate-50 p-16 text-center">
+    <div class="flex justify-center gap-2 mb-5">
+      <span class="w-2.5 h-2.5 rounded-full bg-pink-200 animate-bounce" style="animation-delay:0ms"></span>
+      <span class="w-2.5 h-2.5 rounded-full bg-pink-400 animate-bounce" style="animation-delay:150ms"></span>
+      <span class="w-2.5 h-2.5 rounded-full bg-[#1A365D] animate-bounce" style="animation-delay:300ms"></span>
+    </div>
+    <p class="text-slate-400 text-xs tracking-[0.3em] uppercase font-sans">查詢中，請稍候</p>
   </div>
 
   <!-- 結果 -->
-  <div class="card result" id="resultCard">
-    <button class="btn-back" onclick="goBack()">← 重新查詢</button>
+  <div id="resultCard" class="hidden">
 
-    <div class="order-header">
-      <div class="order-id-wrap">
-        <div class="label">BOOKING NO.</div>
-        <div class="id" id="r-orderId">—</div>
+    <button onclick="goBack()"
+      class="flex items-center gap-2 text-slate-400 hover:text-[#1A365D] text-xs font-sans font-bold uppercase tracking-[0.2em] mb-5 transition-colors">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+      重新查詢
+    </button>
+
+    <!-- 主卡片 -->
+    <div class="bg-white shadow-2xl rounded-sm border border-slate-50 overflow-hidden fade-up">
+
+      <!-- 頭部 -->
+      <div class="bg-[#1A365D] px-7 py-6 flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <p class="text-white/30 text-[9px] uppercase tracking-[0.4em] font-sans mb-1.5">BOOKING NO.</p>
+          <p id="r-orderId" class="text-white font-bold text-2xl tracking-[0.12em] font-sans">—</p>
+        </div>
+        <div id="r-statusBadge" class="mt-1 shrink-0"></div>
       </div>
-      <div id="r-statusBadge"></div>
-    </div>
 
-    <div class="section">
-      <div class="section-title">預約內容</div>
-      <div class="info-grid">
-        <div class="info-item">
-          <div class="key">體驗日期</div>
-          <div class="val" id="r-bookingDate">—</div>
+      <div class="p-7 md:p-9 space-y-8">
+
+        <!-- 預約內容 -->
+        <div>
+          <p class="text-[10px] font-bold text-pink-400 tracking-[0.5em] uppercase font-sans mb-5 flex items-center gap-3">
+            預約內容
+            <span class="flex-1 h-px bg-pink-100"></span>
+          </p>
+          <div class="grid grid-cols-2 gap-x-6 gap-y-5">
+            <div>
+              <p class="text-[9px] text-slate-400 uppercase tracking-[0.3em] font-sans mb-1">體驗日期</p>
+              <p id="r-bookingDate" class="font-bold text-[#1A365D] font-sans text-sm">—</p>
+            </div>
+            <div>
+              <p class="text-[9px] text-slate-400 uppercase tracking-[0.3em] font-sans mb-1">人數</p>
+              <p id="r-guests" class="font-bold text-[#1A365D] font-sans text-sm">—</p>
+            </div>
+            <div class="col-span-2">
+              <p class="text-[9px] text-slate-400 uppercase tracking-[0.3em] font-sans mb-1">和服款式</p>
+              <p id="r-plan" class="font-bold text-[#1A365D] font-sans text-sm">—</p>
+            </div>
+            <div>
+              <p class="text-[9px] text-slate-400 uppercase tracking-[0.3em] font-sans mb-1">妝髮造型</p>
+              <p id="r-hair" class="font-bold text-[#1A365D] font-sans text-sm">—</p>
+            </div>
+            <div>
+              <p class="text-[9px] text-slate-400 uppercase tracking-[0.3em] font-sans mb-1">旅拍攝影</p>
+              <p id="r-photo" class="font-bold text-[#1A365D] font-sans text-sm">—</p>
+            </div>
+          </div>
         </div>
-        <div class="info-item">
-          <div class="key">人數</div>
-          <div class="val" id="r-guests">—</div>
+
+        <!-- 費用明細 -->
+        <div>
+          <p class="text-[10px] font-bold text-pink-400 tracking-[0.5em] uppercase font-sans mb-5 flex items-center gap-3">
+            費用明細
+            <span class="flex-1 h-px bg-pink-100"></span>
+          </p>
+          <div id="feeTable" class="rounded-sm overflow-hidden border border-slate-100"></div>
         </div>
-        <div class="info-item full">
-          <div class="key">和服款式</div>
-          <div class="val" id="r-plan">—</div>
+
+        <!-- 現場應付 -->
+        <div class="bg-[#1A365D] rounded-sm p-6 text-center relative overflow-hidden">
+          <div class="absolute inset-0 opacity-[0.06]"
+            style="background-image:radial-gradient(circle,#FFB7C5 1px,transparent 1px);background-size:24px 24px"></div>
+          <p class="text-white/40 text-[9px] uppercase tracking-[0.4em] font-sans mb-2 relative z-10">現場應付金額　AMOUNT DUE ON SITE</p>
+          <p id="r-onsiteDue" class="text-white font-bold text-4xl font-sans tracking-wider relative z-10">—</p>
+          <p id="r-depositNote" class="text-pink-300 text-xs mt-2 font-sans relative z-10"></p>
         </div>
-        <div class="info-item">
-          <div class="key">妝髮造型</div>
-          <div class="val" id="r-hair">—</div>
+
+        <!-- 待確認提示 -->
+        <div id="pendingNotice" class="hidden bg-amber-50 border-l-4 border-amber-300 p-4 rounded-r-sm">
+          <p class="text-amber-700 text-xs font-sans leading-relaxed">
+            📋 和服方案費用將於訂單確認後顯示，如有疑問請聯繫客服。
+          </p>
         </div>
-        <div class="info-item">
-          <div class="key">旅拍攝影</div>
-          <div class="val" id="r-photo">—</div>
+
+        <!-- 退款 -->
+        <div id="refundSection" class="hidden pt-2 border-t border-slate-100 text-center">
+          <p class="text-slate-400 text-xs font-sans tracking-wider mb-4">如需取消預約，請填寫退款申請</p>
+          <a id="refundLink" href="#"
+            class="inline-flex items-center gap-2 px-8 py-3 border-2 border-red-400 text-red-500 hover:bg-red-500 hover:text-white transition-all rounded-sm text-xs font-bold font-sans uppercase tracking-widest">
+            申請退款 / 取消預約
+          </a>
         </div>
+
       </div>
     </div>
 
-    <div class="section">
-      <div class="section-title">費用明細</div>
-      <table class="fee-table" id="feeTable"></table>
+    <!-- 聯繫客服 -->
+    <div class="mt-4 bg-white shadow-sm rounded-sm border border-slate-50 p-6 text-center">
+      <p class="text-slate-400 text-[10px] font-sans tracking-[0.3em] uppercase mb-4">有疑問？聯繫我們</p>
+      <div class="flex gap-3 justify-center flex-wrap">
+        <a id="lineLink" href="#" target="_blank" rel="noopener"
+          class="flex items-center gap-2 px-6 py-3 bg-[#06C755] text-white rounded-full text-xs font-bold font-sans hover:scale-105 transition-transform shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+          LINE 客服
+        </a>
+        <a id="messengerLink" href="#" target="_blank" rel="noopener"
+          class="flex items-center gap-2 px-6 py-3 bg-[#1877F2] text-white rounded-full text-xs font-bold font-sans hover:scale-105 transition-transform shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+          Messenger
+        </a>
+      </div>
     </div>
 
-    <div class="onsite-box">
-      <div class="label">現場應付金額　AMOUNT DUE ON SITE</div>
-      <div class="amount" id="r-onsiteDue">— <span>JPY</span></div>
-      <div class="note" id="r-depositNote"></div>
-    </div>
+  </div><!-- /resultCard -->
 
-    <div class="notice-box" id="pendingNotice" style="display:none">
-      📋 和服方案費用將於訂單確認後更新，如有疑問請聯繫客服。
-    </div>
+</main>
 
-    <div class="refund-section" id="refundSection" style="display:none">
-      <p>如需取消預約，請點下方按鈕填寫退款申請</p>
-      <a id="refundLink" href="#" class="btn-refund">✦ 申請退款 / 取消預約</a>
+<!-- Footer -->
+<footer class="bg-[#1A365D] text-white py-12 px-5 text-center">
+  <div class="flex items-center justify-center gap-3 mb-3">
+    <div class="w-9 h-9 bg-white text-[#1A365D] rounded-sm flex items-center justify-center font-bold">旅</div>
+    <div class="text-left">
+      <div class="font-bold tracking-widest text-sm uppercase font-sans">Foreveryoung</div>
+      <div class="text-pink-300 text-[9px] tracking-widest uppercase font-sans">和服體驗 × 旅遊包車</div>
     </div>
   </div>
-
-  <div class="footer">
-    <p>旅乘 x Foreveryoung 和服體驗</p>
-    <p style="margin-top:6px">
-      <a id="lineLink" href="#" target="_blank">LINE 客服</a>　·　
-      <a id="messengerLink" href="#" target="_blank">Messenger</a>
-    </p>
-  </div>
-
-</div>
+  <p class="text-white/20 text-[10px] font-sans tracking-widest uppercase mt-5">© 2026 Foreveryoung × Ouka Kimono. All Rights Reserved.</p>
+</footer>
 
 <script>
-// ══ 設定 ══
 const GAS_URL    = KIMONO_CONFIG.APPS_SCRIPT_URL;
 const REFUND_URL = KIMONO_CONFIG.REFUND_URL;
 document.getElementById('lineLink').href      = KIMONO_CONFIG.LINE_URL      || '#';
 document.getElementById('messengerLink').href = KIMONO_CONFIG.MESSENGER_URL || '#';
 
-// ══ 日期格式化 ══
 function fmtDate(val) {
   if (!val) return '—';
   const str = String(val);
   if (str.includes('T')) {
     const d = new Date(str);
-    const y = d.getUTCFullYear();
-    const m = String(d.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(d.getUTCDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
   }
-  if (/^\d{4}-\d{2}-\d{2}/.test(str)) return str.slice(0, 10);
+  if (/^\d{4}-\d{2}-\d{2}/.test(str)) return str.slice(0,10);
   return str;
 }
 
-// ══ 數字格式化 ══
 function fmtJPY(n) {
   const num = Number(n);
   return isNaN(num) ? '—' : num.toLocaleString('ja-JP');
 }
 
-// ══ 查詢 ══
 async function doQuery() {
   const orderId = document.getElementById('orderId').value.trim().toUpperCase();
   const email   = document.getElementById('email').value.trim();
   const phone   = document.getElementById('phone').value.trim();
-
   hideError();
-  if (!orderId) return showError('請輸入訂單編號');
-  if (!email && !phone) return showError('請輸入 Email 或手機號碼');
-
+  if (!orderId)          return showError('請輸入訂單編號');
+  if (!email && !phone)  return showError('請填寫 Email 或手機號碼其中一項');
   showLoading();
-
   try {
     const res  = await fetch(GAS_URL, {
-      method : 'POST',
-      body   : JSON.stringify({ action: 'query', orderId, email, phone }),
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+      method:'POST',
+      body:JSON.stringify({ action:'query', orderId, email, phone }),
+      headers:{ 'Content-Type':'text/plain;charset=utf-8' }
     });
     const data = await res.json();
-
     hideLoading();
-
-    if (data.status !== 'success') {
-      showForm();
-      return showError(data.message || '查無此訂單，請確認資料是否正確');
-    }
-
+    if (data.status !== 'success') { showForm(); return showError(data.message || '查無此訂單，請確認資料是否正確'); }
     renderResult(data);
-
   } catch(err) {
     console.error(err);
-    hideLoading();
-    showForm();
+    hideLoading(); showForm();
     showError('網路連線錯誤，請稍後再試');
   }
 }
 
-// ══ 渲染結果（任何狀態都顯示） ══
 function renderResult(d) {
-  // 訂單編號
   document.getElementById('r-orderId').textContent = d.orderId || '—';
 
-  // ★ 狀態標籤（用 statusCode 判斷，不受 status 欄位影響）
   const statusMap = {
-    pending  : ['核對中',    'status-pending'],
-    confirmed: ['✓ 已確認', 'status-confirmed'],
-    refunding: ['退款處理中','status-refunding'],
-    refunded : ['已退款',   'status-refunded'],
+    pending  :['核對中',    'badge-pending',  '⏳'],
+    confirmed:['✓ 已確認','badge-confirmed','✅'],
+    refunding:['退款處理中','badge-refunding','🔄'],
+    refunded :['已退款',   'badge-refunded', '💰'],
   };
-  const [statusText, statusClass] = statusMap[d.statusCode] || ['核對中', 'status-pending'];
+  const [txt, cls] = statusMap[d.statusCode] || ['核對中','badge-pending'];
   document.getElementById('r-statusBadge').innerHTML =
-    `<span class="status-badge ${statusClass}">${statusText}</span>`;
+    `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold font-sans ${cls}">${txt}</span>`;
 
-  // 預約內容
   document.getElementById('r-bookingDate').textContent = fmtDate(d.bookingDate);
   document.getElementById('r-guests').textContent      = d.guests || '—';
   document.getElementById('r-plan').textContent        = d.plan   || '—';
   document.getElementById('r-hair').textContent        = d.hair  === '是' ? '✅ 需要' : '不需要';
   document.getElementById('r-photo').textContent       = d.photo === '是' ? '✅ 需要' : '不需要';
 
-  // 費用明細
   const rows = [];
   const hasPlanPrice = Number(d.planPrice) > 0;
   const hasDiscount  = d.couponCode && Number(d.discount) > 0 && Number(d.discount) < 10;
 
   if (hasPlanPrice) {
-    rows.push({ key:'和服方案原價', val:`${fmtJPY(d.planPrice)} JPY` });
+    rows.push({ key:'和服方案原價', val:`¥${fmtJPY(d.planPrice)}`, cls:'' });
     if (hasDiscount) {
       const saving = Number(d.planPrice) - Number(d.planActual);
-      rows.push({ key:`優惠折扣（${d.couponCode}・${d.discount}折）`, val:`- ${fmtJPY(saving)} JPY`, cls:'discount-row' });
-      rows.push({ key:'實收和服費', val:`${fmtJPY(d.planActual)} JPY` });
+      rows.push({ key:`優惠折扣（${d.couponCode}・${d.discount}折）`, val:`- ¥${fmtJPY(saving)}`, cls:'text-green-600' });
+      rows.push({ key:'實收和服費', val:`¥${fmtJPY(d.planActual)}`, cls:'' });
     } else {
-      rows.push({ key:'和服費用', val:`${fmtJPY(d.planActual || d.planPrice)} JPY` });
+      rows.push({ key:'和服費用', val:`¥${fmtJPY(d.planActual || d.planPrice)}`, cls:'' });
     }
   }
-  if (Number(d.hairFee)  > 0) rows.push({ key:'妝髮造型費', val:`${fmtJPY(d.hairFee)} JPY` });
-  if (Number(d.photoFee) > 0) rows.push({ key:'旅拍攝影費', val:`${fmtJPY(d.photoFee)} JPY` });
-  if (Number(d.depositJPY) > 0) rows.push({ key:'已付訂金折抵', val:`- ${fmtJPY(d.depositJPY)} JPY` });
+  if (Number(d.hairFee)    > 0) rows.push({ key:'妝髮造型費',  val:`¥${fmtJPY(d.hairFee)}`,    cls:'' });
+  if (Number(d.photoFee)   > 0) rows.push({ key:'旅拍攝影費',  val:`¥${fmtJPY(d.photoFee)}`,   cls:'' });
+  if (Number(d.depositJPY) > 0) rows.push({ key:'已付訂金折抵',val:`- ¥${fmtJPY(d.depositJPY)}`,cls:'text-slate-400' });
 
-  const table = document.getElementById('feeTable');
-  if (rows.length > 0) {
-    table.innerHTML = rows.map(r =>
-      `<tr class="${r.cls||''}"><td>${r.key}</td><td>${r.val}</td></tr>`
-    ).join('');
-  } else {
-    table.innerHTML = `<tr><td colspan="2" style="color:#aaa;font-size:12px;padding:16px 0;text-align:center;letter-spacing:0.1em">費用明細確認後顯示</td></tr>`;
-  }
+  const feeTable = document.getElementById('feeTable');
+  feeTable.innerHTML = rows.length > 0
+    ? rows.map(r => `
+        <div class="fee-row flex justify-between items-center px-4 py-3 text-sm border-b border-slate-100 last:border-0">
+          <span class="text-slate-500 font-sans ${r.cls}">${r.key}</span>
+          <span class="font-bold font-sans ${r.cls}">${r.val}</span>
+        </div>`).join('')
+    : `<div class="px-4 py-6 text-center text-slate-300 text-xs font-sans tracking-widest">費用明細確認後顯示</div>`;
 
-  // 現場應付
-  const hasOnsite = hasPlanPrice && d.onsiteDue !== '' && d.onsiteDue !== null;
+  const hasOnsite = hasPlanPrice && d.onsiteDue !== '' && d.onsiteDue !== null && d.onsiteDue !== undefined;
   if (hasOnsite) {
-    document.getElementById('r-onsiteDue').innerHTML = `${fmtJPY(d.onsiteDue)} <span>JPY</span>`;
-    document.getElementById('r-depositNote').textContent = `台幣訂金 NT$${d.twdDeposit} 已折抵`;
-    document.getElementById('pendingNotice').style.display = 'none';
+    document.getElementById('r-onsiteDue').textContent    = `¥${fmtJPY(d.onsiteDue)}`;
+    document.getElementById('r-depositNote').textContent  = `台幣訂金 NT$${d.twdDeposit} 已折抵`;
+    document.getElementById('pendingNotice').classList.add('hidden');
   } else {
-    document.getElementById('r-onsiteDue').innerHTML = `待確認 <span>JPY</span>`;
-    document.getElementById('r-depositNote').textContent = `已付台幣訂金 NT$${d.twdDeposit}`;
-    document.getElementById('pendingNotice').style.display = 'block';
+    document.getElementById('r-onsiteDue').textContent    = '待確認';
+    document.getElementById('r-depositNote').textContent  = `已付台幣訂金 NT$${d.twdDeposit || '—'}`;
+    document.getElementById('pendingNotice').classList.remove('hidden');
   }
 
-  // 退款按鈕（已確認才顯示）
   if (d.canRefund) {
-    document.getElementById('refundLink').href =
-      `${REFUND_URL}?orderId=${encodeURIComponent(d.orderId)}`;
-    document.getElementById('refundSection').style.display = 'block';
+    document.getElementById('refundLink').href = `${REFUND_URL}?orderId=${encodeURIComponent(d.orderId)}`;
+    document.getElementById('refundSection').classList.remove('hidden');
   } else {
-    document.getElementById('refundSection').style.display = 'none';
+    document.getElementById('refundSection').classList.add('hidden');
   }
 
   showResult();
+  window.scrollTo({ top:0, behavior:'smooth' });
 }
 
-// ══ 畫面切換 ══
 function showLoading() {
-  document.getElementById('formCard').style.display    = 'none';
-  document.getElementById('loadingCard').style.display = 'block';
-  document.getElementById('resultCard').style.display  = 'none';
+  document.getElementById('formCard').classList.add('hidden');
+  document.getElementById('loadingCard').classList.remove('hidden');
+  document.getElementById('resultCard').classList.add('hidden');
 }
-function hideLoading() { document.getElementById('loadingCard').style.display = 'none'; }
-function showForm()    { document.getElementById('formCard').style.display = 'block'; document.getElementById('resultCard').style.display = 'none'; }
-function showResult()  { document.getElementById('resultCard').style.display = 'block'; }
-function goBack()      { document.getElementById('resultCard').style.display = 'none'; document.getElementById('formCard').style.display = 'block'; hideError(); }
+function hideLoading() { document.getElementById('loadingCard').classList.add('hidden'); }
+function showForm()    { document.getElementById('formCard').classList.remove('hidden'); document.getElementById('resultCard').classList.add('hidden'); }
+function showResult()  { document.getElementById('resultCard').classList.remove('hidden'); }
+function goBack()      { document.getElementById('resultCard').classList.add('hidden'); document.getElementById('formCard').classList.remove('hidden'); hideError(); }
+function showError(m)  { const el=document.getElementById('errorMsg'); el.textContent=m; el.classList.remove('hidden'); }
+function hideError()   { document.getElementById('errorMsg').classList.add('hidden'); }
 
-function showError(msg) { const el = document.getElementById('errorMsg'); el.textContent = msg; el.style.display = 'block'; }
-function hideError()    { document.getElementById('errorMsg').style.display = 'none'; }
+document.addEventListener('keydown', e => { if (e.key==='Enter') doQuery(); });
 
-document.addEventListener('keydown', e => { if (e.key === 'Enter') doQuery(); });
+window.addEventListener('scroll', () => {
+  const btn = document.getElementById('topBtn');
+  btn.style.opacity       = window.scrollY > 300 ? '1' : '0';
+  btn.style.pointerEvents = window.scrollY > 300 ? 'auto' : 'none';
+});
+
+window.addEventListener('load', () => {
+  const c = document.getElementById('sakura-container');
+  for (let i=0; i<6; i++) {
+    const p = document.createElement('div');
+    p.className = 'sakura';
+    p.style.width  = (Math.random()*6+6)+'px';
+    p.style.height = p.style.width;
+    p.style.left   = Math.random()*100+'vw';
+    p.style.animationDuration = (Math.random()*10+20)+'s';
+    p.style.animationDelay    = (Math.random()*15)+'s';
+    c.appendChild(p);
+  }
+});
 </script>
 </body>
 </html>
