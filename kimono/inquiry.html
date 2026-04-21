@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>訂單查詢 — 旅乘 x 和服體驗</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600&family=Shippori+Mincho:wght@400;600&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ── 變數 ── */
+:root {
+  --ink:       #1a1410;
+  --ink-soft:  #4a3f35;
+  --paper:     #faf7f2;
+  --paper-dark:#f0ebe2;
+  --gold:      #b8860b;
+  --gold-light:#d4a843;
+  --red:       #8b1a1a;
+  --green:     #2d5a27;
+  --border:    rgba(184,134,11,0.25);
+  --shadow:    rgba(26,20,16,0.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Noto Sans TC', sans-serif;
+  font-weight: 300;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── 背景紋理 ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(184,134,11,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(139,26,26,0.03) 0%, transparent 50%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M0 30 Q15 0 30 30 Q45 60 60 30' fill='none' stroke='%23b8860b' stroke-width='0.3' opacity='0.15'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── 外框 ── */
+.wrapper {
+  position: relative;
+  z-index: 1;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+}
+
+/* ── 標題 ── */
+.site-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.site-header .mon {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 36px;
+  letter-spacing: 0.15em;
+  color: var(--gold);
+  display: block;
+  line-height: 1;
+}
+.site-header h1 {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 14px;
+  font-weight: 300;
+  letter-spacing: 0.3em;
+  color: var(--ink-soft);
+  margin-top: 8px;
+}
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px auto 0;
+  max-width: 200px;
+}
+.divider::before, .divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.divider span {
+  color: var(--gold);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+}
+
+/* ── 查詢卡片 ── */
+.card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 36px 32px;
+  box-shadow: 0 4px 24px var(--shadow);
+  position: relative;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 6px; left: 6px; right: -6px; bottom: -6px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  z-index: -1;
+}
+
+.card-title {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.25em;
+  color: var(--ink-soft);
+  margin-bottom: 28px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── 表單 ── */
+.form-group {
+  margin-bottom: 20px;
+}
+.form-group label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+}
+.form-group label span {
+  color: var(--red);
+  margin-left: 2px;
+}
+.form-group input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid rgba(184,134,11,0.3);
+  border-radius: 1px;
+  background: var(--paper);
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-group input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(184,134,11,0.08);
+}
+.form-group input::placeholder { color: #bbb; font-size: 13px; }
+
+/* 分隔線「或」 */
+.or-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 20px;
+  color: var(--ink-soft);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+}
+.or-divider::before, .or-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── 按鈕 ── */
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  background: var(--ink);
+  color: var(--gold-light);
+  border: none;
+  border-radius: 1px;
+  font-family: 'Noto Serif JP', serif;
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  margin-top: 8px;
+}
+.btn-primary:hover { background: #2d2420; }
+.btn-primary:active { transform: scale(0.99); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-refund {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 24px;
+  background: transparent;
+  color: var(--red);
+  border: 1px solid var(--red);
+  border-radius: 1px;
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.btn-refund:hover { background: var(--red); color: white; }
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 24px;
+}
+.btn-back:hover { color: var(--ink); }
+
+/* ── 載入中 ── */
+.loading {
+  text-align: center;
+  padding: 40px 0;
+  display: none;
+}
+.loading-dots span {
+  display: inline-block;
+  width: 6px; height: 6px;
+  background: var(--gold);
+  border-radius: 50%;
+  margin: 0 3px;
+  animation: dot 1.2s infinite;
+}
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dot {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+.loading p {
+  margin-top: 16px;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: var(--ink-soft);
+}
+
+/* ── 錯誤訊息 ── */
+.error-msg {
+  display: none;
+  background: #fff5f5;
+  border: 1px solid rgba(139,26,26,0.2);
+  border-left: 3px solid var(--red);
+  padding: 12px 16px;
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--red);
+  letter-spacing: 0.05em;
+}
+
+/* ── 結果頁面 ── */
+.result { display: none; }
+
+/* 狀態標籤 */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  font-weight: 500;
+}
+.status-pending   { background: #fff8e1; color: #b8860b; border: 1px solid rgba(184,134,11,0.3); }
+.status-confirmed { background: #f0faf0; color: var(--green); border: 1px solid rgba(45,90,39,0.25); }
+.status-refunding { background: #fff0f0; color: var(--red); border: 1px solid rgba(139,26,26,0.2); }
+.status-refunded  { background: #f5f5f5; color: #666; border: 1px solid #ddd; }
+
+/* 訂單標題 */
+.order-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.order-id-wrap .label {
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  color: var(--ink-soft);
+}
+.order-id-wrap .id {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 20px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+  margin-top: 4px;
+}
+
+/* 資料區塊 */
+.section {
+  margin-bottom: 28px;
+}
+.section-title {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--gold);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 20px;
+}
+.info-item .key {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--ink-soft);
+  margin-bottom: 3px;
+}
+.info-item .val {
+  font-size: 14px;
+  color: var(--ink);
+}
+.info-item.full { grid-column: 1 / -1; }
+
+/* 費用表 */
+.fee-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.fee-table tr td {
+  padding: 9px 0;
+  font-size: 13px;
+  border-bottom: 1px dashed rgba(184,134,11,0.15);
+}
+.fee-table tr:last-child td { border-bottom: none; }
+.fee-table td:last-child { text-align: right; color: var(--ink); }
+.fee-table td:first-child { color: var(--ink-soft); }
+.fee-table .highlight td {
+  font-weight: 500;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  border-bottom: none;
+  font-size: 14px;
+}
+.fee-table .highlight td:last-child { color: var(--red); }
+.fee-table .discount-row td:first-child { color: var(--green); }
+.fee-table .discount-row td:last-child { color: var(--green); }
+
+/* 現場確認框 */
+.onsite-box {
+  background: var(--paper-dark);
+  border: 1px solid var(--border);
+  padding: 20px;
+  text-align: center;
+  margin: 20px 0;
+}
+.onsite-box .label {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+}
+.onsite-box .amount {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 32px;
+  color: var(--ink);
+  letter-spacing: 0.05em;
+}
+.onsite-box .amount span {
+  font-size: 16px;
+  color: var(--ink-soft);
+  margin-left: 4px;
+}
+.onsite-box .note {
+  font-size: 11px;
+  color: var(--ink-soft);
+  margin-top: 6px;
+  letter-spacing: 0.1em;
+}
+
+/* 退款區 */
+.refund-section {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+.refund-section p {
+  font-size: 12px;
+  color: var(--ink-soft);
+  letter-spacing: 0.1em;
+  margin-bottom: 14px;
+}
+
+/* 底部 */
+.footer {
+  text-align: center;
+  margin-top: 48px;
+  font-size: 11px;
+  color: #aaa;
+  letter-spacing: 0.15em;
+}
+.footer a { color: var(--gold); text-decoration: none; }
+
+/* ── RWD ── */
+@media (max-width: 480px) {
+  .card { padding: 24px 20px; }
+  .info-grid { grid-template-columns: 1fr; }
+  .order-header { flex-direction: column; }
+  .onsite-box .amount { font-size: 26px; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <!-- 標題 -->
+  <header class="site-header">
+    <span class="mon">着物</span>
+    <h1>KIMONO EXPERIENCE — ORDER INQUIRY</h1>
+    <div class="divider"><span>旅乘 x Foreveryoung</span></div>
+  </header>
+
+  <!-- ══ 查詢表單 ══ -->
+  <div class="card" id="formCard">
+    <div class="card-title">訂單查詢　ORDER LOOKUP</div>
+
+    <div class="form-group">
+      <label>訂單編號<span>*</span></label>
+      <input type="text" id="orderId" placeholder="K260421001" autocomplete="off" style="text-transform:uppercase">
+    </div>
+
+    <div class="form-group">
+      <label>Email<span>*</span></label>
+      <input type="email" id="email" placeholder="your@email.com" autocomplete="off">
+    </div>
+
+    <div class="or-divider">或</div>
+
+    <div class="form-group" style="margin-bottom:0">
+      <label>手機號碼</label>
+      <input type="tel" id="phone" placeholder="0912345678" autocomplete="off">
+    </div>
+
+    <p style="font-size:11px;color:#aaa;margin:8px 0 20px;letter-spacing:0.05em">
+      ※ 請填寫 Email 或手機號碼其中一項
+    </p>
+
+    <button class="btn-primary" id="queryBtn" onclick="doQuery()">
+      查　詢　訂　單
+    </button>
+
+    <div class="error-msg" id="errorMsg"></div>
+  </div>
+
+  <!-- ══ 載入中 ══ -->
+  <div class="card loading" id="loadingCard">
+    <div class="loading-dots">
+      <span></span><span></span><span></span>
+    </div>
+    <p>查詢中，請稍候</p>
+  </div>
+
+  <!-- ══ 查詢結果 ══ -->
+  <div class="card result" id="resultCard">
+
+    <button class="btn-back" onclick="goBack()">
+      ← 重新查詢
+    </button>
+
+    <!-- 訂單標題列 -->
+    <div class="order-header">
+      <div class="order-id-wrap">
+        <div class="label">BOOKING NO.</div>
+        <div class="id" id="r-orderId">—</div>
+      </div>
+      <div id="r-statusBadge"></div>
+    </div>
+
+    <!-- 預約內容 -->
+    <div class="section">
+      <div class="section-title">預約內容</div>
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="key">體驗日期</div>
+          <div class="val" id="r-bookingDate">—</div>
+        </div>
+        <div class="info-item">
+          <div class="key">人數</div>
+          <div class="val" id="r-guests">—</div>
+        </div>
+        <div class="info-item full">
+          <div class="key">和服款式</div>
+          <div class="val" id="r-plan">—</div>
+        </div>
+        <div class="info-item">
+          <div class="key">妝髮造型</div>
+          <div class="val" id="r-hair">—</div>
+        </div>
+        <div class="info-item">
+          <div class="key">旅拍攝影</div>
+          <div class="val" id="r-photo">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 費用明細 -->
+    <div class="section">
+      <div class="section-title">費用明細</div>
+      <table class="fee-table" id="feeTable"></table>
+    </div>
+
+    <!-- 現場應付 -->
+    <div class="onsite-box">
+      <div class="label">現場應付金額</div>
+      <div class="amount" id="r-onsiteDue">— <span>JPY</span></div>
+      <div class="note" id="r-depositNote">（已折抵訂金）</div>
+    </div>
+
+    <!-- 退款區塊 -->
+    <div class="refund-section" id="refundSection">
+      <p>如需取消預約，請點下方按鈕申請退款</p>
+      <a id="refundLink" href="#" class="btn-refund">
+        ✦ 申請退款 / 取消預約
+      </a>
+    </div>
+
+  </div><!-- /resultCard -->
+
+  <div class="footer">
+    <p>旅乘 x Foreveryoung 和服體驗</p>
+    <p style="margin-top:6px">
+      <a href="https://lin.ee/TgFCvYQ" target="_blank">LINE 客服</a>
+      　·　
+      <a href="https://m.me/foreveryoung2023car" target="_blank">Messenger</a>
+    </p>
+  </div>
+
+</div><!-- /wrapper -->
+
+<script>
+// ══ 設定 ══
+const GAS_URL    = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec'; // ← 換成你的 GAS 部署網址
+const REFUND_URL = 'https://foreveryoung2023car.github.io/foreveryoung/kimono/refund.html';
+
+// ══ 查詢 ══
+async function doQuery() {
+  const orderId = document.getElementById('orderId').value.trim().toUpperCase();
+  const email   = document.getElementById('email').value.trim();
+  const phone   = document.getElementById('phone').value.trim();
+  const errEl   = document.getElementById('errorMsg');
+
+  // 前端驗證
+  errEl.style.display = 'none';
+  if (!orderId) return showError('請輸入訂單編號');
+  if (!email && !phone) return showError('請輸入 Email 或手機號碼');
+
+  // 切換畫面
+  document.getElementById('formCard').style.display = 'none';
+  document.getElementById('loadingCard').style.display = 'block';
+
+  try {
+    const res  = await fetch(GAS_URL, {
+      method : 'POST',
+      body   : JSON.stringify({ action: 'query', orderId, email, phone }),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await res.json();
+
+    document.getElementById('loadingCard').style.display = 'none';
+
+    if (data.status !== 'success') {
+      document.getElementById('formCard').style.display = 'block';
+      return showError(data.message || '查詢失敗，請確認資料是否正確');
+    }
+
+    renderResult(data);
+
+  } catch(e) {
+    document.getElementById('loadingCard').style.display = 'none';
+    document.getElementById('formCard').style.display = 'block';
+    showError('網路錯誤，請稍後再試');
+  }
+}
+
+// ══ 渲染結果 ══
+function renderResult(d) {
+  // 訂單編號
+  document.getElementById('r-orderId').textContent = d.orderId || '—';
+
+  // 狀態標籤
+  const statusMap = {
+    pending  : ['核對中',   'status-pending'],
+    confirmed: ['已確認 ✓', 'status-confirmed'],
+    refunding: ['退款處理中','status-refunding'],
+    refunded : ['已退款',   'status-refunded'],
+  };
+  const [statusText, statusClass] = statusMap[d.statusCode] || ['—', ''];
+  document.getElementById('r-statusBadge').innerHTML =
+    `<span class="status-badge ${statusClass}">${statusText}</span>`;
+
+  // 預約內容
+  document.getElementById('r-bookingDate').textContent = d.bookingDate || '—';
+  document.getElementById('r-guests').textContent      = d.guests      || '—';
+  document.getElementById('r-plan').textContent        = d.plan        || '—';
+  document.getElementById('r-hair').textContent        = d.hair === '是' ? '✅ 需要' : '不需要';
+  document.getElementById('r-photo').textContent       = d.photo === '是' ? '✅ 需要' : '不需要';
+
+  // 費用明細
+  const rows = [];
+
+  if (d.planPrice) {
+    rows.push(['和服方案原價', `${fmtJPY(d.planPrice)} JPY`]);
+  }
+  if (d.couponCode && d.discount && Number(d.discount) < 10) {
+    rows.push([`優惠折扣（${d.couponCode} / ${d.discount}折）`,
+               `- ${fmtJPY(d.planPrice - d.planActual)} JPY`, 'discount-row']);
+    rows.push(['實收和服費', `${fmtJPY(d.planActual)} JPY`]);
+  } else if (d.planActual) {
+    rows.push(['和服費用', `${fmtJPY(d.planActual)} JPY`]);
+  }
+  if (d.hairFee && Number(d.hairFee) > 0) {
+    rows.push(['妝髮造型費', `${fmtJPY(d.hairFee)} JPY`]);
+  }
+  if (d.photoFee && Number(d.photoFee) > 0) {
+    rows.push(['旅拍攝影費', `${fmtJPY(d.photoFee)} JPY`]);
+  }
+  if (d.depositJPY && Number(d.depositJPY) > 0) {
+    rows.push([`已付訂金折抵`, `- ${fmtJPY(d.depositJPY)} JPY`]);
+  }
+
+  const table = document.getElementById('feeTable');
+  table.innerHTML = rows.map(([key, val, cls]) =>
+    `<tr class="${cls||''}"><td>${key}</td><td>${val}</td></tr>`
+  ).join('');
+
+  // 現場應付
+  if (d.onsiteDue !== '' && d.onsiteDue !== null && d.onsiteDue !== undefined) {
+    document.getElementById('r-onsiteDue').innerHTML =
+      `${fmtJPY(d.onsiteDue)} <span>JPY</span>`;
+    document.getElementById('r-depositNote').textContent =
+      `（台幣訂金 NT$${d.twdDeposit} 已折抵）`;
+  } else {
+    document.getElementById('r-onsiteDue').innerHTML = `待確認 <span>JPY</span>`;
+    document.getElementById('r-depositNote').textContent = '和服方案費用待店家確認後更新';
+  }
+
+  // 退款區塊
+  const refundSection = document.getElementById('refundSection');
+  if (d.canRefund) {
+    const url = `${REFUND_URL}?orderId=${encodeURIComponent(d.orderId)}`;
+    document.getElementById('refundLink').href = url;
+    refundSection.style.display = 'block';
+  } else {
+    refundSection.style.display = 'none';
+  }
+
+  document.getElementById('resultCard').style.display = 'block';
+}
+
+// ══ 工具 ══
+function fmtJPY(n) {
+  return Number(n).toLocaleString('ja-JP');
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function goBack() {
+  document.getElementById('resultCard').style.display = 'none';
+  document.getElementById('formCard').style.display = 'block';
+  document.getElementById('errorMsg').style.display = 'none';
+}
+
+// Enter 鍵觸發查詢
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') doQuery();
+});
+</script>
+</body>
+</html>
