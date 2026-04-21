@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>訂單查詢 — 旅乘 x 和服體驗</title>
-<meta name="description" content="旅乘 x Foreveryoung 和服體驗訂單查詢，查看預約狀態與費用明細。">
+<meta name="description" content="旅乘 x Foreveryoung 和服體驗訂單查詢，查看預約狀態、費用明細與申請退款。">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="./config.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  body { font-family: 'Noto Serif TC', serif; scroll-behavior: smooth; }
-  .font-sans { font-family: 'Noto Sans TC', sans-serif; }
-  * { -webkit-text-size-adjust: 100%; }
+  body { font-family:'Noto Serif TC',serif; scroll-behavior:smooth; background:#FDFCF8; }
+  .font-sans { font-family:'Noto Sans TC',sans-serif; }
+  * { -webkit-text-size-adjust:100%; }
 
   .sakura-container { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:100; overflow:hidden; }
   .sakura { position:absolute; background:#FFB7C5; border-radius:100% 0 100% 0; opacity:0.12; animation:fall linear infinite; }
@@ -27,30 +27,37 @@
   }
   .fade-up { animation:fadeUp 0.45s ease-out forwards; }
 
+  .refund-panel { max-height:0; overflow:hidden; transition:max-height 0.55s ease, opacity 0.4s ease; opacity:0; }
+  .refund-panel.open { max-height:1400px; opacity:1; }
+
   .badge-pending   { background:#fffbeb; color:#92400e; border:1px solid #fde68a; }
   .badge-confirmed { background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; }
   .badge-refunding { background:#fff1f2; color:#9f1239; border:1px solid #fecdd3; }
   .badge-refunded  { background:#f8fafc; color:#64748b; border:1px solid #e2e8f0; }
 
   .fee-row:nth-child(even) { background:#f8fafc; }
-
-  @media (max-width:640px) {
-    .tracking-\[0\.8em\] { letter-spacing:0.3em !important; }
-    .tracking-\[0\.5em\] { letter-spacing:0.2em !important; }
-  }
+  .error-hint { color:#ef4444; font-size:11px; margin-top:4px; display:none; font-family:'Noto Sans TC',sans-serif; }
+  .error-hint.show { display:block; }
 </style>
 </head>
-<body class="bg-[#FDFCF8] text-[#1A365D] overflow-x-hidden">
+<body class="text-[#1A365D] selection:bg-pink-100 overflow-x-hidden min-h-screen">
 
 <div id="sakura-container" class="sakura-container"></div>
 
-<!-- 回頂端 -->
 <button id="topBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})"
   class="fixed right-5 bottom-10 z-[480] w-12 h-12 bg-white/90 backdrop-blur-md text-[#1A365D] border border-slate-100 rounded-full shadow-xl flex items-center justify-center opacity-0 transition-all hover:bg-pink-50 pointer-events-none">
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m18 15-6-6-6 6"/></svg>
 </button>
 
-<!-- Navbar -->
+<div class="fixed right-5 bottom-28 z-[480] flex flex-col gap-3">
+  <a id="floatLine" href="#" target="_blank" rel="noopener" class="w-12 h-12 bg-[#06C755] text-white rounded-full shadow-xl flex items-center justify-center hover:scale-110 transition-all">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+  </a>
+  <a id="floatMessenger" href="#" target="_blank" rel="noopener" class="w-12 h-12 bg-[#1877F2] text-white rounded-full shadow-xl flex items-center justify-center hover:scale-110 transition-all">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+  </a>
+</div>
+
 <nav class="fixed top-0 w-full z-[450] bg-[#1A365D]/95 backdrop-blur-md shadow-sm py-4">
   <div class="max-w-5xl mx-auto px-5 flex items-center justify-between">
     <a href="./index.html" class="flex items-center gap-3">
@@ -60,26 +67,20 @@
         <div class="text-white/40 text-[9px] uppercase tracking-wider font-sans">Order Inquiry</div>
       </div>
     </a>
-    <a href="./index.html#booking"
-      class="px-5 py-2 text-[10px] font-bold border border-white/30 text-white hover:bg-white hover:text-[#1A365D] transition-all rounded-sm uppercase font-sans tracking-widest">
-      立即預約
-    </a>
+    <a href="./index.html#booking" class="px-5 py-2 text-[10px] font-bold border border-white/30 text-white hover:bg-white hover:text-[#1A365D] transition-all rounded-sm uppercase font-sans tracking-widest">立即預約</a>
   </div>
 </nav>
 
-<!-- Hero -->
 <header class="pt-20 pb-14 bg-[#1A365D] text-center relative overflow-hidden">
-  <div class="absolute inset-0 opacity-[0.06]"
-    style="background-image:radial-gradient(circle,#FFB7C5 1px,transparent 1px);background-size:32px 32px"></div>
+  <div class="absolute inset-0 opacity-[0.06]" style="background-image:radial-gradient(circle,#FFB7C5 1px,transparent 1px);background-size:32px 32px"></div>
   <div class="relative z-10 max-w-lg mx-auto px-5">
     <p class="text-pink-300 font-bold tracking-[0.8em] text-[10px] mb-4 uppercase italic font-sans">Order Inquiry</p>
     <h1 class="text-3xl md:text-4xl font-bold text-white tracking-[0.2em] uppercase mb-3">訂單查詢</h1>
-    <p class="text-white/40 text-xs tracking-[0.3em] uppercase font-sans">輸入訂單編號確認預約狀態與費用</p>
+    <p class="text-white/40 text-xs tracking-[0.3em] uppercase font-sans">查看預約狀態、費用明細，或申請退款</p>
     <div class="mt-5 w-10 h-0.5 bg-pink-400/50 mx-auto"></div>
   </div>
 </header>
 
-<!-- 主體 -->
 <main class="max-w-lg mx-auto px-4 py-10 pb-24">
 
   <!-- 查詢表單 -->
@@ -88,42 +89,29 @@
       <h2 class="text-lg font-bold text-[#1A365D] uppercase tracking-[0.3em] font-sans">查詢我的訂單</h2>
       <p class="text-slate-400 text-xs mt-2 font-sans tracking-wider">請輸入預約時的聯絡資料</p>
     </div>
-
     <div class="mb-6">
-      <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">
-        訂單編號 <span class="text-pink-400">*</span>
-      </label>
+      <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">訂單編號 <span class="text-pink-400">*</span></label>
       <input type="text" id="orderId" placeholder="K260421001" autocomplete="off"
         oninput="this.value=this.value.toUpperCase()"
         class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-xl font-bold bg-transparent transition-colors font-sans tracking-[0.1em] placeholder:text-slate-200 placeholder:font-normal placeholder:text-base">
     </div>
-
     <div class="mb-5">
-      <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">
-        Email <span class="text-pink-400">*</span>
-      </label>
+      <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">Email <span class="text-pink-400">*</span></label>
       <input type="email" id="email" placeholder="your@email.com" autocomplete="off"
         class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-base font-bold bg-transparent transition-colors font-sans placeholder:text-slate-200 placeholder:font-normal">
     </div>
-
     <div class="flex items-center gap-3 my-5">
       <div class="flex-1 h-px bg-slate-100"></div>
       <span class="text-slate-300 text-xs font-sans font-bold tracking-[0.3em] uppercase">或</span>
       <div class="flex-1 h-px bg-slate-100"></div>
     </div>
-
     <div class="mb-8">
       <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">手機號碼</label>
       <input type="tel" id="phone" placeholder="0912345678" autocomplete="off"
         class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-base font-bold bg-transparent transition-colors font-sans placeholder:text-slate-200 placeholder:font-normal">
       <p class="text-[10px] text-slate-300 mt-2 font-sans">※ Email 或手機號碼填寫其中一項即可</p>
     </div>
-
-    <button onclick="doQuery()"
-      class="w-full py-4 bg-[#1A365D] text-white font-bold tracking-[0.2em] rounded-sm hover:bg-blue-900 active:scale-[0.99] transition-all shadow-xl uppercase text-xs font-sans">
-      查　詢　訂　單
-    </button>
-
+    <button onclick="doQuery()" class="w-full py-4 bg-[#1A365D] text-white font-bold tracking-[0.2em] rounded-sm hover:bg-blue-900 active:scale-[0.99] transition-all shadow-xl uppercase text-xs font-sans">查　詢　訂　單</button>
     <div id="errorMsg" class="hidden mt-4 p-4 bg-red-50 border-l-4 border-red-400 text-red-600 text-sm font-sans leading-relaxed rounded-r-sm"></div>
   </div>
 
@@ -139,16 +127,11 @@
 
   <!-- 結果 -->
   <div id="resultCard" class="hidden">
-
-    <button onclick="goBack()"
-      class="flex items-center gap-2 text-slate-400 hover:text-[#1A365D] text-xs font-sans font-bold uppercase tracking-[0.2em] mb-5 transition-colors">
-      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
-      重新查詢
+    <button onclick="goBack()" class="flex items-center gap-2 text-slate-400 hover:text-[#1A365D] text-xs font-sans font-bold uppercase tracking-[0.2em] mb-5 transition-colors">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>重新查詢
     </button>
 
-    <!-- 主卡片 -->
     <div class="bg-white shadow-2xl rounded-sm border border-slate-50 overflow-hidden fade-up">
-
       <!-- 頭部 -->
       <div class="bg-[#1A365D] px-7 py-6 flex items-start justify-between gap-3 flex-wrap">
         <div>
@@ -162,47 +145,25 @@
 
         <!-- 預約內容 -->
         <div>
-          <p class="text-[10px] font-bold text-pink-400 tracking-[0.5em] uppercase font-sans mb-5 flex items-center gap-3">
-            預約內容
-            <span class="flex-1 h-px bg-pink-100"></span>
-          </p>
+          <p class="text-[10px] font-bold text-pink-400 tracking-[0.5em] uppercase font-sans mb-5 flex items-center gap-3">預約內容 <span class="flex-1 h-px bg-pink-100"></span></p>
           <div class="grid grid-cols-2 gap-x-6 gap-y-5">
-            <div>
-              <p class="text-[9px] text-slate-400 uppercase tracking-[0.3em] font-sans mb-1">體驗日期</p>
-              <p id="r-bookingDate" class="font-bold text-[#1A365D] font-sans text-sm">—</p>
-            </div>
-            <div>
-              <p class="text-[9px] text-slate-400 uppercase tracking-[0.3em] font-sans mb-1">人數</p>
-              <p id="r-guests" class="font-bold text-[#1A365D] font-sans text-sm">—</p>
-            </div>
-            <div class="col-span-2">
-              <p class="text-[9px] text-slate-400 uppercase tracking-[0.3em] font-sans mb-1">和服款式</p>
-              <p id="r-plan" class="font-bold text-[#1A365D] font-sans text-sm">—</p>
-            </div>
-            <div>
-              <p class="text-[9px] text-slate-400 uppercase tracking-[0.3em] font-sans mb-1">妝髮造型</p>
-              <p id="r-hair" class="font-bold text-[#1A365D] font-sans text-sm">—</p>
-            </div>
-            <div>
-              <p class="text-[9px] text-slate-400 uppercase tracking-[0.3em] font-sans mb-1">旅拍攝影</p>
-              <p id="r-photo" class="font-bold text-[#1A365D] font-sans text-sm">—</p>
-            </div>
+            <div><p class="text-[9px] text-slate-400 uppercase tracking-[0.3em] font-sans mb-1">體驗日期</p><p id="r-bookingDate" class="font-bold text-[#1A365D] font-sans text-sm">—</p></div>
+            <div><p class="text-[9px] text-slate-400 uppercase tracking-[0.3em] font-sans mb-1">人數</p><p id="r-guests" class="font-bold text-[#1A365D] font-sans text-sm">—</p></div>
+            <div class="col-span-2"><p class="text-[9px] text-slate-400 uppercase tracking-[0.3em] font-sans mb-1">和服款式</p><p id="r-plan" class="font-bold text-[#1A365D] font-sans text-sm">—</p></div>
+            <div><p class="text-[9px] text-slate-400 uppercase tracking-[0.3em] font-sans mb-1">妝髮造型</p><p id="r-hair" class="font-bold text-[#1A365D] font-sans text-sm">—</p></div>
+            <div><p class="text-[9px] text-slate-400 uppercase tracking-[0.3em] font-sans mb-1">旅拍攝影</p><p id="r-photo" class="font-bold text-[#1A365D] font-sans text-sm">—</p></div>
           </div>
         </div>
 
         <!-- 費用明細 -->
         <div>
-          <p class="text-[10px] font-bold text-pink-400 tracking-[0.5em] uppercase font-sans mb-5 flex items-center gap-3">
-            費用明細
-            <span class="flex-1 h-px bg-pink-100"></span>
-          </p>
+          <p class="text-[10px] font-bold text-pink-400 tracking-[0.5em] uppercase font-sans mb-5 flex items-center gap-3">費用明細 <span class="flex-1 h-px bg-pink-100"></span></p>
           <div id="feeTable" class="rounded-sm overflow-hidden border border-slate-100"></div>
         </div>
 
         <!-- 現場應付 -->
         <div class="bg-[#1A365D] rounded-sm p-6 text-center relative overflow-hidden">
-          <div class="absolute inset-0 opacity-[0.06]"
-            style="background-image:radial-gradient(circle,#FFB7C5 1px,transparent 1px);background-size:24px 24px"></div>
+          <div class="absolute inset-0 opacity-[0.06]" style="background-image:radial-gradient(circle,#FFB7C5 1px,transparent 1px);background-size:24px 24px"></div>
           <p class="text-white/40 text-[9px] uppercase tracking-[0.4em] font-sans mb-2 relative z-10">現場應付金額　AMOUNT DUE ON SITE</p>
           <p id="r-onsiteDue" class="text-white font-bold text-4xl font-sans tracking-wider relative z-10">—</p>
           <p id="r-depositNote" class="text-pink-300 text-xs mt-2 font-sans relative z-10"></p>
@@ -210,18 +171,104 @@
 
         <!-- 待確認提示 -->
         <div id="pendingNotice" class="hidden bg-amber-50 border-l-4 border-amber-300 p-4 rounded-r-sm">
-          <p class="text-amber-700 text-xs font-sans leading-relaxed">
-            📋 和服方案費用將於訂單確認後顯示，如有疑問請聯繫客服。
-          </p>
+          <p class="text-amber-700 text-xs font-sans leading-relaxed">📋 和服方案費用將於訂單確認後顯示，如有疑問請聯繫客服。</p>
         </div>
 
-        <!-- 退款 -->
-        <div id="refundSection" class="hidden pt-2 border-t border-slate-100 text-center">
-          <p class="text-slate-400 text-xs font-sans tracking-wider mb-4">如需取消預約，請填寫退款申請</p>
-          <a id="refundLink" href="#"
-            class="inline-flex items-center gap-2 px-8 py-3 border-2 border-red-400 text-red-500 hover:bg-red-500 hover:text-white transition-all rounded-sm text-xs font-bold font-sans uppercase tracking-widest">
-            申請退款 / 取消預約
-          </a>
+        <!-- 退款區塊 -->
+        <div id="refundSection" class="hidden border-t border-slate-100 pt-6">
+
+          <!-- 入口按鈕 -->
+          <div id="refundTrigger" class="text-center">
+            <p class="text-slate-400 text-xs font-sans tracking-wider mb-4">如需取消預約，請申請退款</p>
+            <button onclick="toggleRefundPanel()"
+              class="inline-flex items-center gap-2 px-8 py-3 border-2 border-[#1A365D] text-[#1A365D] hover:bg-[#1A365D] hover:text-white transition-all rounded-sm text-xs font-bold font-sans uppercase tracking-widest">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+              申請退款 / 取消預約
+            </button>
+          </div>
+
+          <!-- 退款表單 -->
+          <div id="refundPanel" class="refund-panel mt-6">
+            <!-- 退改政策 -->
+            <div class="bg-amber-50 border-l-4 border-amber-400 rounded-r-sm p-4 mb-6 font-sans">
+              <p class="font-bold text-amber-800 text-[10px] uppercase tracking-widest mb-3">退改政策提醒</p>
+              <div class="grid grid-cols-3 gap-2 text-[10px]">
+                <div class="bg-white border border-green-100 rounded-sm p-2 text-center"><div class="font-bold text-green-600 mb-0.5">全額退款</div><div class="text-slate-400">7天前取消</div></div>
+                <div class="bg-white border border-amber-100 rounded-sm p-2 text-center"><div class="font-bold text-amber-600 mb-0.5">退 50%</div><div class="text-slate-400">2-6天前取消</div></div>
+                <div class="bg-white border border-red-100 rounded-sm p-2 text-center"><div class="font-bold text-red-500 mb-0.5">不退費</div><div class="text-slate-400">前一日當日</div></div>
+              </div>
+            </div>
+
+            <form id="refundForm" class="space-y-6 border-t border-slate-100 pt-6">
+              <p class="text-[10px] font-bold text-pink-400 tracking-[0.5em] uppercase font-sans mb-2 flex items-center gap-3">退款資料填寫 <span class="flex-1 h-px bg-pink-100"></span></p>
+
+              <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">退款原因 <span class="text-pink-400">*</span></label>
+                <select id="rf-reason" required class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-sm font-bold bg-transparent cursor-pointer font-sans transition-colors">
+                  <option value="">請選擇退款原因</option>
+                  <option value="行程臨時變更">行程臨時變更</option>
+                  <option value="簽證問題無法出發">簽證問題無法出發</option>
+                  <option value="身體不適">身體不適</option>
+                  <option value="天災或不可抗力因素">天災或不可抗力因素</option>
+                  <option value="其他">其他（請在備註說明）</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">補充說明（選填）</label>
+                <textarea id="rf-note" rows="2" placeholder="如有其他說明請填寫..."
+                  class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-sm bg-transparent font-sans resize-none transition-colors placeholder:text-slate-200"></textarea>
+              </div>
+
+              <div class="pt-2">
+                <p class="text-[10px] font-bold text-pink-400 tracking-[0.5em] uppercase font-sans mb-5 flex items-center gap-3">收款帳戶（台灣）<span class="flex-1 h-px bg-pink-100"></span></p>
+                <div class="space-y-6">
+                  <div class="grid grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">銀行代碼 <span class="text-pink-400">*</span></label>
+                      <input id="rf-bankCode" type="text" required maxlength="3" placeholder="008" oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+                        class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-lg font-bold bg-transparent font-sans transition-colors placeholder:text-slate-200 placeholder:font-normal">
+                    </div>
+                    <div>
+                      <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">銀行名稱 <span class="text-pink-400">*</span></label>
+                      <input id="rf-bankName" type="text" required placeholder="華南銀行"
+                        class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-base font-bold bg-transparent font-sans transition-colors placeholder:text-slate-200 placeholder:font-normal">
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">銀行帳號 <span class="text-pink-400">*</span></label>
+                    <input id="rf-account" type="text" required placeholder="請輸入完整帳號（純數字）" oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+                      class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-xl font-bold bg-transparent font-sans tracking-[0.1em] transition-colors placeholder:text-slate-200 placeholder:font-normal placeholder:text-sm placeholder:tracking-normal">
+                    <div class="error-hint" id="err-account">帳號格式不正確（至少 8 碼）</div>
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">戶名 <span class="text-pink-400">*</span></label>
+                    <input id="rf-accountName" type="text" required placeholder="請輸入帳戶戶名（與存摺相同）"
+                      class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-base font-bold bg-transparent font-sans transition-colors placeholder:text-slate-200 placeholder:font-normal">
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">聯絡電話 <span class="text-pink-400">*</span></label>
+                    <input id="rf-phone" type="tel" required placeholder="0912345678" oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+                      class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-base font-bold bg-transparent font-sans transition-colors placeholder:text-slate-200 placeholder:font-normal">
+                  </div>
+                </div>
+              </div>
+
+              <label class="flex items-start gap-3 cursor-pointer bg-[#FDFCF8] border border-slate-100 rounded-sm p-4">
+                <input id="rf-agree" type="checkbox" required class="mt-0.5 w-4 h-4 accent-[#1A365D] shrink-0">
+                <span class="text-xs text-slate-500 font-sans leading-relaxed">我確認以上帳號資訊正確無誤，並了解依退改政策退款金額可能有所不同。若帳號填寫錯誤導致退款失敗，責任由申請人自負。</span>
+              </label>
+
+              <div id="refundError" class="hidden p-4 bg-red-50 border-l-4 border-red-400 text-red-600 text-sm font-sans rounded-r-sm"></div>
+
+              <div class="flex gap-4">
+                <button type="button" onclick="toggleRefundPanel()"
+                  class="flex-1 py-4 text-slate-400 font-bold text-xs uppercase tracking-widest border border-slate-100 bg-transparent cursor-pointer font-sans hover:bg-slate-50 rounded-sm transition-colors">取消</button>
+                <button type="submit" id="refundSubmitBtn"
+                  class="flex-[2] py-4 bg-[#1A365D] text-white font-bold tracking-[0.2em] rounded-sm hover:bg-blue-900 active:scale-[0.99] transition-all shadow-xl uppercase font-sans text-xs">送出退款申請</button>
+              </div>
+            </form>
+          </div>
         </div>
 
       </div>
@@ -231,24 +278,70 @@
     <div class="mt-4 bg-white shadow-sm rounded-sm border border-slate-50 p-6 text-center">
       <p class="text-slate-400 text-[10px] font-sans tracking-[0.3em] uppercase mb-4">有疑問？聯繫我們</p>
       <div class="flex gap-3 justify-center flex-wrap">
-        <a id="lineLink" href="#" target="_blank" rel="noopener"
-          class="flex items-center gap-2 px-6 py-3 bg-[#06C755] text-white rounded-full text-xs font-bold font-sans hover:scale-105 transition-transform shadow-sm">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
-          LINE 客服
+        <a id="lineLink" href="#" target="_blank" rel="noopener" class="flex items-center gap-2 px-6 py-3 bg-[#06C755] text-white rounded-full text-xs font-bold font-sans hover:scale-105 transition-transform shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>LINE 客服
         </a>
-        <a id="messengerLink" href="#" target="_blank" rel="noopener"
-          class="flex items-center gap-2 px-6 py-3 bg-[#1877F2] text-white rounded-full text-xs font-bold font-sans hover:scale-105 transition-transform shadow-sm">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
-          Messenger
+        <a id="messengerLink" href="#" target="_blank" rel="noopener" class="flex items-center gap-2 px-6 py-3 bg-[#1877F2] text-white rounded-full text-xs font-bold font-sans hover:scale-105 transition-transform shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>Messenger
         </a>
       </div>
     </div>
+  </div>
 
-  </div><!-- /resultCard -->
+  <!-- 退款成功 -->
+  <div id="refundSuccessCard" class="hidden fade-up">
+    <div class="bg-white shadow-2xl rounded-sm border border-slate-50 overflow-hidden">
+      <div class="bg-[#1A365D] px-7 py-6 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-[0.06]" style="background-image:radial-gradient(circle,#FFB7C5 1px,transparent 1px);background-size:24px 24px"></div>
+        <p class="text-white/30 text-[9px] uppercase tracking-[0.4em] font-sans mb-1.5 relative z-10">BOOKING NO.</p>
+        <p id="rs-orderId" class="text-white font-bold text-2xl tracking-[0.12em] font-sans relative z-10">—</p>
+      </div>
+      <div class="p-8 text-center space-y-7">
+        <div class="w-16 h-16 mx-auto">
+          <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="32" cy="32" r="32" fill="#22c55e"/>
+            <path d="M18 32l10 11 18-20" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-[#1A365D] font-sans tracking-wide">退款申請已送出！</h2>
+          <p class="text-slate-400 text-sm mt-2 font-sans">我們已收到您的申請，將盡快為您處理</p>
+        </div>
+        <div class="bg-[#1A365D] rounded-sm p-6 text-left relative overflow-hidden">
+          <div class="absolute inset-0 opacity-[0.05]" style="background-image:radial-gradient(circle,#FFB7C5 1px,transparent 1px);background-size:20px 20px"></div>
+          <p class="text-white/40 text-[9px] uppercase tracking-[0.4em] font-sans mb-4">申請摘要</p>
+          <div id="rs-summary" class="space-y-2.5 text-sm font-sans relative z-10"></div>
+        </div>
+        <div class="bg-[#FDFCF8] border border-slate-100 rounded-sm p-6 text-left space-y-4">
+          <p class="text-[10px] font-bold text-[#1A365D] uppercase tracking-[0.3em] font-sans flex items-center gap-2 mb-2">接下來的步驟 <span class="flex-1 h-px bg-slate-100"></span></p>
+          <div class="flex gap-3 items-start">
+            <div class="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 font-bold text-xs font-sans">1</div>
+            <div><p class="font-bold text-[#1A365D] font-sans text-sm">審核並確認退款金額</p><p class="text-slate-400 text-xs font-sans mt-0.5">依退改政策核算，確認後寄送退款確認信</p></div>
+          </div>
+          <div class="flex gap-3 items-start">
+            <div class="w-7 h-7 rounded-full bg-pink-100 text-pink-500 flex items-center justify-center shrink-0 font-bold text-xs font-sans">2</div>
+            <div><p class="font-bold text-[#1A365D] font-sans text-sm">收到退款確認信</p><p class="text-slate-400 text-xs font-sans mt-0.5">系統自動寄送至您的 Email，請注意查收</p></div>
+          </div>
+          <div class="flex gap-3 items-start">
+            <div class="w-7 h-7 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0 font-bold text-xs font-sans">3</div>
+            <div><p class="font-bold text-[#1A365D] font-sans text-sm">退款匯入帳號</p><p class="text-slate-400 text-xs font-sans mt-0.5">確認後 <span class="font-bold text-[#1A365D]">3-5 個工作天</span>內退款</p></div>
+          </div>
+        </div>
+        <div class="flex gap-3 justify-center flex-wrap">
+          <a id="rsLine" href="#" target="_blank" rel="noopener" class="flex items-center gap-2 px-6 py-3 bg-[#06C755] text-white rounded-full text-xs font-bold font-sans hover:scale-105 transition-transform">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>LINE 客服
+          </a>
+          <a id="rsMessenger" href="#" target="_blank" rel="noopener" class="flex items-center gap-2 px-6 py-3 bg-[#1877F2] text-white rounded-full text-xs font-bold font-sans hover:scale-105 transition-transform">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>Messenger
+          </a>
+        </div>
+        <a href="./index.html" class="block text-[#1A365D] text-xs font-bold font-sans underline decoration-pink-200 underline-offset-4 hover:text-pink-500 transition-colors">回到預約首頁</a>
+      </div>
+    </div>
+  </div>
 
 </main>
 
-<!-- Footer -->
 <footer class="bg-[#1A365D] text-white py-12 px-5 text-center">
   <div class="flex items-center justify-center gap-3 mb-3">
     <div class="w-9 h-9 bg-white text-[#1A365D] rounded-sm flex items-center justify-center font-bold">旅</div>
@@ -261,10 +354,12 @@
 </footer>
 
 <script>
-const GAS_URL    = KIMONO_CONFIG.APPS_SCRIPT_URL;
-const REFUND_URL = KIMONO_CONFIG.REFUND_URL;
-document.getElementById('lineLink').href      = KIMONO_CONFIG.LINE_URL      || '#';
-document.getElementById('messengerLink').href = KIMONO_CONFIG.MESSENGER_URL || '#';
+const GAS_URL = KIMONO_CONFIG.APPS_SCRIPT_URL;
+['floatLine','lineLink','rsLine'].forEach(id => { const el=document.getElementById(id); if(el) el.href=KIMONO_CONFIG.LINE_URL||'#'; });
+['floatMessenger','messengerLink','rsMessenger'].forEach(id => { const el=document.getElementById(id); if(el) el.href=KIMONO_CONFIG.MESSENGER_URL||'#'; });
+
+let currentOrder = null;
+let refundPanelOpen = false;
 
 function fmtDate(val) {
   if (!val) return '—';
@@ -276,19 +371,15 @@ function fmtDate(val) {
   if (/^\d{4}-\d{2}-\d{2}/.test(str)) return str.slice(0,10);
   return str;
 }
-
-function fmtJPY(n) {
-  const num = Number(n);
-  return isNaN(num) ? '—' : num.toLocaleString('ja-JP');
-}
+function fmtJPY(n) { const num=Number(n); return isNaN(num)?'—':num.toLocaleString('ja-JP'); }
 
 async function doQuery() {
   const orderId = document.getElementById('orderId').value.trim().toUpperCase();
   const email   = document.getElementById('email').value.trim();
   const phone   = document.getElementById('phone').value.trim();
   hideError();
-  if (!orderId)          return showError('請輸入訂單編號');
-  if (!email && !phone)  return showError('請填寫 Email 或手機號碼其中一項');
+  if (!orderId)         return showError('請輸入訂單編號');
+  if (!email && !phone) return showError('請填寫 Email 或手機號碼其中一項');
   showLoading();
   try {
     const res  = await fetch(GAS_URL, {
@@ -299,10 +390,10 @@ async function doQuery() {
     const data = await res.json();
     hideLoading();
     if (data.status !== 'success') { showForm(); return showError(data.message || '查無此訂單，請確認資料是否正確'); }
+    currentOrder = { orderId, email, phone };
     renderResult(data);
   } catch(err) {
-    console.error(err);
-    hideLoading(); showForm();
+    console.error(err); hideLoading(); showForm();
     showError('網路連線錯誤，請稍後再試');
   }
 }
@@ -311,10 +402,10 @@ function renderResult(d) {
   document.getElementById('r-orderId').textContent = d.orderId || '—';
 
   const statusMap = {
-    pending  :['核對中',    'badge-pending',  '⏳'],
-    confirmed:['✓ 已確認','badge-confirmed','✅'],
-    refunding:['退款處理中','badge-refunding','🔄'],
-    refunded :['已退款',   'badge-refunded', '💰'],
+    pending  :['核對中',    'badge-pending'],
+    confirmed:['✓ 已確認','badge-confirmed'],
+    refunding:['退款處理中','badge-refunding'],
+    refunded :['已退款',   'badge-refunded'],
   };
   const [txt, cls] = statusMap[d.statusCode] || ['核對中','badge-pending'];
   document.getElementById('r-statusBadge').innerHTML =
@@ -329,15 +420,13 @@ function renderResult(d) {
   const rows = [];
   const hasPlanPrice = Number(d.planPrice) > 0;
   const hasDiscount  = d.couponCode && Number(d.discount) > 0 && Number(d.discount) < 10;
-
   if (hasPlanPrice) {
     rows.push({ key:'和服方案原價', val:`¥${fmtJPY(d.planPrice)}`, cls:'' });
     if (hasDiscount) {
-      const saving = Number(d.planPrice) - Number(d.planActual);
-      rows.push({ key:`優惠折扣（${d.couponCode}・${d.discount}折）`, val:`- ¥${fmtJPY(saving)}`, cls:'text-green-600' });
+      rows.push({ key:`優惠折扣（${d.couponCode}・${d.discount}折）`, val:`- ¥${fmtJPY(Number(d.planPrice)-Number(d.planActual))}`, cls:'text-green-600' });
       rows.push({ key:'實收和服費', val:`¥${fmtJPY(d.planActual)}`, cls:'' });
     } else {
-      rows.push({ key:'和服費用', val:`¥${fmtJPY(d.planActual || d.planPrice)}`, cls:'' });
+      rows.push({ key:'和服費用', val:`¥${fmtJPY(d.planActual||d.planPrice)}`, cls:'' });
     }
   }
   if (Number(d.hairFee)    > 0) rows.push({ key:'妝髮造型費',  val:`¥${fmtJPY(d.hairFee)}`,    cls:'' });
@@ -346,65 +435,125 @@ function renderResult(d) {
 
   const feeTable = document.getElementById('feeTable');
   feeTable.innerHTML = rows.length > 0
-    ? rows.map(r => `
-        <div class="fee-row flex justify-between items-center px-4 py-3 text-sm border-b border-slate-100 last:border-0">
-          <span class="text-slate-500 font-sans ${r.cls}">${r.key}</span>
-          <span class="font-bold font-sans ${r.cls}">${r.val}</span>
-        </div>`).join('')
+    ? rows.map(r=>`<div class="fee-row flex justify-between items-center px-4 py-3 text-sm border-b border-slate-100 last:border-0"><span class="text-slate-500 font-sans ${r.cls}">${r.key}</span><span class="font-bold font-sans ${r.cls}">${r.val}</span></div>`).join('')
     : `<div class="px-4 py-6 text-center text-slate-300 text-xs font-sans tracking-widest">費用明細確認後顯示</div>`;
 
   const hasOnsite = hasPlanPrice && d.onsiteDue !== '' && d.onsiteDue !== null && d.onsiteDue !== undefined;
   if (hasOnsite) {
-    document.getElementById('r-onsiteDue').textContent    = `¥${fmtJPY(d.onsiteDue)}`;
-    document.getElementById('r-depositNote').textContent  = `台幣訂金 NT$${d.twdDeposit} 已折抵`;
+    document.getElementById('r-onsiteDue').textContent   = `¥${fmtJPY(d.onsiteDue)}`;
+    document.getElementById('r-depositNote').textContent = `台幣訂金 NT$${d.twdDeposit} 已折抵`;
     document.getElementById('pendingNotice').classList.add('hidden');
   } else {
-    document.getElementById('r-onsiteDue').textContent    = '待確認';
-    document.getElementById('r-depositNote').textContent  = `已付台幣訂金 NT$${d.twdDeposit || '—'}`;
+    document.getElementById('r-onsiteDue').textContent   = '待確認';
+    document.getElementById('r-depositNote').textContent = `已付台幣訂金 NT$${d.twdDeposit||'—'}`;
     document.getElementById('pendingNotice').classList.remove('hidden');
   }
 
-  if (d.canRefund) {
-    document.getElementById('refundLink').href = `${REFUND_URL}?orderId=${encodeURIComponent(d.orderId)}`;
-    document.getElementById('refundSection').classList.remove('hidden');
-  } else {
-    document.getElementById('refundSection').classList.add('hidden');
-  }
+  // 退款區塊只有 confirmed 才顯示
+  document.getElementById('refundSection').classList.toggle('hidden', !d.canRefund);
 
   showResult();
   window.scrollTo({ top:0, behavior:'smooth' });
 }
 
+function toggleRefundPanel() {
+  refundPanelOpen = !refundPanelOpen;
+  document.getElementById('refundPanel').classList.toggle('open', refundPanelOpen);
+  document.getElementById('refundTrigger').style.display = refundPanelOpen ? 'none' : 'block';
+  if (refundPanelOpen) setTimeout(() => document.getElementById('refundPanel').scrollIntoView({ behavior:'smooth', block:'start' }), 100);
+  else document.getElementById('refundError').classList.add('hidden');
+}
+
+document.getElementById('refundForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const errBox = document.getElementById('refundError');
+  const btn    = document.getElementById('refundSubmitBtn');
+  const reason      = document.getElementById('rf-reason').value;
+  const note        = document.getElementById('rf-note').value.trim();
+  const bankCode    = document.getElementById('rf-bankCode').value.trim();
+  const bankName    = document.getElementById('rf-bankName').value.trim();
+  const account     = document.getElementById('rf-account').value.trim();
+  const accountName = document.getElementById('rf-accountName').value.trim();
+  const phone       = document.getElementById('rf-phone').value.trim();
+  const agreed      = document.getElementById('rf-agree').checked;
+
+  if (!reason||!bankCode||!bankName||!account||!accountName||!phone||!agreed) {
+    errBox.textContent='請填寫所有必填欄位並勾選確認聲明。'; errBox.classList.remove('hidden'); return;
+  }
+  if (account.length < 8) { document.getElementById('err-account').classList.add('show'); return; }
+
+  btn.textContent='送出中...'; btn.disabled=true;
+  errBox.classList.add('hidden');
+
+  const submitDate = new Date(Date.now()+8*60*60*1000).toISOString().slice(0,10);
+
+  try {
+    await fetch(GAS_URL, {
+      method:'POST', mode:'no-cors',
+      headers:{ 'Content-Type':'text/plain' },
+      body:JSON.stringify({
+        action:'refund',
+        orderId:currentOrder.orderId,
+        email:currentOrder.email,
+        submitDate, reason, note,
+        bankCode, bankName, account, accountName, phone
+      })
+    });
+
+    document.getElementById('rs-orderId').textContent = currentOrder.orderId;
+    document.getElementById('rs-summary').innerHTML = `
+      <div class="flex justify-between text-white/80"><span class="text-white/40">預約編號</span><span class="font-bold tracking-widest">${currentOrder.orderId}</span></div>
+      <div class="flex justify-between text-white/80"><span class="text-white/40">退款原因</span><span>${reason}</span></div>
+      <div class="flex justify-between text-white/80"><span class="text-white/40">收款銀行</span><span>${bankCode} ${bankName}</span></div>
+      <div class="flex justify-between text-white/80"><span class="text-white/40">收款帳號</span><span class="tracking-widest">${account}</span></div>
+      <div class="flex justify-between text-white/80"><span class="text-white/40">戶名</span><span>${accountName}</span></div>
+      <div class="flex justify-between text-white/80"><span class="text-white/40">申請日期</span><span>${submitDate}</span></div>`;
+
+    document.getElementById('resultCard').classList.add('hidden');
+    document.getElementById('refundSuccessCard').classList.remove('hidden');
+    window.scrollTo({ top:0, behavior:'smooth' });
+  } catch(err) {
+    errBox.textContent='網路異常，請稍後再試或直接聯繫 LINE 客服。'; errBox.classList.remove('hidden');
+  } finally {
+    btn.textContent='送出退款申請'; btn.disabled=false;
+  }
+};
+
 function showLoading() {
-  document.getElementById('formCard').classList.add('hidden');
+  ['formCard','resultCard','refundSuccessCard'].forEach(id=>document.getElementById(id).classList.add('hidden'));
   document.getElementById('loadingCard').classList.remove('hidden');
-  document.getElementById('resultCard').classList.add('hidden');
 }
 function hideLoading() { document.getElementById('loadingCard').classList.add('hidden'); }
-function showForm()    { document.getElementById('formCard').classList.remove('hidden'); document.getElementById('resultCard').classList.add('hidden'); }
-function showResult()  { document.getElementById('resultCard').classList.remove('hidden'); }
-function goBack()      { document.getElementById('resultCard').classList.add('hidden'); document.getElementById('formCard').classList.remove('hidden'); hideError(); }
-function showError(m)  { const el=document.getElementById('errorMsg'); el.textContent=m; el.classList.remove('hidden'); }
-function hideError()   { document.getElementById('errorMsg').classList.add('hidden'); }
+function showForm() {
+  document.getElementById('formCard').classList.remove('hidden');
+  ['loadingCard','resultCard','refundSuccessCard'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+}
+function showResult() { document.getElementById('resultCard').classList.remove('hidden'); }
+function goBack() {
+  showForm(); hideError();
+  currentOrder=null; refundPanelOpen=false;
+  document.getElementById('refundPanel').classList.remove('open');
+  document.getElementById('refundTrigger').style.display='block';
+}
+function showError(m) { const el=document.getElementById('errorMsg'); el.textContent=m; el.classList.remove('hidden'); }
+function hideError()  { document.getElementById('errorMsg').classList.add('hidden'); }
 
-document.addEventListener('keydown', e => { if (e.key==='Enter') doQuery(); });
-
-window.addEventListener('scroll', () => {
-  const btn = document.getElementById('topBtn');
-  btn.style.opacity       = window.scrollY > 300 ? '1' : '0';
-  btn.style.pointerEvents = window.scrollY > 300 ? 'auto' : 'none';
+document.addEventListener('keydown', e => {
+  if (e.key==='Enter' && !document.getElementById('formCard').classList.contains('hidden')) doQuery();
 });
-
+window.addEventListener('scroll', () => {
+  const btn=document.getElementById('topBtn');
+  btn.style.opacity=window.scrollY>300?'1':'0';
+  btn.style.pointerEvents=window.scrollY>300?'auto':'none';
+});
 window.addEventListener('load', () => {
-  const c = document.getElementById('sakura-container');
-  for (let i=0; i<6; i++) {
-    const p = document.createElement('div');
-    p.className = 'sakura';
-    p.style.width  = (Math.random()*6+6)+'px';
-    p.style.height = p.style.width;
-    p.style.left   = Math.random()*100+'vw';
-    p.style.animationDuration = (Math.random()*10+20)+'s';
-    p.style.animationDelay    = (Math.random()*15)+'s';
+  const c=document.getElementById('sakura-container');
+  for(let i=0;i<6;i++){
+    const p=document.createElement('div'); p.className='sakura';
+    p.style.width=(Math.random()*7+6)+'px'; p.style.height=p.style.width;
+    p.style.left=Math.random()*100+'vw';
+    p.style.animationDuration=(Math.random()*10+20)+'s';
+    p.style.animationDelay=(Math.random()*15)+'s';
     c.appendChild(p);
   }
 });
