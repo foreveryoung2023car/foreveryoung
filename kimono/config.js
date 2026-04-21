@@ -27,7 +27,7 @@ const KIMONO_CONFIG = {
 
     // ★ 頁面路徑
     INDEX_URL:      './index.html',
-    REFUND_URL:     './refund.html',
+    REFUND_URL:     './inquiry.html',
 };
 
 Object.freeze(KIMONO_CONFIG);
