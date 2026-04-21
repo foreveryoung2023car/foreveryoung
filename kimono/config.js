@@ -31,3 +31,14 @@ const KIMONO_CONFIG = {
 };
 
 Object.freeze(KIMONO_CONFIG);
+
+// 攝影方案手機版：自動捲到推薦卡（中間那張）
+window.addEventListener('load', () => {
+    const mobile = document.getElementById('photo-plans-mobile');
+    if (mobile && window.innerWidth < 768) {
+        setTimeout(() => {
+            const card = mobile.children[1]; // 第二張=推薦
+            if (card) card.scrollIntoView({ inline: 'center', behavior: 'auto', block: 'nearest' });
+        }, 300);
+    }
+});
