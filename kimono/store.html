@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>店家後台 — 旅乘 x 和服</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="./config.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body { font-family:'Noto Serif TC',serif; background:#FDFCF8; -webkit-tap-highlight-color:transparent; }
+  .font-sans { font-family:'Noto Sans TC',sans-serif; }
+  * { box-sizing:border-box; -webkit-text-size-adjust:100%; }
+
+  /* 櫻花 */
+  .sakura-container { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:100; overflow:hidden; }
+  .sakura { position:absolute; background:#FFB7C5; border-radius:100% 0 100% 0; opacity:0.12; animation:fall linear infinite; }
+  @keyframes fall { 0%{transform:translateY(-50px) rotate(0deg);opacity:0} 10%{opacity:0.12} 90%{opacity:0.12} 100%{transform:translateY(110vh) rotate(360deg);opacity:0} }
+
+  /* 卡片展開 */
+  .detail { display:none; }
+  .detail.open { display:block; animation:fadeUp 0.35s ease; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+
+  /* Tab */
+  .tab-btn { flex:1; padding:14px 6px; font-size:15px; font-weight:700; border:none; background:transparent; color:#94a3b8; cursor:pointer; border-bottom:3px solid transparent; transition:all 0.15s; font-family:'Noto Sans TC',sans-serif; letter-spacing:0.05em; }
+  .tab-btn.active { color:#1A365D; border-bottom-color:#1A365D; }
+
+  /* Pill 篩選 */
+  .pill { padding:10px 20px; border-radius:4px; font-size:13px; font-weight:700; border:2px solid #e2e8f0; background:white; color:#94a3b8; cursor:pointer; transition:all 0.15s; white-space:nowrap; font-family:'Noto Sans TC',sans-serif; letter-spacing:0.08em; text-transform:uppercase; }
+  .pill.a-navy  { background:#1A365D; border-color:#1A365D; color:white; }
+  .pill.a-amber { background:#b45309; border-color:#b45309; color:white; }
+
+  /* Badge */
+  .badge { display:inline-flex; align-items:center; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; font-family:'Noto Sans TC',sans-serif; }
+  .b-confirmed { background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; }
+  .b-pending   { background:#fffbeb; color:#92400e; border:1px solid #fde68a; }
+  .b-filled    { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; }
+  .b-todo      { background:#fff7ed; color:#9a3412; border:1px solid #fed7aa; }
+
+  /* 人數加減按鈕 */
+  .cnt-btn { width:48px; height:48px; border-radius:4px; border:2px solid rgba(184,134,11,0.3); background:white; font-size:24px; font-weight:700; color:#1A365D; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.15s; }
+  .cnt-btn:active { background:#1A365D; color:white; border-color:#1A365D; }
+  .cnt-num { font-size:28px; font-weight:700; color:#1A365D; min-width:44px; text-align:center; font-family:'Noto Sans TC',sans-serif; }
+
+  /* 輸入框 */
+  .f-label { font-size:10px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.25em; margin-bottom:8px; font-family:'Noto Sans TC',sans-serif; }
+  .f-input { width:100%; font-size:22px; font-weight:700; color:#1A365D; border:none; border-bottom:2px solid rgba(184,134,11,0.25); background:transparent; padding:8px 0; outline:none; transition:border-color 0.2s; font-family:'Noto Sans TC',sans-serif; }
+  .f-input:focus { border-bottom-color:#1A365D; }
+  textarea.f-input { font-size:15px; resize:none; }
+
+  /* 現場應收框 */
+  .onsite-box { background:#1A365D; border-radius:2px; padding:20px; text-align:center; margin:14px 0; position:relative; overflow:hidden; }
+  .onsite-box::before { content:''; position:absolute; inset:0; background-image:radial-gradient(circle,#FFB7C5 1px,transparent 1px); background-size:20px 20px; opacity:0.06; }
+
+  /* 送出按鈕 */
+  .sub-btn { width:100%; padding:18px; background:#1A365D; color:#d4a843; border:none; border-radius:2px; font-size:15px; font-weight:700; cursor:pointer; margin-top:8px; letter-spacing:0.2em; text-transform:uppercase; font-family:'Noto Serif TC',serif; transition:background 0.2s; }
+  .sub-btn:hover { background:#12274a; }
+  .sub-btn:active { transform:scale(0.99); }
+
+  /* 底部 Modal */
+  .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:500; display:none; align-items:flex-end; }
+  .modal-bg.show { display:flex; }
+  .modal-body { background:white; border-radius:2px 2px 0 0; width:100%; max-height:92vh; overflow-y:auto; padding:20px 20px 44px; }
+  .modal-handle { width:36px; height:4px; background:rgba(184,134,11,0.25); border-radius:2px; margin:0 auto 20px; }
+
+  /* 搜尋 */
+  .search-box { padding:14px 16px 6px; display:none; }
+  .search-box.show { display:block; }
+  .s-input { width:100%; font-size:18px; font-weight:700; padding:14px 16px 14px 50px; border:2px solid rgba(184,134,11,0.3); border-radius:2px; background:#FDFCF8; color:#1A365D; outline:none; font-family:'Noto Sans TC',sans-serif; transition:border-color 0.2s; }
+  .s-input:focus { border-color:#1A365D; }
+
+  /* 費用行 */
+  .fee-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px dashed rgba(184,134,11,0.15); font-size:15px; font-family:'Noto Sans TC',sans-serif; }
+  .fee-row:last-child { border-bottom:none; }
+
+  /* 差額提示 */
+  .diff-warn { padding:12px 16px; border-radius:2px; font-size:14px; font-weight:700; text-align:center; font-family:'Noto Sans TC',sans-serif; }
+</style>
+</head>
+<body class="text-[#1A365D] overflow-x-hidden min-h-screen">
+
+<div id="sakura-container" class="sakura-container"></div>
+
+<!-- Navbar -->
+<nav class="fixed top-0 w-full z-[450] bg-[#1A365D]/95 backdrop-blur-md shadow-sm py-4">
+  <div class="max-w-xl mx-auto px-5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 bg-white/20 text-white rounded-sm flex items-center justify-center font-bold text-lg">旅</div>
+      <div>
+        <div class="text-white font-bold tracking-widest text-sm uppercase font-sans">Foreveryoung</div>
+        <div id="nav-store" class="text-white/40 text-[9px] uppercase tracking-wider font-sans">Store Dashboard</div>
+      </div>
+    </div>
+    <button id="logoutBtn" onclick="logout()" class="hidden px-4 py-2 text-[10px] font-bold border border-white/30 text-white hover:bg-white hover:text-[#1A365D] transition-all rounded-sm uppercase font-sans tracking-widest">登出</button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="pt-20 pb-12 bg-[#1A365D] text-center relative overflow-hidden">
+  <div class="absolute inset-0 opacity-[0.06]" style="background-image:radial-gradient(circle,#FFB7C5 1px,transparent 1px);background-size:32px 32px"></div>
+  <div class="relative z-10 max-w-xl mx-auto px-5">
+    <p class="text-pink-300 font-bold tracking-[0.8em] text-[10px] mb-3 uppercase italic font-sans">Store Dashboard</p>
+    <h1 class="text-2xl md:text-3xl font-bold text-white tracking-[0.2em] uppercase mb-2">店家後台</h1>
+    <p id="hero-store" class="text-white/40 text-xs tracking-[0.3em] uppercase font-sans">請輸入密碼登入</p>
+    <div class="mt-4 w-10 h-0.5 bg-pink-400/50 mx-auto"></div>
+  </div>
+</header>
+
+<main class="max-w-xl mx-auto px-4 py-8 pb-24">
+
+  <!-- ══ 登入 ══ -->
+  <div id="loginCard" class="bg-white shadow-2xl rounded-sm border border-slate-50 p-8 md:p-10">
+    <div class="text-center mb-8">
+      <h2 class="text-lg font-bold text-[#1A365D] uppercase tracking-[0.3em] font-sans">門市登入</h2>
+      <p class="text-slate-400 text-xs mt-2 font-sans">請輸入您的門市密碼</p>
+    </div>
+    <div class="mb-8">
+      <div class="f-label">門市密碼 *</div>
+      <input type="password" id="pwdInput" class="f-input" placeholder="請輸入密碼" autocomplete="off">
+    </div>
+    <button onclick="doLogin()" class="sub-btn">登　入</button>
+    <div id="loginErr" class="hidden mt-4 p-4 bg-red-50 border-l-4 border-red-400 text-red-600 text-sm font-sans rounded-r-sm"></div>
+  </div>
+
+  <!-- ══ 主控台 ══ -->
+  <div id="dashboard" class="hidden">
+
+    <!-- 統計卡 -->
+    <div class="grid grid-cols-3 gap-3 mb-6">
+      <div class="bg-white shadow-sm rounded-sm border border-slate-50 p-4 text-center">
+        <div id="st-today" class="text-3xl font-bold text-[#1A365D] font-sans">—</div>
+        <div class="text-[10px] text-slate-400 uppercase tracking-widest font-sans mt-1">今天</div>
+      </div>
+      <div class="bg-white shadow-sm rounded-sm border border-slate-50 p-4 text-center">
+        <div id="st-pending" class="text-3xl font-bold font-sans" style="color:#b45309;">—</div>
+        <div class="text-[10px] text-slate-400 uppercase tracking-widest font-sans mt-1">待填</div>
+      </div>
+      <div class="bg-white shadow-sm rounded-sm border border-slate-50 p-4 text-center">
+        <div id="st-tomorrow" class="text-3xl font-bold text-[#1A365D] font-sans">—</div>
+        <div class="text-[10px] text-slate-400 uppercase tracking-widest font-sans mt-1">明天</div>
+      </div>
+    </div>
+
+    <!-- Tab -->
+    <div class="bg-white rounded-sm border border-slate-100 mb-4">
+      <div class="flex border-b border-slate-100">
+        <button class="tab-btn active" id="tb-today"    onclick="switchTab('today')">今天</button>
+        <button class="tab-btn"        id="tb-tomorrow" onclick="switchTab('tomorrow')">明天</button>
+        <button class="tab-btn"        id="tb-search"   onclick="switchTab('search')">🔍 搜尋</button>
+      </div>
+
+      <!-- 搜尋框 -->
+      <div class="search-box" id="searchBox">
+        <div class="relative">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-xl">🔍</span>
+          <input class="s-input" id="sInput" type="text" placeholder="電話末3碼、姓名、訂單號" oninput="doSearch(this.value)" maxlength="15">
+        </div>
+        <p class="text-[11px] text-slate-300 font-sans mt-2 pb-2">輸入電話末3碼可快速找到客人</p>
+      </div>
+
+      <!-- 篩選 pill -->
+      <div id="filterBar" class="flex gap-2 p-3 overflow-x-auto">
+        <button class="pill a-amber" id="fil-pending" onclick="switchFilter('pending')">待填金額</button>
+        <button class="pill"         id="fil-all"     onclick="switchFilter('all')">全部訂單</button>
+      </div>
+    </div>
+
+    <!-- 訂單列表 -->
+    <div id="orderList"></div>
+
+  </div>
+</main>
+
+<!-- ══ 確認 Modal ══ -->
+<div class="modal-bg" id="modal">
+  <div class="modal-body">
+    <div class="modal-handle"></div>
+    <div class="text-[9px] text-slate-400 uppercase tracking-[0.4em] font-sans mb-1">確認送出</div>
+    <div id="m-oid" class="text-xl font-bold text-[#1A365D] font-sans tracking-[0.1em] mb-5"></div>
+
+    <!-- 明細 -->
+    <div class="text-[10px] font-bold text-pink-400 tracking-[0.5em] uppercase font-sans mb-4 flex items-center gap-2">
+      費用確認 <span class="flex-1 h-px bg-pink-100"></span>
+    </div>
+    <div id="m-rows"></div>
+
+    <!-- 人數變更 -->
+    <div id="m-guest" class="hidden bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-sm my-3 text-blue-700 text-sm font-sans font-bold"></div>
+
+    <!-- 補繳警示 -->
+    <div id="m-extra" class="hidden my-3 p-4 border-l-4 border-amber-400 bg-amber-50 rounded-r-sm text-center">
+      <div class="text-amber-700 text-xs font-bold font-sans uppercase tracking-widest mb-2">⚠️ 需補繳訂金差額</div>
+      <div id="m-extra-amt" class="text-3xl font-bold text-amber-600 font-sans"></div>
+      <div class="text-amber-600 text-xs font-sans mt-1">請現場向客人收取</div>
+    </div>
+
+    <!-- 現場應收 -->
+    <div class="onsite-box">
+      <div class="relative z-10">
+        <p class="text-white/40 text-[9px] uppercase tracking-[0.4em] font-sans mb-2">現場應付金額　AMOUNT DUE</p>
+        <p id="m-due" class="text-white font-bold text-4xl font-sans tracking-wider"></p>
+        <p id="m-dep" class="text-pink-300 text-xs mt-2 font-sans"></p>
+      </div>
+    </div>
+
+    <div id="mErr" class="hidden mb-3 p-4 bg-red-50 border-l-4 border-red-400 text-red-600 text-sm font-sans rounded-r-sm"></div>
+
+    <div class="grid grid-cols-3 gap-3">
+      <button onclick="closeModal()" class="py-4 border-2 border-slate-100 rounded-sm bg-white text-slate-400 text-sm font-bold font-sans uppercase tracking-widest hover:bg-slate-50 transition-colors cursor-pointer">取消</button>
+      <button id="mConfirmBtn" onclick="submitUpdate()" class="col-span-2 py-4 bg-[#1A365D] text-white rounded-sm text-sm font-bold font-sans uppercase tracking-[0.2em] hover:bg-blue-900 transition-all cursor-pointer shadow-lg">確認送出</button>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="bg-[#1A365D] text-white py-10 px-5 text-center">
+  <div class="flex items-center justify-center gap-3 mb-3">
+    <div class="w-8 h-8 bg-white text-[#1A365D] rounded-sm flex items-center justify-center font-bold">旅</div>
+    <div class="text-left">
+      <div class="font-bold tracking-widest text-sm uppercase font-sans">Foreveryoung</div>
+      <div class="text-pink-300 text-[9px] tracking-widest uppercase font-sans">和服體驗 × 旅遊包車</div>
+    </div>
+  </div>
+  <p class="text-white/20 text-[10px] font-sans tracking-widest uppercase mt-4">© 2026 Foreveryoung × Ouka Kimono. All Rights Reserved.</p>
+</footer>
+
+<script>
+const GAS_URL = KIMONO_CONFIG.APPS_SCRIPT_URL;
+let storeKey='', storeName='';
+let curTab='today', curFilter='pending';
+let allOrders=[], pendingSubmit=null;
+const guestCounts={};
+
+function fmt(n){ return Number(n).toLocaleString('ja-JP'); }
+function fmtD(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+// ── 登入
+async function doLogin(){
+  const pwd=document.getElementById('pwdInput').value.trim();
+  const err=document.getElementById('loginErr');
+  err.classList.add('hidden');
+  if(!pwd){ err.textContent='請輸入密碼'; err.classList.remove('hidden'); return; }
+  try{
+    const res=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'storeLogin',password:pwd})});
+    const d=await res.json();
+    if(d.status!=='success'){ err.textContent=d.message||'密碼錯誤'; err.classList.remove('hidden'); return; }
+    storeKey=d.storeKey; storeName=d.storeName;
+    document.getElementById('nav-store').textContent=storeName;
+    document.getElementById('hero-store').textContent=storeName;
+    document.getElementById('logoutBtn').classList.remove('hidden');
+    document.getElementById('loginCard').classList.add('hidden');
+    document.getElementById('dashboard').classList.remove('hidden');
+    loadOrders();
+  }catch(e){ err.textContent='網路錯誤，請稍後再試'; err.classList.remove('hidden'); }
+}
+
+function logout(){
+  storeKey=''; storeName='';
+  document.getElementById('loginCard').classList.remove('hidden');
+  document.getElementById('dashboard').classList.add('hidden');
+  document.getElementById('logoutBtn').classList.add('hidden');
+  document.getElementById('pwdInput').value='';
+  document.getElementById('nav-store').textContent='Store Dashboard';
+  document.getElementById('hero-store').textContent='請輸入密碼登入';
+}
+
+// ── Tab / Filter
+function switchTab(tab){
+  curTab=tab;
+  ['today','tomorrow','search'].forEach(t=>document.getElementById('tb-'+t).classList.toggle('active',t===tab));
+  document.getElementById('searchBox').classList.toggle('show',tab==='search');
+  document.getElementById('filterBar').style.display=tab==='search'?'none':'flex';
+  if(tab==='search'){ document.getElementById('sInput').focus(); renderList([]); return; }
+  renderList(filtered());
+}
+
+function switchFilter(f){
+  curFilter=f;
+  document.getElementById('fil-pending').className='pill'+(f==='pending'?' a-amber':'');
+  document.getElementById('fil-all').className    ='pill'+(f==='all'    ?' a-navy' :'');
+  renderList(filtered());
+}
+
+function filtered(){
+  const now=new Date(); now.setHours(0,0,0,0);
+  const tom=new Date(now); tom.setDate(now.getDate()+1);
+  let list=allOrders;
+  if(curTab==='today')    list=list.filter(o=>o.bookingDate.startsWith(fmtD(now)));
+  if(curTab==='tomorrow') list=list.filter(o=>o.bookingDate.startsWith(fmtD(tom)));
+  if(curFilter==='pending') list=list.filter(o=>o.isPending);
+  return list;
+}
+
+function doSearch(v){
+  if(!v||v.trim().length<2){ renderList([]); return; }
+  const q=v.trim().toLowerCase();
+  renderList(allOrders.filter(o=>o.phone.slice(-3)===q||o.phone.includes(q)||o.name.includes(q)||o.orderId.toLowerCase().includes(q)));
+}
+
+// ── 載入
+async function loadOrders(){
+  document.getElementById('orderList').innerHTML=`
+    <div class="bg-white shadow-sm rounded-sm border border-slate-50 p-12 text-center">
+      <div class="flex justify-center gap-2 mb-4">
+        <span class="w-2.5 h-2.5 rounded-full bg-pink-200 animate-bounce" style="animation-delay:0ms"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-pink-400 animate-bounce" style="animation-delay:150ms"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-[#1A365D] animate-bounce" style="animation-delay:300ms"></span>
+      </div>
+      <p class="text-slate-400 text-xs tracking-[0.3em] uppercase font-sans">載入訂單中</p>
+    </div>`;
+  try{
+    const res=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'storeGetOrders',storeKey,mode:'all',filter:'all'})});
+    const d=await res.json();
+    if(d.status!=='success'){ renderList([]); return; }
+    allOrders=d.orders||[];
+    document.getElementById('st-today').textContent   =d.todayCount??'—';
+    document.getElementById('st-pending').textContent =d.pendingCount??'—';
+    document.getElementById('st-tomorrow').textContent=d.tomorrowCount??'—';
+    renderList(filtered());
+  }catch(e){ renderList([]); }
+}
+
+// ── 渲染
+function renderList(orders){
+  const el=document.getElementById('orderList');
+  if(!orders.length){
+    el.innerHTML=`<div class="bg-white shadow-sm rounded-sm border border-slate-50 p-12 text-center"><p class="text-slate-300 text-4xl mb-3">📭</p><p class="text-slate-400 text-sm font-sans">此時段沒有訂單</p></div>`;
+    return;
+  }
+  el.innerHTML=orders.map(o=>card(o)).join('');
+}
+
+function card(o){
+  const sb=o.statusCode==='confirmed'?`<span class="badge b-confirmed">已確認</span>`:`<span class="badge b-pending">核對中</span>`;
+  const fb=o.isPending?`<span class="badge b-todo">待填金額</span>`:`<span class="badge b-filled">✓ 已填</span>`;
+  const dc=o.couponCode&&Number(o.discount)<10
+    ?`<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold font-sans bg-green-50 border border-green-200 text-green-700">🎟 ${o.couponCode} · ${o.discount}折</span>`:'';
+
+  const fi=!o.isPending?`
+    <div class="bg-[#eff6ff] border border-blue-100 rounded-sm p-4 mb-5">
+      <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest font-sans mb-3">已填入費用</p>
+      <div class="fee-row"><span class="text-slate-500">和服原價</span><span class="font-bold">¥${fmt(o.planPrice)}</span></div>
+      ${Number(o.hairFee) >0?`<div class="fee-row"><span class="text-slate-500">妝髮費</span><span class="font-bold">¥${fmt(o.hairFee)}</span></div>`:''}
+      ${Number(o.photoFee)>0?`<div class="fee-row"><span class="text-slate-500">攝影費</span><span class="font-bold">¥${fmt(o.photoFee)}</span></div>`:''}
+      <div class="fee-row" style="border:none;padding-top:10px;"><span class="font-bold text-[#1A365D]">現場應收</span><span class="font-bold text-[#1A365D] text-lg">¥${fmt(o.onsiteDue)} JPY</span></div>
+    </div>` : '';
+
+  return `
+<div class="bg-white shadow-sm rounded-sm border border-slate-100 overflow-hidden mb-3">
+  <!-- 卡片頭部 -->
+  <div onclick="toggleCard('${o.orderId}')" class="p-5 cursor-pointer hover:bg-[#FDFCF8] transition-colors">
+    <div class="flex items-start justify-between gap-3">
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 flex-wrap mb-3">${sb}${fb}</div>
+        <div class="text-3xl font-bold text-[#1A365D] mb-2 font-sans">${o.name}</div>
+        <div class="flex gap-4 flex-wrap text-base text-slate-500 font-sans">
+          <span>📞 末3碼：<strong class="text-[#1A365D] text-lg">${o.phone?o.phone.slice(-3):'—'}</strong></span>
+          <span>👥 ${o.guests}</span>
+        </div>
+        <div class="text-base text-slate-500 font-sans mt-1">👘 ${o.plan} ${dc}</div>
+        <div class="text-xs text-slate-400 font-sans mt-1 tracking-wider">⏰ ${o.bookingDate}</div>
+      </div>
+      <svg id="arr-${o.orderId}" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#94a3b8" stroke-width="2.5" style="flex-shrink:0;margin-top:4px;transition:transform 0.25s;"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+  </div>
+
+  <!-- 展開 -->
+  <div class="detail" id="det-${o.orderId}">
+    <div class="border-t border-slate-100 p-5">
+
+      <!-- 服務資訊 -->
+      <div class="flex flex-wrap gap-2 mb-5">
+        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold font-sans bg-[#FDFCF8] border border-slate-100 text-slate-600">💆 妝髮：${o.hair==='是'?'✅ 需要':'不需要'}</span>
+        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold font-sans bg-[#FDFCF8] border border-slate-100 text-slate-600">📷 攝影：${o.photo==='是'?'✅ 需要':'不需要'}</span>
+        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-sans bg-[#FDFCF8] border border-slate-100 text-slate-400">${o.orderId}</span>
+      </div>
+
+      ${fi}
+
+      <!-- 人數調整 -->
+      <div class="mb-6">
+        <div class="f-label mb-4">現場人數調整</div>
+        <div class="grid grid-cols-2 gap-5">
+          <div>
+            <div class="text-xs text-slate-400 font-sans mb-3 tracking-wider">大人</div>
+            <div class="flex items-center gap-3">
+              <button class="cnt-btn" onclick="chgCnt('${o.orderId}','adults',-1)">−</button>
+              <span class="cnt-num" id="ca-${o.orderId}">${o.adults||1}</span>
+              <button class="cnt-btn" onclick="chgCnt('${o.orderId}','adults',1)">+</button>
+            </div>
+          </div>
+          <div>
+            <div class="text-xs text-slate-400 font-sans mb-3 tracking-wider">小孩</div>
+            <div class="flex items-center gap-3">
+              <button class="cnt-btn" onclick="chgCnt('${o.orderId}','children',-1)">−</button>
+              <span class="cnt-num" id="cc-${o.orderId}">${o.children||0}</span>
+              <button class="cnt-btn" onclick="chgCnt('${o.orderId}','children',1)">+</button>
+            </div>
+          </div>
+        </div>
+        <div id="dd-${o.orderId}" class="hidden mt-3 diff-warn"></div>
+      </div>
+
+      <!-- 費用填寫 -->
+      <div class="border-t border-slate-100 pt-5">
+        <div class="text-[10px] font-bold text-pink-400 tracking-[0.5em] uppercase font-sans mb-5 flex items-center gap-2">
+          ${o.isPending?'填寫費用':'修改費用'} <span class="flex-1 h-px bg-pink-100"></span>
+        </div>
+
+        <div class="mb-5">
+          <div class="f-label">和服原價 (JPY) *</div>
+          <input type="number" inputmode="numeric" id="pp-${o.orderId}" class="f-input" placeholder="例：50000" value="${o.planPrice||''}" oninput="calcPrev('${o.orderId}',${o.discount||10},${o.depositJPY||0})">
+        </div>
+        <div class="grid grid-cols-2 gap-4 mb-5">
+          <div>
+            <div class="f-label">妝髮費 (JPY)</div>
+            <input type="number" inputmode="numeric" id="hf-${o.orderId}" class="f-input" placeholder="0" value="${o.hairFee||''}" oninput="calcPrev('${o.orderId}',${o.discount||10},${o.depositJPY||0})">
+          </div>
+          <div>
+            <div class="f-label">攝影費 (JPY)</div>
+            <input type="number" inputmode="numeric" id="pf-${o.orderId}" class="f-input" placeholder="0" value="${o.photoFee||''}" oninput="calcPrev('${o.orderId}',${o.discount||10},${o.depositJPY||0})">
+          </div>
+        </div>
+        <div class="mb-5">
+          <div class="f-label">備註（選填）</div>
+          <textarea id="nt-${o.orderId}" class="f-input" rows="2" placeholder="例：取消攝影、增加1人..."></textarea>
+        </div>
+
+        <!-- 即時預覽 -->
+        <div id="pv-${o.orderId}" class="hidden">
+          <div class="bg-[#FDFCF8] border border-slate-100 rounded-sm p-4 mb-3">
+            <div class="fee-row"><span class="text-slate-500">實收和服費</span><span id="pa-${o.orderId}" class="font-bold"></span></div>
+            <div class="fee-row"><span class="text-slate-500">店家成本</span><span id="sc-${o.orderId}" class="font-bold text-slate-400"></span></div>
+            <div class="fee-row" style="border:none;"><span class="text-slate-500">旅乘利潤</span><span id="pr-${o.orderId}" class="font-bold text-green-600"></span></div>
+          </div>
+          <div class="onsite-box">
+            <div class="relative z-10">
+              <p class="text-white/40 text-[9px] uppercase tracking-[0.4em] font-sans mb-2">客人現場應付</p>
+              <p id="od-${o.orderId}" class="text-white font-bold text-3xl font-sans"></p>
+              <p class="text-pink-300 text-xs mt-1 font-sans">已折抵訂金 ¥${fmt(o.depositJPY||0)}</p>
+            </div>
+          </div>
+        </div>
+
+        <button class="sub-btn" onclick="openModal('${o.orderId}',${o.discount||10},${o.depositJPY||0})">確認填寫並送出</button>
+      </div>
+    </div>
+  </div>
+</div>`;
+}
+
+// ── 展開
+function toggleCard(id){
+  const d=document.getElementById('det-'+id), a=document.getElementById('arr-'+id);
+  const open=d.classList.contains('open');
+  document.querySelectorAll('.detail').forEach(x=>x.classList.remove('open'));
+  document.querySelectorAll('[id^="arr-"]').forEach(x=>x.style.transform='');
+  if(!open){ d.classList.add('open'); a.style.transform='rotate(180deg)'; }
+}
+
+// ── 人數
+function chgCnt(oid,type,delta){
+  const o=allOrders.find(x=>x.orderId===oid);
+  if(!guestCounts[oid]) guestCounts[oid]={adults:o?.adults||1,children:o?.children||0,origDeposit:o?.depositJPY||0};
+  const gc=guestCounts[oid];
+  if(type==='adults')   gc.adults  =Math.max(1,gc.adults  +delta);
+  if(type==='children') gc.children=Math.max(0,gc.children+delta);
+  document.getElementById('ca-'+oid).textContent=gc.adults;
+  document.getElementById('cc-'+oid).textContent=gc.children;
+  const newDep=(gc.adults+gc.children)*1000, diff=newDep-gc.origDeposit;
+  const ddEl=document.getElementById('dd-'+oid);
+  if(diff===0){ ddEl.classList.add('hidden'); }
+  else{
+    ddEl.classList.remove('hidden');
+    if(diff>0){
+      ddEl.style.cssText='padding:12px 16px;border-radius:2px;font-size:14px;font-weight:700;text-align:center;font-family:Noto Sans TC,sans-serif;background:#fff7ed;border-left:4px solid #f59e0b;color:#92400e;';
+      ddEl.textContent=`⚠️ 人數增加，需補繳訂金 ¥${fmt(diff)} JPY`;
+    } else {
+      ddEl.style.cssText='padding:12px 16px;border-radius:2px;font-size:14px;font-weight:700;text-align:center;font-family:Noto Sans TC,sans-serif;background:#f0fdf4;border-left:4px solid #22c55e;color:#166534;';
+      ddEl.textContent=`人數減少，訂金差額 ¥${fmt(Math.abs(diff))} 不退（折抵消費）`;
+    }
+  }
+  calcPrev(oid, o?.discount||10, newDep);
+}
+
+// ── 預覽
+function calcPrev(oid,discount,deposit){
+  const pp=parseFloat(document.getElementById('pp-'+oid)?.value)||0;
+  const hf=parseFloat(document.getElementById('hf-'+oid)?.value)||0;
+  const pf=parseFloat(document.getElementById('pf-'+oid)?.value)||0;
+  const gc=guestCounts[oid];
+  const dep=gc?(gc.adults+gc.children)*1000:deposit;
+  const pvEl=document.getElementById('pv-'+oid);
+  if(pp<=0){ pvEl?.classList.add('hidden'); return; }
+  pvEl?.classList.remove('hidden');
+  const actual=Math.round(pp*(discount/10));
+  const cost=Math.round(pp*0.5);
+  document.getElementById('pa-'+oid).textContent='¥'+fmt(actual);
+  document.getElementById('sc-'+oid).textContent='¥'+fmt(cost);
+  document.getElementById('pr-'+oid).textContent='¥'+fmt(actual-cost);
+  document.getElementById('od-'+oid).textContent='¥'+fmt(Math.max(actual+hf+pf-dep,0))+' JPY';
+}
+
+// ── Modal
+function openModal(oid,discount,origDeposit){
+  const pp=parseFloat(document.getElementById('pp-'+oid)?.value)||0;
+  const hf=parseFloat(document.getElementById('hf-'+oid)?.value)||0;
+  const pf=parseFloat(document.getElementById('pf-'+oid)?.value)||0;
+  const note=document.getElementById('nt-'+oid)?.value.trim()||'';
+  if(!pp){ alert('請填寫和服原價！'); return; }
+  const o=allOrders.find(x=>x.orderId===oid);
+  const gc=guestCounts[oid];
+  const adults=gc?gc.adults:(o?.adults||1), children=gc?gc.children:(o?.children||0);
+  const newDep=(adults+children)*1000, diff=newDep-origDeposit;
+  const actual=Math.round(pp*(discount/10));
+  const onsite=Math.max(actual+hf+pf-newDep,0);
+  const newGuest=children>0?`${adults}大${children}小`:`${adults}大`;
+  pendingSubmit={oid,pp,hf,pf,note,adults,children,newDep,diff};
+  document.getElementById('m-oid').textContent=oid;
+  document.getElementById('m-due').textContent='¥'+fmt(onsite)+' JPY';
+  document.getElementById('m-dep').textContent=newDep>0?`台幣訂金已折抵 ¥${fmt(newDep)} JPY`:'';
+  document.getElementById('m-rows').innerHTML=`
+    <div class="fee-row"><span class="text-slate-500 font-sans">和服原價</span><span class="font-bold font-sans">¥${fmt(pp)}</span></div>
+    ${hf>0?`<div class="fee-row"><span class="text-slate-500 font-sans">妝髮費</span><span class="font-bold font-sans">¥${fmt(hf)}</span></div>`:''}
+    ${pf>0?`<div class="fee-row"><span class="text-slate-500 font-sans">攝影費</span><span class="font-bold font-sans">¥${fmt(pf)}</span></div>`:''}
+    ${note?`<div class="text-slate-400 text-sm font-sans py-2">備註：${note}</div>`:''}
+    <div class="h-2"></div>`;
+  const gEl=document.getElementById('m-guest');
+  if(newGuest!==o?.guests){ gEl.textContent=`👥 人數變更：${o?.guests} → ${newGuest}`; gEl.classList.remove('hidden'); }
+  else gEl.classList.add('hidden');
+  const eEl=document.getElementById('m-extra');
+  if(diff>0){ document.getElementById('m-extra-amt').textContent=`¥${fmt(diff)} JPY`; eEl.classList.remove('hidden'); }
+  else eEl.classList.add('hidden');
+  document.getElementById('mErr').classList.add('hidden');
+  document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+
+async function submitUpdate(){
+  if(!pendingSubmit)return;
+  const btn=document.getElementById('mConfirmBtn'), err=document.getElementById('mErr');
+  btn.textContent='送出中...'; btn.disabled=true; err.classList.add('hidden');
+  try{
+    const res=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'storeUpdate',storeKey,orderId:pendingSubmit.oid,planPrice:pendingSubmit.pp,hairFee:pendingSubmit.hf,photoFee:pendingSubmit.pf,adults:pendingSubmit.adults,children:pendingSubmit.children,note:pendingSubmit.note})});
+    const d=await res.json();
+    if(d.status!=='success'){ err.textContent=d.message||'送出失敗'; err.classList.remove('hidden'); return; }
+    closeModal(); await loadOrders(); alert(`✅ ${pendingSubmit.oid} 已更新！`);
+  }catch(e){ err.textContent='網路錯誤，請稍後再試'; err.classList.remove('hidden'); }
+  finally{ btn.textContent='確認送出'; btn.disabled=false; }
+}
+
+// ── Enter / Esc
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!document.getElementById('loginCard').classList.contains('hidden')) doLogin();
+  if(e.key==='Escape') closeModal();
+});
+document.getElementById('modal').addEventListener('click',e=>{ if(e.target===document.getElementById('modal')) closeModal(); });
+
+// ── 櫻花
+window.addEventListener('load',()=>{
+  const c=document.getElementById('sakura-container');
+  for(let i=0;i<6;i++){
+    const p=document.createElement('div'); p.className='sakura';
+    p.style.width=(Math.random()*7+6)+'px'; p.style.height=p.style.width;
+    p.style.left=Math.random()*100+'vw';
+    p.style.animationDuration=(Math.random()*10+20)+'s';
+    p.style.animationDelay=(Math.random()*15)+'s';
+    c.appendChild(p);
+  }
+});
+</script>
+</body>
+</html>
