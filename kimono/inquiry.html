@@ -6,6 +6,10 @@
 <title>訂單查詢 — 旅乘 x 和服體驗</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600&family=Shippori+Mincho:wght@400;600&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+
+<!-- ★ 共用設定（路徑依你的實際位置調整） -->
+<script src="./kimono_config.js"></script>
+
 <style>
 /* ── 變數 ── */
 :root {
@@ -80,7 +84,7 @@ body::before {
   align-items: center;
   gap: 12px;
   margin: 16px auto 0;
-  max-width: 200px;
+  max-width: 220px;
 }
 .divider::before, .divider::after {
   content: '';
@@ -94,7 +98,7 @@ body::before {
   letter-spacing: 0.2em;
 }
 
-/* ── 查詢卡片 ── */
+/* ── 卡片 ── */
 .card {
   background: white;
   border: 1px solid var(--border);
@@ -124,9 +128,7 @@ body::before {
 }
 
 /* ── 表單 ── */
-.form-group {
-  margin-bottom: 20px;
-}
+.form-group { margin-bottom: 20px; }
 .form-group label {
   display: block;
   font-size: 11px;
@@ -134,10 +136,7 @@ body::before {
   color: var(--ink-soft);
   margin-bottom: 8px;
 }
-.form-group label span {
-  color: var(--red);
-  margin-left: 2px;
-}
+.form-group label span { color: var(--red); margin-left: 2px; }
 .form-group input {
   width: 100%;
   padding: 12px 16px;
@@ -156,7 +155,6 @@ body::before {
 }
 .form-group input::placeholder { color: #bbb; font-size: 13px; }
 
-/* 分隔線「或」 */
 .or-divider {
   display: flex;
   align-items: center;
@@ -263,12 +261,12 @@ body::before {
   font-size: 13px;
   color: var(--red);
   letter-spacing: 0.05em;
+  border-radius: 1px;
 }
 
-/* ── 結果頁面 ── */
+/* ── 結果 ── */
 .result { display: none; }
 
-/* 狀態標籤 */
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -284,7 +282,6 @@ body::before {
 .status-refunding { background: #fff0f0; color: var(--red); border: 1px solid rgba(139,26,26,0.2); }
 .status-refunded  { background: #f5f5f5; color: #666; border: 1px solid #ddd; }
 
-/* 訂單標題 */
 .order-header {
   display: flex;
   align-items: flex-start;
@@ -308,10 +305,7 @@ body::before {
   margin-top: 4px;
 }
 
-/* 資料區塊 */
-.section {
-  margin-bottom: 28px;
-}
+.section { margin-bottom: 28px; }
 .section-title {
   font-size: 10px;
   letter-spacing: 0.3em;
@@ -339,17 +333,10 @@ body::before {
   color: var(--ink-soft);
   margin-bottom: 3px;
 }
-.info-item .val {
-  font-size: 14px;
-  color: var(--ink);
-}
+.info-item .val { font-size: 14px; color: var(--ink); }
 .info-item.full { grid-column: 1 / -1; }
 
-/* 費用表 */
-.fee-table {
-  width: 100%;
-  border-collapse: collapse;
-}
+.fee-table { width: 100%; border-collapse: collapse; }
 .fee-table tr td {
   padding: 9px 0;
   font-size: 13px;
@@ -369,7 +356,6 @@ body::before {
 .fee-table .discount-row td:first-child { color: var(--green); }
 .fee-table .discount-row td:last-child { color: var(--green); }
 
-/* 現場確認框 */
 .onsite-box {
   background: var(--paper-dark);
   border: 1px solid var(--border);
@@ -401,7 +387,6 @@ body::before {
   letter-spacing: 0.1em;
 }
 
-/* 退款區 */
 .refund-section {
   margin-top: 28px;
   padding-top: 24px;
@@ -415,7 +400,19 @@ body::before {
   margin-bottom: 14px;
 }
 
-/* 底部 */
+.notice-box {
+  background: #fff8e1;
+  border: 1px solid rgba(184,134,11,0.25);
+  border-left: 3px solid var(--gold);
+  padding: 12px 16px;
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  letter-spacing: 0.05em;
+  line-height: 1.7;
+  border-radius: 1px;
+}
+
 .footer {
   text-align: center;
   margin-top: 48px;
@@ -451,7 +448,9 @@ body::before {
 
     <div class="form-group">
       <label>訂單編號<span>*</span></label>
-      <input type="text" id="orderId" placeholder="K260421001" autocomplete="off" style="text-transform:uppercase">
+      <input type="text" id="orderId" placeholder="K260421001"
+             autocomplete="off" style="text-transform:uppercase"
+             oninput="this.value=this.value.toUpperCase()">
     </div>
 
     <div class="form-group">
@@ -467,7 +466,7 @@ body::before {
     </div>
 
     <p style="font-size:11px;color:#aaa;margin:8px 0 20px;letter-spacing:0.05em">
-      ※ 請填寫 Email 或手機號碼其中一項
+      ※ 請填寫 Email 或手機號碼其中一項即可
     </p>
 
     <button class="btn-primary" id="queryBtn" onclick="doQuery()">
@@ -488,11 +487,9 @@ body::before {
   <!-- ══ 查詢結果 ══ -->
   <div class="card result" id="resultCard">
 
-    <button class="btn-back" onclick="goBack()">
-      ← 重新查詢
-    </button>
+    <button class="btn-back" onclick="goBack()">← 重新查詢</button>
 
-    <!-- 訂單標題列 -->
+    <!-- 訂單標題 -->
     <div class="order-header">
       <div class="order-id-wrap">
         <div class="label">BOOKING NO.</div>
@@ -536,17 +533,20 @@ body::before {
 
     <!-- 現場應付 -->
     <div class="onsite-box">
-      <div class="label">現場應付金額</div>
+      <div class="label">現場應付金額　AMOUNT DUE ON SITE</div>
       <div class="amount" id="r-onsiteDue">— <span>JPY</span></div>
       <div class="note" id="r-depositNote">（已折抵訂金）</div>
     </div>
 
+    <!-- 費用待確認提示（P欄尚未填入時顯示） -->
+    <div class="notice-box" id="pendingNotice" style="display:none">
+      📋 和服方案費用確認後將同步更新，如有疑問請聯繫客服。
+    </div>
+
     <!-- 退款區塊 -->
-    <div class="refund-section" id="refundSection">
-      <p>如需取消預約，請點下方按鈕申請退款</p>
-      <a id="refundLink" href="#" class="btn-refund">
-        ✦ 申請退款 / 取消預約
-      </a>
+    <div class="refund-section" id="refundSection" style="display:none">
+      <p>如需取消預約，請點下方按鈕填寫退款申請</p>
+      <a id="refundLink" href="#" class="btn-refund">✦ 申請退款 / 取消預約</a>
     </div>
 
   </div><!-- /resultCard -->
@@ -554,69 +554,98 @@ body::before {
   <div class="footer">
     <p>旅乘 x Foreveryoung 和服體驗</p>
     <p style="margin-top:6px">
-      <a href="https://lin.ee/TgFCvYQ" target="_blank">LINE 客服</a>
+      <a id="lineLink" href="#" target="_blank">LINE 客服</a>
       　·　
-      <a href="https://m.me/foreveryoung2023car" target="_blank">Messenger</a>
+      <a id="messengerLink" href="#" target="_blank">Messenger</a>
     </p>
   </div>
 
 </div><!-- /wrapper -->
 
 <script>
-<script src="./kimono_config.js"></script>
-// ══ 設定 ══
+// ══ 從 KIMONO_CONFIG 讀取設定 ══
 const GAS_URL    = KIMONO_CONFIG.APPS_SCRIPT_URL;
 const REFUND_URL = KIMONO_CONFIG.REFUND_URL;
+
+// 底部連結
+document.getElementById('lineLink').href      = KIMONO_CONFIG.LINE_URL      || '#';
+document.getElementById('messengerLink').href = KIMONO_CONFIG.MESSENGER_URL || '#';
+
+// ══ 日期格式化：ISO / yyyy-MM-dd / Date → yyyy-MM-dd ══
+function fmtDate(val) {
+  if (!val) return '—';
+  // Google Sheets 回傳的 Date 物件序列化成 ISO 字串
+  // 例如 "2026-05-10T07:00:00.000Z" → 取前10碼再轉
+  const str = String(val);
+  // ISO 格式
+  if (str.includes('T')) {
+    // 直接取 UTC 日期避免時區偏移問題
+    const d = new Date(str);
+    const y = d.getUTCFullYear();
+    const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(d.getUTCDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+  // 已經是 yyyy-MM-dd 格式
+  if (/^\d{4}-\d{2}-\d{2}/.test(str)) return str.slice(0, 10);
+  return str;
+}
+
+// ══ 數字格式化 ══
+function fmtJPY(n) {
+  const num = Number(n);
+  if (isNaN(num)) return '—';
+  return num.toLocaleString('ja-JP');
+}
 
 // ══ 查詢 ══
 async function doQuery() {
   const orderId = document.getElementById('orderId').value.trim().toUpperCase();
   const email   = document.getElementById('email').value.trim();
   const phone   = document.getElementById('phone').value.trim();
-  const errEl   = document.getElementById('errorMsg');
 
   // 前端驗證
-  errEl.style.display = 'none';
+  hideError();
   if (!orderId) return showError('請輸入訂單編號');
   if (!email && !phone) return showError('請輸入 Email 或手機號碼');
 
-  // 切換畫面
-  document.getElementById('formCard').style.display = 'none';
-  document.getElementById('loadingCard').style.display = 'block';
+  showLoading();
 
   try {
-    const res  = await fetch(GAS_URL, {
+    const res = await fetch(GAS_URL, {
       method : 'POST',
       body   : JSON.stringify({ action: 'query', orderId, email, phone }),
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }
     });
     const data = await res.json();
 
-    document.getElementById('loadingCard').style.display = 'none';
+    hideLoading();
 
     if (data.status !== 'success') {
-      document.getElementById('formCard').style.display = 'block';
-      return showError(data.message || '查詢失敗，請確認資料是否正確');
+      showForm();
+      return showError(data.message || '查無此訂單，請確認資料是否正確');
     }
 
     renderResult(data);
 
-  } catch(e) {
-    document.getElementById('loadingCard').style.display = 'none';
-    document.getElementById('formCard').style.display = 'block';
-    showError('網路錯誤，請稍後再試');
+  } catch(err) {
+    console.error(err);
+    hideLoading();
+    showForm();
+    showError('網路連線錯誤，請稍後再試');
   }
 }
 
 // ══ 渲染結果 ══
 function renderResult(d) {
+
   // 訂單編號
   document.getElementById('r-orderId').textContent = d.orderId || '—';
 
   // 狀態標籤
   const statusMap = {
-    pending  : ['核對中',   'status-pending'],
-    confirmed: ['已確認 ✓', 'status-confirmed'],
+    pending  : ['核對中',    'status-pending'],
+    confirmed: ['✓ 已確認', 'status-confirmed'],
     refunding: ['退款處理中','status-refunding'],
     refunded : ['已退款',   'status-refunded'],
   };
@@ -625,78 +654,105 @@ function renderResult(d) {
     `<span class="status-badge ${statusClass}">${statusText}</span>`;
 
   // 預約內容
-  document.getElementById('r-bookingDate').textContent = d.bookingDate || '—';
-  document.getElementById('r-guests').textContent      = d.guests      || '—';
-  document.getElementById('r-plan').textContent        = d.plan        || '—';
-  document.getElementById('r-hair').textContent        = d.hair === '是' ? '✅ 需要' : '不需要';
+  document.getElementById('r-bookingDate').textContent = fmtDate(d.bookingDate);
+  document.getElementById('r-guests').textContent      = d.guests || '—';
+  document.getElementById('r-plan').textContent        = d.plan   || '—';
+  document.getElementById('r-hair').textContent        = d.hair  === '是' ? '✅ 需要' : '不需要';
   document.getElementById('r-photo').textContent       = d.photo === '是' ? '✅ 需要' : '不需要';
 
   // 費用明細
   const rows = [];
+  const hasPlanPrice = d.planPrice && Number(d.planPrice) > 0;
+  const hasDiscount  = d.couponCode && d.discount && Number(d.discount) < 10;
 
-  if (d.planPrice) {
-    rows.push(['和服方案原價', `${fmtJPY(d.planPrice)} JPY`]);
+  if (hasPlanPrice) {
+    rows.push({ key: '和服方案原價', val: `${fmtJPY(d.planPrice)} JPY` });
   }
-  if (d.couponCode && d.discount && Number(d.discount) < 10) {
-    rows.push([`優惠折扣（${d.couponCode} / ${d.discount}折）`,
-               `- ${fmtJPY(d.planPrice - d.planActual)} JPY`, 'discount-row']);
-    rows.push(['實收和服費', `${fmtJPY(d.planActual)} JPY`]);
-  } else if (d.planActual) {
-    rows.push(['和服費用', `${fmtJPY(d.planActual)} JPY`]);
+  if (hasPlanPrice && hasDiscount) {
+    const saving = Number(d.planPrice) - Number(d.planActual);
+    rows.push({
+      key: `優惠折扣（${d.couponCode}・${d.discount}折）`,
+      val: `- ${fmtJPY(saving)} JPY`,
+      cls: 'discount-row'
+    });
+    rows.push({ key: '實收和服費', val: `${fmtJPY(d.planActual)} JPY` });
+  } else if (hasPlanPrice) {
+    rows.push({ key: '和服費用', val: `${fmtJPY(d.planActual || d.planPrice)} JPY` });
   }
-  if (d.hairFee && Number(d.hairFee) > 0) {
-    rows.push(['妝髮造型費', `${fmtJPY(d.hairFee)} JPY`]);
+  if (Number(d.hairFee) > 0) {
+    rows.push({ key: '妝髮造型費', val: `${fmtJPY(d.hairFee)} JPY` });
   }
-  if (d.photoFee && Number(d.photoFee) > 0) {
-    rows.push(['旅拍攝影費', `${fmtJPY(d.photoFee)} JPY`]);
+  if (Number(d.photoFee) > 0) {
+    rows.push({ key: '旅拍攝影費', val: `${fmtJPY(d.photoFee)} JPY` });
   }
-  if (d.depositJPY && Number(d.depositJPY) > 0) {
-    rows.push([`已付訂金折抵`, `- ${fmtJPY(d.depositJPY)} JPY`]);
+  if (Number(d.depositJPY) > 0) {
+    rows.push({ key: '已付訂金折抵', val: `- ${fmtJPY(d.depositJPY)} JPY` });
   }
 
   const table = document.getElementById('feeTable');
-  table.innerHTML = rows.map(([key, val, cls]) =>
-    `<tr class="${cls||''}"><td>${key}</td><td>${val}</td></tr>`
-  ).join('');
-
-  // 現場應付
-  if (d.onsiteDue !== '' && d.onsiteDue !== null && d.onsiteDue !== undefined) {
-    document.getElementById('r-onsiteDue').innerHTML =
-      `${fmtJPY(d.onsiteDue)} <span>JPY</span>`;
-    document.getElementById('r-depositNote').textContent =
-      `（台幣訂金 NT$${d.twdDeposit} 已折抵）`;
+  if (rows.length > 0) {
+    table.innerHTML = rows.map(r =>
+      `<tr class="${r.cls||''}"><td>${r.key}</td><td>${r.val}</td></tr>`
+    ).join('');
   } else {
-    document.getElementById('r-onsiteDue').innerHTML = `待確認 <span>JPY</span>`;
-    document.getElementById('r-depositNote').textContent = '和服方案費用待店家確認後更新';
+    table.innerHTML = `<tr><td colspan="2" style="color:#aaa;font-size:12px;padding:12px 0;text-align:center;letter-spacing:0.1em">和服方案費用確認後顯示</td></tr>`;
   }
 
-  // 退款區塊
+  // 現場應付
+  const hasOnsite = d.onsiteDue !== '' && d.onsiteDue !== null && d.onsiteDue !== undefined && Number(d.onsiteDue) >= 0;
+  if (hasOnsite && hasPlanPrice) {
+    document.getElementById('r-onsiteDue').innerHTML = `${fmtJPY(d.onsiteDue)} <span>JPY</span>`;
+    document.getElementById('r-depositNote').textContent =
+      `台幣訂金 NT$${d.twdDeposit} 已折抵`;
+    document.getElementById('pendingNotice').style.display = 'none';
+  } else {
+    document.getElementById('r-onsiteDue').innerHTML = `待確認 <span>JPY</span>`;
+    document.getElementById('r-depositNote').textContent = '';
+    document.getElementById('pendingNotice').style.display = 'block';
+  }
+
+  // 退款按鈕（只有已確認才顯示）
   const refundSection = document.getElementById('refundSection');
   if (d.canRefund) {
-    const url = `${REFUND_URL}?orderId=${encodeURIComponent(d.orderId)}`;
-    document.getElementById('refundLink').href = url;
+    const refundHref = `${REFUND_URL}?orderId=${encodeURIComponent(d.orderId)}`;
+    document.getElementById('refundLink').href = refundHref;
     refundSection.style.display = 'block';
   } else {
     refundSection.style.display = 'none';
   }
 
+  showResult();
+}
+
+// ══ 畫面切換 ══
+function showLoading() {
+  document.getElementById('formCard').style.display    = 'none';
+  document.getElementById('loadingCard').style.display = 'block';
+  document.getElementById('resultCard').style.display  = 'none';
+}
+function hideLoading() {
+  document.getElementById('loadingCard').style.display = 'none';
+}
+function showForm() {
+  document.getElementById('formCard').style.display   = 'block';
+  document.getElementById('resultCard').style.display = 'none';
+}
+function showResult() {
   document.getElementById('resultCard').style.display = 'block';
 }
-
-// ══ 工具 ══
-function fmtJPY(n) {
-  return Number(n).toLocaleString('ja-JP');
+function goBack() {
+  document.getElementById('resultCard').style.display = 'none';
+  document.getElementById('formCard').style.display   = 'block';
+  hideError();
 }
 
+// ══ 錯誤訊息 ══
 function showError(msg) {
   const el = document.getElementById('errorMsg');
   el.textContent = msg;
   el.style.display = 'block';
 }
-
-function goBack() {
-  document.getElementById('resultCard').style.display = 'none';
-  document.getElementById('formCard').style.display = 'block';
+function hideError() {
   document.getElementById('errorMsg').style.display = 'none';
 }
 
