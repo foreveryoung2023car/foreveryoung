@@ -321,53 +321,39 @@
                     </p>
                 </div>
         
-                <!-- 三個方案卡片 -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                <!-- 手機橫滑（推薦置中）/ 桌機三欄 -->
+                <div class="hidden md:grid grid-cols-3 gap-8 max-w-5xl mx-auto" id="photo-plans-desktop">
         
-                    <!-- 30分鐘 -->
-                    <div class="bg-[#FDFCF8] border border-slate-100 rounded-sm p-10 text-center shadow-sm hover:shadow-xl transition-all">
-                        <div class="w-12 h-12 rounded-full bg-pink-50 flex items-center justify-center mx-auto mb-6">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        </div>
+                    <div class="md:hidden flex gap-5 overflow-x-auto pb-6 scrollbar-hide snap-x -mx-6 px-6 scroll-smooth" id="photo-plans-mobile">
+
+                      <!-- 30分鐘（左） -->
+                      <div class="flex-none w-[280px] snap-center bg-[#FDFCF8] border border-slate-100 rounded-sm p-10 text-center shadow-sm">
                         <p class="text-[10px] font-bold text-pink-400 tracking-[0.5em] uppercase font-sans mb-2">30 min</p>
                         <h3 class="text-xl font-bold text-[#1A365D] font-sans mb-1">隨行攝影</h3>
-                        <p class="text-[10px] text-slate-300 font-sans mb-6 uppercase tracking-widest">Photographer</p>
                         <p class="text-slate-400 text-xs font-sans mb-8 leading-relaxed">輕量記錄，適合單一景點<br>精修電子檔交付</p>
-                        <div class="border-t border-slate-100 pt-8">
-                            <p class="text-4xl font-bold text-[#1A365D] font-sans">¥12,800</p>
-                            <p class="text-xs text-slate-400 font-sans mt-1 font-sans">JPY／組</p>
-                        </div>
-                    </div>
-        
-                    <!-- 1小時（推薦） -->
-                    <div class="bg-[#1A365D] border border-[#1A365D] rounded-sm p-10 text-center shadow-2xl relative scale-105">
+                        <p class="text-4xl font-bold text-[#1A365D] font-sans border-t border-slate-100 pt-8">¥12,800</p>
+                        <p class="text-xs text-slate-400 font-sans mt-1">JPY／組</p>
+                      </div>
+                    
+                      <!-- 1小時（推薦，置中） -->
+                      <div class="flex-none w-[280px] snap-center bg-[#1A365D] rounded-sm p-10 text-center shadow-2xl relative">
                         <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-pink-400 text-white text-[10px] font-bold px-5 py-1.5 rounded-full uppercase tracking-widest font-sans whitespace-nowrap">最受歡迎</div>
-                        <div class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-6">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-pink-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        </div>
                         <p class="text-[10px] font-bold text-pink-300 tracking-[0.5em] uppercase font-sans mb-2">1 hour</p>
                         <h3 class="text-xl font-bold text-white font-sans mb-1">隨行攝影</h3>
-                        <p class="text-[10px] text-white/30 font-sans mb-6 uppercase tracking-widest">Photographer</p>
                         <p class="text-white/60 text-xs font-sans mb-8 leading-relaxed">漫步景點完整記錄<br>精修電子檔交付</p>
-                        <div class="border-t border-white/10 pt-8">
-                            <p class="text-4xl font-bold text-white font-sans">¥21,000</p>
-                            <p class="text-xs text-white/40 font-sans mt-1">JPY／組</p>
-                        </div>
-                    </div>
-        
-                    <!-- 2小時 -->
-                    <div class="bg-[#FDFCF8] border border-slate-100 rounded-sm p-10 text-center shadow-sm hover:shadow-xl transition-all">
-                        <div class="w-12 h-12 rounded-full bg-pink-50 flex items-center justify-center mx-auto mb-6">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        </div>
+                        <p class="text-4xl font-bold text-white font-sans border-t border-white/10 pt-8">¥21,000</p>
+                        <p class="text-xs text-white/40 font-sans mt-1">JPY／組</p>
+                      </div>
+                    
+                      <!-- 2小時（右） -->
+                      <div class="flex-none w-[280px] snap-center bg-[#FDFCF8] border border-slate-100 rounded-sm p-10 text-center shadow-sm">
                         <p class="text-[10px] font-bold text-pink-400 tracking-[0.5em] uppercase font-sans mb-2">2 hours</p>
                         <h3 class="text-xl font-bold text-[#1A365D] font-sans mb-1">隨行攝影</h3>
-                        <p class="text-[10px] text-slate-300 font-sans mb-6 uppercase tracking-widest">Photographer</p>
                         <p class="text-slate-400 text-xs font-sans mb-8 leading-relaxed">多景點深度全程記錄<br>精修電子檔交付</p>
-                        <div class="border-t border-slate-100 pt-8">
-                            <p class="text-4xl font-bold text-[#1A365D] font-sans">¥42,000</p>
-                            <p class="text-xs text-slate-400 font-sans mt-1">JPY／組</p>
-                        </div>
+                        <p class="text-4xl font-bold text-[#1A365D] font-sans border-t border-slate-100 pt-8">¥42,000</p>
+                        <p class="text-xs text-slate-400 font-sans mt-1">JPY／組</p>
+                      </div>
+                    
                     </div>
                 </div>
         
@@ -465,7 +451,7 @@
             <!-- 標題 -->
             <div class="flex flex-col items-center mb-16 text-center">
                 <span class="text-pink-400 font-bold tracking-[0.8em] text-[10px] mb-5 uppercase italic font-sans">Online Booking</span>
-                <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] tracking-[0.2em] uppercase font-sans">線上預約 <span class="text-pink-300 font-light italic">訂金鎖位</span></h2>
+                <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] tracking-[0.2em] uppercase font-sans">填單預約 <span class="text-pink-300 font-light italic">訂金折抵</span></h2>
                 <div class="mt-6 w-12 h-0.5 bg-pink-100"></div>
                 <p class="text-slate-400 text-sm mt-6 font-sans leading-relaxed">
                     填寫預約資料 → 匯款訂金 → 客服核對確認<br>
