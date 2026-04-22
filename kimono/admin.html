@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>客服後台 — 旅乘 x 和服</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="./config.js"></script>
+    <style>
+        body { font-family: 'Noto Sans TC', sans-serif; background: #F7F8FA; color: #1A365D; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .badge-pending { background:#FFF3CD; color:#856404; padding:2px 8px; border-radius:12px; font-size:11px; }
+        .badge-confirmed { background:#D1FAE5; color:#065F46; padding:2px 8px; border-radius:12px; font-size:11px; }
+        .badge-refund { background:#FFE4E6; color:#9F1239; padding:2px 8px; border-radius:12px; font-size:11px; }
+        .tab-btn { padding:8px 16px; border-radius:8px; cursor:pointer; font-weight:600; transition:all 0.2s; }
+        .tab-btn.active { background:#1A365D; color:white; }
+        .tab-btn:not(.active) { background:#F1F5F9; color:#64748B; }
+        .filter-btn { padding:4px 12px; border-radius:20px; cursor:pointer; font-size:13px; font-weight:600; border:1px solid #E2E8F0; }
+        .filter-btn.active { background:#1A365D; color:white; border-color:#1A365D; }
+        .expand-section { display:none; }
+        .expand-section.open { display:block; }
+        .stat-card { background:white; border-radius:10px; padding:16px; text-align:center; box-shadow:0 2px 6px rgba(0,0,0,0.06); }
+    </style>
+</head>
+<body class="min-h-screen">
+
+<!-- Login Screen -->
+<div id="login-screen" class="flex items-center justify-center min-h-screen">
+    <div class="card p-8 w-full max-w-sm mx-4">
+        <div class="text-center mb-6">
+            <div class="text-2xl font-bold text-[#1A365D] mb-1">旅乘 x 和服</div>
+            <div class="text-sm text-slate-500">客服後台登入</div>
+        </div>
+        <div class="mb-4">
+            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">選擇客服名稱</label>
+            <select id="operator-select" class="w-full border border-slate-200 rounded-lg p-3 font-bold text-[#1A365D]">
+                <option value="">載入中...</option>
+            </select>
+        </div>
+        <button onclick="doLogin()" class="w-full bg-[#1A365D] text-white font-bold py-3 rounded-xl hover:bg-[#2D4A7A] transition">進入後台</button>
+        <div id="login-error" class="text-red-500 text-sm text-center mt-3 hidden"></div>
+    </div>
+</div>
+
+<!-- Main Dashboard -->
+<div id="main-screen" class="hidden">
+    <!-- Header -->
+    <div class="bg-[#1A365D] text-white px-4 py-3 flex items-center justify-between">
+        <div>
+            <div class="font-bold">旅乘 x 和服 客服後台</div>
+            <div id="operator-name-display" class="text-xs opacity-70"></div>
+        </div>
+        <button onclick="doLogout()" class="text-xs opacity-70 hover:opacity-100 border border-white/30 px-3 py-1 rounded-full">登出</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-3 gap-3 p-4">
+        <div class="stat-card">
+            <div id="stat-pending" class="text-2xl font-bold text-amber-500">—</div>
+            <div class="text-xs text-slate-500 mt-1">待確認</div>
+        </div>
+        <div class="stat-card">
+            <div id="stat-today" class="text-2xl font-bold text-[#1A365D]">—</div>
+            <div class="text-xs text-slate-500 mt-1">今天訂單</div>
+        </div>
+        <div class="stat-card">
+            <div id="stat-refund" class="text-2xl font-bold text-red-400">—</div>
+            <div class="text-xs text-slate-500 mt-1">退款申請</div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-2 px-4 pb-3">
+        <button class="tab-btn active" id="tab-today" onclick="switchTab('today')">今天</button>
+        <button class="tab-btn" id="tab-month" onclick="switchTab('month')">本月</button>
+        <button class="tab-btn" id="tab-search" onclick="switchTab('search')">搜尋</button>
+    </div>
+
+    <!-- Search Box -->
+    <div id="search-box" class="px-4 pb-3 hidden">
+        <input type="text" id="search-input" placeholder="輸入訂單號或姓名" 
+            class="w-full border border-slate-200 rounded-lg p-3 text-sm"
+            oninput="loadOrders()">
+    </div>
+
+    <!-- Filter -->
+    <div class="flex gap-2 px-4 pb-3 overflow-x-auto">
+        <button class="filter-btn active" id="filter-all" onclick="setFilter('all')">全部</button>
+        <button class="filter-btn" id="filter-pending" onclick="setFilter('pending')">待確認</button>
+        <button class="filter-btn" id="filter-confirmed" onclick="setFilter('confirmed')">已確認</button>
+        <button class="filter-btn" id="filter-refund" onclick="setFilter('refund')">退款申請</button>
+    </div>
+
+    <!-- Orders List -->
+    <div id="orders-list" class="px-4 pb-20">
+        <div class="text-center text-slate-400 py-8">載入中...</div>
+    </div>
+</div>
+
+<script>
+const APPS_SCRIPT_URL = KIMONO_CONFIG.APPS_SCRIPT_URL;
+let currentOperator = '';
+let currentTab = 'today';
+let currentFilter = 'all';
+
+// Load operators on page load
+window.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const res = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({ action: 'getOperators' })
+        });
+        const data = await res.json();
+        const sel = document.getElementById('operator-select');
+        sel.innerHTML = '<option value="">請選擇</option>';
+        if (data.status === 'success' && data.operators) {
+            data.operators.forEach(op => {
+                const opt = document.createElement('option');
+                opt.value = op;
+                opt.textContent = op;
+                sel.appendChild(opt);
+            });
+        }
+    } catch(e) {
+        document.getElementById('operator-select').innerHTML = '<option value="Jun">Jun</option><option value="Ren">Ren</option><option value="Amy">Amy</option>';
+    }
+});
+
+function doLogin() {
+    const op = document.getElementById('operator-select').value;
+    if (!op) {
+        document.getElementById('login-error').textContent = '請選擇客服名稱';
+        document.getElementById('login-error').classList.remove('hidden');
+        return;
+    }
+    currentOperator = op;
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('main-screen').classList.remove('hidden');
+    document.getElementById('operator-name-display').textContent = op + ' 已登入';
+    loadOrders();
+    loadStats();
+}
+
+function doLogout() {
+    currentOperator = '';
+    document.getElementById('main-screen').classList.add('hidden');
+    document.getElementById('login-screen').classList.remove('hidden');
+}
+
+function switchTab(tab) {
+    currentTab = tab;
+    ['today','month','search'].forEach(t => {
+        document.getElementById('tab-'+t).classList.toggle('active', t === tab);
+    });
+    document.getElementById('search-box').classList.toggle('hidden', tab !== 'search');
+    loadOrders();
+}
+
+function setFilter(filter) {
+    currentFilter = filter;
+    ['all','pending','confirmed','refund'].forEach(f => {
+        document.getElementById('filter-'+f).classList.toggle('active', f === filter);
+    });
+    loadOrders();
+}
+
+async function loadStats() {
+    try {
+        const res = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({ action: 'adminGetOrders', filter: 'all' })
+        });
+        const data = await res.json();
+        if (data.status !== 'success') return;
+        const orders = data.orders || [];
+        const now = new Date(Date.now() + 8*60*60*1000);
+        const todayStr = now.toISOString().split('T')[0];
+        let pending = 0, today = 0, refund = 0;
+        orders.forEach(o => {
+            if (!o.confirmed) pending++;
+            const bd = o.bookingDate ? new Date(o.bookingDate).toISOString().split('T')[0] : '';
+            if (bd === todayStr) today++;
+            if (String(o.remark||'').includes('【退款申請】')) refund++;
+        });
+        document.getElementById('stat-pending').textContent = pending;
+        document.getElementById('stat-today').textContent = today;
+        document.getElementById('stat-refund').textContent = refund;
+    } catch(e) {}
+}
+
+async function loadOrders() {
+    const list = document.getElementById('orders-list');
+    list.innerHTML = '<div class="text-center text-slate-400 py-8">載入中...</div>';
+    try {
+        const now = new Date(Date.now() + 8*60*60*1000);
+        const todayStr = now.toISOString().split('T')[0];
+        const monthStr = now.toISOString().substring(0,7);
+        const search = document.getElementById('search-input')?.value.trim() || '';
+
+        let filter = currentFilter;
+        let dateFilter = '';
+        if (currentTab === 'today') dateFilter = todayStr;
+
+        const res = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({ action: 'adminGetOrders', filter, search, date: dateFilter })
+        });
+        const data = await res.json();
+        if (data.status !== 'success') { list.innerHTML = '<div class="text-center text-red-400 py-8">' + (data.message||'載入失敗') + '</div>'; return; }
+        let orders = data.orders || [];
+        
+        // Month filter client-side
+        if (currentTab === 'month') {
+            orders = orders.filter(o => {
+                const bd = o.bookingDate ? new Date(o.bookingDate).toISOString().substring(0,7) : '';
+                return bd === monthStr;
+            });
+        }
+
+        if (orders.length === 0) { list.innerHTML = '<div class="text-center text-slate-400 py-8">無符合訂單</div>'; return; }
+        list.innerHTML = orders.map(o => renderOrder(o)).join('');
+    } catch(e) {
+        list.innerHTML = '<div class="text-center text-red-400 py-8">連線失敗：' + e.message + '</div>';
+    }
+}
+
+function renderOrder(o) {
+    const confirmed = o.confirmed;
+    const hasRefund = String(o.remark||'').includes('【退款申請】');
+    const bookDate = o.bookingDate ? new Date(o.bookingDate).toLocaleDateString('zh-TW') : '—';
+    const badge = hasRefund 
+        ? '<span class="badge-refund">退款申請</span>'
+        : confirmed 
+            ? '<span class="badge-confirmed">已確認</span>' 
+            : '<span class="badge-pending">待確認</span>';
+    const ocrNote = o.remark ? o.remark.split('\n').find(l => l.includes('OCR') || l.includes('✅') || l.includes('⚠️')) || '' : '';
+    return `
+    <div class="card mb-3 overflow-hidden">
+        <div class="p-4 pb-2">
+            <div class="flex justify-between items-start mb-2">
+                <div>
+                    <div class="font-bold text-sm">${o.orderId}</div>
+                    <div class="text-xs text-slate-500">${o.name} · 體驗日:${bookDate}</div>
+                </div>
+                ${badge}
+            </div>
+            <div class="text-xs text-slate-500 mb-2">${o.plan||'—'} · ${o.adults||0}人 · 訂金:${o.deposit||0}JPY</div>
+            ${ocrNote ? '<div class="text-xs text-amber-600 bg-amber-50 rounded p-2 mb-2">📋 ' + ocrNote + '</div>' : ''}
+            ${o.proofImage ? '<a href="' + o.proofImage + '" target="_blank" class="text-xs text-blue-500 underline">📷 查看匯款截圖</a>' : ''}
+        </div>
+        <div class="px-4 pb-2 flex gap-2 flex-wrap">
+            ${!confirmed ? `<button onclick="confirmOrder(${o.rowNum},'confirm-section-${o.rowNum}')" class="text-xs bg-[#1A365D] text-white px-3 py-1.5 rounded-lg font-bold">[發確認信]</button>` : ''}
+            <button onclick="toggleSection('refund-section-${o.rowNum}')" class="text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded-lg font-bold">[退款處理]</button>
+            <button onclick="toggleSection('edit-section-${o.rowNum}')" class="text-xs bg-slate-50 text-slate-600 px-3 py-1.5 rounded-lg font-bold">[編輯訂單]</button>
+        </div>
+        <div id="refund-section-${o.rowNum}" class="expand-section border-t border-slate-100 p-4">
+            <div class="text-xs font-bold text-slate-500 mb-2">退款處理</div>
+            <input type="number" id="refund-amount-${o.rowNum}" placeholder="退款金額(JPY)" class="w-full border border-slate-200 rounded p-2 text-sm mb-2">
+            <input type="text" id="refund-reason-${o.rowNum}" placeholder="退款原因" class="w-full border border-slate-200 rounded p-2 text-sm mb-2">
+            <button onclick="handleRefund(${o.rowNum})" class="bg-red-500 text-white text-sm px-4 py-2 rounded-lg font-bold w-full">確認退款</button>
+        </div>
+        <div id="edit-section-${o.rowNum}" class="expand-section border-t border-slate-100 p-4">
+            <div class="text-xs font-bold text-slate-500 mb-2">編輯訂單</div>
+            <div class="grid grid-cols-2 gap-2 mb-2">
+                <input type="text" id="edit-name-${o.rowNum}" value="${o.name||''}" placeholder="姓名" class="border border-slate-200 rounded p-2 text-sm">
+                <input type="text" id="edit-phone-${o.rowNum}" value="${o.phone||''}" placeholder="電話" class="border border-slate-200 rounded p-2 text-sm">
+            </div>
+            <input type="text" id="edit-email-${o.rowNum}" value="${o.email||''}" placeholder="Email" class="w-full border border-slate-200 rounded p-2 text-sm mb-2">
+            <button onclick="handleEdit(${o.rowNum})" class="bg-[#1A365D] text-white text-sm px-4 py-2 rounded-lg font-bold w-full">儲存編輯</button>
+        </div>
+    </div>`;
+}
+
+function toggleSection(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('open');
+}
+
+async function confirmOrder(rowNum) {
+    if (!confirm('確定要發送確認信嗎？')) return;
+    try {
+        const res = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({ action: 'adminConfirm', rowNum, operator: currentOperator })
+        });
+        const data = await res.json();
+        alert(data.status === 'success' ? '✅ 確認信已發送' : '❌ ' + data.message);
+        if (data.status === 'success') { loadOrders(); loadStats(); }
+    } catch(e) { alert('連線失敗'); }
+}
+
+async function handleRefund(rowNum) {
+    const amount = document.getElementById('refund-amount-'+rowNum).value;
+    const reason = document.getElementById('refund-reason-'+rowNum).value;
+    if (!reason) { alert('請填寫退款原因'); return; }
+    try {
+        const res = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({ action: 'adminRefund', rowNum, refundAmount: amount, refundReason: reason, operator: currentOperator })
+        });
+        const data = await res.json();
+        alert(data.status === 'success' ? '✅ 退款記錄已更新' : '❌ ' + data.message);
+        if (data.status === 'success') loadOrders();
+    } catch(e) { alert('連線失敗'); }
+}
+
+async function handleEdit(rowNum) {
+    const fields = {
+        name: document.getElementById('edit-name-'+rowNum).value,
+        phone: document.getElementById('edit-phone-'+rowNum).value,
+        email: document.getElementById('edit-email-'+rowNum).value
+    };
+    try {
+        const res = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({ action: 'adminEdit', rowNum, fields, operator: currentOperator })
+        });
+        const data = await res.json();
+        alert(data.status === 'success' ? '✅ 訂單已更新' : '❌ ' + data.message);
+        if (data.status === 'success') loadOrders();
+    } catch(e) { alert('連線失敗'); }
+}
+</script>
+</body>
+</html>
