@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>旅乘 ERP — 日本自由行包車管理系統</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --navy: #0c1f3f;
+  --navy2: #142849;
+  --navy3: #1e3a5f;
+  --blue: #2563eb;
+  --blue-light: #eff6ff;
+  --sky: #0ea5e9;
+  --teal: #0d9488;
+  --green: #10b981;
+  --green-light: #ecfdf5;
+  --yellow: #f59e0b;
+  --yellow-light: #fffbeb;
+  --red: #ef4444;
+  --red-light: #fef2f2;
+  --purple: #8b5cf6;
+  --purple-light: #f5f3ff;
+  --gold: #d97706;
+  --white: #ffffff;
+  --bg: #f0f4f8;
+  --bg2: #e8edf3;
+  --border: #e2e8f0;
+  --border2: #cbd5e1;
+  --text: #0f172a;
+  --text2: #334155;
+  --muted: #64748b;
+  --muted2: #94a3b8;
+  --sidebar-w: 240px;
+  --topbar-h: 60px;
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow: 0 4px 12px rgba(0,0,0,.06), 0 2px 4px rgba(0,0,0,.04);
+  --shadow-md: 0 8px 24px rgba(0,0,0,.08), 0 3px 8px rgba(0,0,0,.05);
+  --shadow-lg: 0 20px 48px rgba(0,0,0,.12), 0 8px 16px rgba(0,0,0,.06);
+  color-scheme: light;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang TC','Microsoft JhengHei',sans-serif;background:var(--bg);color:var(--text);font-size:14px;-webkit-font-smoothing:antialiased}
+button{cursor:pointer;border:none;outline:none;font-family:inherit}
+input,select,textarea{font-family:inherit;outline:none;color:var(--text)}
+a{text-decoration:none;color:inherit}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+
+/* ── LOGIN ── */
+#loginPage{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--navy) 0%,#0a3060 50%,#0d1f3c 100%);position:relative;overflow:hidden}
+#loginPage::before{content:'';position:absolute;width:800px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(37,99,235,.15),transparent 70%);top:-300px;right:-200px;pointer-events:none}
+#loginPage::after{content:'';position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(14,165,233,.1),transparent 70%);bottom:-150px;left:-100px;pointer-events:none}
+.login-wrap{position:relative;z-index:1;display:flex;align-items:center;gap:60px;padding:24px}
+.login-brand-side{color:white;max-width:340px}
+.login-brand-side .logo{font-size:52px;margin-bottom:16px;display:block}
+.login-brand-side h1{font-size:30px;font-weight:800;letter-spacing:-.5px;line-height:1.2;margin-bottom:10px}
+.login-brand-side p{font-size:14px;opacity:.6;line-height:1.7}
+.login-features{margin-top:28px;display:flex;flex-direction:column;gap:10px}
+.login-feature{display:flex;align-items:center;gap:10px;font-size:13px;opacity:.75}
+.login-feature span{font-size:18px}
+.login-card{background:white;border-radius:var(--radius-xl);padding:40px 36px;width:360px;box-shadow:var(--shadow-lg);flex-shrink:0}
+.login-card-logo{font-size:28px;margin-bottom:8px}
+.login-card-title{font-size:20px;font-weight:800;color:var(--navy);margin-bottom:4px}
+.login-card-sub{font-size:12px;color:var(--muted);margin-bottom:28px}
+.btn-google{width:100%;padding:13px 20px;border-radius:var(--radius);background:white;border:1.5px solid var(--border2);font-size:14px;font-weight:600;color:var(--text);display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s;box-shadow:var(--shadow-sm)}
+.btn-google:hover{box-shadow:var(--shadow);transform:translateY(-1px);border-color:#adb5c8}
+.btn-google svg{width:20px;height:20px;flex-shrink:0}
+.login-sep{display:flex;align-items:center;gap:10px;margin:20px 0;color:var(--muted2);font-size:11px}
+.login-sep::before,.login-sep::after{content:'';flex:1;height:1px;background:var(--border)}
+.login-note{background:var(--bg);border-radius:var(--radius-sm);padding:12px;font-size:11px;color:var(--muted);line-height:1.6;text-align:center}
+
+/* ── APP SHELL ── */
+#app{display:none}
+.layout{display:flex;min-height:100vh}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--sidebar-w);background:var(--navy);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:transform .3s ease}
+.sb-brand{padding:20px 18px 18px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:11px}
+.sb-brand-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--blue),var(--sky));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.sb-brand-text{line-height:1}
+.sb-brand-name{font-size:15px;font-weight:800;color:white;letter-spacing:.3px}
+.sb-brand-sub{font-size:10px;color:rgba(255,255,255,.4);margin-top:3px;letter-spacing:.2px}
+.sb-nav{flex:1;padding:10px 0;overflow-y:auto}
+.sb-section{padding:12px 18px 5px;font-size:10px;font-weight:700;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:1.5px}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 18px;color:rgba(255,255,255,.55);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;border-left:3px solid transparent;margin:1px 0}
+.sb-item:hover{background:rgba(255,255,255,.05);color:rgba(255,255,255,.85)}
+.sb-item.active{background:rgba(37,99,235,.2);color:white;border-left-color:var(--sky)}
+.sb-item .ic{font-size:16px;width:22px;text-align:center;flex-shrink:0}
+.sb-badge{margin-left:auto;background:var(--red);color:white;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;line-height:1.4}
+.sb-footer{padding:14px 18px;border-top:1px solid rgba(255,255,255,.07)}
+.sb-user{display:flex;align-items:center;gap:10px}
+.sb-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--sky));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:white;flex-shrink:0}
+.sb-uname{font-size:12px;font-weight:700;color:white}
+.sb-urole{font-size:10px;color:rgba(255,255,255,.4);margin-top:2px}
+.btn-logout{margin-left:auto;background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);padding:5px 9px;border-radius:6px;font-size:11px;transition:all .2s}
+.btn-logout:hover{background:rgba(255,255,255,.15);color:white}
+
+/* ── TOPBAR ── */
+.topbar{position:fixed;top:0;left:var(--sidebar-w);right:0;height:var(--topbar-h);background:white;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:12px;z-index:90;box-shadow:0 1px 0 rgba(0,0,0,.04)}
+.menu-btn{display:none;background:none;padding:6px;border-radius:7px;font-size:20px;color:var(--muted);margin-right:2px}
+.menu-btn:hover{background:var(--bg)}
+.topbar-title{font-size:16px;font-weight:700;color:var(--text)}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.topbar-chip{background:linear-gradient(135deg,var(--blue-light),#e0f2fe);color:var(--blue);font-size:11px;font-weight:700;padding:5px 12px;border-radius:99px;letter-spacing:.3px}
+.notif-btn{position:relative;background:none;padding:7px;border-radius:8px;font-size:18px;color:var(--muted);transition:background .15s}
+.notif-btn:hover{background:var(--bg)}
+.notif-dot{position:absolute;top:6px;right:6px;width:7px;height:7px;background:var(--red);border-radius:50%;border:2px solid white}
+
+/* ── MAIN ── */
+.main{margin-left:var(--sidebar-w);padding-top:var(--topbar-h);min-height:100vh}
+.page{display:none;padding:24px}
+.page.active{display:block}
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap}
+.page-head-left h2{font-size:18px;font-weight:800;color:var(--text);letter-spacing:-.3px}
+.page-head-left p{font-size:12px;color:var(--muted);margin-top:3px}
+
+/* ── BUTTONS ── */
+.btn{padding:9px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:all .15s;cursor:pointer}
+.btn-primary{background:var(--blue);color:white;box-shadow:0 2px 8px rgba(37,99,235,.3)}
+.btn-primary:hover{background:#1d4ed8;box-shadow:0 4px 12px rgba(37,99,235,.4);transform:translateY(-1px)}
+.btn-ghost{background:white;color:var(--text2);border:1.5px solid var(--border);box-shadow:var(--shadow-sm)}
+.btn-ghost:hover{background:var(--bg);border-color:var(--border2)}
+.btn-danger{background:var(--red-light);color:var(--red);border:1px solid #fecaca}
+.btn-danger:hover{background:#fecaca}
+.btn-sl{padding:6px 12px;font-size:12px}
+.btn-xs{padding:4px 9px;font-size:11px}
+
+/* ── STATS GRID ── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.kpi{background:white;border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow-sm);border:1px solid var(--border);position:relative;overflow:hidden;transition:box-shadow .2s}
+.kpi:hover{box-shadow:var(--shadow)}
+.kpi::after{content:'';position:absolute;top:0;right:0;width:80px;height:80px;border-radius:50%;opacity:.06;transform:translate(20px,-20px)}
+.kpi.blue::after{background:var(--blue)}
+.kpi.green::after{background:var(--green)}
+.kpi.purple::after{background:var(--purple)}
+.kpi.gold::after{background:var(--gold)}
+.kpi-icon{font-size:22px;margin-bottom:10px}
+.kpi-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.kpi-value{font-size:26px;font-weight:800;color:var(--text);margin:6px 0 5px;letter-spacing:-.5px;line-height:1}
+.kpi-sub{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.kpi-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px}
+.badge-up{background:#dcfce7;color:#15803d}
+.badge-down{background:var(--red-light);color:var(--red)}
+.badge-warn{background:var(--yellow-light);color:var(--gold)}
+
+/* ── GRID ── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.col-span-2{grid-column:span 2}
+
+/* ── CARD ── */
+.card{background:white;border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);border:1px solid var(--border)}
+.card-hd{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:14px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px}
+.card-body{padding:20px}
+.card-body-0{padding:0}
+
+/* ── BADGE ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:600;white-space:nowrap}
+.b-green{background:var(--green-light);color:#065f46}
+.b-blue{background:var(--blue-light);color:#1e40af}
+.b-yellow{background:var(--yellow-light);color:#92400e}
+.b-red{background:var(--red-light);color:#991b1b}
+.b-purple{background:var(--purple-light);color:#5b21b6}
+.b-gray{background:var(--bg2);color:var(--muted)}
+.b-navy{background:rgba(12,31,63,.08);color:var(--navy)}
+.b-teal{background:#f0fdfa;color:#0f766e}
+
+/* ── FILTER BAR ── */
+.filter-bar{background:white;border-radius:var(--radius);padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid var(--border);box-shadow:var(--shadow-sm)}
+.search-box{position:relative;flex:1;min-width:200px}
+.search-box input{width:100%;padding:8px 12px 8px 36px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--bg);transition:all .2s}
+.search-box input:focus{border-color:var(--blue);background:white;box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted2);font-size:15px;pointer-events:none}
+.fsel{padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:12px;color:var(--text2);background:var(--bg);min-width:100px;cursor:pointer;transition:all .2s}
+.fsel:focus{border-color:var(--blue);background:white}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:880px}
+thead th{background:#f8fafc;padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;transition:background .15s}
+thead th:hover{background:var(--bg2)}
+thead th .sort{margin-left:4px;opacity:.4}
+thead th.sorted .sort{opacity:1;color:var(--blue)}
+tbody td{padding:11px 14px;border-bottom:1px solid #f8fafc;font-size:13px;vertical-align:middle}
+tbody tr{transition:background .1s}
+tbody tr:hover{background:#fafbfc}
+tbody tr:last-child td{border-bottom:none}
+.td-order{font-family:'SF Mono','Fira Code',monospace;font-size:12px;font-weight:700;color:var(--blue)}
+.td-name{font-weight:600}
+.td-muted{font-size:11px;color:var(--muted);margin-top:2px}
+.td-route{font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.td-money{font-weight:700;font-variant-numeric:tabular-nums}
+.td-jpy{color:var(--purple);font-size:12px;margin-top:1px;font-weight:600}
+.td-actions{display:flex;gap:5px;align-items:center}
+.ia{padding:4px 10px;border-radius:5px;font-size:11px;font-weight:600;transition:all .15s}
+.ia-view{background:var(--blue-light);color:#1e40af}
+.ia-view:hover{background:#dbeafe}
+.ia-edit{background:var(--green-light);color:#065f46}
+.ia-edit:hover{background:#bbf7d0}
+.ia-del{background:var(--red-light);color:#991b1b}
+.ia-del:hover{background:#fecaca}
+
+/* ── MOBILE CARDS ── */
+.m-cards{display:none}
+.m-card{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:14px;margin-bottom:10px;box-shadow:var(--shadow-sm)}
+.m-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.m-card-id{font-size:12px;font-weight:800;color:var(--blue);font-family:monospace}
+.m-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.m-field label{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;display:block;margin-bottom:2px}
+.m-field span{font-size:13px;font-weight:600}
+.m-route{font-size:11px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)}
+.m-actions{display:flex;gap:6px;margin-top:10px;justify-content:flex-end}
+
+/* ── PAGINATION ── */
+.pager{display:flex;align-items:center;justify-content:space-between;padding:13px 20px;border-top:1px solid var(--border)}
+.pager-info{font-size:12px;color:var(--muted)}
+.pager-btns{display:flex;gap:3px}
+.pg-btn{padding:5px 10px;border-radius:5px;font-size:12px;font-weight:600;color:var(--muted);background:none;border:1px solid var(--border);transition:all .15s}
+.pg-btn:hover{background:var(--bg);color:var(--text)}
+.pg-btn.active{background:var(--blue);color:white;border-color:var(--blue)}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:300;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(3px)}
+.modal-bg.open{display:flex}
+.modal{background:white;border-radius:var(--radius-lg);width:700px;max-width:100%;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow-lg)}
+.modal-hd{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;flex-shrink:0;background:white;position:sticky;top:0;z-index:1}
+.modal-title{font-size:16px;font-weight:800;color:var(--text)}
+.modal-sub{font-size:12px;color:var(--muted);margin-top:3px}
+.modal-x{width:32px;height:32px;border-radius:50%;background:var(--bg);color:var(--muted);font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.modal-x:hover{background:var(--bg2);color:var(--text)}
+.modal-body{overflow-y:auto;flex:1;padding:24px}
+.modal-ft{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;background:white;flex-shrink:0}
+
+/* ── FORM ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg.full{grid-column:1/-1}
+.fg label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.fi{padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--bg);transition:all .2s;width:100%}
+.fi:focus{border-color:var(--blue);background:white;box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+.fi.readonly{background:#f8fafc;color:var(--muted);cursor:default}
+.form-section{grid-column:1/-1;font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.8px;padding:6px 0 2px;border-bottom:1.5px solid var(--blue-light);margin-top:6px}
+
+/* ── DETAIL MODAL ── */
+.detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.df{background:var(--bg);border-radius:var(--radius-sm);padding:11px 13px}
+.df label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px}
+.df span{font-size:13px;font-weight:600;color:var(--text)}
+.ds{font-size:12px;font-weight:700;color:var(--navy);margin:14px 0 8px;padding-bottom:6px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;gap:6px}
+
+/* ── TIMELINE ── */
+.tl-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid #f8fafc;align-items:flex-start}
+.tl-item:last-child{border-bottom:none}
+.tl-dot{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.tl-content .t{font-size:13px;font-weight:600;color:var(--text)}
+.tl-content .s{font-size:11px;color:var(--muted);margin-top:3px}
+.tl-right{margin-left:auto;text-align:right;flex-shrink:0}
+.tl-right .am{font-size:13px;font-weight:700;color:var(--navy)}
+.tl-right .dt{margin-top:4px}
+
+/* ── ALERT ITEM ── */
+.al-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #f8fafc}
+.al-item:last-child{border-bottom:none}
+.al-icon{font-size:22px;flex-shrink:0;width:40px;height:40px;background:var(--bg);border-radius:10px;display:flex;align-items:center;justify-content:center}
+.al-t{font-size:13px;font-weight:600}
+.al-s{font-size:11px;color:var(--muted);margin-top:2px}
+.al-action{margin-left:auto;flex-shrink:0}
+
+/* ── CHART CONTAINER ── */
+.chart-wrap{position:relative;width:100%;height:200px}
+
+/* ── STAFF PERF ── */
+.perf-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.perf-card{background:var(--bg);border-radius:var(--radius);padding:14px;text-align:center;transition:background .15s}
+.perf-card:hover{background:var(--bg2)}
+.perf-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--sky));color:white;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 8px}
+.perf-name{font-size:12px;font-weight:700;color:var(--text2)}
+.perf-val{font-size:16px;font-weight:800;color:var(--navy);margin:4px 0}
+.perf-sub{font-size:10px;color:var(--muted)}
+
+/* ── PAYMENT TABLE ── */
+.pay-status-ok{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#065f46}
+.pay-status-ng{]isplay:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#991b1b}
+
+/* ── OVERLAY ․─ */
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99}
+
+/* ── TOAST ── */
+.toast-wrap{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast{background:#1e293b;color:white;padding:12px 18px;border-radius:var(--radius);font-size:13px;font-weight:500;box-shadow:var(--shadow-md);display:flex;align-items:center;gap:10px;animation:toastIn .3s ease;max-width:320px}
+.toast.ok{background:#065f46}
+.toast.err{background:#991b1b}
+@keyframes toastIn{from{transform:translateY(12px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:48px 20px;color:var(--muted)}
+.empty .ei{font-size:44px;margin-bottom:10px}
+.empty p{font-size:14px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .stats-row{grid-template-columns:1fr 1fr}
+  .grid-2{grid-template-columns:1fr}
+  .perf-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-overlay.open{display:block}
+  .topbar{left:0}
+  .menu-btn{display:flex}
+  .main{margin-left:0}
+  .stats-row{grid-template-columns:1fr 1fr;gap:10px}
+  .kpi-value{font-size:20px}
+  table{display:none}
+  .m-cards{display:block}
+  .detail-grid{grid-template-columns:1fr 1fr}
+  .form-grid{grid-template-columns:1fr}
+  .page{padding:14px 12px}
+  .login-wrap{flex-direction:column;gap:32px}
+  .login-brand-side{text-align:center;max-width:100%}
+  .login-features{display:none}
+  .grid-3{grid-template-columns:1fr 1fr}
+}
+@media(max-width:480px){
+  .stats-row{grid-template-columns:1fr 1fr;gap:8px}
+  .detail-grid{grid-template-columns:1fr}
+  .login-card{width:100%;padding:28px 20px}
+  .grid-3{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN ═══ -->
+<div id="loginPage">
+  <div class="login-wrap">
+    <div class="login-brand-side">
+      <span class="logo">🚐</span>
+      <h1>旅乘 ERP<br>管理系統</h1>
+      <p>日本自由行包車訂單、財務、<br>客服業務一站式管理平台</p>
+      <div class="login-features">
+        <div class="login-feature"><span>📋</span> 訂單全流程管理</div>
+        <div class="login-feature"><span>💳</span> 收款自動對帳</div>
+        <div class="login-feature"><span>🍊</span> 即時財務報表</div>
+        <div class="login-feature"><span>🔐</span> 角色權限控管</div>
+      </div>
+    </div>
+    <div class="login-card">
+      <div class="login-card-logo">🚐</div>
+      <div class="login-card-title">歡迎登入</div>
+      <div class="login-card-sub">旅乘 ERP 管理系統 · 僅限授權人員</div>
+      <button class="btn-google" onclick="doLogin()">
+        <svg viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        使用 Google 帳號登入
+      </button>
+      <div class="login-sep">系統資訊</div>
+      <div class="login-note">此系統僅限授權人員使用<br>如需申請帳號，請聯繫管理員 Jun</div>
+    </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="app">
+  <div class="sidebar-overlay" id="sbOverlay" onclick="closeSb()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <div class="sb-brand-icon">🚐</div>
+      <div class="sb-brand-text">
+        <div class="sb-brand-name">旅乘 ERP</div>
+        <div class="sb-brand-sub">日本自由行包車</div>
+      </div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-section">主要功能</div>
+      <div class="sb-item active" onclick="goPage('dashboard',this)"><span class="ic">🍊</span>Dashboard</div>
+      <div class="sb-item" onclick="goPage('orders',this)"><span class="ic">📋</span>訂單管理<span class="sb-badge" id="pendingBadge">3</span></div>
+      <div class="sb-item" onclick="goPage('payment',this)"><span class="ic">💳</span>收款對帳<span class="sb-badge" style="background:var(--yellow)">2</span></div>
+      <div class="sb-section">財務</div>
+      <div class="sb-item" onclick="goPage('finance',this)"><span class="ic">📈</span>財務報表</div>
+      <div class="sb-item" onclick="goPage('exchange',this)"><span class="ic">💱</span>換匯紀錄</div>
+      <div class="sb-section">客戶 / 系統</div>
+      <div class="sb-item" onclick="goPage('customers',this)"><span class="ic">👤</span>客戶資料庫</div>
+      <div class="sb-item" onclick="goPage('settings',this)"><span class="ic">⚙️</span>系統設定</div>
+    </nav>
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-avatar">J</div>
+        <div><div class="sb-uname">Jun</div><div class="sb-urole">👑 超級管理者</div></div>
+        <button class="btn-logout" onclick="doLogout()">登出</button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="topbar">
+    <button class="menu-btn" onclick="toggleSb()">☰</button>
+    <div class="topbar-title" id="topbarTitle">Dashboard</div>
+    <div class="topbar-right">
+      <span class="topbar-chip" id="topbarMonth"></span>
+      <button class="notif-btn">🔔<span class="notif-dot"></span></button>
+    </div>
+  </div>
+
+  <main class="main">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-head">
+        <div class="page-head-left"><h2>Dashboard</h2><p>旅乘業務概覽 · 即時數據</p></div>
+      </div>
+      <div class="stats-row">
+        <div class="kpi blue">
+          <div class="kpi-icon">📋</div>
+          <div class="kpi-label">本月訂單數</div>
+          <div class="kpi-value" id="kpi-orders">47</div>
+          <div class="kpi-sub">出車行程筆數 <span class="kpi-badge badge-up">↑ 12%</span></div>
+        </div>
+        <div class="kpi green">
+          <div class="kpi-icon">💰</div>
+          <div class="kpi-label">台幣訂金收款</div>
+          <div class="kpi-value">$865,675</div>
+          <div class="kpi-sub">本月已收 <span class="kpi-badge badge-up">↑ 8%</span></div>
+        </div>
+        <div class="kpi purple">
+          <div class="kpi-icon">¥</div>
+          <div class="kpi-label">日幣總額</div>
+          <div class="kpi-value">¥3,934K</div>
+          <div class="kpi-sub">含尾款待收 <span class="kpi-badge badge-down">↓ 3%</span></div>
+        </div>
+        <div class="kpi gold">
+          <div class="kpi-icon">⚠️</div>
+          <div class="kpi-label">待處理事項</div>
+          <div class="kpi-value">3</div>
+          <div class="kpi-sub"><span class="kpi-badge badge-warn">需要處理</span></div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-hd">
+            <span class="card-title">📈 月份業績趨勢（台幣訂金）</span>
+            <span class="badge b-blue">近6個月</span>
+          </div>
+          <div class="card-body">
+            <div class="chart-wrap"><canvas id="revenueChart"></canvas></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd">
+            <span class="card-title">⚠️ 待處理事項</span>
+            <span class="badge b-red">3 項待辦</span>
+          </div>
+          <div class="card-body card-body-0" style="padding:0 20px">
+            <div class="al-item">
+              <div class="al-icon">💳</div>
+              <div><div class="al-t">未核對入帳 2 筆</div><div class="al-s">$2,860 + $1,540 尚未對應訂單號</div></div>
+              <div class="al-action"><button class="btn btn-ghost btn-xs" onclick="goPage('payment',document.querySelectorAll('.sb-item')[2])">前往</button></div>
+            </div>
+            <div class="al-item">
+              <div class="al-icon">📨</div>
+              <div><div class="al-t">確認訊息未發送 1 筆</div><div class="al-s">訂單 #26042201 尚未發送行程確認</div></div>
+              <div class="al-action"><button class="btn btn-ghost btn-xs" onclick="openDetail('#26042201')">查看</button></div>
+            </div>
+            <div class="al-item">
+              <div class="al-icon">💴</div>
+              <div><div class="al-t">日幣尾款未收 5 筆</div><div class="al-s">本月合計待收 ¥187,000</div></div>
+              <div class="al-action"><button class="btn btn-ghost btn-xs" onclick="goPage('orders',document.querySelectorAll('.sb-item')[1])">前往</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-hd">
+            <span class="card-title">📅 近期出車行程</span>
+            <button class="btn btn-ghost btn-sm" onclick="goPage('orders',document.querySelectorAll('.sb-item')[1])">查看全部</button>
+          </div>
+          <div class="card-body card-body-0" style="padding:0 20px">
+            <div class="tl-item">
+              <div class="tl-dot" style="background:#eff6ff">🚐</div>
+              <div class="tl-content"><div class="t">張瑋翔 — 成田機場接送</div><div class="s">7座 · 李勇軍 · 06:00</div></div>
+              <div class="tl-right"><div class="am">¥18,000</div><div class="dt"><span class="badge b-green">今天</span></div></div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot" style="background:#f0fdfa">🗻</div>
+              <div class="tl-content"><div class="t">何卉妤 — 富士山一日遊</div><div class="s">10座 · 九州-小王 · 09:00</div></div>
+              <div class="tl-right"><div class="am">¥65,000</div><div class="dt"><span class="badge b-blue">4/24</span></div></div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot" style="background:#fdf4ff">✈️</div>
+              <div class="tl-content"><div class="t">游淑娟 — 羽田機場送機</div><div class="s">7座 · 李勇軍 · 11:15</div></div>
+              <div class="tl-right"><div class="am">¥12,000</div><div class="dt"><span class="badge b-gray">4/25</span></div></div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot" style="background:#fffbeb">🦌</div>
+              <div class="tl-content"><div class="t">羅敬媛 — 九州動物園</div><div class="s">10座 · 九州-小王 · 09:00</div></div>
+              <div class="tl-right"><div class="am">¥65,000</div><div class="dt"><span class="badge b-gray">4/26</span></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><span class="card-title">👥 本月客服業績</span><span class="badge b-navy">2026年4月</span></div>
+          <div class="card-body">
+            <div class="perf-grid">
+              <div class="perf-card">
+                <div class="perf-avatar">C</div>
+                <div class="perf-name">Christina</div>
+                <div class="perf-val">$84,471</div>
+                <div class="perf-sub">客服獎金</div>
+              </div>
+              <div class="perf-card">
+                <div class="perf-avatar" style="background:linear-gradient(135deg,var(--teal),#06b6d4)">R</div>
+                <div class="perf-name">Renjun</div>
+                <div class="perf-val">$19,409</div>
+                <div class="perf-sub">客服獎金</div>
+              </div>
+              <div class="perf-card">
+                <div class="perf-avatar" style="background:linear-gradient(135deg,var(--purple),#a855f7)">W</div>
+                <div class="perf-name">Wei</div>
+                <div class="perf-val">$67,032</div>
+                <div class="perf-sub">客服獎金</div>
+              </div>
+              <div class="perf-card">
+                <div class="perf-avatar" style="background:linear-gradient(135deg,var(--gold),#fbbf24)">D</div>
+                <div class="perf-name">David</div>
+                <div class="perf-val">$161</div>
+                <div class="perf-sub">客服獎金</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ORDERS ── -->
+    <div class="page" id="page-orders">
+      <div class="page-head">
+        <div class="page-head-left"><h2>訂單管理</h2><p>共 <span id="orderCount">7</span> 筆訂單</p></div>
+        <button class="btn btn-primary" onclick="openNew()">＋ 新增訂單</button>
+      </div>
+      <div class="filter-bar">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="搜尋訂單號、姓名、電話…" id="srch" oninput="filterOrders()">
+        </div>
+        <select class="fsel" id="fMonth" onchange="filterOrders()">
+          <option value="">所有月份</option>
+          <option value="2026/04" selected>2026年4月</option>
+          <option value="2026/03">2026年3月</option>
+          <option value="2026/02">2026年2月</option>
+          <option value="2026/01">2026年1月</option>
+        </select>
+        <select class="fsel" id="fCS" onchange="filterOrders()">
+          <option value="">所有業務</option>
+          <option>WTGT-15%</option><option>Jun-20%</option><option>Jun-10%</option>
+        </select>
+        <select class="fsel" id="fSt" onchange="filterOrders()">
+          <option value="">所有狀態</option>
+          <option value="confirmed">已確認</option>
+          <option value="pending">待確認</option>
+          <option value="completed">已完成</option>
+        </select>
+        <select class="fsel" id="fVh" onchange="filterOrders()">
+          <option value="">所有車型</option>
+          <option value="7座">7座</option>
+          <option value="10座">10座</option>
+          <option value="14座">14座</option>
+        </select>
+      </div>
+      <div class="card">
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>訂單編號 <span class="sort">↕</span></th>
+                <th>出車日期 <span class="sort">↕</span></th>
+                <th>客戶姓名</th>
+                <th>行程概要</th>
+                <th>車型 / 司機</th>
+                <th>台幣訂金</th>
+                <th>日幣總額</th>
+                <th>狀態</th>
+                <th>業務</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="orderTbody"></tbody>
+          </table>
+        </div>
+        <div class="m-cards" id="orderMCards"></div>
+        <div class="pager">
+          <span class="pager-info" id="pagerInfo"></span>
+          <div class="pager-btns">
+            <button class="pg-btn">‹</button>
+            <button class="pg-btn active">1</button>
+            <button class="pg-btn">2</button>
+            <button class="pg-btn">›</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAYMENT ── -->
+    <div class="page" id="page-payment">
+      <div class="page-head">
+        <div class="page-head-left"><h2>收款對帳</h2><p>銀行入帳 vs 訂單核對</p></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="badge b-red">2 筆未核對</span>
+          <button class="btn btn-primary btn-sm">⚡ 一鍵自動核對</button>
+        </div>
+      </div>
+      <div class="stats-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
+        <div class="kpi blue"><div class="kpi-icon">💰</div><div class="kpi-label">本月入帳總計</div><div class="kpi-value" style="font-size:20px">$865,675</div><div class="kpi-sub">共 87 筆入帳</div></div>
+        <div class="kpi green"><div class="kpi-icon">✅</div><div class="kpi-label">已核對</div><div class="kpi-value" style="font-size:20px">85 筆</div><div class="kpi-sub">全額相符</div></div>
+        <div class="kpi gold"><div class="kpi-icon">❓</div><div class="kpi-label">未核對</div><div class="kpi-value" style="font-size:20px">2 筆</div><div class="kpi-sub">需手動確認</div></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><span class="card-title">💳 入帳明細</span>
+          <select class="fsel" style="font-size:11px"><option>所有狀態</option><option>✅ 已核對</option><option>❌ 未核對</option></select>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>日期</th><th>金額</th><th>時間</th><th>帳號後碼</th><th>摘要</th><th>對應訂單</th><th>核對狀態</th><th>備註</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>2026/04/22</td><td class="td-money" style="color:var(--red)">$2,860</td>
+                <td style="font-size:11px;color:var(--muted)">00:01:31</td>
+                <td><code style="background:var(--bg);padding:2px 7px;border-radius:4px;font-size:11px;font-family:monospace">44725</code></td>
+                <td><span class="badge b-gray">ATM轉</span></td>
+                <td><span class="badge b-red">未填入</span></td>
+                <td><div class="pay-status-ng">⚠️ 未核對</div></td>
+                <td style="color:var(--muted2);font-size:11px">—</td>
+                <td><div class="td-actions"><button class="ia ia-edit">補填訂單號</button></div></td>
+              </tr>
+              <tr>
+                <td>2026/04/22</td><td class="td-money" style="color:var(--red)">$1,540</td>
+                <td style="font-size:11px;color:var(--muted)">08:35:24</td>
+                <td><code style="background:var(--bg);padding:2px 7px;border-radius:4px;font-size:11px;font-family:monospace">05368</code></td>
+                <td><span class="badge b-gray">ATM轉</span></td>
+                <td><span class="badge b-red">未填入</span></td>
+                <td><div class="pay-status-ng">⚠️ 未核對</div></td>
+                <td style="color:var(--muted2);font-size:11px">—</td>
+                <td><div class="td-actions"><button class="ia ia-edit">補填訂單號</button></div></td>
+              </tr>
+              <tr>
+                <td>2026/04/21</td><td class="td-money">$2,200</td>
+                <td style="font-size:11px;color:var(--muted)">11:13:28</td>
+                <td><code style="background:var(--bg);padding:2px 7px;border-radius:4px;font-size:11px;font-family:monospace">76626</code></td>
+                <td><span class="badge b-gray">ATM轉</span></td>
+                <td><span class="badge b-blue">#26042101</span></td>
+                <td><div class="pay-status-ok">✅ 已核對</div></td>
+                <td style="font-size:11px;color:var(--muted)">1/2包車訂金</td>
+                <td><div class="td-actions"><button class="ia ia-view">查看訂單</button></div></td>
+              </tr>
+              <tr>
+                <td>2026/04/21</td><td class="td-money">$2,420</td>
+                <td style="font-size:11px;color:var(--muted)">13:25:14</td>
+                <td><code style="background:var(--bg);padding:2px 7px;border-radius:4px;font-size:11px;font-family:monospace">30561</code></td>
+                <td><span class="badge b-gray">ATM轉</span></td>
+                <td><span class="badge b-blue">#26042102</span></td>
+                <td><div class="pay-status-ok">✅ 已核對</div></td>
+                <td style="font-size:11px;color:var(--muted)">金澤包車</td>
+                <td><div class="td-actions"><button class="ia ia-view">查看訂單</button></div></td>
+              </tr>
+              <tr>
+                <td>2026/04/20</td><td class="td-money">$4,400</td>
+                <td style="font-size:11px;color:var(--muted)">23:00:36</td>
+                <td><code style="background:var(--bg);padding:2px 7px;border-radius:4px;font-size:11px;font-family:monospace">09874</code></td>
+                <td><span class="badge b-gray">網路轉</span></td>
+                <td><span class="badge b-blue">#26042010</span></td>
+                <td><div class="pay-status-ok">✅ 已核對</div></td>
+                <td style="font-size:11px;color:var(--muted)">姬佩珊</td>
+                <td><div class="td-actions"><button class="ia ia-view">查看訂單</button></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── FINANCE ── -->
+    <div class="page" id="page-finance">
+      <div class="page-head"><div class="page-head-left"><h2>財務報表</h2><p>收支概覽與獎金計算</p></div></div>
+      <div class="stats-row" style="margin-bottom:16px">
+        <div class="kpi blue"><div class="kpi-icon">📥</div><div class="kpi-label">本月台幣淨利</div><div class="kpi-value" style="font-size:18px">$1,230,874</div><div class="kpi-sub">扣除司機費後</div></div>
+        <div class="kpi purple"><div class="kpi-icon">¥</div><div class="kpi-label">本月日幣淨利</div><div class="kpi-value" style="font-size:18px">¥5,593K</div><div class="kpi-sub">扣除司機費後</div></div>
+        <div class="kpi gold"><div class="kpi-icon">💸</div><div class="kpi-label">本月支出費用</div><div class="kpi-value" style="font-size:18px">$65,250</div><div class="kpi-sub">廣告+薪資</div></div>
+        <div class="kpi green"><div class="kpi-icon">🎁</div><div class="kpi-label">客服獎金合計</div><div class="kpi-value" style="font-size:18px">$152,253</div><div class="kpi-sub">待發放</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-hd"><span class="card-title">📊 月份收支紀錄</span></div>
+          <div class="tbl-wrap">
+            <table style="min-width:auto">
+              <thead><tr><th>月份</th><th>台幣訂金</th><th>日幣總額</th><th>客服獎金</th></tr></thead>
+              <tbody>
+                <tr><td>2026年4月</td><td class="td-money">$865,675</td><td class="td-money" style="color:var(--purple)">¥3,934,453</td><td>$152,253</td></tr>
+                <tr><td>2026年3月</td><td class="td-money">$1,299,330</td><td class="td-money" style="color:var(--purple)">¥5,906,047</td><td>$173,511</td></tr>
+                <tr><td>2026年2月</td><td class="td-money">$1,143,208</td><td class="td-money" style="color:var(--purple)">¥5,194,400</td><td>$218,729</td></tr>
+                <tr><td>2026年1月</td><td class="td-money">$1,022,454</td><td class="td-money" style="color:var(--purple)">¥4,647,518</td><td>$152,197</td></tr>
+                <tr><td>2025年12月</td><td class="td-money">$709,634</td><td class="td-money" style="color:var(--purple)">¥3,219,973</td><td>$127,804</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><span class="card-title">💸 近期支出費用</span></div>
+          <div class="tbl-wrap">
+            <table style="min-width:auto">
+              <thead><tr><th>日期</th><th>項目</th><th>金額</th><th>代墊</th></tr></thead>
+              <tbody>
+                <tr><td style="font-size:11px">2026/03/17</td><td>FB廣告</td><td class="td-money" style="color:var(--red)">$65,250</td><td style="font-size:11px;color:var(--muted)">JUN星展</td></tr>
+                <tr><td style="font-size:11px">2026/03/01</td><td>薪資 Kris</td><td class="td-money">$70,000</td><td style="font-size:11px;color:var(--muted)">—</td></tr>
+                <tr><td style="font-size:11px">2026/03/01</td><td>薪資 小楊</td><td class="td-money">$38,500</td><td style="font-size:11px;color:var(--muted)">—</td></tr>
+                <tr><td style="font-size:11px">2026/02/28</td><td>稅金 佳遊</td><td class="td-money">$6,099</td><td style="font-size:11px;color:var(--muted)">—</td></tr>
+                <tr><td style="font-size:11px">2026/02/13</td><td>FB廣告</td><td class="td-money" style="color:var(--red)">$111,752</td><td style="font-size:11px;color:var(--muted)">JUN星展</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── EXCHANGE ── -->
+    <div class="page" id="page-exchange">
+      <div class="page-head"><div class="page-head-left"><h2>換匯紀錄</h2><p>台幣 ↔ 日幣換匯歷史</p></div></div>
+      <div class="card">
+        <div class="card-hd">
+          <span class="card-title">💱 換匯明細</span>
+          <span class="badge b-navy">合計換匯：NT$4,207,700 → ¥21,072,596</span>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>日期時間</th><th>台幣金額</th><th>日幣金額</th><th>匯率</th><th>備註</th></tr></thead>
+            <tbody>
+              <tr><td style="font-size:12px">2026/04/20 14:43</td><td class="td-money">$400,000</td><td class="td-money" style="color:var(--purple)">¥2,013,085</td><td><code style="font-size:12px">0.1987</code></td><td style="font-size:11px;color:var(--muted)">日本賞換匯禮遇</td></tr>
+              <tr><td style="font-size:12px">2026/04/13 10:11</td><td class="td-money">$230,000</td><td class="td-money" style="color:var(--purple)">¥1,115,2305</td><td><code style="font-size:12px">0.1996</code></td><td style="font-size:11px;color:var(--muted)">CUBE精選貴賓優惡</td></tr>
+              <tr><td style="font-size:12px">2026/02/09 11:39</td><td class="td-money">$303,150</td><td class="td-money" style="color:var(--purple)">¥1,500,000</td><td><code style="font-size:12px">0.2021</code></td><td style="font-size:11px;color:var(--muted)">CUBE精選貴賓優惠(C換)</td></tr>
+              <tr><td style="font-size:12px">2026/01/23 15:34</td><td class="td-money">$298,950</td><td class="td-money" style="color:var(--purple)">¥1,500,000</td><td><code style="font-size:12px">0.1993</code></td><td style="font-size:11px;color:var(--muted)">敢位通路優惠(C換)</td></tr>
+              <tr><td style="font-size:12px">2026/01/14 16:13</td><td class="td-money">$300,000</td><td class="td-money" style="color:var(--purple)">¥1,502,253</td><td><code style="font-size:12px">0.1997</code></td><td style="font-size:11px;color:var(--muted)">CUBEsend</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CUSTOMERS ── -->
+    <div class="page" id="page-customers">S ── -->
+    <div class="page" id="page-customers">
+      <div class="page-head"><div class="page-head-left"><h2>客戶資料庫</h2><p>搜尋與管理所有客戶</p></div></div>
+      <div class="filter-bar">
+        <div class="search-box" style="flex:1"><span class="search-icon">🔍</span><input type="text" placeholder="搜尋姓名、電話、LINE…"></div>
+        <select class="fsel"><option>所有來源</option><option>粉專</option><option>LINE</option><option>IG</option></select>
+      </div>
+      <div class="card">
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>姓名</th><th>電話</th><th>LINE ID</th><th>Email</th><th>來源管道</th><th>訂單數</th><th>最近訂單</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr><td class="td-name">張瑋翔</td><td>0981620953</td><td style="font-size:11px;color:var(--muted)">feo062879</td><td style="font-size:11px">feo062879@gmail.com</td><td><span class="badge b-teal">Dcard</span></td><td><span class="badge b-purple">2 筆</span></td><td style="font-size:11px">2026/04/22</td><td><button class="ia ia-view">查看訂單</button></td></tr>
+              <tr><td class="td-name">何卉妤</td><td>0935051580</td><td style="font-size:11px;color:var(--muted)">hohuiyu43</td><td style="font-size:11px">huiyu43@yahoo.com.tw</td><td><span class="badge b-blue">FB討論區</span></td><td><span class="badge b-purple">2 筆</span></td><td style="font-size:11px">2026/04/23</td><td><button class="ia ia-view">查看訂單</button></td></tr>
+              <tr><td class="td-name">游淑娟</td><td>0961135497</td><td style="font-size:11px;color:var(--muted)">hrcgp777</td><td style="font-size:11px">hrcgp777@gmail.com</td><td><span class="badge b-green">FB粉專</span></td><td><span class="badge b-purple">1 筆</span></td><td style="font-size:11px">2026/04/25</td><td><button class="ia ia-view">查看訂單</button></td></tr>
+              <tr><td class="td-name">羅敬媛</td><td>0930178125</td><td style="font-size:11px;color:var(--muted)">miki811125</td><td style="font-size:11px">george811125@gmail.com</td><td><span class="badge b-green">FB粉專</span></td><td><span class="badge b-purple">1 筆</span></td><td style="font-size:11px">2026/04/26</td><td><button class="ia ia-view">查看訂單</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS ── -->
+    <div class="page" id="page-settings">
+      <div class="page-head"><div class="page-head-left"><h2>系統設定</h2><p>使用者管理與連線設定</p></div></div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-hd"><span class="card-title">👥 使用者管理</span><button class="btn btn-primary btn-sm">＋ 新增</button></div>
+          <div class="card-body">
+            <table style="width:100%;border-collapse:collapse;min-width:auto">
+              <thead><tr style="border-bottom:1px solid var(--border)"><th style="padding:6px 0;text-align:left;font-size:11px;color:var(--muted)">使用者</th><th style="padding:6px 0;text-align:left;font-size:11px;color:var(--muted)">角色</th><th style="font-size:11px;color:var(--muted)">操作</th></tr></thead>
+              <tbody>
+                <tr style="border-bottom:1px solid var(--bg)"><td style="padding:9px 0"><div style="font-weight:700;font-size:13px">Jun（你）</div><div style="font-size:11px;color:var(--muted)">designbyjun@gmail.com</div></td><td><span class="badge b-red">👑 超管</span></td><td style="text-align:center;font-size:11px;color:var(--muted)">—</td></tr>
+                <tr style="border-bottom:1px solid var(--bg)"><td style="padding:9px 0"><div style="font-weight:700;font-size:13px">Christina</div><div style="font-size:11px;color:var(--muted)">christina@gmail.com</div></td><td><span class="badge b-blue">🎧 客服</span></td><td style="text-align:center"><button class="ia ia-edit">修改</button></td></tr>
+                <tr style="border-bottom:1px solid var(--bg)"><td style="padding:9px 0"><div style="font-weight:700;font-size:13px">Renjun</div><div style="font-size:11px;color:var(--muted)">renjun@gmail.com</div></td><td><span class="badge b-blue">🎧 客服</span></td><td style="text-align:center"><button class="ia ia-edit">修改</button></td></tr>
+                <tr><td style="padding:9px 0"><div style="font-weight:700;font-size:13px">Wei</div><div style="font-size:11px;color:var(--muted)">wei@gmail.com</div></td><td><span class="badge b-blue">🎧 客服</span></td><td style="text-align:center"><button class="ia ia-edit">修改</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><span class="card-title">🔗 Google Sheets 連線狀態</span></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+            <div style="padding:13px;background:var(--bg);border-radius:var(--radius-sm);display:flex;align-items:center;gap:12px">
+              <span style="font-size:20px">📋</span>
+              <div><div style="font-weight:700;font-size:13px">旅乘-日本自由行包車</div><div style="font-size:11px;color:var(--muted)">主訂單資料庫</div></div>
+              <span class="badge b-green" style="margin-left:auto">● 已連線</span>
+            </div>
+            <div style="padding:13px;background:var(--bg);border-radius:var(--radius-sm);display:flex;align-items:center;gap:12px">
+              <span style="font-size:20px">💳</span>
+              <div><div style="font-weight:700;font-size:13px">旅乘-客戶匯款確認</div><div style="font-size:11px;color:var(--muted)">入帳對帳資料</div></div>
+              <span class="badge b-green" style="margin-left:auto">● 已連線</span>
+            </div>
+            <div style="padding:13px;background:var(--bg);border-radius:var(--radius-sm);display:flex;align-items:center;gap:12px">
+              <span style="font-size:20px">🍊</span>
+              <div><div style="font-weight:700;font-size:13px">旅乘帳款</div><div style="font-size:11px;color:var(--muted)">財務總帳</div></div>
+              <span class="badge b-green" style="margin-left:auto">● 已連線</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══ ORDER DETAIL MODAL ═══ -->
+<div class="modal-bg" id="detailMd">
+  <div class="modal">
+    <div class="modal-hd">
+      <div><div class="modal-title" id="detailTitle">訂單詳情</div><div class="modal-sub" id="detailSub"></div></div>
+      <button class="modal-x" onclick="closeMd('detailMd')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="detailBadges" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px"></div>
+      <div class="ds">📅 行程資訊</div>
+      <div class="detail-grid">
+        <div class="df"><label>出車日期</label><span id="dd-date"></span></div>
+        <div class="df"><label>預計時間</label><span id="dd-time"></span></div>
+        <div class="df"><label>車型</label><span id="dd-vehicle"></span></div>
+        <div class="df" style="grid-column:span 2"><label>出發地</label><span id="dd-from" style="font-size:12px"></span></div>
+        <div class="df"><label>目的地</label><span id="dd-to" style="font-size:12px"></span></div>
+        <div class="df"><label>值班司機</label><span id="dd-driver"></span></div>
+        <div class="df"><label>乘車人數</label><span id="dd-pax"></span></div>
+        <div class="df"><label>行李</label><span id="dd-luggage"></span></div>
+        <div class="df"><label>安全座椅</label><span id="dd-seat"></span></div>
+      </div>
+      <div class="ds">👤 客戶資訊</div>
+      <div class="detail-grid">
+        <div class="df"><label>姓名</label><span id="dd-name"></span></div>
+        <div class="df"><label>電話</label><span id="dd-phone"></span></div>
+        <div class="df"><label>LINE</label><span id="dd-line"></span></div>
+        <div class="df" style="grid-column:span 2"><label>Email</label><span id="dd-email" style="font-size:12px"></span></div>
+        <div class="df"><label>曝光管道</label><span id="dd-channel"></span></div>
+      </div>
+      <div class="ds">💰 財務資訊</div>
+      <div class="detail-grid">
+        <div class="df"><label>台幣訂金</label><span id="dd-twd" style="color:var(--green);font-weight:800;font-size:16px"></span></div>
+        <div class="df"><label>日幣總額</label><span id="dd-jpy" style="color:var(--purple);font-weight:800;font-size:16px"></span></div>
+        <div class="df"><label>日幣尾款</label><span id="dd-jpybal"></span></div>
+        <div class="df"><label>司機費</label><span id="dd-driverfee"></span></div>
+        <div class="df"><label>分潤</label><span id="dd-split"></span></div>
+        <div class="df"><label>帳號後碼</label><span id="dd-acct"></span></div>
+      </div>
+      <div class="ds">📝 備註</div>
+      <div id="dd-notes" style="background:var(--bg);padding:12px;border-radius:var(--radius-sm);font-size:13px;min-height:38px;color:var(--text2)"></div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="closeMd('detailMd')">關閉</button>
+      <button class="btn btn-primary" onclick="openEditFromDetail()">✏️ 編輯訂單</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ORDER FORM MODAL ═══ -->
+<div class="modal-bg" id="orderMd">
+  <div class="modal">
+    <div class="modal-hd">
+      <div><div class="modal-title" id="orderMdTitle">新增訂單</div><div class="modal-sub">填寫完整訂單資訊</div></div>
+      <button class="modal-x" onclick="closeMd('orderMd')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-section">📅 行程資訊</div>
+        <div class="fg"><label>訂單編號</label><input class="fi readonly" id="f-id" readonly></div>
+        <div class="fg"><label>訂購日期</label><input class="fi" type="date" id="f-odate"></div>
+        <div class="fg"><label>出車日期</label><input class="fi" type="date" id="f-ddate"></div>
+        <div class="fg"><label>預計出發時間</label><input class="fi" type="time" id="f-time"></div>
+        <div class="fg full"><label>出發地</label><input class="fi" placeholder="飯店名稱 / 地址" id="f-from"></div>
+        <div class="fg full"><label>目的地</label><input class="fi" placeholder="機場 / 景點 / 地址" id="f-to"></div>
+        <div class="fg"><label>車型</label>
+          <select class="fi" id="f-vehicle"><option>7座舒適款</option><option>7座豪華款</option><option>10座豐田海獅</option><option>14座豐田海獅</option><option>19座考斯特</option></select>
+        </div>
+        <div class="fg"><label>值班司機</label><input class="fi" placeholder="司機名稱" id="f-driver"></div>
+        <div class="fg"><label>乘車人數</label><input class="fi" placeholder="例：4大2小" id="f-pax"></div>
+        <div class="fg"><label>行李箱大小</label><input class="fi" placeholder="例：4件28吋" id="f-luggage"></div>
+        <div class="fg"><label>安全座椅</label>
+          <select class="fi" id="f-seat"><option value="">不需要</option><option value="1">1個</option><option value="2">2個</option><option value="3">3個</option></select>
+        </div>
+        <div class="fg"><label>方案</label><input class="fi" placeholder="方案說明" id="f-plan"></div>
+        <div class="form-section">👤 客戶資訊</div>
+        <div class="fg"><label>訂購姓名</label><input class="fi" placeholder="客戶姓名" id="f-name"></div>
+        <div class="fg"><label>電話</label><input class="fi" placeholder="09xxxxxxxx" id="f-phone"></div>
+        <div class="fg"><label>LINE ID</label><input class="fi" id="f-line"></div>
+        <div class="fg"><label>Email</label><input class="fi" type="email" id="f-email"></div>
+        <div class="fg"><label>曝光管道</label>
+          <select class="fi" id="f-ch"><option>粉專</option><option>LINE</option><option>FB私訊</option><option>IG</option><option>Dcard</option><option>Jun親友</option></select>
+        </div>
+        <div class="fg"><label>FB名稱</label><input class="fi" id="f-fb"></div>
+        <div class="form-section">💰 財務資訊</div>
+        <div class="fg"><label>台幣訂金 (NT$)</label><input class="fi" type="number" placeholder="0" id="f-twd"></div>
+        <div class="fg"><label>日幣總額 (¥)</label><input class="fi" type="number" placeholder="0" id="f-jpy"></div>
+        <div class="fg"><label>日幣尾款 (¥)</label><input class="fi" type="number" placeholder="0" id="f-jpybal"></div>
+        <div class="fg"><label>司機費 (¥)</label><input class="fi" type="number" placeholder="0" id="f-drvfee"></div>
+        <div class="fg"><label>帳號後碼</label><input class="fi" placeholder="後5碼" id="f-acct"></div>
+        <div class="fg"><label>分潤</label>
+          <select class="fi" id="f-split"><option>WTGT-15%</option><option>Jun-20%</option><option>Jun-10%</option></select>
+        </div>
+        <div class="fg full"><label>備註</label><textarea class="fi" rows="3" id="f-notes" style="resize:vertical"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="closeMd('orderMd')">取消</button>
+      <button class="btn btn-primary" onclick="saveOrder()">💾 儲存訂單</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+// ── DATA ──
+const ORDERS = [
+  {id:'#26042201',odate:'2026/04/22',ddate:'2026/04/22',name:'張瑋翔',phone:'0981620953',line:'feo062879',email:'feo062879@gmail.com',ch:'Dcard',fb:'',from:'HOUSE IKEBUKURO',to:'東京成田T1-VN311-9:30飛',vehicle:'7座舒適款',driver:'東京-李勇軍',pax:'4大',luggage:'4件',seat:'',time:'06:00',twd:880,jpy:18000,jpyBal:0,drvfee:18000,split:'WTGT-15%',status:'confirmed',notes:'VN311-9:30飛',plan:''},
+  {id:'#26042102',odate:'2026/04/21',ddate:'2026/04/22',name:'徐苡庭',phone:'0922086602',line:'0922086602',email:'puppy0925@yahoo.com.tw',ch:'FB粉專',fb:'Fandyhsu',from:'東京日和',to:'富士山一日遊往返',vehicle:'10座豐田海獅',driver:'九州-小王',pax:'6大',luggage:'隨身行李',seat:'',time:'09:00',twd:440,jpy:25000,jpyBal:21000,drvfee:19000,split:'WTGT-15%',status:'confirmed',notes:'',plan:''},
+  {id:'#26042101',odate:'2026/04/21',ddate:'2026/04/23',name:'何卉妤',phone:'0935051580',line:'hohuiyu43',email:'huiyu43@yahoo.com.tw',ch:'FB討論區',fb:'何小宇',from:'池袋飯店',to:'富士山一日遊',vehicle:'10座豐田海獅',driver:'九州-小王',pax:'5大2小',luggage:'10-12件28吋',seat:'1',time:'09:00',twd:2542,jpy:65000,jpyBal:29193,drvfee:65000,split:'Jun-10%',status:'pending',notes:'行李較多，需確認空間',plan:''},
+  {id:'#26042010',odate:'2026/04/20',ddate:'2026/04/25',name:'游淑娟',phone:'0961135497',line:'hrcgp777',email:'hrcgp777@gmail.com',ch:'FB粉專',fb:'Patty Yu',from:'福岡國際機場',to:'天神飯店',vehicle:'7座舒適款',driver:'九州-福岡',pax:'3大',luggage:'4件',seat:'',time:'11:15',twd:440,jpy:12000,jpyBal:0,drvfee:12000,split:'WTGT-15%',status:'confirmed',notes:'長榮BR106-11:15著',plan:''},
+  {id:'#26042011',odate:'2026/04/20',ddate:'2026/04/26',name:'羅敬媛',phone:'0930178125',line:'miki811125',email:'george811125@gmail.com',ch:'FB粉專',fb:'羅敬媛',from:'天神飯店',to:'九州動物園+由布院',vehicle:'10座豐田海獅',driver:'九州-小王',pax:'4大1小',luggage:'4件+2小件',seat:'1',time:'09:00',twd:660,jpy:65000,jpyBal:0,drvfee:65000,split:'WTGT-15%',status:'confirmed',notes:'',plan:''},
+  {id:'#26042301',odate:'2026/04/19',ddate:'2026/04/27',name:'陳美玲',phone:'0912345678',line:'meiling123',email:'meiling@gmail.com',ch:'LINE',fb:'',from:'關西機場',to:'大阪市區飯店',vehicle:'7座舒適款',driver:'大阪-小田',pax:'2大',luggage:'2件',seat:'',time:'15:30',twd:1320,jpy:15000,jpyBal:12000,drvfee:15000,split:'WTGT-15%',status:'pending',notes:'華航CI155',plan:''},
+  {id:'#26042501',odate:'2026/04/18',ddate:'2026/04/29',name:'王建民',phone:'0966123456',line:'jianmin',email:'jianmin@gmail.com',ch:'粉專',fb:'王建民',from:'新宿飯店',to:'羽田機場T3',vehicle:'7座豪華款',driver:'東京-李勇軍',pax:'6大',luggage:'10件28吋',seat:'',time:'10:00',twd:3520,jpy:40000,jpyBal:0,drvfee:40000,split:'WTGT-15%',status:'completed',notes:'長榮BR189-12:00飛',plan:''},
+];
+
+const ST = {confirmed:{label:'已確認',cls:'b-green'},pending:{label:'待確認',cls:'b-yellow'},completed:{label:'已完成',cls:'b-blue'}};
+let currentDetailId = null;
+
+// ── CHART ──
+function initChart(){
+  const ctx = document.getElementById('revenueChart');
+  if(!ctx) return;
+  new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:['11月','12月','1月','2月','3月','4月'],
+      datasets:[{
+        label:'台幣訂金 (萬元)',
+        data:[57.8,70.9,102.2,114.3,129.9,86.6],
+        backgroundColor:'rgba(37,99,235,.15)',
+        borderColor:'rgba(37,99,235,.7)',
+        borderWidth:2,
+        borderRadius:6,
+        hoverBackgroundColor:'rgba(37,99,235,.25)',
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'NT$ '+ctx.raw+'萬'}}},
+      scales:{
+        y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:11},callback:v=>v+'萬'}},
+        x:{grid:{display:false},ticks:{font:{size:11}}}
+      }
+    }
+  });
+}
+
+// ── LOGIN ──
+function doLogin(){
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('app').style.display='block';
+  renderOrders(ORDERS);
+  initChart();
+  const now=new Date();
+  document.getElementById('topbarMonth').textContent=now.getFullYear()+'噴'+(now.getMonth()+1)+'月';
+  toast('歡迎回來，Jun！','ok');
+}
+function doLogout(){
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginPage').style.display='flex';
+  toast('已成功登出');
+}
+
+// ── NAV ──
+const PAGE_TITLES={dashboard:'Dashboard',orders:'訂單管理',payment:'收款對帳',finance:'財務報表',exchange:'換匯紀錄',customers:'客戶資料庫',settings:'系統設定'};
+function goPage(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el) el.classList.add('active');
+  document.getElementById('topbarTitle').textContent=PAGE_TITLES[id]||id;
+  closeSb();
+}
+function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sbOverlay').classList.toggle('open')}
+function closeSb(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sbOverlay').classList.remove('open')}
+
+// ── ORDERS ──
+function renderOrders(list){
+  const tb=document.getElementById('orderTbody');
+  const mc=document.getElementById('orderMCards');
+  tb.innerHTML=''; mc.innerHTML='';
+  if(!list.length){
+    tb.innerHTML='<tr><td colspan="10"><div class="empty"><div class="ei">📭</div><p>沒有符合條件的訂單</p></div></td></tr>';
+    document.getElementById('orderCount').textContent='0';
+    document.getElementById('pagerInfo').textContent='無資料';
+    return;
+  }
+  list.forEach(o=>{
+    const s=ST[o.status];
+    tb.innerHTML+=`<tr>
+      <td><div class="td-order">${o.id}</div><div class="td-muted">${o.odate}</div></td>
+      <td>${o.ddate}</td>
+      <td><div class="td-name">${o.name}</div><div class="td-muted">${o.ch}</div></td>
+      <td><div class="td-route">${o.from}</div><div class="td-muted td-route">→ ${o.to}</div></td>
+      <td><div style="font-size:12px;font-weight:600">${o.vehicle}</div><div class="td-muted">${o.driver}</div></td>
+      <td><div class="td-money">$${o.twd.toLocaleString()}</div></td>
+      <td><div class="td-money td-jpy">¥${o.jpy.toLocaleString()}</div></td>
+      <td><span class="badge ${s.cls}">${s.label}</span></td>
+      <td><span class="badge b-navy" style="font-size:10px">${o.split}</span></td>
+      <td><div class="td-actions"><button class="ia ia-view" onclick="openDetail('${o.id}')">詳情</button><button class="ia ia-edit" onclick="openEdit('${o.id}')">編輯</button></div></td>
+    </tr>`;
+    mc.innerHTML+=`<div class="m-card">
+      <div class="m-card-top"><span class="m-card-id">${o.id}</span><span class="badge ${s.cls}">${s.label}</span></div>
+      <div class="m-card-grid">
+        <div class="m-field"><label>客戶</label><span>${o.name}</span></div>
+        <div class="m-field"><label>出車日期</label><span>${o.ddate}</span></div>
+        <div class="m-field"><label>車型</label><span style="font-size:11px">${o.vehicle}</span></div>
+        <div class="m-field"><label>司機</label><span style="font-size:11px">${o.driver}</span></div>
+        <div class="m-field"><label>台幣訂金</label><span style="color:var(--green)">$${o.twd.toLocaleString()}</span></div>
+        <div class="m-field"><label>日幣總額</label><span style="color:var(--purple)">¥${o.jpy.toLocaleString()}</span></div>
+      </div>
+      <div class="m-route">📍 ${o.from} → ${o.to}</div>
+      <div class="m-actions"><button class="ia ia-view" onclick="openDetail('${o.id}')">詳情</button><button class="ia ia-edit" onclick="openEdit('${o.id}')">編輯</button></div>
+    </div>`;
+  });
+  document.getElementById('orderCount').textContent=list.length;
+  document.getElementById('pagerInfo').textContent=`顯示 1–${Math.min(list.length,10)} / ${list.length} 筆`;
+}
+
+function filterOrders(){
+  const q=document.getElementById('srch').value.toLowerCase();
+  const mo=document.getElementById('fMonth').value;
+  const cs=document.getElementById('fCS').value;
+  const st=document.getElementById('fSt').value;
+  const vh=document.getElementById('fVh').value;
+  renderOrders(ORDERS.filter(o=>{
+    if(q&&!o.id.toLowerCase().includes(q)&&!o.name.toLowerCase().includes(q)&&!o.phone.includes(q)) return false;
+    if(mo&&!o.ddate.startsWith(mo)) return false;
+    if(cs&&o.split!==cs) return false;
+    if(st&&o.status!==st) return false;
+    if(vh&&!o.vehicle.includes(vh)) return false;
+    return true;
+  }));
+}
+
+// ── DETAIL ──
+function openDetail(id){
+  const o=ORDERS.find(x=>x.id===id); if(!o) return;
+  currentDetailId=id;
+  const s=ST[o.status];
+  document.getElementById('detailTitle').textContent='訂單詳情 — '+o.name;
+  document.getElementById('detailSub').textContent=o.id+' | 訂購日期：'+o.odate;
+  document.getElementById('detailBadges').innerHTML=`<span class="badge ${s.cls}">${s.label}</span><span class="badge b-navy">${o.split}</span><span class="badge b-gray">${o.vehicle}</span><span class="badge b-teal">${o.ch}</span>`;
+  document.getElementById('dd-date').textContent=o.ddate;
+  document.getElementById('dd-time').textContent=o.time||'—';
+  document.getElementById('dd-vehicle').textContent=o.vehicle;
+  document.getElementById('dd-from').textContent=o.from||'—';
+  document.getElementById('dd-to').textContent=o.to||'—';
+  document.getElementById('dd-driver').textContent=o.driver||'—';
+  document.getElementById('dd-pax').textContent=o.pax||'—';
+  document.getElementById('dd-luggage').textContent=o.luggage||'—';
+  document.getElementById('dd-seat').textContent=o.seat?o.seat+' 個':'不需要';
+  document.getElementById('dd-name').textContent=o.name;
+  document.getElementById('dd-phone').textContent=o.phone;
+  document.getElementById('dd-line').textContent=o.line||'—';
+  document.getElementById('dd-email').textContent=o.email||'—';
+  document.getElementById('dd-channel').textContent=o.ch;
+  document.getElementById('dd-twd').textContent='$'+o.twd.toLocaleString();
+  document.getElementById('dd-jpy').textContent='¥'+o.jpy.toLocaleString();
+  document.getElementById('dd-jpybal').textContent=o.jpyBal>0?'¥'+o.jpyBal.toLocaleString()+' 待收':'已付清';
+  document.getElementById('dd-driverfee').textContent='¥'+o.drvfee.toLocaleString();
+  document.getElementById('dd-split').textContent=o.split;
+  document.getElementById('dd-acct').textContent=o.acct||'—';
+  document.getElementById('dd-notes').textContent=o.notes||'（無備註）';
+  openMd('detailMd');
+}
+function openEditFromDetail(){closeMd('detailMd');if(currentDetailId)openEdit(currentDetailId);}
+
+// ── FORM ──
+function openNew(){
+  document.getElementById('orderMdTitle').textContent='新增訂單';
+  const now=new Date(), ds=now.toISOString().split('T')[0];
+  document.getElementById('f-id').value='#'+now.getFullYear().toString().slice(2)+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0')+Math.floor(Math.random()*90+10);
+  document.getElementById('f-odate').value=ds;
+  ['f-ddate','f-from','f-to','f-driver','f-pax','f-luggage','f-notes','f-phone','f-line','f-email','f-fb','f-name','f-acct','f-plan'].forEach(i=>{const e=document.getElementById(i);if(e)e.value='';});
+  ['f-twd','f-jpy','f-jpybal','f-drvfee'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=0;});
+  openMd('orderMd');
+}
+function openEdit(id){
+  const o=ORDERS.find(x=>x.id===id); if(!o) return;
+  document.getElementById('orderMdTitle').textContent='編輯訂單 — '+o.id;
+  document.getElementById('f-id').value=o.id;
+  document.getElementById('f-odate').value=o.odate.replace(/\//g,'-');
+  document.getElementById('f-ddate').value=o.ddate.replace(/\//g,'-');
+  document.getElementById('f-time').value=o.time||'';
+  document.getElementById('f-from').value=o.from;
+  document.getElementById('f-to').value=o.to;
+  document.getElementById('f-driver').value=o.driver;
+  document.getElementById('f-pax').value=o.pax;
+  document.getElementById('f-luggage').value=o.luggage;
+  document.getElementById('f-name').value=o.name;
+  document.getElementById('f-phone').value=o.phone;
+  document.getElementById('f-line').value=o.line;
+  document.getElementById('f-email').value=o.email;
+  document.getElementById('f-fb').value=o.fb;
+  document.getElementById('f-twd').value=o.twd;
+  document.getElementById('f-jpy').value=o.jpy;
+  document.getElementById('f-jpybal').value=o.jpyBal;
+  document.getElementById('f-drvfee').value=o.drvfee;
+  document.getElementById('f-notes').value=o.notes;
+  document.getElementById('f-acct').value=o.acct||'';
+  openMd('orderMd');
+}
+function saveOrder(){toast('✅ 訂單已儲存（模擬）','ok');closeMd('orderMd');}
+
+// ── MODAL ──
+function openMd(id){document.getElementById(id).classList.add('open')}
+function closeMd(id){document.getElementById(id).classList.remove('open')}
+document.querySelectorAll('.modal-bg').forEach(el=>el.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')}));
+
+// ── TOAST ──
+function toast(msg,type=''){
+  const w=document.getElementById('toastWrap');
+  const t=document.createElement('div');
+  t.className='toast '+(type==='ok'?'ok':type==='err'?'err':'');
+  t.innerHTML=(type==='ok'?'✅ ':'ℹ️ ')+msg;
+  w.appendChild(t);
+  setTimeout(()=>{t.style.transition='opacity .4s';t.style.opacity='0';setTimeout(()=>t.remove(),400);},3000);
+}
+
+// Init
+renderOrders(ORDERS);
+</script>
+</body>
+</html>
