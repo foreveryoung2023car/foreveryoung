@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>旅乘 ERP — 日本自由行包車管理系統</title>
+<title>æä¹ ERP â æ¥æ¬èªç±è¡åè»ç®¡çç³»çµ±</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root {
@@ -53,7 +53,7 @@ a{text-decoration:none;color:inherit}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
 
-/* ── LOGIN ── */
+/* ââ LOGIN ââ */
 #loginPage{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--navy) 0%,#0a3060 50%,#0d1f3c 100%);position:relative;overflow:hidden}
 #loginPage::before{content:'';position:absolute;width:800px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(37,99,235,.15),transparent 70%);top:-300px;right:-200px;pointer-events:none}
 #loginPage::after{content:'';position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(14,165,233,.1),transparent 70%);bottom:-150px;left:-100px;pointer-events:none}
@@ -76,11 +76,11 @@ a{text-decoration:none;color:inherit}
 .login-sep::before,.login-sep::after{content:'';flex:1;height:1px;background:var(--border)}
 .login-note{background:var(--bg);border-radius:var(--radius-sm);padding:12px;font-size:11px;color:var(--muted);line-height:1.6;text-align:center}
 
-/* ── APP SHELL ── */
+/* ââ APP SHELL ââ */
 #app{display:none}
 .layout{display:flex;min-height:100vh}
 
-/* ── SIDEBAR ── */
+/* ââ SIDEBAR ââ */
 .sidebar{width:var(--sidebar-w);background:var(--navy);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:transform .3s ease}
 .sb-brand{padding:20px 18px 18px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:11px}
 .sb-brand-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--blue),var(--sky));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
@@ -102,7 +102,7 @@ a{text-decoration:none;color:inherit}
 .btn-logout{margin-left:auto;background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);padding:5px 9px;border-radius:6px;font-size:11px;transition:all .2s}
 .btn-logout:hover{background:rgba(255,255,255,.15);color:white}
 
-/* ── TOPBAR ── */
+/* ââ TOPBAR ââ */
 .topbar{position:fixed;top:0;left:var(--sidebar-w);right:0;height:var(--topbar-h);background:white;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:12px;z-index:90;box-shadow:0 1px 0 rgba(0,0,0,.04)}
 .menu-btn{display:none;background:none;padding:6px;border-radius:7px;font-size:20px;color:var(--muted);margin-right:2px}
 .menu-btn:hover{background:var(--bg)}
@@ -113,7 +113,7 @@ a{text-decoration:none;color:inherit}
 .notif-btn:hover{background:var(--bg)}
 .notif-dot{position:absolute;top:6px;right:6px;width:7px;height:7px;background:var(--red);border-radius:50%;border:2px solid white}
 
-/* ── MAIN ── */
+/* ââ MAIN ââ */
 .main{margin-left:var(--sidebar-w);padding-top:var(--topbar-h);min-height:100vh}
 .page{display:none;padding:24px}
 .page.active{display:block}
@@ -121,7 +121,7 @@ a{text-decoration:none;color:inherit}
 .page-head-left h2{font-size:18px;font-weight:800;color:var(--text);letter-spacing:-.3px}
 .page-head-left p{font-size:12px;color:var(--muted);margin-top:3px}
 
-/* ── BUTTONS ── */
+/* ââ BUTTONS ââ */
 .btn{padding:9px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:all .15s;cursor:pointer}
 .btn-primary{background:var(--blue);color:white;box-shadow:0 2px 8px rgba(37,99,235,.3)}
 .btn-primary:hover{background:#1d4ed8;box-shadow:0 4px 12px rgba(37,99,235,.4);transform:translateY(-1px)}
@@ -129,10 +129,10 @@ a{text-decoration:none;color:inherit}
 .btn-ghost:hover{background:var(--bg);border-color:var(--border2)}
 .btn-danger{background:var(--red-light);color:var(--red);border:1px solid #fecaca}
 .btn-danger:hover{background:#fecaca}
-.btn-sl{padding:6px 12px;font-size:12px}
+.btn-sm{padding:6px 12px;font-size:12px}
 .btn-xs{padding:4px 9px;font-size:11px}
 
-/* ── STATS GRID ── */
+/* ââ STATS GRID ââ */
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
 .kpi{background:white;border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow-sm);border:1px solid var(--border);position:relative;overflow:hidden;transition:box-shadow .2s}
 .kpi:hover{box-shadow:var(--shadow)}
@@ -150,19 +150,19 @@ a{text-decoration:none;color:inherit}
 .badge-down{background:var(--red-light);color:var(--red)}
 .badge-warn{background:var(--yellow-light);color:var(--gold)}
 
-/* ── GRID ── */
+/* ââ GRID ââ */
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
 .col-span-2{grid-column:span 2}
 
-/* ── CARD ── */
+/* ââ CARD ââ */
 .card{background:white;border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);border:1px solid var(--border)}
 .card-hd{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .card-title{font-size:14px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px}
 .card-body{padding:20px}
 .card-body-0{padding:0}
 
-/* ── BADGE ── */
+/* ââ BADGE ââ */
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:600;white-space:nowrap}
 .b-green{background:var(--green-light);color:#065f46}
 .b-blue{background:var(--blue-light);color:#1e40af}
@@ -173,7 +173,7 @@ a{text-decoration:none;color:inherit}
 .b-navy{background:rgba(12,31,63,.08);color:var(--navy)}
 .b-teal{background:#f0fdfa;color:#0f766e}
 
-/* ── FILTER BAR ── */
+/* ââ FILTER BAR ââ */
 .filter-bar{background:white;border-radius:var(--radius);padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid var(--border);box-shadow:var(--shadow-sm)}
 .search-box{position:relative;flex:1;min-width:200px}
 .search-box input{width:100%;padding:8px 12px 8px 36px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--bg);transition:all .2s}
@@ -182,7 +182,7 @@ a{text-decoration:none;color:inherit}
 .fsel{padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:12px;color:var(--text2);background:var(--bg);min-width:100px;cursor:pointer;transition:all .2s}
 .fsel:focus{border-color:var(--blue);background:white}
 
-/* ── TABLE ── */
+/* ââ TABLE ââ */
 .tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;min-width:880px}
 thead th{background:#f8fafc;padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;transition:background .15s}
@@ -208,7 +208,7 @@ tbody tr:last-child td{border-bottom:none}
 .ia-del{background:var(--red-light);color:#991b1b}
 .ia-del:hover{background:#fecaca}
 
-/* ── MOBILE CARDS ── */
+/* ââ MOBILE CARDS ââ */
 .m-cards{display:none}
 .m-card{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:14px;margin-bottom:10px;box-shadow:var(--shadow-sm)}
 .m-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
@@ -219,7 +219,7 @@ tbody tr:last-child td{border-bottom:none}
 .m-route{font-size:11px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)}
 .m-actions{display:flex;gap:6px;margin-top:10px;justify-content:flex-end}
 
-/* ── PAGINATION ── */
+/* ââ PAGINATION ââ */
 .pager{display:flex;align-items:center;justify-content:space-between;padding:13px 20px;border-top:1px solid var(--border)}
 .pager-info{font-size:12px;color:var(--muted)}
 .pager-btns{display:flex;gap:3px}
@@ -227,7 +227,7 @@ tbody tr:last-child td{border-bottom:none}
 .pg-btn:hover{background:var(--bg);color:var(--text)}
 .pg-btn.active{background:var(--blue);color:white;border-color:var(--blue)}
 
-/* ── MODAL ── */
+/* ââ MODAL ââ */
 .modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:300;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(3px)}
 .modal-bg.open{display:flex}
 .modal{background:white;border-radius:var(--radius-lg);width:700px;max-width:100%;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow-lg)}
@@ -239,7 +239,7 @@ tbody tr:last-child td{border-bottom:none}
 .modal-body{overflow-y:auto;flex:1;padding:24px}
 .modal-ft{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;background:white;flex-shrink:0}
 
-/* ── FORM ── */
+/* ââ FORM ââ */
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .fg{display:flex;flex-direction:column;gap:5px}
 .fg.full{grid-column:1/-1}
@@ -249,14 +249,14 @@ tbody tr:last-child td{border-bottom:none}
 .fi.readonly{background:#f8fafc;color:var(--muted);cursor:default}
 .form-section{grid-column:1/-1;font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.8px;padding:6px 0 2px;border-bottom:1.5px solid var(--blue-light);margin-top:6px}
 
-/* ── DETAIL MODAL ── */
+/* ââ DETAIL MODAL ââ */
 .detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
 .df{background:var(--bg);border-radius:var(--radius-sm);padding:11px 13px}
 .df label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px}
 .df span{font-size:13px;font-weight:600;color:var(--text)}
 .ds{font-size:12px;font-weight:700;color:var(--navy);margin:14px 0 8px;padding-bottom:6px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;gap:6px}
 
-/* ── TIMELINE ── */
+/* ââ TIMELINE ââ */
 .tl-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid #f8fafc;align-items:flex-start}
 .tl-item:last-child{border-bottom:none}
 .tl-dot{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
@@ -266,7 +266,7 @@ tbody tr:last-child td{border-bottom:none}
 .tl-right .am{font-size:13px;font-weight:700;color:var(--navy)}
 .tl-right .dt{margin-top:4px}
 
-/* ── ALERT ITEM ── */
+/* ââ ALERT ITEM ââ */
 .al-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #f8fafc}
 .al-item:last-child{border-bottom:none}
 .al-icon{font-size:22px;flex-shrink:0;width:40px;height:40px;background:var(--bg);border-radius:10px;display:flex;align-items:center;justify-content:center}
@@ -274,10 +274,10 @@ tbody tr:last-child td{border-bottom:none}
 .al-s{font-size:11px;color:var(--muted);margin-top:2px}
 .al-action{margin-left:auto;flex-shrink:0}
 
-/* ── CHART CONTAINER ── */
+/* ââ CHART CONTAINER ââ */
 .chart-wrap{position:relative;width:100%;height:200px}
 
-/* ── STAFF PERF ── */
+/* ââ STAFF PERF ââ */
 .perf-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .perf-card{background:var(--bg);border-radius:var(--radius);padding:14px;text-align:center;transition:background .15s}
 .perf-card:hover{background:var(--bg2)}
@@ -286,26 +286,26 @@ tbody tr:last-child td{border-bottom:none}
 .perf-val{font-size:16px;font-weight:800;color:var(--navy);margin:4px 0}
 .perf-sub{font-size:10px;color:var(--muted)}
 
-/* ── PAYMENT TABLE ── */
+/* ââ PAYMENT TABLE ââ */
 .pay-status-ok{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#065f46}
-.pay-status-ng{]isplay:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#991b1b}
+.pay-status-ng{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#991b1b}
 
-/* ── OVERLAY ․─ */
+/* ââ OVERLAY ââ */
 .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99}
 
-/* ── TOAST ── */
+/* ââ TOAST ââ */
 .toast-wrap{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px}
 .toast{background:#1e293b;color:white;padding:12px 18px;border-radius:var(--radius);font-size:13px;font-weight:500;box-shadow:var(--shadow-md);display:flex;align-items:center;gap:10px;animation:toastIn .3s ease;max-width:320px}
 .toast.ok{background:#065f46}
 .toast.err{background:#991b1b}
 @keyframes toastIn{from{transform:translateY(12px);opacity:0}to{transform:translateY(0);opacity:1}}
 
-/* ── EMPTY ── */
+/* ââ EMPTY ââ */
 .empty{text-align:center;padding:48px 20px;color:var(--muted)}
 .empty .ei{font-size:44px;margin-bottom:10px}
 .empty p{font-size:14px}
 
-/* ── RESPONSIVE ── */
+/* ââ RESPONSIVE ââ */
 @media(max-width:900px){
   .stats-row{grid-template-columns:1fr 1fr}
   .grid-2{grid-template-columns:1fr}
@@ -336,117 +336,148 @@ tbody tr:last-child td{border-bottom:none}
   .login-card{width:100%;padding:28px 20px}
   .grid-3{grid-template-columns:1fr}
 }
+
+/* ââ MULTI-DAY BADGE ââ */
+.day-count-badge{display:inline-flex;align-items:center;gap:3px;background:rgba(37,99,235,.1);color:var(--blue);font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;margin-left:5px}
+.td-date-range{font-size:12px;font-weight:700;color:var(--text2)}
+
+/* ââ DAYS TABLE (form) ââ */
+.days-section{grid-column:1/-1;border:1.5px solid var(--blue-light);border-radius:var(--radius);overflow:hidden;margin-top:4px}
+.days-hdr{display:grid;grid-template-columns;96px 68px 120px 1fr 1fr 78px 78px 60px 32px;gap:5px;background:#eff6ff;padding:7px 10px;font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.3px}
+.day-row{display:grid;grid-template-columns:96px 68px 120px 1fr 1fr 78px 78px 60px 32px;gap:5px;padding:7px 10px;border-top:1px solid var(--border);align-items:center}
+.day-row .di{padding:5px 7px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;width:100%;min-width:0;background:white;transition:border-color .15s}
+.day-row .di:focus{border-color:var(--blue);outline:none;background:white}
+.btn-del-day{width:28px;height:28px;border-radius:6px;background:var(--red-light);color:var(--red);font-size:14px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
+.btn-del-day:hover{background:#fecaca}
+.days-add{padding:8px 10px;background:#f8fafc;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;font-weight:600;color:var(--blue);transition:background .15s}
+.days-add:hover{background:#eff6ff}
+
+/* ââ DAYS TABLE (detail) ââ */
+.days-detail-wrap{overflow-x:auto;margin-top:2px}
+.days-table{width:100%;border-collapse:collapse;font-size:12px;min-width:700px}
+.days-table thead th{background:#f0f7ff;padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.4px;border-bottom:1.5px solid var(--blue-light);white-space:nowrap}
+.days-table tbody td{padding:9px 10px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+.days-table tbody tr:last-child td{border-bottom:none}
+.days-table tbody tr:hover{background:#fafbff}
+.day-num-chip{width:22px;height:22px;border-radius:50%;background:var(--blue);color:white;font-size:11px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+
+@media(max-width:768px){
+  .days-hdr{display:none}
+  .day-row{grid-template-columns:1fr 1fr;gap:6px;padding:10px}
+  .day-row .di{font-size:13px}
+}
 </style>
 </head>
 <body>
 
-<!-- ═══ LOGIN ═══ -->
+<!-- âââ LOGIN âââ -->
 <div id="loginPage">
   <div class="login-wrap">
     <div class="login-brand-side">
-      <span class="logo">🚐</span>
-      <h1>旅乘 ERP<br>管理系統</h1>
-      <p>日本自由行包車訂單、財務、<br>客服業務一站式管理平台</p>
+      <span class="logo">ð</span>
+      <h1>æä¹ ERP<br>ç®¡çç³»çµ±</h1>
+      <p>æ¥æ¬èªç±è¡åè»è¨å®ãè²¡åã<br>å®¢ææ¥­åä¸ç«å¼ç®¡çå¹³å°</p>
       <div class="login-features">
-        <div class="login-feature"><span>📋</span> 訂單全流程管理</div>
-        <div class="login-feature"><span>💳</span> 收款自動對帳</div>
-        <div class="login-feature"><span>🍊</span> 即時財務報表</div>
-        <div class="login-feature"><span>🔐</span> 角色權限控管</div>
+        <div class="login-feature"><span>ð</span> è¨å®å¨æµç¨ç®¡ç</div>
+        <div class="login-feature"><span>ð³</span> æ¶æ¬¾èªåå°å¸³</div>
+        <div class="login-feature"><span>ð</span> å³æè²¡åå ±è¡¨</div>
+        <div class="login-feature"><span>ð</span> è§è²æ¬éæ§ç®¡</div>
       </div>
     </div>
     <div class="login-card">
-      <div class="login-card-logo">🚐</div>
-      <div class="login-card-title">歡迎登入</div>
-      <div class="login-card-sub">旅乘 ERP 管理系統 · 僅限授權人員</div>
+      <div class="login-card-logo">ð</div>
+      <div class="login-card-title">æ­¡è¿ç»å¥</div>
+      <div class="login-card-sub">æä¹ ERP ç®¡çç³»çµ± Â· åéææ¬äººå¡</div>
       <button class="btn-google" onclick="doLogin()">
         <svg viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-        使用 Google 帳號登入
+        ä½¿ç¨ Google å¸³èç»å¥
       </button>
-      <div class="login-sep">系統資訊</div>
-      <div class="login-note">此系統僅限授權人員使用<br>如需申請帳號，請聯繫管理員 Jun</div>
+      <div class="login-sep">ç³»çµ±è³è¨</div>
+      <div class="login-note">æ­¤ç³»çµ±åéææ¬äººå¡ä½¿ç¨<br>å¦éç³è«å¸³èï¼è«è¯ç¹«ç®¡çå¡ Jun</div>
     </div>
+  </div>
 </div>
 
-<!-- ═══ APP ═══ -->
+<!-- âââ APP âââ -->
 <div id="app">
   <div class="sidebar-overlay" id="sbOverlay" onclick="closeSb()"></div>
   <aside class="sidebar" id="sidebar">
     <div class="sb-brand">
-      <div class="sb-brand-icon">🚐</div>
+      <div class="sb-brand-icon">ð</div>
       <div class="sb-brand-text">
-        <div class="sb-brand-name">旅乘 ERP</div>
-        <div class="sb-brand-sub">日本自由行包車</div>
+        <div class="sb-brand-name">æä¹ ERP</div>
+        <div class="sb-brand-sub">æ¥æ¬èªç±è¡åè»</div>
       </div>
     </div>
     <nav class="sb-nav">
-      <div class="sb-section">主要功能</div>
-      <div class="sb-item active" onclick="goPage('dashboard',this)"><span class="ic">🍊</span>Dashboard</div>
-      <div class="sb-item" onclick="goPage('orders',this)"><span class="ic">📋</span>訂單管理<span class="sb-badge" id="pendingBadge">3</span></div>
-      <div class="sb-item" onclick="goPage('payment',this)"><span class="ic">💳</span>收款對帳<span class="sb-badge" style="background:var(--yellow)">2</span></div>
-      <div class="sb-section">財務</div>
-      <div class="sb-item" onclick="goPage('finance',this)"><span class="ic">📈</span>財務報表</div>
-      <div class="sb-item" onclick="goPage('exchange',this)"><span class="ic">💱</span>換匯紀錄</div>
-      <div class="sb-section">客戶 / 系統</div>
-      <div class="sb-item" onclick="goPage('customers',this)"><span class="ic">👤</span>客戶資料庫</div>
-      <div class="sb-item" onclick="goPage('settings',this)"><span class="ic">⚙️</span>系統設定</div>
+      <div class="sb-section">ä¸»è¦åè½</div>
+      <div class="sb-item active" onclick="goPage('dashboard',this)"><span class="ic">ð</span>Dashboard</div>
+      <div class="sb-item" onclick="goPage('orders',this)"><span class="ic">ð</span>è¨å®ç®¡ç<span class="sb-badge" id="pendingBadge">3</span></div>
+      <div class="sb-item" onclick="goPage('payment',this)"><span class="ic">ð³</span>æ¶æ¬¾å°å¸³<span class="sb-badge" style="background:var(--yellow)">2</span></div>
+      <div class="sb-section">è²¡å</div>
+      <div class="sb-item" onclick="goPage('finance',this)"><span class="ic">ð</span>è²¡åå ±è¡¨</div>
+      <div class="sb-item" onclick="goPage('exchange',this)"><span class="ic">ð±</span>æå¯ç´é</div>
+      <div class="sb-section">å®¢æ¶ / ç³»çµ±</div>
+      <div class="sb-item" onclick="goPage('customers',this)"><span class="ic">ð¤</span>å®¢æ¶è³æåº«</div>
+      <div class="sb-item" onclick="goPage('settings',this)"><span class="ic">âï¸</span>ç³»çµ±è¨­å®</div>
     </nav>
     <div class="sb-footer">
       <div class="sb-user">
         <div class="sb-avatar">J</div>
-        <div><div class="sb-uname">Jun</div><div class="sb-urole">👑 超級管理者</div></div>
-        <button class="btn-logout" onclick="doLogout()">登出</button>
+        <div><div class="sb-uname">Jun</div><div class="sb-urole">ð è¶ç´ç®¡çè</div></div>
+        <button class="btn-logout" onclick="doLogout()">ç»åº</button>
       </div>
     </div>
   </aside>
 
   <div class="topbar">
-    <button class="menu-btn" onclick="toggleSb()">☰</button>
+    <button class="menu-btn" onclick="toggleSb()">â°</button>
     <div class="topbar-title" id="topbarTitle">Dashboard</div>
     <div class="topbar-right">
       <span class="topbar-chip" id="topbarMonth"></span>
-      <button class="notif-btn">🔔<span class="notif-dot"></span></button>
+      <button class="notif-btn">ð<span class="notif-dot"></span></button>
     </div>
   </div>
 
   <main class="main">
 
-    <!-- ── DASHBOARD ── -->
+    <!-- ââ DASHBOARD ââ -->
     <div class="page active" id="page-dashboard">
       <div class="page-head">
-        <div class="page-head-left"><h2>Dashboard</h2><p>旅乘業務概覽 · 即時數據</p></div>
+        <div class="page-head-left"><h2>Dashboard</h2><p>æä¹æ¥­åæ¦è¦½ Â· å³ææ¸æ</p></div>
       </div>
       <div class="stats-row">
         <div class="kpi blue">
-          <div class="kpi-icon">📋</div>
-          <div class="kpi-label">本月訂單數</div>
+          <div class="kpi-icon">ð</div>
+          <div class="kpi-label">æ¬æè¨å®æ¸</div>
           <div class="kpi-value" id="kpi-orders">47</div>
-          <div class="kpi-sub">出車行程筆數 <span class="kpi-badge badge-up">↑ 12%</span></div>
+          <div class="kpi-sub">åºè»è¡ç¨ç­æ¸ <span class="kpi-badge badge-up">â 12%</span></div>
         </div>
         <div class="kpi green">
-          <div class="kpi-icon">💰</div>
-          <div class="kpi-label">台幣訂金收款</div>
+          <div class="kpi-icon">ð°</div>
+          <div class="kpi-label">å°å¹£è¨éæ¶æ¬¾</div>
           <div class="kpi-value">$865,675</div>
-          <div class="kpi-sub">本月已收 <span class="kpi-badge badge-up">↑ 8%</span></div>
+          <div class="kpi-sub">æ¬æå·²æ¶ <span class="kpi-badge badge-up">â 8%</span></div>
         </div>
         <div class="kpi purple">
-          <div class="kpi-icon">¥</div>
-          <div class="kpi-label">日幣總額</div>
-          <div class="kpi-value">¥3,934K</div>
-          <div class="kpi-sub">含尾款待收 <span class="kpi-badge badge-down">↓ 3%</span></div>
+          <div class="kpi-icon">Â¥</div>
+          <div class="kpi-label">æ¥å¹£ç¸½é¡</div>
+          <div class="kpi-value">Â¥3,934K</div>
+          <div class="kpi-sub">å«å°¾æ¬¾å¾æ¶ <span class="kpi-badge badge-down">â 3%</span></div>
         </div>
         <div class="kpi gold">
-          <div class="kpi-icon">⚠️</div>
-          <div class="kpi-label">待處理事項</div>
+          <div class="kpi-icon">â ï¸</div>
+          <div class="kpi-label">å¾èçäºé </div>
           <div class="kpi-value">3</div>
-          <div class="kpi-sub"><span class="kpi-badge badge-warn">需要處理</span></div>
+          <div class="kpi-sub"><span class="kpi-badge badge-warn">éè¦èç</span></div>
         </div>
       </div>
 
       <div class="grid-2" style="margin-bottom:16px">
         <div class="card">
           <div class="card-hd">
-            <span class="card-title">📈 月份業績趨勢（台幣訂金）</span>
-            <span class="badge b-blue">近6個月</span>
+            <span class="card-title">ð æä»½æ¥­ç¸¾è¶¨å¢ï¼å°å¹£è¨éï¼</span>
+            <span class="badge b-blue">è¿6åæ</span>
           </div>
           <div class="card-body">
             <div class="chart-wrap"><canvas id="revenueChart"></canvas></div>
@@ -454,24 +485,24 @@ tbody tr:last-child td{border-bottom:none}
         </div>
         <div class="card">
           <div class="card-hd">
-            <span class="card-title">⚠️ 待處理事項</span>
-            <span class="badge b-red">3 項待辦</span>
+            <span class="card-title">â ï¸ å¾èçäºé </span>
+            <span class="badge b-red">3 é å¾è¾¦</span>
           </div>
           <div class="card-body card-body-0" style="padding:0 20px">
             <div class="al-item">
-              <div class="al-icon">💳</div>
-              <div><div class="al-t">未核對入帳 2 筆</div><div class="al-s">$2,860 + $1,540 尚未對應訂單號</div></div>
-              <div class="al-action"><button class="btn btn-ghost btn-xs" onclick="goPage('payment',document.querySelectorAll('.sb-item')[2])">前往</button></div>
+              <div class="al-icon">ð³</div>
+              <div><div class="al-t">æªæ ¸å°å¥å¸³ 2 ç­</div><div class="al-s">$2,860 + $1,540 å°æªå°æè¨å®è</div></div>
+              <div class="al-action"><button class="btn btn-ghost btn-xs" onclick="goPage('payment',document.querySelectorAll('.sb-item')[2])">åå¾</button></div>
             </div>
             <div class="al-item">
-              <div class="al-icon">📨</div>
-              <div><div class="al-t">確認訊息未發送 1 筆</div><div class="al-s">訂單 #26042201 尚未發送行程確認</div></div>
-              <div class="al-action"><button class="btn btn-ghost btn-xs" onclick="openDetail('#26042201')">查看</button></div>
+              <div class="al-icon">ð¨</div>
+              <div><div class="al-t">ç¢ºèªè¨æ¯æªç¼é 1 ç­</div><div class="al-s">è¨å® #26042201 å°æªç¼éè¡ç¨ç¢ºèª</div></div>
+              <div class="al-action"><button class="btn btn-ghost btn-xs" onclick="openDetail('#26042201')">æ¥ç</button></div>
             </div>
             <div class="al-item">
-              <div class="al-icon">💴</div>
-              <div><div class="al-t">日幣尾款未收 5 筆</div><div class="al-s">本月合計待收 ¥187,000</div></div>
-              <div class="al-action"><button class="btn btn-ghost btn-xs" onclick="goPage('orders',document.querySelectorAll('.sb-item')[1])">前往</button></div>
+              <div class="al-icon">ð´</div>
+              <div><div class="al-t">æ¥å¹£å°¾æ¬¾æªæ¶ 5 ç­</div><div class="al-s">æ¬æåè¨å¾æ¶ Â¥187,000</div></div>
+              <div class="al-action"><button class="btn btn-ghost btn-xs" onclick="goPage('orders',document.querySelectorAll('.sb-item')[1])">åå¾</button></div>
             </div>
           </div>
         </div>
@@ -480,59 +511,59 @@ tbody tr:last-child td{border-bottom:none}
       <div class="grid-2">
         <div class="card">
           <div class="card-hd">
-            <span class="card-title">📅 近期出車行程</span>
-            <button class="btn btn-ghost btn-sm" onclick="goPage('orders',document.querySelectorAll('.sb-item')[1])">查看全部</button>
+            <span class="card-title">ð è¿æåºè»è¡ç¨</span>
+            <button class="btn btn-ghost btn-sm" onclick="goPage('orders',document.querySelectorAll('.sb-item')[1])">æ¥çå¨é¨</button>
           </div>
           <div class="card-body card-body-0" style="padding:0 20px">
             <div class="tl-item">
-              <div class="tl-dot" style="background:#eff6ff">🚐</div>
-              <div class="tl-content"><div class="t">張瑋翔 — 成田機場接送</div><div class="s">7座 · 李勇軍 · 06:00</div></div>
-              <div class="tl-right"><div class="am">¥18,000</div><div class="dt"><span class="badge b-green">今天</span></div></div>
+              <div class="tl-dot" style="background:#eff6ff">ð</div>
+              <div class="tl-content"><div class="t">å¼µçç¿ â æç°æ©å ´æ¥é</div><div class="s">7åº§ Â· æåè» Â· 06:00</div></div>
+              <div class="tl-right"><div class="am">Â¥18,000</div><div class="dt"><span class="badge b-green">ä»å¤©</span></div></div>
             </div>
             <div class="tl-item">
-              <div class="tl-dot" style="background:#f0fdfa">🗻</div>
-              <div class="tl-content"><div class="t">何卉妤 — 富士山一日遊</div><div class="s">10座 · 九州-小王 · 09:00</div></div>
-              <div class="tl-right"><div class="am">¥65,000</div><div class="dt"><span class="badge b-blue">4/24</span></div></div>
+              <div class="tl-dot" style="background:#f0fdfa">ð»</div>
+              <div class="tl-content"><div class="t">ä½åå¦¤ â å¯å£«å±±ä¸æ¥é</div><div class="s">10åº§ Â· ä¹å·-å°ç Â· 09:00</div></div>
+              <div class="tl-right"><div class="am">Â¥65,000</div><div class="dt"><span class="badge b-blue">4/24</span></div></div>
             </div>
             <div class="tl-item">
-              <div class="tl-dot" style="background:#fdf4ff">✈️</div>
-              <div class="tl-content"><div class="t">游淑娟 — 羽田機場送機</div><div class="s">7座 · 李勇軍 · 11:15</div></div>
-              <div class="tl-right"><div class="am">¥12,000</div><div class="dt"><span class="badge b-gray">4/25</span></div></div>
+              <div class="tl-dot" style="background:#fdf4ff">âï¸</div>
+              <div class="tl-content"><div class="t">æ¸¸æ·å¨ â ç¾½ç°æ©å ´éæ©</div><div class="s">7åº§ Â· æåè» Â· 11:15</div></div>
+              <div class="tl-right"><div class="am">Â¥12,000</div><div class="dt"><span class="badge b-gray">4/25</span></div></div>
             </div>
             <div class="tl-item">
-              <div class="tl-dot" style="background:#fffbeb">🦌</div>
-              <div class="tl-content"><div class="t">羅敬媛 — 九州動物園</div><div class="s">10座 · 九州-小王 · 09:00</div></div>
-              <div class="tl-right"><div class="am">¥65,000</div><div class="dt"><span class="badge b-gray">4/26</span></div></div>
+              <div class="tl-dot" style="background:#fffbeb">ð¦</div>
+              <div class="tl-content"><div class="t">ç¾æ¬åª â ä¹å·åç©å</div><div class="s">10åº§ Â· ä¹å·-å°ç Â· 09:00</div></div>
+              <div class="tl-right"><div class="am">Â¥65,000</div><div class="dt"><span class="badge b-gray">4/26</span></div></div>
             </div>
           </div>
         </div>
         <div class="card">
-          <div class="card-hd"><span class="card-title">👥 本月客服業績</span><span class="badge b-navy">2026年4月</span></div>
+          <div class="card-hd"><span class="card-title">ð¥ æ¬æå®¢ææ¥­ç¸¾</span><span class="badge b-navy">2026å¹´4æ</span></div>
           <div class="card-body">
             <div class="perf-grid">
               <div class="perf-card">
                 <div class="perf-avatar">C</div>
                 <div class="perf-name">Christina</div>
                 <div class="perf-val">$84,471</div>
-                <div class="perf-sub">客服獎金</div>
+                <div class="perf-sub">å®¢æçé</div>
               </div>
               <div class="perf-card">
                 <div class="perf-avatar" style="background:linear-gradient(135deg,var(--teal),#06b6d4)">R</div>
                 <div class="perf-name">Renjun</div>
                 <div class="perf-val">$19,409</div>
-                <div class="perf-sub">客服獎金</div>
+                <div class="perf-sub">å®¢æçé</div>
               </div>
               <div class="perf-card">
                 <div class="perf-avatar" style="background:linear-gradient(135deg,var(--purple),#a855f7)">W</div>
                 <div class="perf-name">Wei</div>
                 <div class="perf-val">$67,032</div>
-                <div class="perf-sub">客服獎金</div>
+                <div class="perf-sub">å®¢æçé</div>
               </div>
               <div class="perf-card">
                 <div class="perf-avatar" style="background:linear-gradient(135deg,var(--gold),#fbbf24)">D</div>
                 <div class="perf-name">David</div>
                 <div class="perf-val">$161</div>
-                <div class="perf-sub">客服獎金</div>
+                <div class="perf-sub">å®¢æçé</div>
               </div>
             </div>
           </div>
@@ -540,39 +571,39 @@ tbody tr:last-child td{border-bottom:none}
       </div>
     </div>
 
-    <!-- ── ORDERS ── -->
+    <!-- ââ ORDERS ââ -->
     <div class="page" id="page-orders">
       <div class="page-head">
-        <div class="page-head-left"><h2>訂單管理</h2><p>共 <span id="orderCount">7</span> 筆訂單</p></div>
-        <button class="btn btn-primary" onclick="openNew()">＋ 新增訂單</button>
+        <div class="page-head-left"><h2>è¨å®ç®¡ç</h2><p>å± <span id="orderCount">7</span> ç­è¨å®</p></div>
+        <button class="btn btn-primary" onclick="openNew()">ï¼ æ°å¢è¨å®</button>
       </div>
       <div class="filter-bar">
         <div class="search-box">
-          <span class="search-icon">🔍</span>
-          <input type="text" placeholder="搜尋訂單號、姓名、電話…" id="srch" oninput="filterOrders()">
+          <span class="search-icon">ð</span>
+          <input type="text" placeholder="æå°è¨å®èãå§åãé»è©±â¦" id="srch" oninput="filterOrders()">
         </div>
         <select class="fsel" id="fMonth" onchange="filterOrders()">
-          <option value="">所有月份</option>
-          <option value="2026/04" selected>2026年4月</option>
-          <option value="2026/03">2026年3月</option>
-          <option value="2026/02">2026年2月</option>
-          <option value="2026/01">2026年1月</option>
+          <option value="">æææä»½</option>
+          <option value="2026/04" selected>2026å¹´4æ</option>
+          <option value="2026/03">2026å¹´3æ</option>
+          <option value="2026/02">2026å¹´2æ</option>
+          <option value="2026/01">2026å¹´1æ</option>
         </select>
         <select class="fsel" id="fCS" onchange="filterOrders()">
-          <option value="">所有業務</option>
+          <option value="">æææ¥­å</option>
           <option>WTGT-15%</option><option>Jun-20%</option><option>Jun-10%</option>
         </select>
         <select class="fsel" id="fSt" onchange="filterOrders()">
-          <option value="">所有狀態</option>
-          <option value="confirmed">已確認</option>
-          <option value="pending">待確認</option>
-          <option value="completed">已完成</option>
+          <option value="">ææçæ</option>
+          <option value="confirmed">å·²ç¢ºèª</option>
+          <option value="pending">å¾ç¢ºèª</option>
+          <option value="completed">å·²å®æ</option>
         </select>
         <select class="fsel" id="fVh" onchange="filterOrders()">
-          <option value="">所有車型</option>
-          <option value="7座">7座</option>
-          <option value="10座">10座</option>
-          <option value="14座">14座</option>
+          <option value="">ææè»å</option>
+          <option value="7åº§">7åº§</option>
+          <option value="10åº§">10åº§</option>
+          <option value="14åº§">14åº§</option>
         </select>
       </div>
       <div class="card">
@@ -580,16 +611,16 @@ tbody tr:last-child td{border-bottom:none}
           <table>
             <thead>
               <tr>
-                <th>訂單編號 <span class="sort">↕</span></th>
-                <th>出車日期 <span class="sort">↕</span></th>
-                <th>客戶姓名</th>
-                <th>行程概要</th>
-                <th>車型 / 司機</th>
-                <th>台幣訂金</th>
-                <th>日幣總額</th>
-                <th>狀態</th>
-                <th>業務</th>
-                <th>操作</th>
+                <th>è¨å®ç·¨è <span class="sort">â</span></th>
+                <th>åºè»æé <span class="sort">â</span></th>
+                <th>å®¢æ¶å§å</th>
+                <th>ç¬¬ä¸å¤©è¡ç¨</th>
+                <th>è»å / å¸æ©</th>
+                <th>å°å¹£è¨é</th>
+                <th>æ¥å¹£ç¸½é¡</th>
+                <th>çæ</th>
+                <th>å¥­å</th>
+                <th>æä½</th>
               </tr>
             </thead>
             <tbody id="orderTbody"></tbody>
@@ -599,86 +630,86 @@ tbody tr:last-child td{border-bottom:none}
         <div class="pager">
           <span class="pager-info" id="pagerInfo"></span>
           <div class="pager-btns">
-            <button class="pg-btn">‹</button>
+            <button class="pg-btn">â¹</button>
             <button class="pg-btn active">1</button>
             <button class="pg-btn">2</button>
-            <button class="pg-btn">›</button>
+            <button class="pg-btn">âº</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ── PAYMENT ── -->
+    <!-- ââ PAYMENT ââ -->
     <div class="page" id="page-payment">
       <div class="page-head">
-        <div class="page-head-left"><h2>收款對帳</h2><p>銀行入帳 vs 訂單核對</p></div>
+        <div class="page-head-left"><h2>æ¶æ¬¾å°å¸³</h2><p>éè¡å¥å¸³ vs è¨å®æ ¸å°</p></div>
         <div style="display:flex;gap:8px;align-items:center">
-          <span class="badge b-red">2 筆未核對</span>
-          <button class="btn btn-primary btn-sm">⚡ 一鍵自動核對</button>
+          <span class="badge b-red">2 ç­æªæ ¸å°</span>
+          <button class="btn btn-primary btn-sm">â¡ ä¸éµèªåæ ¸å°</button>
         </div>
       </div>
       <div class="stats-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
-        <div class="kpi blue"><div class="kpi-icon">💰</div><div class="kpi-label">本月入帳總計</div><div class="kpi-value" style="font-size:20px">$865,675</div><div class="kpi-sub">共 87 筆入帳</div></div>
-        <div class="kpi green"><div class="kpi-icon">✅</div><div class="kpi-label">已核對</div><div class="kpi-value" style="font-size:20px">85 筆</div><div class="kpi-sub">全額相符</div></div>
-        <div class="kpi gold"><div class="kpi-icon">❓</div><div class="kpi-label">未核對</div><div class="kpi-value" style="font-size:20px">2 筆</div><div class="kpi-sub">需手動確認</div></div>
+        <div class="kpi blue"><div class="kpi-icon">ð°</div><div class="kpi-label">æ¬æå¥å¸³ç¸½è¨</div><div class="kpi-value" style="font-size:20px">$865,675</div><div class="kpi-sub">å± 87 ç­å¥å¸³</div></div>
+        <div class="kpi green"><div class="kpi-icon">â</div><div class="kpi-label">å·²æ ¸å°</div><div class="kpi-value" style="font-size:20px">85 ç­</div><div class="kpi-sub">å¨é¡ç¸ç¬¦</div></div>
+        <div class="kpi gold"><div class="kpi-icon">â</div><div class="kpi-label">æªæ ¸å°</div><div class="kpi-value" style="font-size:20px">2 ç­</div><div class="kpi-sub">éæåç¢ºèª</div></div>
       </div>
       <div class="card">
-        <div class="card-hd"><span class="card-title">💳 入帳明細</span>
-          <select class="fsel" style="font-size:11px"><option>所有狀態</option><option>✅ 已核對</option><option>❌ 未核對</option></select>
+        <div class="card-hd"><span class="card-title">ð³ å¥å¸³æç´°</span>
+          <select class="fsel" style="font-size:11px"><option>ææçæ</option><option>â å·²æ ¸å°</option><option>â æªæ ¸å°</option></select>
         </div>
         <div class="tbl-wrap">
           <table>
-            <thead><tr><th>日期</th><th>金額</th><th>時間</th><th>帳號後碼</th><th>摘要</th><th>對應訂單</th><th>核對狀態</th><th>備註</th><th>操作</th></tr></thead>
+            <thead><tr><th>æ¥æ</th><th>éé¡</th><th>æé</th><th>å¸³èå¾ç¢¼</th><th>æè¦</th><th>å°æè¨å®</th><th>æ ¸å°çæ</th><th>åè¨»</th><th>æä½</th></tr></thead>
             <tbody>
               <tr>
                 <td>2026/04/22</td><td class="td-money" style="color:var(--red)">$2,860</td>
                 <td style="font-size:11px;color:var(--muted)">00:01:31</td>
                 <td><code style="background:var(--bg);padding:2px 7px;border-radius:4px;font-size:11px;font-family:monospace">44725</code></td>
-                <td><span class="badge b-gray">ATM轉</span></td>
-                <td><span class="badge b-red">未填入</span></td>
-                <td><div class="pay-status-ng">⚠️ 未核對</div></td>
-                <td style="color:var(--muted2);font-size:11px">—</td>
-                <td><div class="td-actions"><button class="ia ia-edit">補填訂單號</button></div></td>
+                <td><span class="badge b-gray">ATMè½</span></td>
+                <td><span class="badge b-red">æªå¡«å¥</span></td>
+                <td><div class="pay-status-ng">â ï¸ æªæ ¸å°</div></td>
+                <td style="color:var(--muted2);font-size:11px">â</td>
+                <td><div class="td-actions"><button class="ia ia-edit">è£å¡«è¨å®è</button></div></td>
               </tr>
               <tr>
                 <td>2026/04/22</td><td class="td-money" style="color:var(--red)">$1,540</td>
                 <td style="font-size:11px;color:var(--muted)">08:35:24</td>
                 <td><code style="background:var(--bg);padding:2px 7px;border-radius:4px;font-size:11px;font-family:monospace">05368</code></td>
-                <td><span class="badge b-gray">ATM轉</span></td>
-                <td><span class="badge b-red">未填入</span></td>
-                <td><div class="pay-status-ng">⚠️ 未核對</div></td>
-                <td style="color:var(--muted2);font-size:11px">—</td>
-                <td><div class="td-actions"><button class="ia ia-edit">補填訂單號</button></div></td>
+                <td><span class="badge b-gray">ATMè½</span></td>
+                <td><span class="badge b-red">æªå¡«å¥</span></td>
+                <td><div class="pay-status-ng">â ï¸ æªæ ¸å°</div></td>
+                <td style="color:var(--muted2);font-size:11px">â</td>
+                <td><div class="td-actions"><button class="ia ia-edit">è£å¡«è¨å®è</button></div></td>
               </tr>
               <tr>
                 <td>2026/04/21</td><td class="td-money">$2,200</td>
                 <td style="font-size:11px;color:var(--muted)">11:13:28</td>
                 <td><code style="background:var(--bg);padding:2px 7px;border-radius:4px;font-size:11px;font-family:monospace">76626</code></td>
-                <td><span class="badge b-gray">ATM轉</span></td>
+                <td><span class="badge b-gray">ATMè½</span></td>
                 <td><span class="badge b-blue">#26042101</span></td>
-                <td><div class="pay-status-ok">✅ 已核對</div></td>
-                <td style="font-size:11px;color:var(--muted)">1/2包車訂金</td>
-                <td><div class="td-actions"><button class="ia ia-view">查看訂單</button></div></td>
+                <td><div class="pay-status-ok">â å·²æ ¸å°</div></td>
+                <td style="font-size:11px;color:var(--muted)">1/2åè»è¨é</td>
+                <td><div class="td-actions"><button class="ia ia-view">æ¥çè¨å®</button></div></td>
               </tr>
               <tr>
                 <td>2026/04/21</td><td class="td-money">$2,420</td>
                 <td style="font-size:11px;color:var(--muted)">13:25:14</td>
                 <td><code style="background:var(--bg);padding:2px 7px;border-radius:4px;font-size:11px;font-family:monospace">30561</code></td>
-                <td><span class="badge b-gray">ATM轉</span></td>
+                <td><span class="badge b-gray">ATMè½</span></td>
                 <td><span class="badge b-blue">#26042102</span></td>
-                <td><div class="pay-status-ok">✅ 已核對</div></td>
-                <td style="font-size:11px;color:var(--muted)">金澤包車</td>
-                <td><div class="td-actions"><button class="ia ia-view">查看訂單</button></div></td>
+                <td><div class="pay-status-ok">â å·²æ ¸å°</div></td>
+                <td style="font-size:11px;color:var(--muted)">éæ¾¤åè»</td>
+                <td><div class="td-actions"><button class="ia ia-view">æ¥çè¨å®</button></div></td>
               </tr>
               <tr>
                 <td>2026/04/20</td><td class="td-money">$4,400</td>
                 <td style="font-size:11px;color:var(--muted)">23:00:36</td>
                 <td><code style="background:var(--bg);padding:2px 7px;border-radius:4px;font-size:11px;font-family:monospace">09874</code></td>
-                <td><span class="badge b-gray">網路轉</span></td>
+                <td><span class="badge b-gray">ç¶²è·¯è½</span></td>
                 <td><span class="badge b-blue">#26042010</span></td>
-                <td><div class="pay-status-ok">✅ 已核對</div></td>
-                <td style="font-size:11px;color:var(--muted)">姬佩珊</td>
-                <td><div class="td-actions"><button class="ia ia-view">查看訂單</button></div></td>
+                <td><div class="pay-status-ok">â å·²æ ¸å°</div></td>
+                <td style="font-size:11px;color:var(--muted)">å§¬ä½©ç</td>
+                <td><div class="td-actions"><button class="ia ia-view">æ¥çè¨å®</button></div></td>
               </tr>
             </tbody>
           </table>
@@ -686,42 +717,42 @@ tbody tr:last-child td{border-bottom:none}
       </div>
     </div>
 
-    <!-- ── FINANCE ── -->
+    <!-- ââ FINANCE ââ -->
     <div class="page" id="page-finance">
-      <div class="page-head"><div class="page-head-left"><h2>財務報表</h2><p>收支概覽與獎金計算</p></div></div>
+      <div class="page-head"><div class="page-head-left"><h2>è²¡åå ±è¡¨</h2><p>æ¶æ¯æ¦è¦½èçéè¨ç®</p></div></div>
       <div class="stats-row" style="margin-bottom:16px">
-        <div class="kpi blue"><div class="kpi-icon">📥</div><div class="kpi-label">本月台幣淨利</div><div class="kpi-value" style="font-size:18px">$1,230,874</div><div class="kpi-sub">扣除司機費後</div></div>
-        <div class="kpi purple"><div class="kpi-icon">¥</div><div class="kpi-label">本月日幣淨利</div><div class="kpi-value" style="font-size:18px">¥5,593K</div><div class="kpi-sub">扣除司機費後</div></div>
-        <div class="kpi gold"><div class="kpi-icon">💸</div><div class="kpi-label">本月支出費用</div><div class="kpi-value" style="font-size:18px">$65,250</div><div class="kpi-sub">廣告+薪資</div></div>
-        <div class="kpi green"><div class="kpi-icon">🎁</div><div class="kpi-label">客服獎金合計</div><div class="kpi-value" style="font-size:18px">$152,253</div><div class="kpi-sub">待發放</div></div>
+        <div class="kpi blue"><div class="kpi-icon">ð¥</div><div class="kpi-label">æ¬æå°å¹£æ·¨å©</div><div class="kpi-value" style="font-size:18px">$1,230,874</div><div class="kpi-sub">æ£é¤å¸æ©è²»å¾</div></div>
+        <div class="kpi purple"><div class="kpi-icon">Â¥</div><div class="kpi-label">æ¬ææ¥å¹£æ·¨å©</div><div class="kpi-value" style="font-size:18px">Â¥5,593K</div><div class="kpi-sub">æ£é¤å¸æ©è²»å¾</div></div>
+        <div class="kpi gold"><div class="kpi-icon">ð¸</div><div class="kpi-label">æ¬ææ¯åºè²»ç¨</div><div class="kpi-value" style="font-size:18px">$65,250</div><div class="kpi-sub">å»£å+èªè³</div></div>
+        <div class="kpi green"><div class="kpi-icon">ð</div><div class="kpi-label">å®¢æçéåè¨</div><div class="kpi-value" style="font-size:18px">$152,253</div><div class="kpi-sub">å¾ç¼æ¾</div></div>
       </div>
       <div class="grid-2">
         <div class="card">
-          <div class="card-hd"><span class="card-title">📊 月份收支紀錄</span></div>
+          <div class="card-hd"><span class="card-title">ð æä»½æ¶æ¯ç´é</span></div>
           <div class="tbl-wrap">
             <table style="min-width:auto">
-              <thead><tr><th>月份</th><th>台幣訂金</th><th>日幣總額</th><th>客服獎金</th></tr></thead>
+              <thead><tr><th>æä»½</th><th>å°å¹£è¨é</th><th>æ¥å¹£ç¸½é¡</th><th>å®¢æçé</th></tr></thead>
               <tbody>
-                <tr><td>2026年4月</td><td class="td-money">$865,675</td><td class="td-money" style="color:var(--purple)">¥3,934,453</td><td>$152,253</td></tr>
-                <tr><td>2026年3月</td><td class="td-money">$1,299,330</td><td class="td-money" style="color:var(--purple)">¥5,906,047</td><td>$173,511</td></tr>
-                <tr><td>2026年2月</td><td class="td-money">$1,143,208</td><td class="td-money" style="color:var(--purple)">¥5,194,400</td><td>$218,729</td></tr>
-                <tr><td>2026年1月</td><td class="td-money">$1,022,454</td><td class="td-money" style="color:var(--purple)">¥4,647,518</td><td>$152,197</td></tr>
-                <tr><td>2025年12月</td><td class="td-money">$709,634</td><td class="td-money" style="color:var(--purple)">¥3,219,973</td><td>$127,804</td></tr>
+                <tr><td>2026å¹´4æ</td><td class="td-money">$865,675</td><td class="td-money" style="color:var(--purple)">Â¥3,934,453</td><td>$152,253</td></tr>
+                <tr><td>2026å¹´3æ</td><td class="td-money">$1,299,330</td><td class="td-money" style="color:var(--purple)">Â¥5,906,047</td><td>$173,511</td></tr>
+                <tr><td>2026å¹´2æ</td><td class="td-money">$1,143,208</td><td class="td-money" style="color:var(--purple)">Â¥5,194,400</td><td>$218,729</td></tr>
+                <tr><td>2026å¹´1æ</td><td class="td-money">$1,022,454</td><td class="td-money" style="color:var(--purple)">Â¥4,647,518</td><td>$152,197</td></tr>
+                <tr><td>2025å¹´12æ</td><td class="td-money">$709,634</td><td class="td-money" style="color:var(--purple)">Â¥3,219,973</td><td>$127,804</td></tr>
               </tbody>
             </table>
           </div>
         </div>
         <div class="card">
-          <div class="card-hd"><span class="card-title">💸 近期支出費用</span></div>
+          <div class="card-hd"><span class="card-title">ð¸ è¿ææ¯åºè²»ç¨</span></div>
           <div class="tbl-wrap">
             <table style="min-width:auto">
-              <thead><tr><th>日期</th><th>項目</th><th>金額</th><th>代墊</th></tr></thead>
+              <thead><tr><th>æ¥æ</th><th>é ç®</th><th>éé¡</th><th>ä»£å¢</th></tr></thead>
               <tbody>
-                <tr><td style="font-size:11px">2026/03/17</td><td>FB廣告</td><td class="td-money" style="color:var(--red)">$65,250</td><td style="font-size:11px;color:var(--muted)">JUN星展</td></tr>
-                <tr><td style="font-size:11px">2026/03/01</td><td>薪資 Kris</td><td class="td-money">$70,000</td><td style="font-size:11px;color:var(--muted)">—</td></tr>
-                <tr><td style="font-size:11px">2026/03/01</td><td>薪資 小楊</td><td class="td-money">$38,500</td><td style="font-size:11px;color:var(--muted)">—</td></tr>
-                <tr><td style="font-size:11px">2026/02/28</td><td>稅金 佳遊</td><td class="td-money">$6,099</td><td style="font-size:11px;color:var(--muted)">—</td></tr>
-                <tr><td style="font-size:11px">2026/02/13</td><td>FB廣告</td><td class="td-money" style="color:var(--red)">$111,752</td><td style="font-size:11px;color:var(--muted)">JUN星展</td></tr>
+                <tr><td style="font-size:11px">2026/03/17</td><td>FBå»£å</td><td class="td-money" style="color:var(--red)">$65,250</td><td style="font-size:11px;color:var(--muted)">JUNæå±</td></tr>
+                <tr><td style="font-size:11px">2026/03/01</td><td>èªè³ Kris</td><td class="td-money">$70,000</td><td style="font-size:11px;color:var(--muted)">â</td></tr>
+                <tr><td style="font-size:11px">2026/03/01</td><td>èªè³ å°æ¥</td><td class="td-money">$38,500</td><td style="font-size:11px;color:var(--muted)">â</td></tr>
+                <tr><td style="font-size:11px">2026/02/28</td><td>ç¨é ä½³é</td><td class="td-money">$6,099</td><td style="font-size:11px;color:var(--muted)">â</td></tr>
+                <tr><td style="font-size:11px">2026/02/13</td><td>FBå»£å</td><td class="td-money" style="color:var(--red)">$111,752</td><td style="font-size:11px;color:var(--muted)">JUNæå±</td></tr>
               </tbody>
             </table>
           </div>
@@ -729,87 +760,86 @@ tbody tr:last-child td{border-bottom:none}
       </div>
     </div>
 
-    <!-- ── EXCHANGE ── -->
+    <!-- ââ EXCHANGE ââ -->
     <div class="page" id="page-exchange">
-      <div class="page-head"><div class="page-head-left"><h2>換匯紀錄</h2><p>台幣 ↔ 日幣換匯歷史</p></div></div>
+      <div class="page-head"><div class="page-head-left"><h2>æå¯ç´é</h2><p>å°å¹£ â æ¥å¹£æå¯æ­·å²</p></div></div>
       <div class="card">
         <div class="card-hd">
-          <span class="card-title">💱 換匯明細</span>
-          <span class="badge b-navy">合計換匯：NT$4,207,700 → ¥21,072,596</span>
+          <span class="card-title">ð± æå¯æç´°</span>
+          <span class="badge b-navy">åè¨æå¯ï¼NT$4,207,700 â Â¥21,072,596</span>
         </div>
         <div class="tbl-wrap">
           <table>
-            <thead><tr><th>日期時間</th><th>台幣金額</th><th>日幣金額</th><th>匯率</th><th>備註</th></tr></thead>
+            <thead><tr><th>æ¥ææé</th><th>å°å¹£éé¡</th><th>æ¥å¹£éé¡</th><th>å¯ç</th><th>åè¨»</th></tr></thead>
             <tbody>
-              <tr><td style="font-size:12px">2026/04/20 14:43</td><td class="td-money">$400,000</td><td class="td-money" style="color:var(--purple)">¥2,013,085</td><td><code style="font-size:12px">0.1987</code></td><td style="font-size:11px;color:var(--muted)">日本賞換匯禮遇</td></tr>
-              <tr><td style="font-size:12px">2026/04/13 10:11</td><td class="td-money">$230,000</td><td class="td-money" style="color:var(--purple)">¥1,115,2305</td><td><code style="font-size:12px">0.1996</code></td><td style="font-size:11px;color:var(--muted)">CUBE精選貴賓優惡</td></tr>
-              <tr><td style="font-size:12px">2026/02/09 11:39</td><td class="td-money">$303,150</td><td class="td-money" style="color:var(--purple)">¥1,500,000</td><td><code style="font-size:12px">0.2021</code></td><td style="font-size:11px;color:var(--muted)">CUBE精選貴賓優惠(C換)</td></tr>
-              <tr><td style="font-size:12px">2026/01/23 15:34</td><td class="td-money">$298,950</td><td class="td-money" style="color:var(--purple)">¥1,500,000</td><td><code style="font-size:12px">0.1993</code></td><td style="font-size:11px;color:var(--muted)">敢位通路優惠(C換)</td></tr>
-              <tr><td style="font-size:12px">2026/01/14 16:13</td><td class="td-money">$300,000</td><td class="td-money" style="color:var(--purple)">¥1,502,253</td><td><code style="font-size:12px">0.1997</code></td><td style="font-size:11px;color:var(--muted)">CUBEsend</td></tr>
+              <tr><td style="font-size:12px">2026/04/20 14:43</td><td class="td-money">$400,000</td><td class="td-money" style="color:var(--purple)">Â¥2,013,085</td><td><code style="font-size:12px">0.1987</code></td><td style="font-size:11px;color:var(--muted)">æ¥æ¬è³æå¯ç¦®é</td></tr>
+              <tr><td style="font-size:12px">2026/04/13 10:11</td><td class="td-money">$230,000</td><td class="td-money" style="color:var(--purple)">Â¥1,152,305</td><td><code style="font-size:12px">0.1996</code></td><td style="font-size:11px;color:var(--muted)">CUBEç²¾é¸è²´è³åªæ </td></tr>
+              <tr><td style="font-size:12px">2026/02/09 11:39</td><td class="td-money">$303,150</td><td class="td-money" style="color:var(--purple)">Â¥1,500,000</td><td><code style="font-size:12px">0.2021</code></td><td style="font-size:11px;color:var(--muted)">CUBEç²¾é¸è²´è³åªæ (Cæ)</td></tr>
+              <tr><td style="font-size:12px">2026/01/23 15:34</td><td class="td-money">$298,950</td><td class="td-money" style="color:var(--purple)">Â¥1,500,000</td><td><code style="font-size:12px">0.1993</code></td><td style="font-size:11px;color:var(--muted)">æ¸ä½éè·¯åªæ (Cæ)</td></tr>
+              <tr><td style="font-size:12px">2026/01/14 16:13</td><td class="td-money">$300,000</td><td class="td-money" style="color:var(--purple)">Â¥1,502,253</td><td><code style="font-size:12px">0.1997</code></td><td style="font-size:11px;color:var(--muted)">CUBEç²¾é¸è²´è³åªæ </td></tr>
             </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- ── CUSTOMERS ── -->
-    <div class="page" id="page-customers">S ── -->
+    <!-- ââ CUSTOMERS ââ -->
     <div class="page" id="page-customers">
-      <div class="page-head"><div class="page-head-left"><h2>客戶資料庫</h2><p>搜尋與管理所有客戶</p></div></div>
+      <div class="page-head"><div class="page-head-left"><h2>å®¢æ¶è³æåº«</h2><p>æå°èç®¡çææå®¢æ¶</p></div></div>
       <div class="filter-bar">
-        <div class="search-box" style="flex:1"><span class="search-icon">🔍</span><input type="text" placeholder="搜尋姓名、電話、LINE…"></div>
-        <select class="fsel"><option>所有來源</option><option>粉專</option><option>LINE</option><option>IG</option></select>
+        <div class="search-box" style="flex:1"><span class="search-icon">ð</span><input type="text" placeholder="æå°å§åãé»è©±ãLINEâ¦"></div>
+        <select class="fsel"><option>ææä¾æº</option><option>ç²å°</option><option>LINE</option><option>IG</option></select>
       </div>
       <div class="card">
         <div class="tbl-wrap">
           <table>
-            <thead><tr><th>姓名</th><th>電話</th><th>LINE ID</th><th>Email</th><th>來源管道</th><th>訂單數</th><th>最近訂單</th><th>操作</th></tr></thead>
+            <thead><tr><th>å§å</th><th>é»è©±</th><th>LINE ID</th><th>Email</th><th>ä¾æºç®¡é</th><th>è¨å®æ¸</th><th>æè¿è¨å®</th><th>æä½</th></tr></thead>
             <tbody>
-              <tr><td class="td-name">張瑋翔</td><td>0981620953</td><td style="font-size:11px;color:var(--muted)">feo062879</td><td style="font-size:11px">feo062879@gmail.com</td><td><span class="badge b-teal">Dcard</span></td><td><span class="badge b-purple">2 筆</span></td><td style="font-size:11px">2026/04/22</td><td><button class="ia ia-view">查看訂單</button></td></tr>
-              <tr><td class="td-name">何卉妤</td><td>0935051580</td><td style="font-size:11px;color:var(--muted)">hohuiyu43</td><td style="font-size:11px">huiyu43@yahoo.com.tw</td><td><span class="badge b-blue">FB討論區</span></td><td><span class="badge b-purple">2 筆</span></td><td style="font-size:11px">2026/04/23</td><td><button class="ia ia-view">查看訂單</button></td></tr>
-              <tr><td class="td-name">游淑娟</td><td>0961135497</td><td style="font-size:11px;color:var(--muted)">hrcgp777</td><td style="font-size:11px">hrcgp777@gmail.com</td><td><span class="badge b-green">FB粉專</span></td><td><span class="badge b-purple">1 筆</span></td><td style="font-size:11px">2026/04/25</td><td><button class="ia ia-view">查看訂單</button></td></tr>
-              <tr><td class="td-name">羅敬媛</td><td>0930178125</td><td style="font-size:11px;color:var(--muted)">miki811125</td><td style="font-size:11px">george811125@gmail.com</td><td><span class="badge b-green">FB粉專</span></td><td><span class="badge b-purple">1 筆</span></td><td style="font-size:11px">2026/04/26</td><td><button class="ia ia-view">查看訂單</button></td></tr>
+              <tr><td class="td-name">å¼µçç¿</td><td>0981620953</td><td style="font-size:11px;color:var(--muted)">feo062879</td><td style="font-size:11px">feo062879@gmail.com</td><td><span class="badge b-teal">Dcard</span></td><td><span class="badge b-purple">2 ç­</span></td><td style="font-size:11px">2026/04/22</td><td><button class="ia ia-view">æ¥çè¨å®</button></td></tr>
+              <tr><td class="td-name">ä½åå¦¤</td><td>0935051580</td><td style="font-size:11px;color:var(--muted)">hohuiyu43</td><td style="font-size:11px">huiyu43@yahoo.com.tw</td><td><span class="badge b-blue">FBè¨è«å</span></td><td><span class="badge b-purple">2 ç­</span></td><td style="font-size:11px">2026/04/23</td><td><button class="ia ia-view">æ¥çè¨å®</button></td></tr>
+              <tr><td class="td-name">æ¸¸æ·å¨</td><td>0961135497</td><td style="font-size:11px;color:var(--muted)">hrcgp777</td><td style="font-size:11px">hrcgp777@gmail.com</td><td><span class="badge b-green">FBç²å°</span></td><td><span class="badge b-purple">1 ç­</span></td><td style="font-size:11px">2026/04/25</td><td><button class="ia ia-view">æ¥çè¨å®</button></td></tr>
+              <tr><td class="td-name">ç¾æ¬åª</td><td>0930178125</td><td style="font-size:11px;color:var(--muted)">miki811125</td><td style="font-size:11px">george811125@gmail.com</td><td><span class="badge b-green">FBç²å°</span></td><td><span class="badge b-purple">1 ç­</span></td><td style="font-size:11px">2026/04/26</td><td><button class="ia ia-view">æ¥çè¨å®</button></td></tr>
             </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- ── SETTINGS ── -->
+    <!-- ââ SETTINGS ââ -->
     <div class="page" id="page-settings">
-      <div class="page-head"><div class="page-head-left"><h2>系統設定</h2><p>使用者管理與連線設定</p></div></div>
+      <div class="page-head"><div class="page-head-left"><h2>ç³»çµ±è¨­å®</h2><p>ä½¿ç¨èç®¡çèé£ç·è¨­å®</p></div></div>
       <div class="grid-2">
         <div class="card">
-          <div class="card-hd"><span class="card-title">👥 使用者管理</span><button class="btn btn-primary btn-sm">＋ 新增</button></div>
+          <div class="card-hd"><span class="card-title">ð¥ ä½¿ç¨èç®¡ç</span><button class="btn btn-primary btn-sm">ï¼ æ°å¢</button></div>
           <div class="card-body">
             <table style="width:100%;border-collapse:collapse;min-width:auto">
-              <thead><tr style="border-bottom:1px solid var(--border)"><th style="padding:6px 0;text-align:left;font-size:11px;color:var(--muted)">使用者</th><th style="padding:6px 0;text-align:left;font-size:11px;color:var(--muted)">角色</th><th style="font-size:11px;color:var(--muted)">操作</th></tr></thead>
+              <thead><tr style="border-bottom:1px solid var(--border)"><th style="padding:6px 0;text-align:left;font-size:11px;color:var(--muted)">ä½¿ç¨è</th><th style="padding:6px 0;text-align:left;font-size:11px;color:var(--muted)">è§è²</th><th style="font-size:11px;color:var(--muted)">æä½</th></tr></thead>
               <tbody>
-                <tr style="border-bottom:1px solid var(--bg)"><td style="padding:9px 0"><div style="font-weight:700;font-size:13px">Jun（你）</div><div style="font-size:11px;color:var(--muted)">designbyjun@gmail.com</div></td><td><span class="badge b-red">👑 超管</span></td><td style="text-align:center;font-size:11px;color:var(--muted)">—</td></tr>
-                <tr style="border-bottom:1px solid var(--bg)"><td style="padding:9px 0"><div style="font-weight:700;font-size:13px">Christina</div><div style="font-size:11px;color:var(--muted)">christina@gmail.com</div></td><td><span class="badge b-blue">🎧 客服</span></td><td style="text-align:center"><button class="ia ia-edit">修改</button></td></tr>
-                <tr style="border-bottom:1px solid var(--bg)"><td style="padding:9px 0"><div style="font-weight:700;font-size:13px">Renjun</div><div style="font-size:11px;color:var(--muted)">renjun@gmail.com</div></td><td><span class="badge b-blue">🎧 客服</span></td><td style="text-align:center"><button class="ia ia-edit">修改</button></td></tr>
-                <tr><td style="padding:9px 0"><div style="font-weight:700;font-size:13px">Wei</div><div style="font-size:11px;color:var(--muted)">wei@gmail.com</div></td><td><span class="badge b-blue">🎧 客服</span></td><td style="text-align:center"><button class="ia ia-edit">修改</button></td></tr>
+                <tr style="border-bottom:1px solid var(--bg)"><td style="padding:9px 0"><div style="font-weight:700;font-size:13px">Junï¼ä½ ï¼</div><div style="font-size:11px;color:var(--muted)">designbyjun@gmail.com</div></td><td><span class="badge b-red">ð è¶ç®¡</span></td><td style="text-align:center;font-size:11px;color:var(--muted)">â</td></tr>
+                <tr style="border-bottom:1px solid var(--bg)"><td style="padding:9px 0"><div style="font-weight:700;font-size:13px">Christina</div><div style="font-size:11px;color:var(--muted)">christina@gmail.com</div></td><td><span class="badge b-blue">ð§ å®¢æ</span></td><td style="text-align:center"><button class="ia ia-edit">ä¿®æ¹</button></td></tr>
+                <tr style="border-bottom:1px solid var(--bg)"><td style="padding:9px 0"><div style="font-weight:700;font-size:13px">Renjun</div><div style="font-size:11px;color:var(--muted)">renjun@gmail.com</div></td><td><span class="badge b-blue">ð§ å®¢æ</span></td><td style="text-align:center"><button class="ia ia-edit">ä¿®æ¹</button></td></tr>
+                <tr><td style="padding:9px 0"><div style="font-weight:700;font-size:13px">Wei</div><div style="font-size:11px;color:var(--muted)">wei@gmail.com</div></td><td><span class="badge b-blue">ð§ å®¢æ</span></td><td style="text-align:center"><button class="ia ia-edit">ä¿®æ¹</button></td></tr>
               </tbody>
             </table>
           </div>
         </div>
         <div class="card">
-          <div class="card-hd"><span class="card-title">🔗 Google Sheets 連線狀態</span></div>
+          <div class="card-hd"><span class="card-title">ð Google Sheets é£ç·çæ</span></div>
           <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
             <div style="padding:13px;background:var(--bg);border-radius:var(--radius-sm);display:flex;align-items:center;gap:12px">
-              <span style="font-size:20px">📋</span>
-              <div><div style="font-weight:700;font-size:13px">旅乘-日本自由行包車</div><div style="font-size:11px;color:var(--muted)">主訂單資料庫</div></div>
-              <span class="badge b-green" style="margin-left:auto">● 已連線</span>
+              <span style="font-size:20px">ð</span>
+              <div><div style="font-weight:700;font-size:13px">æä¹-æ¥æ¬èªç±è¡åè»</div><div style="font-size:11px;color:var(--muted)">ä¸»è¨å®è³æåº«</div></div>
+              <span class="badge b-green" style="margin-left:auto">â å·²é£ç·</span>
             </div>
             <div style="padding:13px;background:var(--bg);border-radius:var(--radius-sm);display:flex;align-items:center;gap:12px">
-              <span style="font-size:20px">💳</span>
-              <div><div style="font-weight:700;font-size:13px">旅乘-客戶匯款確認</div><div style="font-size:11px;color:var(--muted)">入帳對帳資料</div></div>
-              <span class="badge b-green" style="margin-left:auto">● 已連線</span>
+              <span style="font-size:20px">ð³</span>
+              <div><div style="font-weight:700;font-size:13px">æä¹-å®¢æ¶å¯æ¬¾ç¢ºèª</div><div style="font-size:11px;color:var(--muted)">å¥å¸³å°å¸³è³æ</div></div>
+              <span class="badge b-green" style="margin-left:auto">â å·²é£ç·</span>
             </div>
             <div style="padding:13px;background:var(--bg);border-radius:var(--radius-sm);display:flex;align-items:center;gap:12px">
-              <span style="font-size:20px">🍊</span>
-              <div><div style="font-weight:700;font-size:13px">旅乘帳款</div><div style="font-size:11px;color:var(--muted)">財務總帳</div></div>
-              <span class="badge b-green" style="margin-left:auto">● 已連線</span>
+              <span style="font-size:20px">ð</span>
+              <div><div style="font-weight:700;font-size:13px">æä¹å¸³æ¬¾</div><div style="font-size:11px;color:var(--muted)">è²¡åç¸½å¸³</div></div>
+              <span class="badge b-green" style="margin-left:auto">â å·²é£ç·</span>
             </div>
           </div>
         </div>
@@ -819,104 +849,141 @@ tbody tr:last-child td{border-bottom:none}
   </main>
 </div>
 
-<!-- ═══ ORDER DETAIL MODAL ═══ -->
+<!-- âââ ORDER DETAIL MODAL âââ -->
 <div class="modal-bg" id="detailMd">
-  <div class="modal">
+  <div class="modal" style="width:820px">
     <div class="modal-hd">
-      <div><div class="modal-title" id="detailTitle">訂單詳情</div><div class="modal-sub" id="detailSub"></div></div>
-      <button class="modal-x" onclick="closeMd('detailMd')">✕</button>
+      <div><div class="modal-title" id="detailTitle">è¨å®è©³æ</div><div class="modal-sub" id="detailSub"></div></div>
+      <button class="modal-x" onclick="closeMd('detailMd')">â</button>
     </div>
     <div class="modal-body">
       <div id="detailBadges" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px"></div>
-      <div class="ds">📅 行程資訊</div>
-      <div class="detail-grid">
-        <div class="df"><label>出車日期</label><span id="dd-date"></span></div>
-        <div class="df"><label>預計時間</label><span id="dd-time"></span></div>
-        <div class="df"><label>車型</label><span id="dd-vehicle"></span></div>
-        <div class="df" style="grid-column:span 2"><label>出發地</label><span id="dd-from" style="font-size:12px"></span></div>
-        <div class="df"><label>目的地</label><span id="dd-to" style="font-size:12px"></span></div>
-        <div class="df"><label>值班司機</label><span id="dd-driver"></span></div>
-        <div class="df"><label>乘車人數</label><span id="dd-pax"></span></div>
-        <div class="df"><label>行李</label><span id="dd-luggage"></span></div>
-        <div class="df"><label>安全座椅</label><span id="dd-seat"></span></div>
+
+      <!-- åºè»æç´°è¡¨ -->
+      <div class="ds">ð åºè»æç´° <span id="dd-daycount" class="day-count-badge"></span></div>
+      <div class="days-detail-wrap">
+        <table class="days-table">
+          <thead>
+            <tr>
+              <th style="width:30px">#</th>
+              <th>åºè»æ¥æ</th>
+              <th>æé</th>
+              <th>è»å</th>
+              <th>å¸æ©</th>
+              <th>åºç¼å°</th>
+              <th>ç®çå°</th>
+              <th>äººæ¸</th>
+              <th>è¡æ</th>
+              <th>å¸æ©è²»</th>
+              <th>åè¨»</th>
+            </tr>
+          </thead>
+          <tbody id="dd-days-tbody"></tbody>
+        </table>
       </div>
-      <div class="ds">👤 客戶資訊</div>
+
+      <div class="ds" style="margin-top:16px">ð¤ å®¢æ¶è³è¨</div>
       <div class="detail-grid">
-        <div class="df"><label>姓名</label><span id="dd-name"></span></div>
-        <div class="df"><label>電話</label><span id="dd-phone"></span></div>
+        <div class="df"><label>å§å</label><span id="dd-name"></span></div>
+        <div class="df"><label>é»è©±</label><span id="dd-phone"></span></div>
         <div class="df"><label>LINE</label><span id="dd-line"></span></div>
         <div class="df" style="grid-column:span 2"><label>Email</label><span id="dd-email" style="font-size:12px"></span></div>
-        <div class="df"><label>曝光管道</label><span id="dd-channel"></span></div>
+        <div class="df"><label>æåç®¡é</label><span id="dd-channel"></span></div>
       </div>
-      <div class="ds">💰 財務資訊</div>
+
+      <div class="ds">ð° è²¡åè³è¨</div>
       <div class="detail-grid">
-        <div class="df"><label>台幣訂金</label><span id="dd-twd" style="color:var(--green);font-weight:800;font-size:16px"></span></div>
-        <div class="df"><label>日幣總額</label><span id="dd-jpy" style="color:var(--purple);font-weight:800;font-size:16px"></span></div>
-        <div class="df"><label>日幣尾款</label><span id="dd-jpybal"></span></div>
-        <div class="df"><label>司機費</label><span id="dd-driverfee"></span></div>
-        <div class="df"><label>分潤</label><span id="dd-split"></span></div>
-        <div class="df"><label>帳號後碼</label><span id="dd-acct"></span></div>
+        <div class="df"><label>å°å¹£è¨é</label><span id="dd-twd" style="color:var(--green);font-weight:800;font-size:16px"></span></div>
+        <div class="df"><label>æ¥å¹£ç¸½é¡</label><span id="dd-jpy" style="color:var(--purple);font-weight:800;font-size:16px"></span></div>
+        <div class="df"><label>æ¥å¹£å°¾æ¬¾</label><span id="dd-jpybal"></span></div>
+        <div class="df"><label>åæ½¤å¸³æ¶</label><span id="dd-split"></span></div>
+        <div class="df"><label>å¯ç</label><span id="dd-rate"></span></div>
+        <div class="df"><label>å¸³èå¾ç¢¼</label><span id="dd-acct"></span></div>
       </div>
-      <div class="ds">📝 備註</div>
+
+      <div class="ds">ð åè¨»</div>
       <div id="dd-notes" style="background:var(--bg);padding:12px;border-radius:var(--radius-sm);font-size:13px;min-height:38px;color:var(--text2)"></div>
     </div>
     <div class="modal-ft">
-      <button class="btn btn-ghost" onclick="closeMd('detailMd')">關閉</button>
-      <button class="btn btn-primary" onclick="openEditFromDetail()">✏️ 編輯訂單</button>
+      <button class="btn btn-ghost" onclick="closeMd('detailMd')">éé</button>
+      <button class="btn btn-primary" onclick="openEditFromDetail()">âï¸ ç·¨è¼¯è¨å®</button>
     </div>
   </div>
 </div>
 
-<!-- ═══ ORDER FORM MODAL ═══ -->
+<!-- âââ ORDER FORM MODAL âââ -->
 <div class="modal-bg" id="orderMd">
-  <div class="modal">
+  <div class="modal" style="width:860px">
     <div class="modal-hd">
-      <div><div class="modal-title" id="orderMdTitle">新增訂單</div><div class="modal-sub">填寫完整訂單資訊</div></div>
-      <button class="modal-x" onclick="closeMd('orderMd')">✕</button>
+      <div><div class="modal-title" id="orderMdTitle">æ°å¢è¨å®</div><div class="modal-sub">å¡«å¯«å®æ´è¨å®è³è¨ï¼å¯æ°å¢å¤å¤©åºè»æç´°</div></div>
+      <button class="modal-x" onclick="closeMd('orderMd')">â</button>
     </div>
     <div class="modal-body">
       <div class="form-grid">
-        <div class="form-section">📅 行程資訊</div>
-        <div class="fg"><label>訂單編號</label><input class="fi readonly" id="f-id" readonly></div>
-        <div class="fg"><label>訂購日期</label><input class="fi" type="date" id="f-odate"></div>
-        <div class="fg"><label>出車日期</label><input class="fi" type="date" id="f-ddate"></div>
-        <div class="fg"><label>預計出發時間</label><input class="fi" type="time" id="f-time"></div>
-        <div class="fg full"><label>出發地</label><input class="fi" placeholder="飯店名稱 / 地址" id="f-from"></div>
-        <div class="fg full"><label>目的地</label><input class="fi" placeholder="機場 / 景點 / 地址" id="f-to"></div>
-        <div class="fg"><label>車型</label>
-          <select class="fi" id="f-vehicle"><option>7座舒適款</option><option>7座豪華款</option><option>10座豐田海獅</option><option>14座豐田海獅</option><option>19座考斯特</option></select>
+        <!-- åºæ¬è³è¨ -->
+        <div class="form-section">ðï¸ è¨å®åºæ¬è³è¨</div>
+        <div class="fg"><label>è¨å®ç·¨è</label><input class="fi readonly" id="f-id" readonly></div>
+        <div class="fg"><label>è¨è³¼æ¥æ</label><input class="fi" type="date" id="f-odate"></div>
+        <div class="fg"><label>çæ</label>
+          <select class="fi" id="f-status">
+            <option value="pending">å¾ç¢ºèª</option>
+            <option value="confirmed">å·²ç¢ºèª</option>
+            <option value="completed">å·²å®æ</option>
+          </select>
         </div>
-        <div class="fg"><label>值班司機</label><input class="fi" placeholder="司機名稱" id="f-driver"></div>
-        <div class="fg"><label>乘車人數</label><input class="fi" placeholder="例：4大2小" id="f-pax"></div>
-        <div class="fg"><label>行李箱大小</label><input class="fi" placeholder="例：4件28吋" id="f-luggage"></div>
-        <div class="fg"><label>安全座椅</label>
-          <select class="fi" id="f-seat"><option value="">不需要</option><option value="1">1個</option><option value="2">2個</option><option value="3">3個</option></select>
+        <div class="fg"><label>åæ½¤å¸³æ¶</label>
+          <select class="fi" id="f-split">
+            <option>WTGT-15%</option><option>Jun-20%</option><option>Jun-10%</option>
+            <option>David-15%</option><option>Christina-15%</option><option>Wei-15%</option>
+          </select>
         </div>
-        <div class="fg"><label>方案</label><input class="fi" placeholder="方案說明" id="f-plan"></div>
-        <div class="form-section">👤 客戶資訊</div>
-        <div class="fg"><label>訂購姓名</label><input class="fi" placeholder="客戶姓名" id="f-name"></div>
-        <div class="fg"><label>電話</label><input class="fi" placeholder="09xxxxxxxx" id="f-phone"></div>
+
+        <!-- åºè»æç´° -->
+        <div class="form-section" style="display:flex;align-items:center;justify-content:space-between">
+          <span>ð åºè»æç´°</span>
+          <span style="font-size:11px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">æ¯è¡ä»£è¡¨ä¸å¤©åºè»ï¼å¯æ°å¢å¤å¤©</span>
+        </div>
+        <div class="full" style="grid-column:1/-1">
+          <div class="days-section" id="daysSection">
+            <div class="days-hdr">
+              <span>åºè»æ¥æ</span><span>æé</span><span>è»å</span><span>å¸æ©</span>
+              <span>åºç¼å°</span><span>ç®çå°</span><span>äººæ¸</span><span>è¡æ</span><span></span>
+            </div>
+            <div id="dayRows"></div>
+            <div class="days-add" onclick="addDayRow()">
+              ï¼ æ°å¢ä¸å¤©åºè»
+            </div>
+          </div>
+        </div>
+
+        <!-- å®¢æ¶è³è¨ -->
+        <div class="form-section">ð¤ å®¢æ¶è³è¨</div>
+        <div class="fg"><label>è¨è³¼å§å</label><input class="fi" placeholder="å®¢æ¶å§å" id="f-name"></div>
+        <div class="fg"><label>é»è©±</label><input class="fi" placeholder="09xxxxxxxx" id="f-phone"></div>
         <div class="fg"><label>LINE ID</label><input class="fi" id="f-line"></div>
         <div class="fg"><label>Email</label><input class="fi" type="email" id="f-email"></div>
-        <div class="fg"><label>曝光管道</label>
-          <select class="fi" id="f-ch"><option>粉專</option><option>LINE</option><option>FB私訊</option><option>IG</option><option>Dcard</option><option>Jun親友</option></select>
+        <div class="fg"><label>æåç®¡é</label>
+          <select class="fi" id="f-ch">
+            <option>ç²å°</option><option>LINE</option><option>FBç§è¨</option>
+            <option>IG</option><option>Dcard</option><option>Junè¦ªå</option><option>Threads</option>
+          </select>
         </div>
-        <div class="fg"><label>FB名稱</label><input class="fi" id="f-fb"></div>
-        <div class="form-section">💰 財務資訊</div>
-        <div class="fg"><label>台幣訂金 (NT$)</label><input class="fi" type="number" placeholder="0" id="f-twd"></div>
-        <div class="fg"><label>日幣總額 (¥)</label><input class="fi" type="number" placeholder="0" id="f-jpy"></div>
-        <div class="fg"><label>日幣尾款 (¥)</label><input class="fi" type="number" placeholder="0" id="f-jpybal"></div>
-        <div class="fg"><label>司機費 (¥)</label><input class="fi" type="number" placeholder="0" id="f-drvfee"></div>
-        <div class="fg"><label>帳號後碼</label><input class="fi" placeholder="後5碼" id="f-acct"></div>
-        <div class="fg"><label>分潤</label>
-          <select class="fi" id="f-split"><option>WTGT-15%</option><option>Jun-20%</option><option>Jun-10%</option></select>
-        </div>
-        <div class="fg full"><label>備註</label><textarea class="fi" rows="3" id="f-notes" style="resize:vertical"></textarea></div>
+        <div class="fg"><label>FBåç¨± / ç¤¾ç¾¤å¸³è</label><input class="fi" id="f-fb"></div>
+
+        <!-- è²¡åè³è¨ -->
+        <div class="form-section">ð° è²¡åè³è¨</div>
+        <div class="fg"><label>å°å¹£è¨é (NT$)</label><input class="fi" type="number" placeholder="0" id="f-twd"></div>
+        <div class="fg"><label>æ¥å¹£ç¸½é¡ (Â¥)</label><input class="fi" type="number" placeholder="0" id="f-jpy"></div>
+        <div class="fg"><label>æ¥å¹£è¨é15% (Â¥)</label><input class="fi" type="number" placeholder="0" id="f-jpydeposit"></div>
+        <div class="fg"><label>æ¥å¹£å°¾æ¬¾ (Â¥)</label><input class="fi" type="number" placeholder="0" id="f-jpybal"></div>
+        <div class="fg"><label>å¯ç</label><input class="fi" type="number" step="0.001" placeholder="0.22" id="f-rate"></div>
+        <div class="fg"><label>å¸³èå¾ç¢¼ï¼æ«5ç¢¼ï¼</label><input class="fi" placeholder="å¾5ç¢¼" id="f-acct"></div>
+        <div class="fg full"><label>åè¨»</label><textarea class="fi" rows="3" id="f-notes" style="resize:vertical"></textarea></div>
       </div>
     </div>
     <div class="modal-ft">
-      <button class="btn btn-ghost" onclick="closeMd('orderMd')">取消</button>
-      <button class="btn btn-primary" onclick="saveOrder()">💾 儲存訂單</button>
+      <button class="btn btn-ghost" onclick="closeMd('orderMd')">åæ¶</button>
+      <button class="btn btn-primary" onclick="saveOrder()">ð¾ å²å­è¨å®</button>
     </div>
   </div>
 </div>
@@ -924,67 +991,185 @@ tbody tr:last-child td{border-bottom:none}
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script>
-// ── DATA ──
+// ââââââââââââââââââââââââââââââââââââââââââââââââââ
+// æä¹ ERP â å¤å¤©åºè»è¨å®è³ææ¨¡å
+// ä¸ç­è¨å® (Order) å¯åå«å¤å¤©åºè»æç´° (days[])
+// ââââââââââââââââââââââââââââââââââââââââââââââââââ
+
 const ORDERS = [
-  {id:'#26042201',odate:'2026/04/22',ddate:'2026/04/22',name:'張瑋翔',phone:'0981620953',line:'feo062879',email:'feo062879@gmail.com',ch:'Dcard',fb:'',from:'HOUSE IKEBUKURO',to:'東京成田T1-VN311-9:30飛',vehicle:'7座舒適款',driver:'東京-李勇軍',pax:'4大',luggage:'4件',seat:'',time:'06:00',twd:880,jpy:18000,jpyBal:0,drvfee:18000,split:'WTGT-15%',status:'confirmed',notes:'VN311-9:30飛',plan:''},
-  {id:'#26042102',odate:'2026/04/21',ddate:'2026/04/22',name:'徐苡庭',phone:'0922086602',line:'0922086602',email:'puppy0925@yahoo.com.tw',ch:'FB粉專',fb:'Fandyhsu',from:'東京日和',to:'富士山一日遊往返',vehicle:'10座豐田海獅',driver:'九州-小王',pax:'6大',luggage:'隨身行李',seat:'',time:'09:00',twd:440,jpy:25000,jpyBal:21000,drvfee:19000,split:'WTGT-15%',status:'confirmed',notes:'',plan:''},
-  {id:'#26042101',odate:'2026/04/21',ddate:'2026/04/23',name:'何卉妤',phone:'0935051580',line:'hohuiyu43',email:'huiyu43@yahoo.com.tw',ch:'FB討論區',fb:'何小宇',from:'池袋飯店',to:'富士山一日遊',vehicle:'10座豐田海獅',driver:'九州-小王',pax:'5大2小',luggage:'10-12件28吋',seat:'1',time:'09:00',twd:2542,jpy:65000,jpyBal:29193,drvfee:65000,split:'Jun-10%',status:'pending',notes:'行李較多，需確認空間',plan:''},
-  {id:'#26042010',odate:'2026/04/20',ddate:'2026/04/25',name:'游淑娟',phone:'0961135497',line:'hrcgp777',email:'hrcgp777@gmail.com',ch:'FB粉專',fb:'Patty Yu',from:'福岡國際機場',to:'天神飯店',vehicle:'7座舒適款',driver:'九州-福岡',pax:'3大',luggage:'4件',seat:'',time:'11:15',twd:440,jpy:12000,jpyBal:0,drvfee:12000,split:'WTGT-15%',status:'confirmed',notes:'長榮BR106-11:15著',plan:''},
-  {id:'#26042011',odate:'2026/04/20',ddate:'2026/04/26',name:'羅敬媛',phone:'0930178125',line:'miki811125',email:'george811125@gmail.com',ch:'FB粉專',fb:'羅敬媛',from:'天神飯店',to:'九州動物園+由布院',vehicle:'10座豐田海獅',driver:'九州-小王',pax:'4大1小',luggage:'4件+2小件',seat:'1',time:'09:00',twd:660,jpy:65000,jpyBal:0,drvfee:65000,split:'WTGT-15%',status:'confirmed',notes:'',plan:''},
-  {id:'#26042301',odate:'2026/04/19',ddate:'2026/04/27',name:'陳美玲',phone:'0912345678',line:'meiling123',email:'meiling@gmail.com',ch:'LINE',fb:'',from:'關西機場',to:'大阪市區飯店',vehicle:'7座舒適款',driver:'大阪-小田',pax:'2大',luggage:'2件',seat:'',time:'15:30',twd:1320,jpy:15000,jpyBal:12000,drvfee:15000,split:'WTGT-15%',status:'pending',notes:'華航CI155',plan:''},
-  {id:'#26042501',odate:'2026/04/18',ddate:'2026/04/29',name:'王建民',phone:'0966123456',line:'jianmin',email:'jianmin@gmail.com',ch:'粉專',fb:'王建民',from:'新宿飯店',to:'羽田機場T3',vehicle:'7座豪華款',driver:'東京-李勇軍',pax:'6大',luggage:'10件28吋',seat:'',time:'10:00',twd:3520,jpy:40000,jpyBal:0,drvfee:40000,split:'WTGT-15%',status:'completed',notes:'長榮BR189-12:00飛',plan:''},
+  // ââ å®å¤©ï¼æ©å ´æ¥é ââ
+  {
+    id:'#26042201', odate:'2026/04/22',
+    name:'å¼µçç¿', phone:'0981620953', line:'feo062879', email:'feo062879@gmail.com',
+    ch:'Dcard', fb:'',
+    twd:880, jpy:18000, jpyDeposit:2700, jpyBal:0, rate:0.22,
+    split:'WTGT-15%', brand:'æä¹', status:'confirmed',
+    notes:'VN311-9:30é£', acct:'',
+    days:[
+      {date:'2026/04/22',time:'06:00',vehicle:'7åº§èé©æ¬¾',driver:'æ±äº¬-æåè»',
+       from:'HOUSE IKEBUKURO',to:'æ±äº¬æç°T1-VN311',pax:'4å¤§',luggage:'4ä»¶',childSeat:0,drvfee:18000,flightNote:'VN311-9:30é£'}
+    ]
+  },
+  // ââ 3å¤©ï¼å¯å£«å±±+æ¥å+æ©å ´ ââ
+  {
+    id:'#26042101', odate:'2026/04/21',
+    name:'ä½åå¦¤', phone:'0935051580', line:'hohuiyu43', email:'huiyu43@yahoo.com.tw',
+    ch:'FBè¨è«å', fb:'ä½å°å®',
+    twd:2542, jpy:65000, jpyDeposit:9750, jpyBal:29193, rate:0.22,
+    split:'Jun-10%', brand:'æä¹', status:'pending',
+    notes:'è¡æè¼å¤ï¼éç¢ºèªç©ºé', acct:'76626',
+    days:[
+      {date:'2026/04/23',time:'09:00',vehicle:'10åº§è±ç°æµ·ç',driver:'æ±äº¬-å°å¾',
+       from:'æ± è¢é£¯åº',to:'å¯å£«å±±æ²³å£æ¹ä¸æ¥é',pax:'5å¤§2å°',luggage:'30-12ä»¶285',childSeat:1,drvfee:25000,flightNote:''},
+      {date:'2026/04/24',time:'08:30',vehicle:'10åº§è±ç°æµ·ç',driver:'æ±äº¬-å°å¾',
+       from:'æ°å®¿é£¯åº',to:'æ¥åæ±ç§å®®ä¸æ¥é',pax:'5å¤§2å°',luggage:'10-12ä»¶28å',childSeat:1,drvfee:22000,flightNote:''},
+      {date:'2026/04/25',time:'10:00',vehicle:'7åº§èé©æ¬¾',driver:'æ±äº¬-æåè»',
+       from:'æ°å®¿é£¯åº',to:'æ±äº¬ç¾½ç°T3-é·æ¦®BR189',pax:'5å¤§2å°',luggage:'10-12ä»¶28å',childSeat:1,drvfee:18000,flightNote:'é·æ¦®BR189-12:00é£'}
+    ]
+  },
+  // ââ 2å¤©ï¼å¯å£«å±±+æ©å ´ ââ
+  {
+    id:'#26042102', odate:'2026/04/21',
+    name:'å¾è¡åº­', phone:'0922086602', line:'0922086602', email:'puppy0925@yahoo.com.tw',
+    ch:'FBç²å°', fb:'Fandyhsu',
+    twd:440, jpy:25000, jpyDeposit:3750, jpyBal:21000, rate:0.22,
+    split:'WTGT-15%', brand:'æä¹', status:'confirmed',
+    notes:'', acct:'30561',
+    days:[
+      {date:'2026/04/22',time:'09:00',vehicle:'10åº§è±ç°æµ·ç',driver:'æ±äº¬-å°å¾',
+       from:'æ±äº¬æ¥åé£¯åº',to:'å¯å£«å±±ä¸æ¥éå¾è¿',pax:'6å¤§',luggage:'é¨èº«è¡æ',childSeat:0,drvfee:19000,flightNote:''},
+      {date:'2026/04/23',time:'14:00',vehicle:'7åº§èé©æ¬¾',driver:'æ±äº¬-æåè»',
+       from:'æ°å®¿é£¯åº',to:'æç°æ©å ´T2-CI155',pax:'6å¤§',luggage:'é¨èº«è¡æ',childSeat:0,drvfee:6000,flightNote:'CI155-15:40é£'}
+    ]
+  },
+  // ââ å®å¤©ï¼æ©å ´æ¥æ© ââ
+  {
+    id:'#26042010', odate:'2026/04/20',
+    name:'æ¸¸æ·å¨', phone:'0961135497', line:'hrcgp777', email:'hrcgp777@gmail.com',
+    ch:'FBç²å°', fb:'Patty Yu',
+    twd:440, jpy:12000, jpyDeposit:1800, jpyBal:0, rate:0.22,
+    split:'WTGT-15%', brand:'æä¹', status:'confirmed',
+    notes:'é·æ¦®BR106-11:15è', acct:'09874',
+    days:[
+      {date:'2026/04/25',time:'11:15',vehicle:'7åº§èé©æ¬¾',driver:'ä¹å·-ç¦å²¡å°å¼',
+       from:'ç¦å²¡åéæ©å ´T1',to:'å¤©ç¥ä¸­æ´²é£¯åº',pax:'3å¤§',luggage:'4ä»¶',childSeat:0,drvfee:12000,flightNote:'é·æ¦®BR106-11:15è'}
+    ]
+  },
+  // ââ 2å¤©ï¼ä¹å·åç©å+é»å·æº«æ³ ââ
+  {
+    id:'#26042011', odate:'2026/04/20',
+    name:'ç¾æ¬åª', phone:'0930178125', line:'miki811125', email:'george811125@gmail.com',
+    ch:'FBç²å°', fb:'ç¾æ¬åª',
+    twd:660, jpy:65000, jpyDeposit:9750, jpyBal:0, rate:0.22,
+    split:'WTGT-15%', brand:'æä¹', status:'confirmed',
+    notes:'', acct:'',
+    days:[
+      {date:'2026/04/26',time:'09:00',vehicle:'10åº§è±ç°æµ·ç',driver:'ä¹å·-å°ç',
+       from:'å¤©ç¥åå¤é£¯åº',to:'ä¹å·åç©å+ç±å¸é¢ä¸æ¥é',pax:'4å¤§1å°',luggage:'4ä»¶+2å°ä»¶',childSeat:1,drvfee:40000,flightNote:''},
+      {date:'2026/04/27',time:'08:00',vehicle:'10åº§è±ç°æµ·ç',driver:'ä¹å·-å°ç',
+       from:'ç±å¸é¢é£¯åº',to:'é»å·æº«æ³+é¿èå±±ä¸æ¥é',pax:'4å¤§1å°',luggage:'4ä»¶+2å°ä»¶',childSeat:1,drvfee:25000,flightNote:''}
+    ]
+  },
+  // ââ 5å¤©ï¼å¤§éª+äº¬é½+å¥è¯+ç¥æ¶+æ©å ´ ââ
+  {
+    id:'#26042301', odate:'2026/04/19',
+    name:'é³ç¾ç²', phone:'0912345678', line:'meiling123', email:'meiling@gmail.com',
+    ch:'LINE', fb:'',
+    twd:1320, jpy:180000, jpyDeposit:27000, jpyBal:153000, rate:0.22,
+    split:'WTGT-15%', brand:'æä¹', status:'pending',
+    notes:'è¯èªCI155è½å° 14:50', acct:'',
+    days:[
+      {date:'2026/04/27',time:'15:30',vehicle:'7åº§èé©æ¬¾',driver:'å¤§éª-å°ç°',
+       from:'éè¥¿æ©å ´T1',to:'å¤§éªé£æ³¢é£¯åº',pax:'2å¤§',luggage:'2ä»¶',childSeat:0,drvfee:18000,flightNote:'è¯èªCI155-14:50è'},
+      {date:'2026/04/28',time:'09:00',vehicle:'7åº§èé©æ¬¾',driver:'å¤§éª-å°ç°',
+       from:'å¤§éªé£æ³¢é£¯åº',to:'äº¬é½åµå±±+éé£å¯º',pax:'2å¤§',luggage:'é¨èº«',childSeat:0,drvfee:32000,flightNote:''},
+      {date:'2026/04/29',time:'08:30',vehicle:'7åº§èé©æ¬¾',driver:'å¤§éª-å°ç°',
+       from:'äº¬é½é£¯åº',to:'å¥è¯ä¸æ¥é',pax:'2å¤§',luggage:'é¨èº«',childSeat:0,drvfee:28000,flightNote:''},
+      {date:'2026/04/30',time:'09:00',vehicle:'7åº§èé©æ¬¾',driver:'å¤§éª-å°ç°',
+       from:'å¤§éªé£¯åº',to:'ç¥æ¶+æé¦¬æº«æ³ä¸æ¥é',pax:'2å¤§',luggage:'é¨èº«',childSeat:0,drvfee:35000,flightNote:''},
+      {date:'2026/05/01',time:'14:00',vehicle:'7åº§èé©æ¬¾',driver:'å¤§éª-å°ç°',
+       from:'å¤§éªé£¯åº',to:'éè¥¿æ©å ´T1-é·æ¦®BR198',pax:'2å¤§',luggage:'2ä»¶',childSeat:0,drvfee:18000,flightNote:'é·æ¦®BR198-17:10é£'}
+    ]
+  },
+  // ââ å®å¤©ï¼å®æè¨å® ââ
+  {
+    id:'#26042501', odate:'2026/04/18',
+    name:'çå»ºæ°', phone:'0966123456', line:'jianmin', email:'jianmin@gmail.com',
+    ch:'ç²å°', fb:'çå»ºæ°',
+    twd:3520, jpy:40000, jpyDeposit:6000, jpyBal:0, rate:0.22,
+    split:'WTGT-15%', brand:'æä¹', status:'completed',
+    notes:'é·æ¦®BR189-12:00é£', acct:'',
+    days:[
+      {date:'2026/04/29',time:'10:00',vehicle:'7åº§è±ªè¯æ¬¾',driver:'æ±äº¬-æåè»',
+       from:'æ°å®¿é£¯åº',to:'ç¾½ç°æ©å ´T3-é·æ¦®BR189',pax:'6å¤§',luggage:'10ä»¶28å',childSeat:0,drvfee:40000,flightNote:'é·æ¦®BR189-12:00é£'}
+    ]
+  }
 ];
 
-const ST = {confirmed:{label:'已確認',cls:'b-green'},pending:{label:'待確認',cls:'b-yellow'},completed:{label:'已完成',cls:'b-blue'}};
+// ââ çææ¨ç±¤å°ç§ ââ
+const ST = {
+  confirmed:{label:'å·²ç¢ºèª',cls:'b-green'},
+  pending:{label:'å¾ç¢ºèª',cls:'b-yellow'},
+  completed:{label:'å·²å®æ',cls:'b-blue'}
+};
+
 let currentDetailId = null;
 
-// ── CHART ──
+// ââ åå¾æ¥æé¡¯ç¤ºå­ä¸²ï¼å«å¤å¤©æéï¼ââ
+function dateRange(o){
+  if(!o.days||!o.days.length) return 'â';
+  const dates = o.days.map(d=>d.date).sort();
+  const fmt = d => d.replace(/\d{4}\//,'').replace('/','/');
+  if(dates.length===1) return fmt(dates[0]);
+  return fmt(dates[0])+'ï½'+fmt(dates[dates.length-1]);
+}
+
+// ââ CHART ââ
 function initChart(){
   const ctx = document.getElementById('revenueChart');
   if(!ctx) return;
   new Chart(ctx,{
     type:'bar',
     data:{
-      labels:['11月','12月','1月','2月','3月','4月'],
+      labels:['11æ','12æ','1æ','2æ','3æ','4æ'],
       datasets:[{
-        label:'台幣訂金 (萬元)',
+        label:'å°å¹£è¨é (è¬å)',
         data:[57.8,70.9,102.2,114.3,129.9,86.6],
         backgroundColor:'rgba(37,99,235,.15)',
         borderColor:'rgba(37,99,235,.7)',
-        borderWidth:2,
-        borderRadius:6,
+        borderWidth:2, borderRadius:6,
         hoverBackgroundColor:'rgba(37,99,235,.25)',
       }]
     },
     options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'NT$ '+ctx.raw+'萬'}}},
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'NT$ '+ctx.raw+'è¬'}}},
       scales:{
-        y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:11},callback:v=>v+'萬'}},
+        y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:11},callback:v=>v+'è¬'}},
         x:{grid:{display:false},ticks:{font:{size:11}}}
       }
     }
   });
 }
 
-// ── LOGIN ──
+// ââ LOGIN ââ
 function doLogin(){
   document.getElementById('loginPage').style.display='none';
   document.getElementById('app').style.display='block';
   renderOrders(ORDERS);
   initChart();
   const now=new Date();
-  document.getElementById('topbarMonth').textContent=now.getFullYear()+'噴'+(now.getMonth()+1)+'月';
-  toast('歡迎回來，Jun！','ok');
+  document.getElementById('topbarMonth').textContent=now.getFullYear()+'å¹´'+(now.getMonth()+1)+'æ';
+  toast('æ­¡è¿åä¾ï¼Junï¼','ok');
 }
 function doLogout(){
   document.getElementById('app').style.display='none';
   document.getElementById('loginPage').style.display='flex';
-  toast('已成功登出');
+  toast('å·²æåç»åº');
 }
 
-// ── NAV ──
-const PAGE_TITLES={dashboard:'Dashboard',orders:'訂單管理',payment:'收款對帳',finance:'財務報表',exchange:'換匯紀錄',customers:'客戶資料庫',settings:'系統設定'};
+// ââ NAV ââ
+const PAGE_TITLES={dashboard:'Dashboard',orders:'è¨å®ç®¡ç',payment:'æ¶æ¬¾å°å¸³',finance:'è²¡åå ±è¡¨',exchange:'æå¯ç´é',customers:'å®¢æ¶è³æåº«',settings:'ç³»çµ±è¨­å®'};
 function goPage(id,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
@@ -996,47 +1181,57 @@ function goPage(id,el){
 function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sbOverlay').classList.toggle('open')}
 function closeSb(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sbOverlay').classList.remove('open')}
 
-// ── ORDERS ──
+// ââ ORDERS RENDER ââ
 function renderOrders(list){
   const tb=document.getElementById('orderTbody');
   const mc=document.getElementById('orderMCards');
   tb.innerHTML=''; mc.innerHTML='';
   if(!list.length){
-    tb.innerHTML='<tr><td colspan="10"><div class="empty"><div class="ei">📭</div><p>沒有符合條件的訂單</p></div></td></tr>';
+    tb.innerHTML='<tr><td colspan="10"><div class="empty"><div class="ei">ð­</div><p>æ²æç¬¦åæ¢ä»¶çè¨å®</p></div></td></tr>';
     document.getElementById('orderCount').textContent='0';
-    document.getElementById('pagerInfo').textContent='無資料';
+    document.getElementById('pagerInfo').textContent='ç¡è³æ';
     return;
   }
   list.forEach(o=>{
-    const s=ST[o.status];
+    const s = ST[o.status];
+    const d0 = (o.days&&o.days.length) ? o.days[0] : {};
+    const n = (o.days&&o.days.length) || 1;
+    const rangeTxt = dateRange(o);
+    const dayBadge = n>1 ? `<span class="day-count-badge">ð ${n}å¤©</span>` : '';
+    const firstRoute = d0.from ? `<div class="td-route">${d0.from}</div><div class="td-muted td-route">â ${d0.to||''}</div>` : 'â';
+    const firstVehicle = d0.vehicle||'â';
+    const firstDriver = d0.driver||'â';
+
     tb.innerHTML+=`<tr>
       <td><div class="td-order">${o.id}</div><div class="td-muted">${o.odate}</div></td>
-      <td>${o.ddate}</td>
+      <td><div class="td-date-range">${rangeTxt}${dayBadge}</div></td>
       <td><div class="td-name">${o.name}</div><div class="td-muted">${o.ch}</div></td>
-      <td><div class="td-route">${o.from}</div><div class="td-muted td-route">→ ${o.to}</div></td>
-      <td><div style="font-size:12px;font-weight:600">${o.vehicle}</div><div class="td-muted">${o.driver}</div></td>
+      <td>${firstRoute}</td>
+      <td><div style="font-size:12px;font-weight:600">${firstVehicle}</div><div class="td-muted">${firstDriver}</div></td>
       <td><div class="td-money">$${o.twd.toLocaleString()}</div></td>
-      <td><div class="td-money td-jpy">¥${o.jpy.toLocaleString()}</div></td>
+      <td><div class="td-money td-jpy">Â¥${o.jpy.toLocaleString()}</div></td>
       <td><span class="badge ${s.cls}">${s.label}</span></td>
       <td><span class="badge b-navy" style="font-size:10px">${o.split}</span></td>
-      <td><div class="td-actions"><button class="ia ia-view" onclick="openDetail('${o.id}')">詳情</button><button class="ia ia-edit" onclick="openEdit('${o.id}')">編輯</button></div></td>
+      <td><div class="td-actions"><button class="ia ia-view" onclick="openDetail('${o.id}')">è©³æ</button><button class="ia ia-edit" onclick="openEdit('${o.id}')">ç·¨è¼¯</button></div></td>
     </tr>`;
+
+    // Mobile card
     mc.innerHTML+=`<div class="m-card">
       <div class="m-card-top"><span class="m-card-id">${o.id}</span><span class="badge ${s.cls}">${s.label}</span></div>
       <div class="m-card-grid">
-        <div class="m-field"><label>客戶</label><span>${o.name}</span></div>
-        <div class="m-field"><label>出車日期</label><span>${o.ddate}</span></div>
-        <div class="m-field"><label>車型</label><span style="font-size:11px">${o.vehicle}</span></div>
-        <div class="m-field"><label>司機</label><span style="font-size:11px">${o.driver}</span></div>
-        <div class="m-field"><label>台幣訂金</label><span style="color:var(--green)">$${o.twd.toLocaleString()}</span></div>
-        <div class="m-field"><label>日幣總額</label><span style="color:var(--purple)">¥${o.jpy.toLocaleString()}</span></div>
+        <div class="m-field"><label>å®¢æ¶</label><span>${o.name}</span></div>
+        <div class="m-field"><label>åºè»æé</label><span>${rangeTxt}${n>1?` (${n}å¤©)`:''}</span></div>
+        <div class="m-field"><label>ç¬¬ä¸å¤©è»å</label><span style="font-size:11px">${firstVehicle}</span></div>
+        <div class="m-field"><label>ç¬¬ä¸å¤©å¸æ©</label><span style="font-size:11px">${firstDriver}</span></div>
+        <div class="m-field"><label>å°å¹£è¨é</label><span style="color:var(--green)">$${o.twd.toLocaleString()}</span></div>
+        <div class="m-field"><label>æ¥å¹£ç¸½é¡</label><span style="color:var(--purple)">Â¥${o.jpy.toLocaleString()}</span></div>
       </div>
-      <div class="m-route">📍 ${o.from} → ${o.to}</div>
-      <div class="m-actions"><button class="ia ia-view" onclick="openDetail('${o.id}')">詳情</button><button class="ia ia-edit" onclick="openEdit('${o.id}')">編輯</button></div>
+      ${d0.from?`<div class="m-route">ð ${d0.from} â ${d0.to||''}</div>`:''}
+      <div class="m-actions"><button class="ia ia-view" onclick="openDetail('${o.id}')">è©³æ</button><button class="ia ia-edit" onclick="openEdit('${o.id}')">ç·¨è¼¯</button></div>
     </div>`;
   });
   document.getElementById('orderCount').textContent=list.length;
-  document.getElementById('pagerInfo').textContent=`顯示 1–${Math.min(list.length,10)} / ${list.length} 筆`;
+  document.getElementById('pagerInfo').textContent=`é¡¯ç¤º 1â${Math.min(list.length,10)} / ${list.length} ç­`;
 }
 
 function filterOrders(){
@@ -1046,101 +1241,199 @@ function filterOrders(){
   const st=document.getElementById('fSt').value;
   const vh=document.getElementById('fVh').value;
   renderOrders(ORDERS.filter(o=>{
-    if(q&&!o.id.toLowerCase().includes(q)&&!o.name.toLowerCase().includes(q)&&!o.phone.includes(q)) return false;
-    if(mo&&!o.ddate.startsWith(mo)) return false;
+    if(q&&!o.id.toLowerCase().includes(q)&&!o.name.toLowerCase().includes(q)&&!o.phone.includes(q)&&!(o.line||'').toLowerCase().includes(q)) return false;
+    if(mo){
+      // æä»½ç¯©é¸ï¼åªè¦ä»»ä¸å¤©å¨è©²æä»½å³ç¬¦å
+      const anyMatch = (o.days||[]).some(d=>d.date&&d.date.startsWith(mo));
+      if(!anyMatch) return false;
+    }
     if(cs&&o.split!==cs) return false;
     if(st&&o.status!==st) return false;
-    if(vh&&!o.vehicle.includes(vh)) return false;
+    if(vh&&!(o.days||[]).some(d=>(d.vehicle||'').includes(vh))) return false;
     return true;
   }));
 }
 
-// ── DETAIL ──
+// ââ DETAIL MODAL ââ
 function openDetail(id){
   const o=ORDERS.find(x=>x.id===id); if(!o) return;
   currentDetailId=id;
   const s=ST[o.status];
-  document.getElementById('detailTitle').textContent='訂單詳情 — '+o.name;
-  document.getElementById('detailSub').textContent=o.id+' | 訂購日期：'+o.odate;
-  document.getElementById('detailBadges').innerHTML=`<span class="badge ${s.cls}">${s.label}</span><span class="badge b-navy">${o.split}</span><span class="badge b-gray">${o.vehicle}</span><span class="badge b-teal">${o.ch}</span>`;
-  document.getElementById('dd-date').textContent=o.ddate;
-  document.getElementById('dd-time').textContent=o.time||'—';
-  document.getElementById('dd-vehicle').textContent=o.vehicle;
-  document.getElementById('dd-from').textContent=o.from||'—';
-  document.getElementById('dd-to').textContent=o.to||'—';
-  document.getElementById('dd-driver').textContent=o.driver||'—';
-  document.getElementById('dd-pax').textContent=o.pax||'—';
-  document.getElementById('dd-luggage').textContent=o.luggage||'—';
-  document.getElementById('dd-seat').textContent=o.seat?o.seat+' 個':'不需要';
+  const n=(o.days||[]).length;
+  document.getElementById('detailTitle').textContent='è¨å®è©³æ â '+o.name;
+  document.getElementById('detailSub').textContent=o.id+' | è¨è³¼æ¥æï¼'+o.odate+' | '+n+'å¤©è¡ç¨';
+  document.getElementById('detailBadges').innerHTML=
+    `<span class="badge ${s.cls}">${s.label}</span>`+
+    `<span class="badge b-navy">${o.split}</span>`+
+    `<span class="badge b-purple">${n} å¤©åºè»</span>`+
+    `<span class="badge b-teal">${o.ch}</span>`+
+    `<span class="badge b-gray">${o.brand||'æä¹'}</span>`;
+  document.getElementById('dd-daycount').textContent=n+' å¤©';
+
+  // åºè»æç´°è¡¨
+  const tbody=document.getElementById('dd-days-tbody');
+  tbody.innerHTML='';
+  (o.days||[]).forEach((d,i)=>{
+    const seat=d.childSeat>0?`<span class="badge b-yellow" style="font-size:10px">å®å¨æ¤Ã${d.childSeat}</span>`:'';
+    tbody.innerHTML+=`<tr>
+      <td><span class="day-num-chip">${i+1}</span></td>
+      <td style="font-weight:700;white-space:nowrap">${d.date||'â'}</td>
+      <td style="font-weight:600;white-space:nowrap">${d.time||'â'}</td>
+      <td><span class="badge b-gray" style="font-size:10px">${d.vehicle||'â'}</span></td>
+      <td style="font-size:12px;white-space:nowrap">${d.driver||'â'}</td>
+      <td style="font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis">${d.from||'â'}</td>
+      <td style="font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis">${d.to||'â'}</td>
+      <td style="font-size:12px;white-space:nowrap">${d.pax||'â'} ${seat}</td>
+      <td style="font-size:11px;color:var(--muted)">${d.luggage||'â'}</td>
+      <td style="font-weight:700;color:var(--purple);font-size:12px">${d.drvfee>0?'Â¥'+d.drvfee.toLocaleString():'â'}</td>
+      <td style="font-size:11px;color:var(--muted)">${d.flightNote||'â'}</td>
+    </tr>`;
+  });
+
+  // å®¢æ¶è³è¨
   document.getElementById('dd-name').textContent=o.name;
   document.getElementById('dd-phone').textContent=o.phone;
-  document.getElementById('dd-line').textContent=o.line||'—';
-  document.getElementById('dd-email').textContent=o.email||'—';
+  document.getElementById('dd-line').textContent=o.line||'â';
+  document.getElementById('dd-email').textContent=o.email||'â';
   document.getElementById('dd-channel').textContent=o.ch;
+
+  // è²¡åè³è¨
   document.getElementById('dd-twd').textContent='$'+o.twd.toLocaleString();
-  document.getElementById('dd-jpy').textContent='¥'+o.jpy.toLocaleString();
-  document.getElementById('dd-jpybal').textContent=o.jpyBal>0?'¥'+o.jpyBal.toLocaleString()+' 待收':'已付清';
-  document.getElementById('dd-driverfee').textContent='¥'+o.drvfee.toLocaleString();
+  document.getElementById('dd-jpy').textContent='Â¥'+o.jpy.toLocaleString();
+  document.getElementById('dd-jpybal').textContent=o.jpyBal>0?'Â¥'+o.jpyBal.toLocaleString()+' å¾æ¶':'å·²ä»æ¸';
   document.getElementById('dd-split').textContent=o.split;
-  document.getElementById('dd-acct').textContent=o.acct||'—';
-  document.getElementById('dd-notes').textContent=o.notes||'（無備註）';
+  document.getElementById('dd-rate').textContent=o.rate||'â';
+  document.getElementById('dd-acct').textContent=o.acct||'â';
+  document.getElementById('dd-notes').textContent=o.notes||'ï¼ç¡åè¨»ï¼';
   openMd('detailMd');
 }
 function openEditFromDetail(){closeMd('detailMd');if(currentDetailId)openEdit(currentDetailId);}
 
-// ── FORM ──
+// ââ FORM: DAY ROWS ââ
+let _dayRowCount = 0;
+
+function makeDayRowHtml(idx, d){
+  d = d||{};
+  const vehicles=['7åº§èé©æ¬¾','7åº§è±ªè¯æ¬¾','10åº§è±ç°æµ·ç','14åº§è±ç°æµ·ç','19åº§èæ¯ç¹','5åº§èé©æ¬¾'];
+  const vOpts=vehicles.map(v=>`<option${(d.vehicle===v)?' selected':''}>${v}</option>`).join('');
+  const seats=[0,1,2,3].map(n=>`<option value="${n}"${d.childSeat==n?' selected':''}>${n===0?'ä¸éè¦':n+'å'}</option>`).join('');
+  return `<div class="day-row" id="dr-${idx}">
+    <input class="di" type="date" value="${(d.date||'').replace(/\//g,'-')}" placeholder="åºè»æ¥æ" title="åºè»æ¥æ">
+    <input class="di" type="time" value="${d.time||''}" placeholder="æé" title="åºç¼æé">
+    <select class="di" title="è»å">${vOpts}</select>
+    <input class="di" value="${d.driver||''}" placeholder="å¸æ©ï¼å°å-å§åï¼" title="å¸æ©">
+    <input class="di" value="${d.from||''}" placeholder="åºç¼å°" title="åºç¼å°">
+    <input class="di" value="${d.to||''}" placeholder="ç®çå°" title="ç®çå°">
+    <input class="di" value="${d.pax||''}" placeholder="äººæ¸" title="ä¹è»äººæ¸">
+    <input class="di" value="${d.luggage||''}" placeholder="è¡æ" title="è¡æ">
+    <button class="btn-del-day" onclick="delDayRow('dr-${idx}')" title="åªé¤æ­¤å¤©">Ã</button>
+  </div>`;
+}
+
+function addDayRow(d){
+  _dayRowCount++;
+  document.getElementById('dayRows').insertAdjacentHTML('beforeend', makeDayRowHtml(_dayRowCount, d));
+}
+
+function delDayRow(id){
+  const el=document.getElementById(id);
+  if(el && document.getElementById('dayRows').children.length>1){
+    el.remove();
+  } else {
+    toast('è¨å®è³å°éä¿çä¸å¤©åºè»æç´°','');
+  }
+}
+
+function clearDayRows(){
+  document.getElementById('dayRows').innerHTML='';
+  _dayRowCount=0;
+}
+
+function collectDayRows(){
+  const rows=document.querySelectorAll('#dayRows .day-row');
+  const days=[];
+  rows.forEach(row=>{
+    const inputs=row.querySelectorAll('input,select');
+    days.push({
+      date:(inputs[0].value||'').replace(/-/g,'/'),
+      time:inputs[1].value||'',
+      vehicle:inputs[2].value||'',
+      driver:inputs[3].value||'',
+      from:inputs[4].value||'',
+      to:inputs[5].value||'',
+      pax:inputs[6].value||'',
+      luggage:inputs[7].value||'',
+      childSeat:0, drvfee:0, flightNote:''
+    });
+  });
+  return days;
+}
+
+// ââ FORM: OPEN NEW / EDIT ââ
 function openNew(){
-  document.getElementById('orderMdTitle').textContent='新增訂單';
+  document.getElementById('orderMdTitle').textContent='æ°å¢è¨å®';
   const now=new Date(), ds=now.toISOString().split('T')[0];
-  document.getElementById('f-id').value='#'+now.getFullYear().toString().slice(2)+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0')+Math.floor(Math.random()*90+10);
+  const newId='#'+now.getFullYear().toString().slice(2)+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0')+Math.floor(Math.random()*90+10);
+  document.getElementById('f-id').value=newId;
   document.getElementById('f-odate').value=ds;
-  ['f-ddate','f-from','f-to','f-driver','f-pax','f-luggage','f-notes','f-phone','f-line','f-email','f-fb','f-name','f-acct','f-plan'].forEach(i=>{const e=document.getElementById(i);if(e)e.value='';});
-  ['f-twd','f-jpy','f-jpybal','f-drvfee'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=0;});
+  document.getElementById('f-status').value='pending';
+  document.getElementById('f-split').value='WTGT-15%';
+  ['f-name','f-phone','f-line','f-email','f-fb','f-acct','f-notes'].forEach(i=>{const e=document.getElementById(i);if(e)e.value='';});
+  ['f-twd','f-jpy','f-jpydeposit','f-jpybal','f-rate'].forEach(i=>{const e=document.getElementById(i);if(e)e.value='';});
+  document.getElementById('f-rate').value='0.22';
+  clearDayRows();
+  addDayRow({date:ds.replace(/-/g,'/')});
   openMd('orderMd');
 }
+
 function openEdit(id){
   const o=ORDERS.find(x=>x.id===id); if(!o) return;
-  document.getElementById('orderMdTitle').textContent='編輯訂單 — '+o.id;
+  document.getElementById('orderMdTitle').textContent='ç·¨è¼¯è¨å® â '+o.id;
   document.getElementById('f-id').value=o.id;
   document.getElementById('f-odate').value=o.odate.replace(/\//g,'-');
-  document.getElementById('f-ddate').value=o.ddate.replace(/\//g,'-');
-  document.getElementById('f-time').value=o.time||'';
-  document.getElementById('f-from').value=o.from;
-  document.getElementById('f-to').value=o.to;
-  document.getElementById('f-driver').value=o.driver;
-  document.getElementById('f-pax').value=o.pax;
-  document.getElementById('f-luggage').value=o.luggage;
+  document.getElementById('f-status').value=o.status;
+  document.getElementById('f-split').value=o.split;
   document.getElementById('f-name').value=o.name;
   document.getElementById('f-phone').value=o.phone;
-  document.getElementById('f-line').value=o.line;
-  document.getElementById('f-email').value=o.email;
-  document.getElementById('f-fb').value=o.fb;
-  document.getElementById('f-twd').value=o.twd;
-  document.getElementById('f-jpy').value=o.jpy;
-  document.getElementById('f-jpybal').value=o.jpyBal;
-  document.getElementById('f-drvfee').value=o.drvfee;
-  document.getElementById('f-notes').value=o.notes;
+  document.getElementById('f-line').value=o.line||'';
+  document.getElementById('f-email').value=o.email||'';
+  document.getElementById('f-fb').value=o.fb||'';
+  document.getElementById('f-ch').value=o.ch||'ç²å°';
+  document.getElementById('f-twd').value=o.twd||0;
+  document.getElementById('f-jpy').value=o.jpy||0;
+  document.getElementById('f-jpydeposit').value=o.jpyDeposit||0;
+  document.getElementById('f-jpybal').value=o.jpyBal||0;
+  document.getElementById('f-rate').value=o.rate||0.22;
   document.getElementById('f-acct').value=o.acct||'';
+  document.getElementById('f-notes').value=o.notes||'';
+  clearDayRows();
+  (o.days||[]).forEach(d=>addDayRow(d));
   openMd('orderMd');
 }
-function saveOrder(){toast('✅ 訂單已儲存（模擬）','ok');closeMd('orderMd');}
 
-// ── MODAL ──
+function saveOrder(){
+  const days=collectDayRows();
+  if(!days.length||!days[0].date){toast('è«è³å°å¡«å¯«ä¸å¤©åºè»æ¥æ','');return;}
+  toast(`â è¨å®å·²å²å­ï¼${days.length}å¤©åºè»ï¼`,'ok');
+  closeMd('orderMd');
+}
+
+// ââ MODAL ââ
 function openMd(id){document.getElementById(id).classList.add('open')}
 function closeMd(id){document.getElementById(id).classList.remove('open')}
 document.querySelectorAll('.modal-bg').forEach(el=>el.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')}));
 
-// ── TOAST ──
+// ââ TOAST ââ
 function toast(msg,type=''){
   const w=document.getElementById('toastWrap');
   const t=document.createElement('div');
   t.className='toast '+(type==='ok'?'ok':type==='err'?'err':'');
-  t.innerHTML=(type==='ok'?'✅ ':'ℹ️ ')+msg;
+  t.innerHTML=(type==='ok'?'â ':type==='err'?'â ':'â¹ï¸ ')+msg;
   w.appendChild(t);
   setTimeout(()=>{t.style.transition='opacity .4s';t.style.opacity='0';setTimeout(()=>t.remove(),400);},3000);
 }
 
-// Init
+// ââ INIT ââ
 renderOrders(ORDERS);
 </script>
 </body>
