@@ -601,11 +601,11 @@
                     <div class="bg-[#1A365D] text-white p-10 rounded-xl mb-12 shadow-inner relative overflow-hidden">
                         <i data-lucide="credit-card" class="absolute top-4 right-4 w-32 h-32 opacity-10 rotate-12"></i>
                         <h4 class="text-pink-300 font-bold mb-6 flex items-center gap-2 uppercase font-sans">指定匯款帳戶 / Bank Info</h4>
-                        <div class="space-y-4 font-sans tracking-widest font-bold">
+                        <div class="space-y-4 font-sans font-bold">
                             <p class="text-sm opacity-70">銀行代碼：<span class="text-lg opacity-100 ml-2" id="bank-info-code"></span></p>
                             <p class="text-sm opacity-70">分行：<span class="text-lg opacity-100 ml-2" id="bank-info-branch"></span></p>
                             <p class="text-sm opacity-70">戶名：<span class="text-lg opacity-100 ml-2" id="bank-info-holder"></span></p>
-                            <p class="text-sm opacity-70">匯款帳號：<span class="text-2xl italic opacity-100 ml-2" id="bank-info-account" style="font-family:'Noto Sans TC',sans-serif; letter-spacing:0.12em; font-weight:700;"></span></p>
+                            <p class="text-sm opacity-70 break-all">匯款帳號：<span class="text-2xl italic opacity-100 ml-2" id="bank-info-account" style="font-family:'Noto Sans TC',sans-serif; letter-spacing:0.04em; font-weight:700; overflow-wrap:anywhere;"></span></p>
                             <p class="text-3xl text-pink-400 font-bold pt-4 mt-2" id="bank-info-amount"></p>
                         </div>
                     </div>
@@ -657,7 +657,7 @@
                         <div class="bg-[#1A365D] text-white p-8 rounded-xl shadow-inner">
                             <p class="text-white/60 text-xs uppercase tracking-widest font-sans mb-3">您的專屬預約編號</p>
                             <div class="flex items-center justify-center gap-4">
-                                <p id="finalOrderId" class="text-4xl font-bold tracking-widest text-pink-300" style="font-family: 'Noto Sans TC', sans-serif; letter-spacing: 0.15em;">K260417011</p>
+                                <p id="finalOrderId" class="text-3xl md:text-4xl font-bold text-pink-300 break-all" style="font-family: 'Noto Sans TC', sans-serif; letter-spacing: 0.08em;">K260417011</p>
                                 <button onclick="copyOrderId()" id="copyBtn" class="flex items-center gap-1.5 px-4 py-2 bg-white/15 hover:bg-white/25 text-white text-xs font-bold rounded-full transition-all font-sans border border-white/30 cursor-pointer">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
                                     複製編號
@@ -703,6 +703,14 @@
                             </div>
                         </div>
                         <button onclick="location.reload()" class="text-slate-300 font-bold text-xs uppercase tracking-[0.3em] underline decoration-pink-200 underline-offset-8 bg-transparent border-none cursor-pointer font-sans hover:text-[#1A365D] transition-colors">回到預約首頁</button>
+                    </div>
+                    <div class="mt-6 pt-5 border-t border-slate-100">
+                        <p class="text-xs text-slate-400 font-sans mb-2">下次查詢訂單狀態</p>
+                        <div class="flex gap-2 items-center">
+                            <input id="query-order-input" type="text" placeholder="輸入編號（如 K260417011）" maxlength="15" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-xs font-sans font-bold outline-none focus:border-pink-300 uppercase">
+                            <button type="button" onclick="queryOrder()" class="px-4 py-2 bg-[#1A365D] text-white text-xs font-bold rounded-lg font-sans hover:bg-[#2d5a9e] transition-colors whitespace-nowrap">查詢</button>
+                        </div>
+                        <div id="query-result" class="mt-2 text-xs font-sans hidden"></div>
                     </div>
                 </div>
             </div>
@@ -1093,27 +1101,31 @@
         async function validateCoupon(code) {
             const statusEl = document.getElementById('coupon-status');
             if (!code || code.length < 2) { statusEl.textContent = ''; return; }
-        
-            statusEl.textContent = '確認中...';
+            statusEl.textContent = '驗證中...';
             statusEl.style.color = '#94a3b8';
-        
-            try {
-                const res  = await fetch(APPS_SCRIPT_URL, {
-                    method : 'POST',
-                    mode   : 'no-cors', // GAS 限制
-                    headers: { 'Content-Type': 'text/plain' },
-                    body   : JSON.stringify({
-                        action    : 'validateCoupon',
-                        couponCode: code,
-                        checkDate : document.getElementById('input-date').value || ''
-                    })
-                });
-                // no-cors 無法讀回應，改用簡單前端提示
-                statusEl.textContent = '✓ 已套用';
-                statusEl.style.color = '#22c55e';
-            } catch(e) {
-                statusEl.textContent = '';
-            }
+            fetch(APPS_SCRIPT_URL, {
+                method : 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body   : JSON.stringify({
+                    action    : 'validateCoupon',
+                    couponCode: code,
+                    checkDate : document.getElementById('input-date').value || ''
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.valid === true) {
+                    statusEl.textContent = '✓ 已套用';
+                    statusEl.style.color = '#22c55e';
+                } else {
+                    statusEl.textContent = '無法使用';
+                    statusEl.style.color = '#ef4444';
+                }
+            })
+            .catch(() => {
+                statusEl.textContent = '無法驗證';
+                statusEl.style.color = '#94a3b8';
+            });
         }
         function validateLast5(input) {
             const hint = document.getElementById('last5-hint');
@@ -1325,15 +1337,22 @@
         function renderPersonKimonoSelects() {
             const list = document.getElementById('person-kimono-list');
             if (!list) return;
+            // Save existing selections
+            const oldSelects = list.querySelectorAll('select[name="person-kimono"]');
+            const savedValues = Array.from(oldSelects).map(s => s.value);
             list.innerHTML = '';
             const adults = guestData.adults || 0;
             const children = guestData.children || 0;
+            const planOpts = (typeof plans !== 'undefined' ? plans : []).map(p =>
+                `<option value="${p.name}">${p.name}（¥${p.price} 起）</option>`
+            ).join('');
+            const childPlanOpts = planOpts + '<option value="兒童和服">兒童和服（特別款）</option>';
             for (let i = 1; i <= adults; i++) {
                 list.innerHTML += `<div class="flex items-center gap-3 border-b border-slate-100 pb-2">
                     <span class="text-xs font-bold text-slate-500 font-sans w-16 shrink-0">大人 ${i}</span>
                     <select name="person-kimono" class="flex-1 py-1 outline-none font-bold text-sm bg-transparent cursor-pointer font-sans">
-                        <option value="">待確認</option>
-                        <option value="一般和服">一般和服</option>
+                        <option value="">待確認（現場選擇）</option>
+                        ${planOpts}
                     </select>
                 </div>`;
             }
@@ -1341,15 +1360,17 @@
                 list.innerHTML += `<div class="flex items-center gap-3 border-b border-slate-100 pb-2">
                     <span class="text-xs font-bold text-slate-500 font-sans w-16 shrink-0">小孩 ${i}</span>
                     <select name="person-kimono" class="flex-1 py-1 outline-none font-bold text-sm bg-transparent cursor-pointer font-sans">
-                        <option value="">待確認</option>
-                        <option value="一般和服">一般和服</option>
-                        <option value="兒童和服">兒童和服</option>
+                        <option value="">待確認（現場選擇）</option>
+                        ${childPlanOpts}
                     </select>
                 </div>`;
             }
             if (adults === 0 && children === 0) {
                 list.innerHTML = '<p class="text-xs text-slate-400 font-sans">請先選擇人數</p>';
             }
+            // Restore previous selections
+            const newSelects = list.querySelectorAll('select[name="person-kimono"]');
+            newSelects.forEach((sel, idx) => { if (savedValues[idx]) sel.value = savedValues[idx]; });
         }
 
         // === Proof tab switcher ===
@@ -1412,6 +1433,36 @@
                 document.querySelectorAll('.anim-fade, .anim-left, .anim-right').forEach(el => obs.observe(el));
             });
         })();
+
+        // === Order Query Function ===
+        async function queryOrder() {
+            const input = document.getElementById('query-order-input');
+            const resultEl = document.getElementById('query-result');
+            const code = input ? input.value.trim().toUpperCase() : '';
+            if (!code || code.length < 5) {
+                if (resultEl) { resultEl.textContent = '請輸入完整的預約編號'; resultEl.className = 'mt-2 text-xs font-sans text-red-400'; resultEl.classList.remove('hidden'); }
+                return;
+            }
+            if (resultEl) { resultEl.textContent = '查詢中...'; resultEl.className = 'mt-2 text-xs font-sans text-slate-400'; resultEl.classList.remove('hidden'); }
+            try {
+                const res = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'queryOrder', orderId: code })
+                });
+                const data = await res.json();
+                if (data.found) {
+                    resultEl.innerHTML = '✓ 找到訂單 <b>' + code + '</b>｜狀態：<span style="color:#22c55e;font-weight:bold">' + (data.status || '待確認') + '</span>｜預約日：' + (data.date || '-');
+                    resultEl.className = 'mt-2 text-xs font-sans text-slate-600';
+                } else {
+                    resultEl.textContent = '找不到此編號，請確認後重新輸入';
+                    resultEl.className = 'mt-2 text-xs font-sans text-red-400';
+                }
+            } catch(e) {
+                resultEl.textContent = '查詢失敗，請聯繫客服';
+                resultEl.className = 'mt-2 text-xs font-sans text-slate-400';
+            }
+        }
 </script>
 
     <!-- 燈箱 -->
