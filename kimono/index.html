@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>æä¹ x åæ | Foreveryoung å®æ¹é ç´å¹³å°</title>
-    <meta name="description" content="æä¹ x Foreveryoung åæç§åé«é©ï¼äº¬é½ãå¤§éªãæ±äº¬ãæ·ºèç²¾é¸éå¸ï¼è·äººèè£ãé«®åè¨­è¨ãæææå½±ä¸ç«å¼æåã">
-    <meta property="og:title" content="æä¹ x åæ | Foreveryoung å®æ¹é ç´å¹³å°">
-    <meta property="og:description" content="ç©¿ä¸åªéï¼æ¼«æ­¥æåãæ¥æ¬åæç§åé«é©ï¼è·äººèè£ãå°æ¥­é«®åãæææå½±ã">
+    <title>旅乘 x 和服 | Foreveryoung 官方預約平台</title>
+    <meta name="description" content="旅乘 x Foreveryoung 和服租借體驗，京都、大阪、東京、淺草精選門市，職人著裝、髮型設計、旅拍攝影一站式服務。">
+    <meta property="og:title" content="旅乘 x 和服 | Foreveryoung 官方預約平台">
+    <meta property="og:description" content="穿上優雅，漫步時光。日本和服租借體驗，職人著裝、專業髮型、旅拍攝影。">
     <meta property="og:image" content="https://images.unsplash.com/photo-1528114039593-4366cc08227d?auto=format&fit=crop&q=80&w=1200">
     <meta property="og:type" content="website">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -58,7 +58,7 @@
         .upload-zone:hover { border-color: #f9a8d4; color: #ec4899; }
         #file-label-text { transition: color 0.2s; }
 
-        /* â å¥½è©ç¡éæ»¾å */
+        /* ★ 好評無限滾動 */
         @keyframes scroll-left {
             0%   { transform: translateX(0); }
             100% { transform: translateX(-50%); }
@@ -76,7 +76,7 @@
             -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
         }
 
-        /* â æå½±æµç¨é£æ¥ç· */
+        /* ★ 攝影流程連接線 */
         .flow-connector {
             position: absolute;
             top: 32px;
@@ -92,35 +92,35 @@
 
     <div id="sakura-container" class="sakura-container"></div>
 
-    <!-- â å³å´åªç TOP æéï¼LINE/FB ç§»é²æ¼¢å ¡ï¼ -->
+    <!-- ★ 右側只留 TOP 按鈕（LINE/FB 移進漢堡） -->
     <div class="fixed right-6 bottom-12 z-[480] flex flex-col gap-3">
-        <button id="topBtn" onclick="window.scrollTo({top:0, behavior:'smooth'})" class="w-14 h-14 bg-white/90 backdrop-blur-md text-[#1A365D] border border-slate-100 rounded-full shadow-xl flex items-center justify-center cursor-pointer opacity-0 transition-all hover:bg-pink-50 pointer-events-none" aria-label="åå°é ç«¯">
+        <button id="topBtn" onclick="window.scrollTo({top:0, behavior:'smooth'})" class="w-14 h-14 bg-white/90 backdrop-blur-md text-[#1A365D] border border-slate-100 rounded-full shadow-xl flex items-center justify-center cursor-pointer opacity-0 transition-all hover:bg-pink-50 pointer-events-none" aria-label="回到頂端">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
         </button>
     </div>
 
-    <!-- å°èªæ¬ -->
+    <!-- 導航欄 -->
     <nav id="navbar" class="fixed top-0 w-full z-[450] transition-all duration-500 py-6 bg-transparent">
         <div class="max-w-7xl mx-auto px-6 md:px-10 flex items-center justify-between">
             <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo({top:0, behavior:'smooth'})">
-                <div id="logo-box" class="w-10 h-10 text-white rounded-sm flex items-center justify-center font-bold text-xl bg-white/20 backdrop-blur-md transition-all">æ</div>
+                <div id="logo-box" class="w-10 h-10 text-white rounded-sm flex items-center justify-center font-bold text-xl bg-white/20 backdrop-blur-md transition-all">旅</div>
                 <div class="flex flex-col text-left">
                     <span id="nav-title" class="text-xl font-bold tracking-widest uppercase text-white drop-shadow-md transition-all font-sans">Foreveryoung</span>
                     <span id="nav-sub" class="text-[8px] font-medium uppercase italic text-white/70 transition-all font-sans tracking-tighter">Official Booking</span>
                 </div>
             </div>
             <div class="hidden lg:flex gap-10 items-center">
-                <button onclick="scrollToId('sec-process')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">é«é©æµç¨</button>
-                <button onclick="scrollToId('sec-0')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">æ¹æ¡å¹æ ¼</button>
-                <button onclick="scrollToId('sec-reviews')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">æå®¢å¥½è©</button>
-                <button onclick="scrollToId('sec-hair')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">é«®åç¾å­¸</button>
-                <button onclick="scrollToId('sec-photo')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">æææå½±</button>
-                <button onclick="scrollToId('sec-faq')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">å¸¸è¦åé¡</button>
-                <button onclick="scrollToId('sec-3')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">éå¸è³è¨</button>
-                <button onclick="scrollToId('booking')" id="nav-booking-btn" class="ml-4 px-8 py-2 text-[10px] font-bold rounded-sm border border-white/40 text-white hover:bg-white hover:text-[#1A365D] transition-all cursor-pointer uppercase font-sans shadow-sm">ç«å³é ç´</button>
+                <button onclick="scrollToId('sec-process')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">體驗流程</button>
+                <button onclick="scrollToId('sec-0')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">方案價格</button>
+                <button onclick="scrollToId('sec-reviews')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">旅客好評</button>
+                <button onclick="scrollToId('sec-hair')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">髮型美學</button>
+                <button onclick="scrollToId('sec-photo')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">旅拍攝影</button>
+                <button onclick="scrollToId('sec-faq')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">常見問題</button>
+                <button onclick="scrollToId('sec-3')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">門市資訊</button>
+                <button onclick="scrollToId('booking')" id="nav-booking-btn" class="ml-4 px-8 py-2 text-[10px] font-bold rounded-sm border border-white/40 text-white hover:bg-white hover:text-[#1A365D] transition-all cursor-pointer uppercase font-sans shadow-sm">立即預約</button>
             </div>
-            <!-- â æ¼¢å ¡æéå  z-index relative é¿åè¢«é® -->
-            <button id="hamburger-btn" class="lg:hidden w-10 h-10 flex flex-col justify-center items-center gap-1.5 rounded-sm transition-all relative z-[460]" aria-label="éåé¸å®" onclick="toggleMobileMenu()">
+            <!-- ★ 漢堡按鈕加 z-index relative 避免被遮 -->
+            <button id="hamburger-btn" class="lg:hidden w-10 h-10 flex flex-col justify-center items-center gap-1.5 rounded-sm transition-all relative z-[460]" aria-label="開啟選單" onclick="toggleMobileMenu()">
                 <span id="ham-line1" class="block w-6 h-0.5 bg-white transition-all duration-300"></span>
                 <span id="ham-line2" class="block w-6 h-0.5 bg-white transition-all duration-300"></span>
                 <span id="ham-line3" class="block w-6 h-0.5 bg-white transition-all duration-300"></span>
@@ -128,17 +128,17 @@
         </div>
     </nav>
 
-    <!-- â ææ©é¸å®ï¼å å¥ LINE + Messenger -->
+    <!-- ★ 手機選單：加入 LINE + Messenger -->
     <div id="mobile-menu" class="fixed top-0 left-0 w-full h-screen z-[440] bg-[#1A365D] flex flex-col items-center justify-center gap-8 lg:hidden">
-        <button onclick="closeMobileMenu(); scrollToId('sec-process')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">é«é©æµç¨</button>
-        <button onclick="closeMobileMenu(); scrollToId('sec-0')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">æ¹æ¡å¹æ ¼</button>
-        <button onclick="closeMobileMenu(); scrollToId('sec-reviews')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">æå®¢å¥½è©</button>
-        <button onclick="closeMobileMenu(); scrollToId('sec-hair')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">é«®åç¾å­¸</button>
-        <button onclick="closeMobileMenu(); scrollToId('sec-photo')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">æææå½±</button>
-        <button onclick="closeMobileMenu(); scrollToId('sec-faq')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">å¸¸è¦åé¡</button>
-        <button onclick="closeMobileMenu(); scrollToId('sec-3')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">éå¸è³è¨</button>
-        <button onclick="closeMobileMenu(); scrollToId('booking')" class="px-12 py-4 border-2 border-white/50 text-white font-bold tracking-widest uppercase text-sm font-sans rounded-sm hover:bg-white hover:text-[#1A365D] transition-all">ç«å³é ç´</button>
-        <!-- â LINE + Messenger å¨æ¼¢å ¡è£¡ -->
+        <button onclick="closeMobileMenu(); scrollToId('sec-process')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">體驗流程</button>
+        <button onclick="closeMobileMenu(); scrollToId('sec-0')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">方案價格</button>
+        <button onclick="closeMobileMenu(); scrollToId('sec-reviews')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">旅客好評</button>
+        <button onclick="closeMobileMenu(); scrollToId('sec-hair')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">髮型美學</button>
+        <button onclick="closeMobileMenu(); scrollToId('sec-photo')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">旅拍攝影</button>
+        <button onclick="closeMobileMenu(); scrollToId('sec-faq')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">常見問題</button>
+        <button onclick="closeMobileMenu(); scrollToId('sec-3')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">門市資訊</button>
+        <button onclick="closeMobileMenu(); scrollToId('booking')" class="px-12 py-4 border-2 border-white/50 text-white font-bold tracking-widest uppercase text-sm font-sans rounded-sm hover:bg-white hover:text-[#1A365D] transition-all">立即預約</button>
+        <!-- ★ LINE + Messenger 在漢堡裡 -->
         <div class="flex gap-4 mt-2">
             <a href="https://lin.ee/TgFCvYQ" target="_blank" rel="noopener" onclick="closeMobileMenu()"
                class="flex items-center gap-2 px-6 py-3 bg-[#06C755] text-white rounded-full text-sm font-bold font-sans hover:scale-105 transition-transform">
@@ -151,53 +151,53 @@
                 Messenger
             </a>
         </div>
-        <div class="absolute bottom-16 text-white/30 text-xs font-sans tracking-widest uppercase">Â© 2026 FOREVERYOUNG</div>
+        <div class="absolute bottom-16 text-white/30 text-xs font-sans tracking-widest uppercase">© 2026 FOREVERYOUNG</div>
     </div>
 
     <!-- Hero -->
     <header class="relative h-[95vh] flex items-center justify-center overflow-hidden text-center bg-[#1A365D]">
         <div class="absolute inset-0 z-0">
-            <img src="img/header-bg.jpg" class="w-full h-full object-cover opacity-35 scale-105" alt="åæé«é© Hero">
+            <img src="img/header-bg.jpg" class="w-full h-full object-cover opacity-35 scale-105" alt="和服體驗 Hero">
             <div class="absolute inset-0 bg-gradient-to-b from-[#1A365D]/40 via-transparent to-[#1A365D]/20"></div>
         </div>
         <div class="relative z-10 px-6 max-w-4xl">
-            <h1 class="text-5xl md:text-8xl font-bold text-white tracking-[0.2em] mb-6 uppercase">æä¹ <span class="font-extralight italic opacity-60 mx-2 text-4xl md:text-6xl">X</span> åæ</h1>
-            <p class="text-base md:text-lg text-white font-light tracking-[0.5em] mb-14 opacity-90 uppercase font-sans">ç©¿ä¸åªéï¼æ¼«æ­¥æåï¼ç´éå°å±¬æ¼æ¨çåé¢¨ç¬é</p>
+            <h1 class="text-5xl md:text-8xl font-bold text-white tracking-[0.2em] mb-6 uppercase">旅乘 <span class="font-extralight italic opacity-60 mx-2 text-4xl md:text-6xl">X</span> 和服</h1>
+            <p class="text-base md:text-lg text-white font-light tracking-[0.5em] mb-14 opacity-90 uppercase font-sans">穿上優雅，漫步時光，紀錄專屬於您的和風瞬間</p>
             <div class="flex flex-wrap justify-center gap-6">
-                <button onclick="scrollToId('sec-process')" class="px-12 py-4 bg-white text-[#1A365D] font-bold tracking-[0.2em] rounded-sm hover:bg-pink-500 hover:text-white transition-all cursor-pointer shadow-2xl uppercase text-[10px] font-sans">äºè§£é«é©æµç¨</button>
-                <button onclick="scrollToId('booking')" class="px-12 py-4 bg-transparent text-white border border-white/50 font-bold tracking-[0.2em] rounded-sm hover:bg-white/10 transition-all cursor-pointer shadow-2xl uppercase text-[10px] font-sans">ç«å³éåé ç´</button>
+                <button onclick="scrollToId('sec-process')" class="px-12 py-4 bg-white text-[#1A365D] font-bold tracking-[0.2em] rounded-sm hover:bg-pink-500 hover:text-white transition-all cursor-pointer shadow-2xl uppercase text-[10px] font-sans">了解體驗流程</button>
+                <button onclick="scrollToId('booking')" class="px-12 py-4 bg-transparent text-white border border-white/50 font-bold tracking-[0.2em] rounded-sm hover:bg-white/10 transition-all cursor-pointer shadow-2xl uppercase text-[10px] font-sans">立即開啟預約</button>
             </div>
         </div>
     </header>
 
-    <!-- ç¤¾æè­æ -->
+    <!-- 社會證明 -->
     <div class="bg-[#12274A] text-white py-8 px-6">
         <div class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div class="space-y-1">
                 <div class="text-3xl font-bold font-sans text-white">5,000<span class="text-pink-400">+</span></div>
-                <div class="text-[10px] tracking-[0.3em] uppercase text-white/50 font-sans">æåæå®¢çµæ¸</div>
+                <div class="text-[10px] tracking-[0.3em] uppercase text-white/50 font-sans">服務旅客組數</div>
             </div>
             <div class="space-y-1">
-                <div class="text-3xl font-bold font-sans text-white">4<span class="text-pink-400"> é</span></div>
-                <div class="text-[10px] tracking-[0.3em] uppercase text-white/50 font-sans">äº¬é½ å¤§éª æ±äº¬ ç¥å</div>
+                <div class="text-3xl font-bold font-sans text-white">4<span class="text-pink-400"> 間</span></div>
+                <div class="text-[10px] tracking-[0.3em] uppercase text-white/50 font-sans">京都 大阪 東京 祇園</div>
             </div>
             <div class="space-y-1">
                 <div class="text-3xl font-bold font-sans text-white">98<span class="text-white">%</span><span class="text-pink-400">+</span></div>
-                <div class="text-[10px] tracking-[0.3em] uppercase text-white/50 font-sans">é¡§å®¢æ»¿æåº¦</div>
+                <div class="text-[10px] tracking-[0.3em] uppercase text-white/50 font-sans">顧客滿意度</div>
             </div>
             <div class="space-y-1">
                 <div class="text-3xl font-bold font-sans text-white">300<span class="text-pink-400">+</span></div>
-                <div class="text-[10px] tracking-[0.3em] uppercase text-white/50 font-sans">æ¬¾å¼ä¾é¸æ</div>
+                <div class="text-[10px] tracking-[0.3em] uppercase text-white/50 font-sans">款式供選擇</div>
             </div>
         </div>
     </div>
 
-    <!-- â å¥½è©åï¼ææ©æ©«æ» / æ¡æ©ç¡éæ»¾å -->
+    <!-- ★ 好評區：手機橫滑 / 桌機無限滾動 -->
     <section id="sec-reviews" class="py-28 bg-[#FDFCF8]">
         <div class="max-w-7xl mx-auto px-6 md:px-10">
             <div class="flex flex-col items-center mb-16 text-center">
                 <span class="text-pink-400 font-bold tracking-[0.8em] text-[10px] mb-5 uppercase italic font-sans">Guest Reviews</span>
-                <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] tracking-[0.2em] uppercase font-sans">æå®¢çå¯¦ <span class="text-pink-300 font-light italic">å¥½è©åé¥</span></h2>
+                <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] tracking-[0.2em] uppercase font-sans">旅客真實 <span class="text-pink-300 font-light italic">好評回饋</span></h2>
                 <div class="mt-6 w-12 h-0.5 bg-pink-100"></div>
                 <div class="mt-10 flex items-center gap-4">
                     <div class="text-6xl font-bold text-[#1A365D] font-sans leading-none">4.9</div>
@@ -209,13 +209,13 @@
                             <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                             <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                         </div>
-                        <div class="text-xs text-slate-400 font-sans font-bold">ç¶åè©å Â· 500+ åè©å¹</div>
+                        <div class="text-xs text-slate-400 font-sans font-bold">綜合評分 · 500+ 則評價</div>
                     </div>
                 </div>
             </div>
-            <!-- ææ©æ©«æ» -->
+            <!-- 手機橫滑 -->
             <div class="md:hidden flex gap-5 overflow-x-auto pb-6 scrollbar-hide snap-x -mx-6 px-6" id="reviews-mobile"></div>
-            <!-- â æ¡æ©ç¡éæ»¾å -->
+            <!-- ★ 桌機無限滾動 -->
             <div class="hidden md:block reviews-outer">
                 <div class="reviews-track" id="reviews-desktop"></div>
             </div>
@@ -223,12 +223,12 @@
     </section>
 
     <main>
-        <!-- ç§åæµç¨ -->
+        <!-- 租借流程 -->
         <section id="sec-process" class="py-32 bg-white">
             <div class="max-w-7xl mx-auto px-6 md:px-10">
                 <div class="flex flex-col items-center mb-24 text-center">
                     <span class="text-pink-400 font-bold tracking-[0.8em] text-[10px] mb-5 uppercase italic font-sans">Experience Guide</span>
-                    <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] tracking-[0.2em] uppercase font-sans">åæé«é© <span class="text-pink-300 font-light italic">å­æ­¥é©</span></h2>
+                    <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] tracking-[0.2em] uppercase font-sans">和服體驗 <span class="text-pink-300 font-light italic">六步驟</span></h2>
                     <div class="mt-6 w-12 h-0.5 bg-pink-100"></div>
                 </div>
                 <div class="relative max-w-6xl mx-auto">
@@ -238,12 +238,12 @@
             </div>
         </section>
 
-        <!-- æ¹æ¡å¹æ ¼ -->
+        <!-- 方案價格 -->
         <section id="sec-0" class="py-32 bg-[#FDFCF8]">
             <div class="max-w-7xl mx-auto px-6 md:px-10 text-center">
                 <div class="flex flex-col items-center mb-24">
                     <span class="text-pink-400 font-bold tracking-[0.8em] text-[10px] mb-5 uppercase italic font-sans">Premium Selection</span>
-                    <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] tracking-[0.2em] uppercase font-sans">ç²¾é¸æ¹æ¡ <span class="text-pink-300 font-light italic">& å¹æ ¼</span></h2>
+                    <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] tracking-[0.2em] uppercase font-sans">精選方案 <span class="text-pink-300 font-light italic">& 價格</span></h2>
                     <div class="mt-6 w-12 h-0.5 bg-pink-100"></div>
                 </div>
                 <div class="md:hidden flex gap-5 overflow-x-auto pb-6 scrollbar-hide snap-x -mx-6 px-6" id="plan-container-mobile"></div>
@@ -251,33 +251,33 @@
             </div>
         </section>
 
-        <!-- å½±ç -->
+        <!-- 影片 -->
         <section id="sec-video" class="py-32 bg-white overflow-hidden text-center">
             <div class="max-w-7xl mx-auto px-6 md:px-10 mb-20">
                 <span class="text-pink-400 font-bold tracking-[0.6em] text-[10px] uppercase font-sans">Visual Story</span>
-                <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] mt-4 tracking-[0.2em] uppercase font-sans">åé¢¨ <span class="text-pink-300 font-light italic">ç¬éæ å</span></h2>
+                <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] mt-4 tracking-[0.2em] uppercase font-sans">和風 <span class="text-pink-300 font-light italic">瞬間映像</span></h2>
             </div>
             <div id="video-container"></div>
         </section>
 
-        <!-- é«®å -->
+        <!-- 髮型 -->
         <section id="sec-hair" class="py-32 bg-[#FDFCF8]">
             <div class="max-w-7xl mx-auto px-6 md:px-10">
                 <div class="grid lg:grid-cols-2 gap-20 items-center mb-24 text-left">
                     <div class="space-y-8">
                         <span class="text-pink-400 font-bold tracking-[0.6em] text-[10px] uppercase italic font-sans">Artisan Hair Styling</span>
-                        <h2 class="text-3xl md:text-5xl font-bold text-[#1A365D] leading-tight font-sans tracking-wide">è·äºº <span class="text-pink-300 font-light italic">é«®åç¾å­¸</span></h2>
+                        <h2 class="text-3xl md:text-5xl font-bold text-[#1A365D] leading-tight font-sans tracking-wide">職人 <span class="text-pink-300 font-light italic">髮型美學</span></h2>
                         <div class="w-16 h-1 bg-pink-200"></div>
-                        <p class="text-slate-500 text-lg leading-relaxed italic">å°æ¥­é«®åå¸«ä¾æ¨çèåèåæï¼ç·¨ç¹å¦èè¡åè¬çå°å±¬é åãé«®åæ¯å®ç¾åæé«é©çéé­ã</p>
+                        <p class="text-slate-500 text-lg leading-relaxed italic">專業髮型師依您的臉型與和服，編織如藝術品般的專屬造型。髮型是完美和服體驗的靈魂。</p>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6 font-bold text-[#1A365D]/80 italic">
-                            <div class="flex items-center gap-3 text-sm"><i data-lucide="check-circle-2" class="text-pink-400 w-5 h-5"></i> ç²¾ç´°è·äººç·¨é«®</div>
-                            <div class="flex items-center gap-3 text-sm"><i data-lucide="check-circle-2" class="text-pink-400 w-5 h-5"></i> åé¢¨é«®é£¾é»ç¶´</div>
-                            <div class="flex items-center gap-3 text-sm"><i data-lucide="check-circle-2" class="text-pink-400 w-5 h-5"></i> å°æ¥­æè¡å¹è¨</div>
-                            <div class="flex items-center gap-3 text-sm"><i data-lucide="check-circle-2" class="text-pink-400 w-5 h-5"></i> è¬é¬ç©ºæ°£æé å</div>
+                            <div class="flex items-center gap-3 text-sm"><i data-lucide="check-circle-2" class="text-pink-400 w-5 h-5"></i> 精細職人編髮</div>
+                            <div class="flex items-center gap-3 text-sm"><i data-lucide="check-circle-2" class="text-pink-400 w-5 h-5"></i> 和風髮飾點綴</div>
+                            <div class="flex items-center gap-3 text-sm"><i data-lucide="check-circle-2" class="text-pink-400 w-5 h-5"></i> 專業技術培訓</div>
+                            <div class="flex items-center gap-3 text-sm"><i data-lucide="check-circle-2" class="text-pink-400 w-5 h-5"></i> 蓬鬆空氣感造型</div>
                         </div>
                     </div>
                     <div class="relative rounded-sm overflow-hidden shadow-2xl aspect-[4/5]">
-                        <img src="img/HairStyling.jpg" class="w-full h-full object-cover" alt="åæé«®åå±ç¤º">
+                        <img src="img/HairStyling.jpg" class="w-full h-full object-cover" alt="和服髮型展示">
                     </div>
                 </div>
                 <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
@@ -285,98 +285,98 @@
                         <div class="w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center shrink-0">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
                         </div>
-                        <div><p class="font-bold text-[#1A365D] font-sans text-sm mb-1">ä¾èåéèº«è¨­è¨</p><p class="text-slate-400 text-xs font-sans leading-relaxed">å°æ¥­é«®åå¸«ç¾å ´ä¾æ¨çèåãåææ¬¾å¼èåäººæ°£è³ªï¼æé æé©åçå°å±¬é åã</p></div>
+                        <div><p class="font-bold text-[#1A365D] font-sans text-sm mb-1">依臉型量身設計</p><p class="text-slate-400 text-xs font-sans leading-relaxed">專業髮型師現場依您的臉型、和服款式與個人氣質，打造最適合的專屬造型。</p></div>
                     </div>
                     <div class="bg-white border border-slate-100 rounded-sm p-8 flex gap-5 items-start shadow-sm">
                         <div class="w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center shrink-0">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
-                        <div><p class="font-bold text-[#1A365D] font-sans text-sm mb-1">ç¾å ´åèé åå</p><p class="text-slate-400 text-xs font-sans leading-relaxed">éå¸åæè±å¯é ååèåï¼æ¨å¯ä»¥ç´æ¥æå®åæ­¡çé¢¨æ ¼ï¼è®å¸«åçºæ¨éç¾ã</p></div>
+                        <div><p class="font-bold text-[#1A365D] font-sans text-sm mb-1">現場參考造型冊</p><p class="text-slate-400 text-xs font-sans leading-relaxed">門市備有豐富造型參考冊，您可以直接指定喜歡的風格，讓師傅為您重現。</p></div>
                     </div>
                     <div class="bg-white border border-slate-100 rounded-sm p-8 flex gap-5 items-start shadow-sm">
                         <div class="w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center shrink-0">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/></svg>
                         </div>
-                        <div><p class="font-bold text-[#1A365D] font-sans text-sm mb-1">ç´ 20 åéå®æ</p><p class="text-slate-400 text-xs font-sans leading-relaxed">é«®åè¨­è¨ç´ 20 åéï¼å«åé¢¨é«®é£¾é»ç¶´ï¼è®æ¨å¿«éåºç¼éå§æ¼«æ­¥é«é©ã</p></div>
+                        <div><p class="font-bold text-[#1A365D] font-sans text-sm mb-1">約 20 分鐘完成</p><p class="text-slate-400 text-xs font-sans leading-relaxed">髮型設計約 20 分鐘，含和風髮飾點綴，讓您快速出發開始漫步體驗。</p></div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- æå½±æ¹æ¡ -->
+        <!-- 攝影方案 -->
         <section id="sec-photo" class="py-32 bg-white">
             <div class="max-w-7xl mx-auto px-6 md:px-10">
                 <div class="flex flex-col items-center mb-20 text-center">
                     <span class="text-pink-400 font-bold tracking-[0.8em] text-[10px] mb-5 uppercase italic font-sans">Photography Plan</span>
-                    <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] tracking-[0.2em] uppercase font-sans">æææå½± <span class="text-pink-300 font-light italic">æ¹æ¡å¹æ ¼</span></h2>
+                    <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] tracking-[0.2em] uppercase font-sans">旅拍攝影 <span class="text-pink-300 font-light italic">方案價格</span></h2>
                     <div class="mt-6 w-12 h-0.5 bg-pink-100"></div>
-                    <p class="text-slate-400 text-sm mt-8 font-sans leading-relaxed">å°æ¥­æå½±å¸«å¨ç¨éªåï¼æææ¯ååé¢¨ç¬é</p>
+                    <p class="text-slate-400 text-sm mt-8 font-sans leading-relaxed">專業攝影師全程陪同，捕捉每個和風瞬間</p>
                 </div>
 
-                <!-- â ææ©çå·¦å³æ»åï¼æ¨è¦ç½®ä¸­ï¼ -->
-                <div class="md:hidden flex gap-5 overflow-x-auto pb-6 pt-5 scrollbar-hide snap-x -mx-6 px-6" id="photo-plans-mobile">
+                <!-- ★ 手機版左右滑動（推薦置中） -->
+                <div class="md:hidden flex gap-5 overflow-x-auto pb-6 scrollbar-hide snap-x -mx-6 px-6" id="photo-plans-mobile">
                     <div class="flex-none w-[75vw] max-w-[280px] snap-center bg-[#FDFCF8] border border-slate-100 rounded-sm p-8 text-center shadow-sm flex-shrink-0">
                         <p class="text-[10px] font-bold text-pink-400 tracking-[0.5em] uppercase font-sans mb-2">30 min</p>
-                        <h3 class="text-xl font-bold text-[#1A365D] font-sans mb-4">é¨è¡æå½±</h3>
-                        <p class="text-slate-400 text-xs font-sans mb-6 leading-relaxed">è¼éè¨éï¼é©åå®ä¸æ¯é»<br>ç²¾ä¿®é»å­æªäº¤ä»</p>
+                        <h3 class="text-xl font-bold text-[#1A365D] font-sans mb-4">隨行攝影</h3>
+                        <p class="text-slate-400 text-xs font-sans mb-6 leading-relaxed">輕量記錄，適合單一景點<br>精修電子檔交付</p>
                         <div class="border-t border-slate-100 pt-6">
-                            <p class="text-3xl font-bold text-[#1A365D] font-sans">Â¥12,800</p>
-                            <p class="text-xs text-slate-400 font-sans mt-1">JPYï¼çµ</p>
+                            <p class="text-3xl font-bold text-[#1A365D] font-sans">¥12,800</p>
+                            <p class="text-xs text-slate-400 font-sans mt-1">JPY／組</p>
                         </div>
                     </div>
-                    <!-- æ¨è¦ -->
+                    <!-- 推薦 -->
                     <div class="flex-none w-[75vw] max-w-[280px] snap-center bg-[#1A365D] rounded-sm p-8 text-center shadow-2xl relative flex-shrink-0">
-                        <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-pink-400 text-white text-[10px] font-bold px-4 py-1 rounded-full uppercase font-sans whitespace-nowrap">æåæ­¡è¿</div>
+                        <div class="absolute -top-5 left-1/2 -translate-x-1/2 bg-pink-400 text-white text-[10px] font-bold px-4 py-1 rounded-full uppercase font-sans whitespace-nowrap z-10">最受歡迎</div>
                         <p class="text-[10px] font-bold text-pink-300 tracking-[0.5em] uppercase font-sans mb-2 mt-2">1 hour</p>
-                        <h3 class="text-xl font-bold text-white font-sans mb-4">é¨è¡æå½±</h3>
-                        <p class="text-white/60 text-xs font-sans mb-6 leading-relaxed">æ¼«æ­¥æ¯é»å®æ´è¨é<br>ç²¾ä¿®é»å­æªäº¤ä»</p>
+                        <h3 class="text-xl font-bold text-white font-sans mb-4">隨行攝影</h3>
+                        <p class="text-white/60 text-xs font-sans mb-6 leading-relaxed">漫步景點完整記錄<br>精修電子檔交付</p>
                         <div class="border-t border-white/10 pt-6">
-                            <p class="text-3xl font-bold text-white font-sans">Â¥21,000</p>
-                            <p class="text-xs text-white/40 font-sans mt-1">JPYï¼çµ</p>
+                            <p class="text-3xl font-bold text-white font-sans">¥21,000</p>
+                            <p class="text-xs text-white/40 font-sans mt-1">JPY／組</p>
                         </div>
                     </div>
                     <div class="flex-none w-[75vw] max-w-[280px] snap-center bg-[#FDFCF8] border border-slate-100 rounded-sm p-8 text-center shadow-sm flex-shrink-0">
                         <p class="text-[10px] font-bold text-pink-400 tracking-[0.5em] uppercase font-sans mb-2">2 hours</p>
-                        <h3 class="text-xl font-bold text-[#1A365D] font-sans mb-4">é¨è¡æå½±</h3>
-                        <p class="text-slate-400 text-xs font-sans mb-6 leading-relaxed">å¤æ¯é»æ·±åº¦å¨ç¨è¨é<br>ç²¾ä¿®é»å­æªäº¤ä»</p>
+                        <h3 class="text-xl font-bold text-[#1A365D] font-sans mb-4">隨行攝影</h3>
+                        <p class="text-slate-400 text-xs font-sans mb-6 leading-relaxed">多景點深度全程記錄<br>精修電子檔交付</p>
                         <div class="border-t border-slate-100 pt-6">
-                            <p class="text-3xl font-bold text-[#1A365D] font-sans">Â¥42,000</p>
-                            <p class="text-xs text-slate-400 font-sans mt-1">JPYï¼çµ</p>
+                            <p class="text-3xl font-bold text-[#1A365D] font-sans">¥42,000</p>
+                            <p class="text-xs text-slate-400 font-sans mt-1">JPY／組</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- æ¡æ©çä¸æ¬ -->
+                <!-- 桌機版三欄 -->
                 <div class="hidden md:grid grid-cols-3 gap-8 max-w-5xl mx-auto">
                     <div class="bg-[#FDFCF8] border border-slate-100 rounded-sm p-10 text-center shadow-sm hover:shadow-xl transition-all">
                         <div class="w-12 h-12 rounded-full bg-pink-50 flex items-center justify-center mx-auto mb-6"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
                         <p class="text-[10px] font-bold text-pink-400 tracking-[0.5em] uppercase font-sans mb-2">30 min</p>
-                        <h3 class="text-xl font-bold text-[#1A365D] font-sans mb-1">é¨è¡æå½±</h3>
-                        <p class="text-slate-400 text-xs font-sans mb-8 leading-relaxed">è¼éè¨éï¼é©åå®ä¸æ¯é»<br>ç²¾ä¿®é»å­æªäº¤ä»</p>
-                        <div class="border-t border-slate-100 pt-8"><p class="text-4xl font-bold text-[#1A365D] font-sans">Â¥12,800</p><p class="text-xs text-slate-400 font-sans mt-1">JPYï¼çµ</p></div>
+                        <h3 class="text-xl font-bold text-[#1A365D] font-sans mb-1">隨行攝影</h3>
+                        <p class="text-slate-400 text-xs font-sans mb-8 leading-relaxed">輕量記錄，適合單一景點<br>精修電子檔交付</p>
+                        <div class="border-t border-slate-100 pt-8"><p class="text-4xl font-bold text-[#1A365D] font-sans">¥12,800</p><p class="text-xs text-slate-400 font-sans mt-1">JPY／組</p></div>
                     </div>
                     <div class="bg-[#1A365D] border border-[#1A365D] rounded-sm p-10 text-center shadow-2xl relative scale-105">
-                        <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-pink-400 text-white text-[10px] font-bold px-5 py-1.5 rounded-full uppercase tracking-widest font-sans whitespace-nowrap">æåæ­¡è¿</div>
+                        <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-pink-400 text-white text-[10px] font-bold px-5 py-1.5 rounded-full uppercase tracking-widest font-sans whitespace-nowrap">最受歡迎</div>
                         <div class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-6"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-pink-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
                         <p class="text-[10px] font-bold text-pink-300 tracking-[0.5em] uppercase font-sans mb-2">1 hour</p>
-                        <h3 class="text-xl font-bold text-white font-sans mb-1">é¨è¡æå½±</h3>
-                        <p class="text-white/60 text-xs font-sans mb-8 leading-relaxed">æ¼«æ­¥æ¯é»å®æ´è¨é<br>ç²¾ä¿®é»å­æªäº¤ä»</p>
-                        <div class="border-t border-white/10 pt-8"><p class="text-4xl font-bold text-white font-sans">Â¥21,000</p><p class="text-xs text-white/40 font-sans mt-1">JPYï¼çµ</p></div>
+                        <h3 class="text-xl font-bold text-white font-sans mb-1">隨行攝影</h3>
+                        <p class="text-white/60 text-xs font-sans mb-8 leading-relaxed">漫步景點完整記錄<br>精修電子檔交付</p>
+                        <div class="border-t border-white/10 pt-8"><p class="text-4xl font-bold text-white font-sans">¥21,000</p><p class="text-xs text-white/40 font-sans mt-1">JPY／組</p></div>
                     </div>
                     <div class="bg-[#FDFCF8] border border-slate-100 rounded-sm p-10 text-center shadow-sm hover:shadow-xl transition-all">
                         <div class="w-12 h-12 rounded-full bg-pink-50 flex items-center justify-center mx-auto mb-6"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
                         <p class="text-[10px] font-bold text-pink-400 tracking-[0.5em] uppercase font-sans mb-2">2 hours</p>
-                        <h3 class="text-xl font-bold text-[#1A365D] font-sans mb-1">é¨è¡æå½±</h3>
-                        <p class="text-slate-400 text-xs font-sans mb-8 leading-relaxed">å¤æ¯é»æ·±åº¦å¨ç¨è¨é<br>ç²¾ä¿®é»å­æªäº¤ä»</p>
-                        <div class="border-t border-slate-100 pt-8"><p class="text-4xl font-bold text-[#1A365D] font-sans">Â¥42,000</p><p class="text-xs text-slate-400 font-sans mt-1">JPYï¼çµ</p></div>
+                        <h3 class="text-xl font-bold text-[#1A365D] font-sans mb-1">隨行攝影</h3>
+                        <p class="text-slate-400 text-xs font-sans mb-8 leading-relaxed">多景點深度全程記錄<br>精修電子檔交付</p>
+                        <div class="border-t border-slate-100 pt-8"><p class="text-4xl font-bold text-[#1A365D] font-sans">¥42,000</p><p class="text-xs text-slate-400 font-sans mt-1">JPY／組</p></div>
                     </div>
                 </div>
 
-                <!-- â æå½±æµç¨ï¼éæ°è¨­è¨ ç½åºå¡ç+æ¼¸å±¤é£ç· -->
+                <!-- ★ 攝影流程：重新設計 白底卡片+漸層連線 -->
                 <div class="mt-20">
-                    <p class="text-center text-slate-400 text-xs font-sans tracking-[0.5em] uppercase mb-12">æå½±æåæµç¨ / Shooting Flow</p>
+                    <p class="text-center text-slate-400 text-xs font-sans tracking-[0.5em] uppercase mb-12">攝影服務流程 / Shooting Flow</p>
                     <div class="relative max-w-3xl mx-auto">
-                        <!-- é£æ¥ç· -->
+                        <!-- 連接線 -->
                         <div class="absolute top-8 left-[12%] right-[12%] h-0.5 bg-gradient-to-r from-pink-200 via-pink-400 to-pink-200 hidden md:block"></div>
                             <div class="grid grid-cols-5 gap-2">
                             <div class="flex flex-col items-center text-center relative z-10">
@@ -384,7 +384,7 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-[#1A365D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3l14 9-14 9V3z"/><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h2m0 12H3m14-6h4"/></svg>
                                 </div>
                                 <span class="text-[10px] font-bold text-pink-400 uppercase font-sans tracking-wider mb-1">Step 1</span>
-                                <p class="text-xs font-bold text-[#1A365D] font-sans">åææé¸</p>
+                                <p class="text-xs font-bold text-[#1A365D] font-sans">和服挑選</p>
                                 <p class="text-[10px] text-slate-400 font-sans mt-1 hidden md:block">Selecting</p>
                             </div>
                             <div class="flex flex-col items-center text-center relative z-10">
@@ -392,7 +392,7 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-[#1A365D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                                 </div>
                                 <span class="text-[10px] font-bold text-pink-400 uppercase font-sans tracking-wider mb-1">Step 2</span>
-                                <p class="text-xs font-bold text-[#1A365D] font-sans">è·äººèè£</p>
+                                <p class="text-xs font-bold text-[#1A365D] font-sans">職人著裝</p>
                                 <p class="text-[10px] text-slate-400 font-sans mt-1 hidden md:block">Dressing</p>
                             </div>
                             <div class="flex flex-col items-center text-center relative z-10">
@@ -400,7 +400,7 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-[#1A365D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path stroke-linecap="round" stroke-linejoin="round" d="M20 4L8.12 15.88M14.47 14.48L20 20M8.12 8.12L12 12"/></svg>
                                 </div>
                                 <span class="text-[10px] font-bold text-pink-400 uppercase font-sans tracking-wider mb-1">Step 3</span>
-                                <p class="text-xs font-bold text-[#1A365D] font-sans">é«®åè¨­è¨</p>
+                                <p class="text-xs font-bold text-[#1A365D] font-sans">髮型設計</p>
                                 <p class="text-[10px] text-slate-400 font-sans mt-1 hidden md:block">Hair Styling</p>
                             </div>
                             <div class="flex flex-col items-center text-center relative z-10">
@@ -408,7 +408,7 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                 </div>
                                 <span class="text-[10px] font-bold text-[#1A365D] uppercase font-sans tracking-wider mb-1">Step 4</span>
-                                <p class="text-xs font-bold text-[#1A365D] font-sans">æå½±éå§</p>
+                                <p class="text-xs font-bold text-[#1A365D] font-sans">攝影開始</p>
                                 <p class="text-[10px] text-slate-400 font-sans mt-1 hidden md:block">Shooting</p>
                             </div>
                             <div class="flex flex-col items-center text-center relative z-10">
@@ -416,16 +416,16 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-[#1A365D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                                 </div>
                                 <span class="text-[10px] font-bold text-pink-400 uppercase font-sans tracking-wider mb-1">Step 5</span>
-                                <p class="text-xs font-bold text-[#1A365D] font-sans">æ­¸éåæ</p>
+                                <p class="text-xs font-bold text-[#1A365D] font-sans">歸還和服</p>
                                 <p class="text-[10px] text-slate-400 font-sans mt-1 hidden md:block">Return</p>
                             </div>
                         </div>
                     </div>
-                    <!-- åè¨» -->
+                    <!-- 備註 -->
                     <div class="mt-10 bg-[#FDFCF8] border border-slate-100 rounded-sm p-6 max-w-2xl mx-auto text-center">
                         <p class="text-slate-400 text-xs font-sans leading-relaxed">
-                            ï¼ æå½±è²»ç¨ä¸å«æ¯é»éç¥¨ï¼é²å¥æ¶è²»æ¯åææå½±å¸«éç¥¨è²»ç±å®¢äººä¸åæ¯ä»<br>
-                            ï¼ ç²¾é¸ä¿®åå¾é»å­æªï¼æ¼é«é©å¾ 7 åå·¥ä½å¤©å§ééé²ç«¯é£çµäº¤ä»
+                            ＊ 攝影費用不含景點門票，進入收費景區時攝影師門票費由客人一同支付<br>
+                            ＊ 精選修圖後電子檔，於體驗後 7 個工作天內透過雲端連結交付
                         </p>
                     </div>
                 </div>
@@ -437,38 +437,38 @@
             <div class="max-w-5xl mx-auto px-6 md:px-10">
                 <div class="flex flex-col items-center mb-20">
                     <span class="text-pink-400 font-bold tracking-[0.8em] text-[10px] mb-5 uppercase italic font-sans">FAQ Center</span>
-                    <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] tracking-[0.2em] uppercase font-sans">å¸¸è¦åé¡ <span class="text-pink-300 font-light italic">Q&A</span></h2>
+                    <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] tracking-[0.2em] uppercase font-sans">常見問題 <span class="text-pink-300 font-light italic">Q&A</span></h2>
                     <div class="mt-6 w-12 h-0.5 bg-pink-100"></div>
                 </div>
-                <!-- â ææ©ç°å­å grid-cols-2ï¼æ¡æ©åæ¬ -->
+                <!-- ★ 手機田字型 grid-cols-2，桌機四欄 -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-12" id="faq-tabs"></div>
                 <div id="faq-content" class="bg-[#FDFCF8] border border-slate-100 rounded-sm shadow-xl px-8 md:px-12 text-left divide-y divide-slate-100 border-t-0"></div>
             </div>
         </section>
 
-        <!-- éå¸ -->
+        <!-- 門市 -->
         <section id="sec-3" class="py-32 bg-[#FDFCF8]">
             <div class="max-w-7xl mx-auto px-6 md:px-10 text-center">
                 <div class="flex flex-col items-center mb-14">
                     <span class="text-pink-400 font-bold tracking-[0.8em] text-[10px] mb-5 uppercase italic font-sans">Our Locations</span>
-                    <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] tracking-[0.2em] uppercase font-sans">ç²¾é¸éå¸ <span class="text-pink-300 font-light italic">Locations</span></h2>
+                    <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] tracking-[0.2em] uppercase font-sans">精選門市 <span class="text-pink-300 font-light italic">Locations</span></h2>
                     <div class="mt-6 w-12 h-0.5 bg-pink-100"></div>
                 </div>
-                <!-- â ææ©ç°å­å / æ¡æ© flex -->
+                <!-- ★ 手機田字型 / 桌機 flex -->
                 <div class="grid grid-cols-2 md:flex md:flex-wrap md:justify-center gap-3 mb-12" id="store-tabs"></div>
                 <div id="store-content" class="bg-white shadow-2xl overflow-hidden min-h-[500px] border border-slate-50 rounded-sm grid grid-cols-1 lg:grid-cols-12 text-left"></div>
             </div>
         </section>
 
-        <!-- â é ç´è¡¨å®ï¼ãè¨ééä½ãâãè¨éææµã -->
+        <!-- ★ 預約表單：「訂金鎖位」→「訂金折抵」 -->
         <section id="booking" class="py-40 bg-[#FCFBFA] px-6">
             <div class="flex flex-col items-center mb-16 text-center">
                 <span class="text-pink-400 font-bold tracking-[0.8em] text-[10px] mb-5 uppercase italic font-sans">Online Booking</span>
-                <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] tracking-[0.2em] uppercase font-sans">å¡«å®é ç´ <span class="text-pink-300 font-light italic">è¨éææµ</span></h2>
+                <h2 class="text-3xl md:text-4xl font-bold text-[#1A365D] tracking-[0.2em] uppercase font-sans">填單預約 <span class="text-pink-300 font-light italic">訂金折抵</span></h2>
                 <div class="mt-6 w-12 h-0.5 bg-pink-100"></div>
                 <p class="text-slate-400 text-sm mt-6 font-sans leading-relaxed">
-                    å¡«å¯«é ç´è³æ â å¯æ¬¾è¨é â å®¢ææ ¸å°ç¢ºèª<br>
-                    <span class="text-xs text-slate-300">å¨ç¨ç·ä¸å®æï¼è¨éé«é©ç¶æ¥å¨é¡ææµ</span>
+                    填寫預約資料 → 匯款訂金 → 客服核對確認<br>
+                    <span class="text-xs text-slate-300">全程線上完成，訂金體驗當日全額折抵</span>
                 </p>
             </div>
 
@@ -484,38 +484,55 @@
                 <!-- Step 1 -->
                 <div id="form-step-1" class="step-content active text-left">
                     <div class="mb-12 text-center">
-                        <h3 class="text-3xl font-bold text-[#1A365D] mb-4 italic uppercase font-sans">éæ±é¸æ / Step 1</h3>
-                        <p class="text-slate-400 text-xs tracking-[0.4em] uppercase font-bold italic font-sans">è«å¡«å¯«é ç´ç´°ç¯èæ­£å¼è¯çµ¡è³æ</p>
+                        <h3 class="text-3xl font-bold text-[#1A365D] mb-4 italic uppercase font-sans">需求選擇 / Step 1</h3>
+                        <p class="text-slate-400 text-xs tracking-[0.4em] uppercase font-bold italic font-sans">請填寫預約細節與正式聯絡資料</p>
                     </div>
                     <form id="booking-form-1" class="space-y-12">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-10 font-sans uppercase">
                             <label class="block border-b border-slate-100 pb-2">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase">é ç´å§å / Name</span>
-                                <input required type="text" id="input-name" placeholder="æ¨çå§å" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase">預約姓名 / Name</span>
+                                <input required type="text" id="input-name" placeholder="您的姓名" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent">
                             </label>
                             <label class="block border-b border-slate-100 pb-2">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase">é»è©± / Phone</span>
-                                <input required type="tel" id="input-phone" pattern="[0-9]{8,12}" minlength="8" maxlength="12" placeholder="ä¾: 0912345678" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent font-mono" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase">電話 / Phone</span>
+                                <input required type="tel" id="input-phone" pattern="[0-9]{8,12}" minlength="8" maxlength="12" placeholder="例: 0912345678" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent font-mono" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
                             </label>
                         </div>
                         <div class="grid grid-cols-1 gap-10 font-sans uppercase">
                             <label class="block border-b border-slate-100 pb-2">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase">é»å­éµä»¶ / Email</span>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase">電子郵件 / Email</span>
                                 <input required type="email" id="input-email" placeholder="example@gmail.com" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent">
                             </label>
-                        </div><div id="person-kimono-section" class="space-y-4">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase font-sans tracking-widest mb-2">和服款式（每人各選）</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                            <div class="flex items-center justify-between p-5 bg-[#FDFCF8] rounded-xl border border-slate-100">
+                                <div class="flex flex-col"><span class="text-sm font-bold text-[#1A365D] font-sans">大人人數</span><span class="text-[10px] text-slate-400 uppercase font-sans mt-1">Adults</span></div>
+                                <div class="flex items-center gap-4">
+                                    <button type="button" onclick="changeGuest('adults', -1)" class="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-[#1A365D] hover:text-white transition-all text-slate-400 font-bold">-</button>
+                                    <span id="count-adults" class="font-mono font-bold text-xl w-6 text-center">1</span>
+                                    <button type="button" onclick="changeGuest('adults', 1)" class="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-[#1A365D] hover:text-white transition-all text-slate-400 font-bold">+</button>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between p-5 bg-[#FDFCF8] rounded-xl border border-slate-100">
+                                <div class="flex flex-col"><span class="text-sm font-bold text-[#1A365D] font-sans">兒童人數</span><span class="text-[10px] text-slate-400 uppercase font-sans mt-1">Children</span></div>
+                                <div class="flex items-center gap-4">
+                                    <button type="button" onclick="changeGuest('children', -1)" class="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-[#1A365D] hover:text-white transition-all text-slate-400 font-bold">-</button>
+                                    <span id="count-children" class="font-mono font-bold text-xl w-6 text-center">0</span>
+                                    <button type="button" onclick="changeGuest('children', 1)" class="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-[#1A365D] hover:text-white transition-all text-slate-400 font-bold">+</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="person-kimono-section" class="mb-2">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase font-sans block mb-3">每人和服選擇</span>
                             <div id="person-kimono-list" class="space-y-3"></div>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <label class="block border-b border-slate-100 pb-2">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase font-sans">妝髮造型（全體）</span>
+                            <label class="block border-b border-slate-100 pb-2"><span class="text-[10px] font-bold text-slate-400 uppercase font-sans">妝造需求（共用）</span>
                                 <select id="input-hair" class="w-full py-2 mt-1 outline-none font-bold text-base bg-transparent cursor-pointer font-sans">
-                                    <option value="No">不需要妝髮</option><option value="Yes">需要髮型設計 (+1500 JPY)</option>
+                                    <option value="No">不需要妝造</option><option value="Yes">需要髮型設計 (+1500 JPY)</option>
                                 </select>
                             </label>
-                            <label class="block border-b border-slate-100 pb-2">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase font-sans">攝影方案（全體共用）</span>
+                            <label class="block border-b border-slate-100 pb-2"><span class="text-[10px] font-bold text-slate-400 uppercase font-sans">攝影方案（共用）</span>
                                 <select id="input-photo" class="w-full py-2 mt-1 outline-none font-bold text-base bg-transparent cursor-pointer font-sans">
                                     <option value="No">不需要攝影</option><option value="Yes">需要專業攝影</option>
                                 </select>
@@ -524,7 +541,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
                             <div class="grid grid-cols-1 gap-10">
                                 <label class="block border-b border-slate-100 pb-2">
-                                    <span class="text-[10px] font-bold text-slate-400 uppercase font-sans">ææ£åªæ ç¢¼ï¼é¸å¡«ï¼</span>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase font-sans">折扣優惠碼（選填）</span>
                                     <div class="flex items-center gap-3">
                                         <input type="text" id="input-coupon"
                                             placeholder="輸入優惠碼"
@@ -533,44 +550,44 @@
                                             class="flex-1 py-2 mt-1 outline-none font-bold text-lg bg-transparent font-sans tracking-widest uppercase">
                                         <div id="coupon-status" class="text-xs font-bold font-sans shrink-0 w-16 text-right"></div>
                                     </div>
-                                    <p class="text-[10px] text-slate-300 mt-1 font-sans normal-case tracking-normal">è¥ææ´»ååªæ ç¢¼è«å¡«å¯«ï¼ç¡åçç©º</p>
+                                    <p class="text-[10px] text-slate-300 mt-1 font-sans normal-case tracking-normal">若有活動優惠碼請填寫，無則留空</p>
                                 </label>
                             </div>
-                            <label class="block border-b border-slate-100 pb-2">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase font-sans">預約日期</span>
-                                <input required type="date" id="input-date" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent cursor-pointer font-sans">
+                            <label class="block border-b border-slate-100 pb-2"><span class="text-[10px] font-bold text-slate-400 uppercase font-sans">預約日期</span>
+                                <input required type="date" id="input-date" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent cursor-pointer font-sans" min="2026-01-01">
+                            </label>
                             </label>
                             <label class="block border-b border-slate-100 pb-2">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase font-sans">é ç´ææ®µ</span>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase font-sans">預約時段</span>
                                 <select required id="input-time" class="w-full py-2 mt-1 outline-none font-bold text-base bg-transparent cursor-pointer font-sans">
-                                    <option value="">è«é¸æææ®µ</option>
-                                    <option value="09:30">上午09:30</option>
-                                    <option value="10:00">ä¸å 10:00</option>
-                                    <option value="10:30">ä¸å 10:30</option>
-                                    <option value="11:00">ä¸å 11:00</option>
-                                    <option value="11:30">ä¸å 11:30</option>
-                                    <option value="12:00">ä¸­å 12:00</option>
-                                    <option value="12:30">ä¸å 12:30</option>
-                                    <option value="13:00">ä¸å 13:00</option>
-                                    <option value="13:30">ä¸å 13:30</option>
-                                    <option value="14:00">ä¸å 14:00</option>
-                                    <option value="14:30">ä¸å 14:30</option>
-                                    <option value="15:00">ä¸å 15:00</option>
-                                    <option value="15:30">ä¸å 15:30</option>
-                                    <option value="16:00">ä¸å 16:00</option>
-                                    <option value="16:30">ä¸å 16:30</option>
-                                    <option value="17:00">ä¸å 17:00</option>
-                                    <option value="17:30">ä¸å 17:30</option>
+                                    <option value="">請選擇時段</option>
+                                    <option value="09:30">上午 09:30</option>
+                                    <option value="10:00">上午 10:00</option>
+                                    <option value="10:30">上午 10:30</option>
+                                    <option value="11:00">上午 11:00</option>
+                                    <option value="11:30">上午 11:30</option>
+                                    <option value="12:00">中午 12:00</option>
+                                    <option value="12:30">下午 12:30</option>
+                                    <option value="13:00">下午 13:00</option>
+                                    <option value="13:30">下午 13:30</option>
+                                    <option value="14:00">下午 14:00</option>
+                                    <option value="14:30">下午 14:30</option>
+                                    <option value="15:00">下午 15:00</option>
+                                    <option value="15:30">下午 15:30</option>
+                                    <option value="16:00">下午 16:00</option>
+                                    <option value="16:30">下午 16:30</option>
+                                    <option value="17:00">下午 17:00</option>
+                                    <option value="17:30">下午 17:30</option>
                                 </select>
                             </label>
                         </div>
                         <div class="p-8 bg-[#FDFCF8] border-l-4 border-[#1A365D] text-left rounded-r-lg">
-                            <p class="font-bold text-[#1A365D] font-sans">æä»é ç´è¨éï¼<span id="deposit-display" class="text-pink-500 italic text-xl ml-2 font-bold">NT$ 220 å</span></p>
-                            <p class="text-[11px] text-slate-400 font-bold mt-2 italic font-sans" id="deposit-detail">æ¯äºº 1,000 JPY Ã 1 äºº â NT$ 220ï¼ä¾å³æå¯çï¼</p>
-                            <p class="text-[11px] text-slate-400 font-bold mt-1 italic font-sans">* è¨éæ¼é«é©ç¶æ¥å¨é¡ææµç¾å ´çµå¸³æ¶è²»ã</p>
+                            <p class="font-bold text-[#1A365D] font-sans">應付預約訂金：<span id="deposit-display" class="text-pink-500 italic text-xl ml-2 font-bold">NT$ 220 元</span></p>
+                            <p class="text-[11px] text-slate-400 font-bold mt-2 italic font-sans" id="deposit-detail">每人 1,000 JPY × 1 人 ≈ NT$ 220（依即時匯率）</p>
+                            <p class="text-[11px] text-slate-400 font-bold mt-1 italic font-sans">* 訂金於體驗當日全額折抵現場結帳消費。</p>
                         </div>
                         <div class="flex justify-center pt-8">
-                            <button type="submit" class="w-full max-w-sm px-8 py-5 bg-[#1A365D] text-white font-bold tracking-[0.2em] rounded-sm hover:bg-blue-800 transition-all cursor-pointer shadow-xl uppercase font-sans text-xs">ä¸ä¸æ­¥ï¼å¯æ¬¾æè­èç·¨èéå®</button>
+                            <button type="submit" class="w-full max-w-sm px-8 py-5 bg-[#1A365D] text-white font-bold tracking-[0.2em] rounded-sm hover:bg-blue-800 transition-all cursor-pointer shadow-xl uppercase font-sans text-xs">下一步：匯款憑證與編號鎖定</button>
                         </div>
                     </form>
                 </div>
@@ -578,49 +595,48 @@
                 <!-- Step 2 -->
                 <div id="form-step-2" class="step-content text-left">
                     <div class="mb-12 text-center">
-                        <h3 class="text-3xl font-bold text-pink-500 mb-4 italic uppercase font-sans">å°å¸³è­æ / Step 2</h3>
-                        <p class="text-slate-400 text-xs tracking-[0.2em] uppercase font-bold italic font-sans">è«å¯æ¬¾å¾æäº¤è³è¨ä»¥æ­£å¼éå®ç·¨è</p>
+                        <h3 class="text-3xl font-bold text-pink-500 mb-4 italic uppercase font-sans">對帳證明 / Step 2</h3>
+                        <p class="text-slate-400 text-xs tracking-[0.2em] uppercase font-bold italic font-sans">請匯款後提交資訊以正式鎖定編號</p>
                     </div>
                     <div class="bg-[#1A365D] text-white p-10 rounded-xl mb-12 shadow-inner relative overflow-hidden">
                         <i data-lucide="credit-card" class="absolute top-4 right-4 w-32 h-32 opacity-10 rotate-12"></i>
-                        <h4 class="text-pink-300 font-bold mb-6 flex items-center gap-2 uppercase font-sans">æå®å¯æ¬¾å¸³æ¶ / Bank Info</h4>
+                        <h4 class="text-pink-300 font-bold mb-6 flex items-center gap-2 uppercase font-sans">指定匯款帳戶 / Bank Info</h4>
                         <div class="space-y-4 font-sans tracking-widest font-bold">
-                            <p class="text-sm opacity-70">éè¡ä»£ç¢¼ï¼<span class="text-lg opacity-100 ml-2" id="bank-info-code"></span></p>
-                            <p class="text-sm opacity-70">åè¡ï¼<span class="text-lg opacity-100 ml-2" id="bank-info-branch"></span></p>
-                            <p class="text-sm opacity-70">æ¶åï¼<span class="text-lg opacity-100 ml-2" id="bank-info-holder"></span></p>
-                            <p class="text-sm opacity-70">å¯æ¬¾å¸³èï¼<span class="text-2xl italic opacity-100 ml-2" id="bank-info-account" style="font-family:'Noto Sans TC',sans-serif; letter-spacing:0.12em; font-weight:700;"></span></p>
-                            <p class="text-3xl text-pink-400 font-bold uppercase pt-6 pb-2" id="bank-info-amount"></p>
+                            <p class="text-sm opacity-70">銀行代碼：<span class="text-lg opacity-100 ml-2" id="bank-info-code"></span></p>
+                            <p class="text-sm opacity-70">分行：<span class="text-lg opacity-100 ml-2" id="bank-info-branch"></span></p>
+                            <p class="text-sm opacity-70">戶名：<span class="text-lg opacity-100 ml-2" id="bank-info-holder"></span></p>
+                            <p class="text-sm opacity-70">匯款帳號：<span class="text-2xl italic opacity-100 ml-2" id="bank-info-account" style="font-family:'Noto Sans TC',sans-serif; letter-spacing:0.12em; font-weight:700;"></span></p>
+                            <p class="text-3xl text-pink-400 font-bold pt-4 mt-2" id="bank-info-amount"></p>
                         </div>
                     </div>
                     <form id="booking-form-2" class="space-y-10">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-10 font-sans uppercase">
                             <label class="block border-b border-slate-100 pb-2">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase mb-1">å¯æ¬¾å¾ 5 ç¢¼ (åæ¸å­)</span>
-                                <input required type="text" id="input-last5" maxlength="5" pattern="[0-9]{5}" placeholder="è«è¼¸å¥ 5 ä½æ¸å­" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent font-mono" oninput="this.value=this.value.replace(/[^0-9]/g,''); validateLast5(this)">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase mb-1">匯款後 5 碼 (僅數字)</span>
+                                <input required type="text" id="input-last5" maxlength="5" pattern="[0-9]{5}" placeholder="請輸入 5 位數字" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent font-mono" oninput="this.value=this.value.replace(/[^0-9]/g,''); validateLast5(this)">
                                 <span id="last5-hint" class="text-[10px] text-slate-300 font-sans normal-case"></span>
                             </label>
                             <div class="block">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase mb-3 block font-sans">對帳證明 / Proof</span>
-                                <div class="flex gap-2 mb-3">
-                                    <button type="button" id="proof-tab-img" onclick="switchProofTab('img')" class="flex-1 py-2 text-xs font-bold font-sans rounded border transition-all bg-[#1A365D] text-white border-[#1A365D]">🖼️ 圖片上傳</button>
-                                    <button type="button" id="proof-tab-text" onclick="switchProofTab('text')" class="flex-1 py-2 text-xs font-bold font-sans rounded border transition-all bg-white text-slate-400 border-slate-200">✏️ 文字輸入</button>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase mb-2 block font-sans">對帳憑證</span>
+                                <div class="flex gap-2 mb-2">
+                                    <button type="button" id="proof-tab-img" onclick="switchProofTab('img')" class="text-[10px] font-bold px-3 py-1 rounded-full border border-pink-300 text-pink-500 bg-pink-50">圖片上傳</button>
+                                    <button type="button" id="proof-tab-txt" onclick="switchProofTab('txt')" class="text-[10px] font-bold px-3 py-1 rounded-full border border-slate-200 text-slate-400 bg-white">文字說明</button>
                                 </div>
-                                <div id="proof-panel-img">
-                                    <label for="proof-upload" class="upload-zone w-full h-14 border-2 border-dashed border-slate-200 rounded-lg flex items-center justify-center bg-slate-50 text-xs text-slate-400 font-bold transition-all font-sans cursor-pointer hover:border-pink-300 hover:text-pink-500">
+                                <div id="proof-img-panel">
+                                    <label for="proof-upload" id="proof-upload-label" class="upload-zone w-full h-14 border-2 border-dashed border-slate-200 rounded-lg flex items-center justify-center bg-slate-50 text-xs text-slate-400 font-bold transition-all font-sans cursor-pointer hover:border-pink-300 hover:text-pink-500">
                                         <i data-lucide="image" class="w-4 h-4 mr-2"></i>
-                                        <span id="file-label-text">點我上傳檔案</span>
+                                        <span id="file-label-text">點擊上傳截圖</span>
                                     </label>
                                     <input type="file" id="proof-upload" accept="image/*" class="hidden" onchange="handleFileUpload(this)">
                                 </div>
-                                <div id="proof-panel-text" style="display:none">
-                                    <textarea id="proof-text" rows="3" placeholder="請輸入匯款相關資訊，如：轉帳時間、帳戶末五碼、金額等（用；分隔多筆資訊）" class="w-full border border-slate-200 rounded-lg p-3 text-sm font-sans outline-none resize-none focus:border-pink-300"></textarea>
-                                    <p class="text-[10px] text-slate-400 mt-1 font-sans">例：12:30轉帳；末五碼 12345；金額 NT$220</p>
+                                <div id="proof-txt-panel" class="hidden">
+                                    <textarea id="proof-text-input" rows="3" class="w-full p-3 border border-slate-200 rounded-lg text-sm font-sans text-slate-600 resize-none focus:outline-none focus:border-pink-300" placeholder="輸入對帳相關資訊，如訂單截圖說明、銀行轉帳相關..."></textarea>
                                 </div>
                             </div>
                         </div>
                         <div class="flex flex-col md:flex-row gap-4 pt-10">
-                            <button type="button" onclick="setStep(1)" class="flex-1 py-4 text-slate-400 font-bold text-xs uppercase tracking-widest border-none bg-transparent cursor-pointer font-sans hover:bg-slate-50 rounded-sm transition-colors">è¿åä¿®æ¹é ç´è³è¨</button>
-                            <button type="submit" id="finalSubmitBtn" class="flex-[2] py-4 bg-[#1A365D] text-white font-bold tracking-[0.2em] rounded-sm hover:bg-blue-800 transition-all cursor-pointer shadow-xl uppercase font-sans text-xs">ç¢ºèªæäº¤ä¸¦åå¾ç·¨è</button>
+                            <button type="button" onclick="setStep(1)" class="flex-1 py-4 text-slate-400 font-bold text-xs uppercase tracking-widest border-none bg-transparent cursor-pointer font-sans hover:bg-slate-50 rounded-sm transition-colors">返回修改預約資訊</button>
+                            <button type="submit" id="finalSubmitBtn" class="flex-[2] py-4 bg-[#1A365D] text-white font-bold tracking-[0.2em] rounded-sm hover:bg-blue-800 transition-all cursor-pointer shadow-xl uppercase font-sans text-xs">確認提交並取得編號</button>
                         </div>
                     </form>
                 </div>
@@ -635,58 +651,58 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-3xl font-bold text-[#1A365D] mb-2 uppercase font-sans">æäº¤æåï¼</h3>
-                            <p class="text-slate-400 text-sm font-sans">æ¨çé ç´è³æå·²æ¶å°ï¼è«å®æä»¥ä¸æ­¥é©</p>
+                            <h3 class="text-3xl font-bold text-[#1A365D] mb-2 uppercase font-sans">提交成功！</h3>
+                            <p class="text-slate-400 text-sm font-sans">您的預約資料已收到，請完成以下步驟</p>
                         </div>
                         <div class="bg-[#1A365D] text-white p-8 rounded-xl shadow-inner">
-                            <p class="text-white/60 text-xs uppercase tracking-widest font-sans mb-3">æ¨çå°å±¬é ç´ç·¨è</p>
+                            <p class="text-white/60 text-xs uppercase tracking-widest font-sans mb-3">您的專屬預約編號</p>
                             <div class="flex items-center justify-center gap-4">
                                 <p id="finalOrderId" class="text-4xl font-bold tracking-widest text-pink-300" style="font-family: 'Noto Sans TC', sans-serif; letter-spacing: 0.15em;">K260417011</p>
                                 <button onclick="copyOrderId()" id="copyBtn" class="flex items-center gap-1.5 px-4 py-2 bg-white/15 hover:bg-white/25 text-white text-xs font-bold rounded-full transition-all font-sans border border-white/30 cursor-pointer">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-                                    è¤è£½ç·¨è
+                                    複製編號
                                 </button>
                             </div>
-                            <p class="text-white/50 text-xs italic font-sans mt-3">æè­å·²å½åçº <span id="file-name-display" class="underline text-white/70"></span></p>
+                            <p class="text-white/50 text-xs italic font-sans mt-3">憑證已命名為 <span id="file-name-display" class="underline text-white/70"></span></p>
                         </div>
                         <div class="bg-white border border-slate-100 rounded-xl p-8 text-left shadow-sm space-y-5">
-                            <p class="text-[#1A365D] font-bold font-sans text-sm tracking-widest uppercase mb-4">æ¥ä¸ä¾æç¼çä»éº¼ï¼</p>
+                            <p class="text-[#1A365D] font-bold font-sans text-sm tracking-widest uppercase mb-4">接下來會發生什麼？</p>
                             <div class="flex gap-4 items-start">
-                                <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0 font-bold text-sm font-sans">â</div>
+                                <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0 font-bold text-sm font-sans">✓</div>
                                 <div>
-                                    <p class="font-bold text-[#1A365D] font-sans text-sm">ç¾å¨ â å³éç·¨èçµ¦å®¢æ</p>
-                                    <p class="text-slate-400 text-xs font-sans mt-1">é»æä¸æ¹ LINE æ Messengerï¼å°æ¨çç·¨è <span id="finalOrderIdDisplay" class="font-bold text-[#1A365D]"></span> å³éçµ¦æå</p>
+                                    <p class="font-bold text-[#1A365D] font-sans text-sm">現在 — 傳送編號給客服</p>
+                                    <p class="text-slate-400 text-xs font-sans mt-1">點擊下方 LINE 或 Messenger，將您的編號 <span id="finalOrderIdDisplay" class="font-bold text-[#1A365D]"></span> 傳送給我們</p>
                                 </div>
                             </div>
                             <div class="flex gap-4 items-start">
                                 <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 font-bold text-sm font-sans">2</div>
                                 <div>
-                                    <p class="font-bold text-[#1A365D] font-sans text-sm">2 å°æå§ â æåç¢ºèªå¯æ¬¾</p>
-                                    <p class="text-slate-400 text-xs font-sans mt-1">å®¢æäººå¡æ ¸å°å¾å°åå³<span class="text-green-600 font-bold">ãé ç´ç¢ºèªéç¥ã</span>ï¼æ¶å°éç¥æç®æ­£å¼é ç´æåã</p>
+                                    <p class="font-bold text-[#1A365D] font-sans text-sm">2 小時內 — 我們確認匯款</p>
+                                    <p class="text-slate-400 text-xs font-sans mt-1">客服人員核對後將回傳<span class="text-green-600 font-bold">「預約確認通知」</span>，收到通知才算正式預約成功。</p>
                                 </div>
                             </div>
                             <div class="flex gap-4 items-start">
                                 <div class="w-8 h-8 rounded-full bg-pink-100 text-pink-500 flex items-center justify-center shrink-0 font-bold text-sm font-sans">3</div>
                                 <div>
-                                    <p class="font-bold text-[#1A365D] font-sans text-sm">é«é©ç¶æ¥ â è¨éå¨é¡ææµ</p>
-                                    <p class="text-slate-400 text-xs font-sans mt-1">到店出示編號，<span id="confirm-deposit-text" class="font-bold text-[#1A365D]">NT$ 220</span> 訂金直接折抵當日消費。</p>
+                                    <p class="font-bold text-[#1A365D] font-sans text-sm">體驗當日 — 訂金全額折抵</p>
+                                    <p class="text-slate-400 text-xs font-sans mt-1">抵達門市時出示編號，NT$<span id="confirm-deposit-text">220</span> 訂金直接折抵當日消費。</p>
                                 </div>
                             </div>
                         </div>
                         <div class="space-y-3">
-                            <p class="text-slate-500 text-xs font-sans font-bold uppercase tracking-widest">è«é¸ææ¨ç¿æ£çè¯çµ¡æ¹å¼</p>
+                            <p class="text-slate-500 text-xs font-sans font-bold uppercase tracking-widest">請選擇您習慣的聯絡方式</p>
                             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                                 <a href="https://lin.ee/TgFCvYQ" target="_blank" rel="noopener" class="bg-[#06C755] text-white px-8 py-4 rounded-full font-bold text-sm shadow-lg transition-transform hover:scale-105 flex items-center justify-center gap-3 font-sans">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
-                                    LINE å³éç·¨è
+                                    LINE 傳送編號
                                 </a>
                                 <a href="https://m.me/foreveryoung2023car" target="_blank" rel="noopener" class="bg-[#1877F2] text-white px-8 py-4 rounded-full font-bold text-sm shadow-lg transition-transform hover:scale-105 flex items-center justify-center gap-3 font-sans">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
-                                    Messenger å³éç·¨è
+                                    Messenger 傳送編號
                                 </a>
                             </div>
                         </div>
-                        <button onclick="location.reload()" class="text-slate-300 font-bold text-xs uppercase tracking-[0.3em] underline decoration-pink-200 underline-offset-8 bg-transparent border-none cursor-pointer font-sans hover:text-[#1A365D] transition-colors">åå°é ç´é¦é </button>
+                        <button onclick="location.reload()" class="text-slate-300 font-bold text-xs uppercase tracking-[0.3em] underline decoration-pink-200 underline-offset-8 bg-transparent border-none cursor-pointer font-sans hover:text-[#1A365D] transition-colors">回到預約首頁</button>
                     </div>
                 </div>
             </div>
@@ -699,16 +715,16 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-14 pb-16 border-b border-white/10">
                 <div class="space-y-6">
                     <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-white text-[#1A365D] flex items-center justify-center font-bold text-2xl rounded-sm shrink-0">æ</div>
+                        <div class="w-12 h-12 bg-white text-[#1A365D] flex items-center justify-center font-bold text-2xl rounded-sm shrink-0">旅</div>
                         <div>
                             <div class="text-xl font-bold tracking-widest uppercase font-sans">Foreveryoung</div>
-                            <div class="text-[10px] text-pink-300 tracking-widest uppercase font-sans mt-0.5">åæé«é© Ã æéåè»</div>
+                            <div class="text-[10px] text-pink-300 tracking-widest uppercase font-sans mt-0.5">和服體驗 × 旅遊包車</div>
                         </div>
                     </div>
-                    <p class="text-slate-400 text-sm leading-relaxed font-sans">æ¥æ¬æ·±åº¦æåé«é©å°å®¶ãå°æ¥­åæç§åãç§äººåè»ãæææå½±ï¼è®æ¯æ®µæç¨é½æçºé£å¿åæ¶ã</p>
+                    <p class="text-slate-400 text-sm leading-relaxed font-sans">日本深度文化體驗專家。專業和服租借、私人包車、旅拍攝影，讓每段旅程都成為難忘回憶。</p>
                     <div class="flex gap-3 pt-2">
                         <a href="https://lin.ee/TgFCvYQ" target="_blank" rel="noopener" class="flex items-center gap-2 px-5 py-2.5 bg-[#06C755] text-white rounded-full text-xs font-bold font-sans hover:scale-105 transition-transform">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>LINE è¯çµ¡
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>LINE 聯絡
                         </a>
                         <a href="https://m.me/foreveryoung2023car" target="_blank" rel="noopener" class="flex items-center gap-2 px-5 py-2.5 bg-[#1877F2] text-white rounded-full text-xs font-bold font-sans hover:scale-105 transition-transform">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>Messenger
@@ -716,44 +732,44 @@
                     </div>
                 </div>
                 <div class="space-y-6">
-                    <h4 class="text-xs font-bold tracking-[0.5em] text-pink-300 uppercase font-sans">å¿«éå°è¦½</h4>
+                    <h4 class="text-xs font-bold tracking-[0.5em] text-pink-300 uppercase font-sans">快速導覽</h4>
                     <ul class="space-y-3 text-sm font-sans text-slate-400">
-                        <li><button onclick="scrollToId('sec-process')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">â åæé«é©æµç¨</button></li>
-                        <li><button onclick="scrollToId('sec-0')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">â æ¹æ¡å¹æ ¼ä¸è¦½</button></li>
-                        <li><button onclick="scrollToId('sec-reviews')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">â æå®¢çå¯¦å¥½è©</button></li>
-                        <li><button onclick="scrollToId('sec-hair')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">â è·äººé«®åç¾å­¸</button></li>
-                        <li><button onclick="scrollToId('sec-photo')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">â æææå½±æ¹æ¡</button></li>
-                        <li><button onclick="scrollToId('sec-faq')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">â å¸¸è¦åé¡ Q&A</button></li>
-                        <li><button onclick="scrollToId('sec-3')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">â ç²¾é¸éå¸æé»</button></li>
-                        <li><button onclick="scrollToId('booking')" class="hover:text-pink-300 text-pink-400 transition-colors bg-transparent border-none cursor-pointer text-left font-bold font-sans text-sm">â ç«å³ç·ä¸é ç´ â</button></li>
+                        <li><button onclick="scrollToId('sec-process')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">→ 和服體驗流程</button></li>
+                        <li><button onclick="scrollToId('sec-0')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">→ 方案價格一覽</button></li>
+                        <li><button onclick="scrollToId('sec-reviews')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">→ 旅客真實好評</button></li>
+                        <li><button onclick="scrollToId('sec-hair')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">→ 職人髮型美學</button></li>
+                        <li><button onclick="scrollToId('sec-photo')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">→ 旅拍攝影方案</button></li>
+                        <li><button onclick="scrollToId('sec-faq')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">→ 常見問題 Q&A</button></li>
+                        <li><button onclick="scrollToId('sec-3')" class="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left text-slate-400 hover:text-white font-sans text-sm">→ 精選門市據點</button></li>
+                        <li><button onclick="scrollToId('booking')" class="hover:text-pink-300 text-pink-400 transition-colors bg-transparent border-none cursor-pointer text-left font-bold font-sans text-sm">→ 立即線上預約 ↗</button></li>
                     </ul>
                 </div>
                 <div class="space-y-6">
-                    <h4 class="text-xs font-bold tracking-[0.5em] text-pink-300 uppercase font-sans">è¯çµ¡è³è¨</h4>
+                    <h4 class="text-xs font-bold tracking-[0.5em] text-pink-300 uppercase font-sans">聯絡資訊</h4>
                     <div class="space-y-4 text-sm font-sans text-slate-400">
                         <div class="flex items-start gap-3">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0 mt-0.5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                            <div><div class="text-white font-bold mb-0.5">æ¥æ¬å®¢æ</div><a href="tel:+818037055176" class="hover:text-white transition-colors">+81 80-3705-5176</a></div>
+                            <div><div class="text-white font-bold mb-0.5">日本客服</div><a href="tel:+818037055176" class="hover:text-white transition-colors">+81 80-3705-5176</a></div>
                         </div>
                         <div class="flex items-start gap-3">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0 mt-0.5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                             <div>
-                                <div class="text-white font-bold mb-1">éå¸æé»</div>
+                                <div class="text-white font-bold mb-1">門市據點</div>
                                 <div class="space-y-1 text-slate-400">
-                                    <div>Â· äº¬é½æ¸æ°´å¯ºåº</div><div>Â· äº¬é½ç¥ååº</div><div>Â· å¤§éªæ¥æ¬æ©åº</div><div>Â· æ±äº¬æ·ºèå¯ºåº</div>
+                                    <div>· 京都清水寺店</div><div>· 京都祇園店</div><div>· 大阪日本橋店</div><div>· 東京淺草寺店</div>
                                 </div>
                             </div>
                         </div>
                         <div class="flex items-center gap-3">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            <span>æ¯æ¥çæ¥­ 09:30 â 17:30</span>
+                            <span>每日營業 09:30 – 17:30</span>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="pt-10 flex flex-col md:flex-row items-center justify-between gap-6">
-                <p class="text-[11px] text-white/30 font-sans tracking-widest uppercase">Â© 2026 Foreveryoung Ã Ouka Kimono. All Rights Reserved.</p>
-                <button onclick="scrollToId('booking')" class="px-10 py-3 border border-white/20 text-white/70 text-xs font-bold uppercase tracking-widest font-sans rounded-sm hover:bg-white hover:text-[#1A365D] transition-all">ç«å³é ç´ Book Now â</button>
+                <p class="text-[11px] text-white/30 font-sans tracking-widest uppercase">© 2026 Foreveryoung × Ouka Kimono. All Rights Reserved.</p>
+                <button onclick="scrollToId('booking')" class="px-10 py-3 border border-white/20 text-white/70 text-xs font-bold uppercase tracking-widest font-sans rounded-sm hover:bg-white hover:text-[#1A365D] transition-all">立即預約 Book Now ↗</button>
             </div>
         </div>
     </footer>
@@ -767,79 +783,79 @@
         const submitDateTWN = nowTWN.toISOString().slice(0, 10);
 
         const plans = [
-            { name: "ç´ éåæ", sub: "Elegant Kimono", price: "3,000", desc: "è¿½æ±ç°¡ç´å¤§æ¹çç¶å¸æ¬¾å¼ï¼é©ååæ¬¡é«é©ã", img: "img/PremiumSelection-1.jpg" },
-            { name: "ä¿éºåæ", sub: "Pretty Kimono", price: "5,000", desc: "è±è²ç¹å¤äº®ç¼ï¼æ¯æåæ­¡è¿çé¦é¸æ¬¾å¼ã", img: "img/PremiumSelection-2.jpg" },
-            { name: "ç²¾ç·»åæ", sub: "Delica Plan", price: "8,000", desc: "é«åè³ªé¢æèç²¾ç´°åºç¹¡ï¼å¸é¡¯å¸éæ°£è³ªã", img: "img/PremiumSelection-3.jpg" },
-            { name: "å¥³å£«æµ´è¡£", sub: "Yukata", price: "3,000", desc: "å¤å­£éå®ï¼è¼ä¾¿æ¶¼ç½ï¼æé©åçç«ç¥­å¸ã", img: "img/PremiumSelection-4.jpg" },
-            { name: "è±ªè¯æ¯è¢", sub: "Furisode", price: "38,000", desc: "æééçæ­£å¼ç¦®è£ï¼æäººå¼ãå©ç¦®é¦é¸ã", img: "img/PremiumSelection-5.jpg" },
-            { name: "ç·å£«åæ", sub: "Men's Plan", price: "5,000", desc: "æ¬¾å¼æ²ç©©å¸¥æ°£ï¼é©åæä¾¶ãå®¶åº­åéã", img: "img/PremiumSelection-6.jpg" },
-            { name: "æ­¦å£«ç¢æ¥­è¢´", sub: "Hakama Plan", price: "20,000", desc: "å¸¥æ°£ä¿è½çå±¤æ¬¡ç¾æï¼ç´å¿µäººçéç¨ç¢ã", img: "img/PremiumSelection-7.jpg" },
-            { name: "åç«¥åæ", sub: "Children Plan", price: "5,000", desc: "é©åå¨å®¶åæ¨ï¼3-12 æ­²åæå°ºå¯¸ã", img: "img/PremiumSelection-8.jpg" }
+            { name: "素雅和服", sub: "Elegant Kimono", price: "3,000", desc: "追求簡約大方的經典款式，適合初次體驗。", img: "img/PremiumSelection-1.jpg" },
+            { name: "俏麗和服", sub: "Pretty Kimono", price: "5,000", desc: "花色繁多亮眼，是最受歡迎的首選款式。", img: "img/PremiumSelection-2.jpg" },
+            { name: "精緻和服", sub: "Delica Plan", price: "8,000", desc: "高品質面料與精細刺繡，凸顯典雅氣質。", img: "img/PremiumSelection-3.jpg" },
+            { name: "女士浴衣", sub: "Yukata", price: "3,000", desc: "夏季限定，輕便涼爽，最適合煙火祭典。", img: "img/PremiumSelection-4.jpg" },
+            { name: "豪華振袖", sub: "Furisode", price: "38,000", desc: "最隆重的正式禮裝，成人式、婚禮首選。", img: "img/PremiumSelection-5.jpg" },
+            { name: "男士和服", sub: "Men's Plan", price: "5,000", desc: "款式沉穩帥氣，適合情侶、家庭同遊。", img: "img/PremiumSelection-6.jpg" },
+            { name: "武士畢業袴", sub: "Hakama Plan", price: "20,000", desc: "帥氣俐落的層次美感，紀念人生里程碑。", img: "img/PremiumSelection-7.jpg" },
+            { name: "兒童和服", sub: "Children Plan", price: "5,000", desc: "適合全家同樂，3-12 歲均有尺寸。", img: "img/PremiumSelection-8.jpg" }
         ];
 
         const processItems = [
-            { step: "01", time: "10 min", title: "éå¸å ±å°", desc: "æµéå¾å¯æ¾è¡æï¼å°äººç¢ºèªé ç´è³è¨ã" },
-            { step: "02", time: "20 min", title: "åææé¸", desc: "å¨æ¸ç¾æ¬¾è·äººåæä¸­å°æ¾æå¥åçä¸å¸­ã" },
-            { step: "03", time: "25 min", title: "è·äººèè£", desc: "å°æ¥­èå¸«åå©ï¼æé ç«¯èå®ç¾çèº«åã" },
-            { step: "04", time: "20 min", title: "é«®åè¨­è¨", desc: "ç±é«®åå¸«ç·¨ç¹æ¨çå°å±¬åªéé åã" },
-            { step: "05", time: "Enjoy", title: "æ¼«æ­¥é«é©", desc: "éå§å¤é½æ¼«æ­¥ï¼éåå½±åç´éæç¨ã" },
-            { step: "06", time: "10 min", title: "è¼é¬æ­¸é", desc: "æ¼ 17:00 ååå°éå¸æè£é åè¡æã" }
+            { step: "01", time: "10 min", title: "門市報到", desc: "抵達後寄放行李，專人確認預約資訊。" },
+            { step: "02", time: "20 min", title: "和服挑選", desc: "在數百款職人和服中尋找最契合的一席。" },
+            { step: "03", time: "25 min", title: "職人著裝", desc: "專業老師協助，打造端莊完美的身型。" },
+            { step: "04", time: "20 min", title: "髮型設計", desc: "由髮型師編織您的專屬優雅造型。" },
+            { step: "05", time: "Enjoy", title: "漫步體驗", desc: "開始古都漫步，開啟影像紀錄旅程。" },
+            { step: "06", time: "10 min", title: "輕鬆歸還", desc: "於 17:00 前回到門市換裝領取行李。" }
         ];
 
         const stores = [
-            { name: 'äº¬é½æ¸æ°´å¯ºåº', addr: 'äº¬é½æ±å±±åäºæ¢æ©æ±4-432-13 å°åµåå¤§å»1æ¨', map: 'https://maps.google.com/?q=äº¬é½å¸æ±å±±åºäºæ¡æ©æ±4ä¸ç®432-13', img: "img/Locations-1.jpg" },
-            { name: 'å¤§éªæ¥æ¬æ©åº', addr: 'å¤§éªä¸­å¤®åæ¥æ¬æ©1-18-14 èå¤§å»7æ¨', map: 'https://maps.google.com/?q=å¤§éªå¸ä¸­å¤®åºæ¥æ¬æ©1-18-14', img: "img/Locations-2.jpg" },
-            { name: 'äº¬é½ç¥ååº', addr: 'äº¬é½æ±å±±åå¸¸ç¤çº169 å¸¸ç¤å¤§å»', map: 'https://maps.google.com/?q=äº¬é½å¸æ±å±±åºå¸¸ç¤çº169', img: "img/Locations-3.jpg" },
-            { name: 'æ±äº¬æ·ºèå¯ºåº', addr: 'æ±äº¬é½å°æ±åæ·ºè1-33-8 A-oneå¤§å»9æ¨', map: 'https://maps.google.com/?q=æ±äº¬é½å°æ±åºæµè1-33-8', img: "img/Locations-4.jpg" }
+            { name: '京都清水寺店', addr: '京都東山區五條橋東4-432-13 對嵐坊大廈1樓', map: 'https://maps.google.com/?q=京都市東山区五条橋東4丁目432-13', img: "img/Locations-1.jpg" },
+            { name: '大阪日本橋店', addr: '大阪中央區日本橋1-18-14 芝大廈7樓', map: 'https://maps.google.com/?q=大阪市中央区日本橋1-18-14', img: "img/Locations-2.jpg" },
+            { name: '京都祇園店', addr: '京都東山區常盤町169 常盤大廈', map: 'https://maps.google.com/?q=京都市東山区常盤町169', img: "img/Locations-3.jpg" },
+            { name: '東京淺草寺店', addr: '東京都台東區淺草1-33-8 A-one大廈9樓', map: 'https://maps.google.com/?q=東京都台東区浅草1-33-8', img: "img/Locations-4.jpg" }
         ];
 
         const faqData = [
-            { category: "é ç´èéå¸", icon: "calendar", items: [
-                { q: "è¦æéº¼é ç´æ¹æ¡ï¼å¯ä»¥ç¾å ´éå»åï¼", a: "æ¬æåéå¨é¢æåé ç´ãè«å¡«å®æäº¤æè­å¾ï¼ä¸»åè¯ç¹«å®¢ææ ¸å°ç·¨èï¼æªè¯ç¹«èé ç´ä¸çæãè¨éå¯ç¾å ´ææµæ¶è²»ã" },
-                { q: "åºéªè³è¨å¨åªè£¡ï¼æè©²å»åªè£¡éå§è¡ç¨ï¼", a: "æåå¨æ·ºèãæ¸æ°´å¯ºãç¥åãæ¥æ¬æ©åæååºãé ç´æåå¾å®¢ææç¼éè©³ç´°å°åæå¼ã" },
-                { q: "å¦æç¶å¤©æå çºäº¤éé²å°äºæéº¼è¾¦ï¼", a: "æ¡å´æ ¼é ç´å¶ãé²å°é¾ 30 åéé ç´å¯è½èªååæ¶ï¼è¨éæä¸ééãè¥éçªç¼çæ³è«ç¬¬ä¸æéèå®¢æè¯çµ¡ï¼æåå°ç¡ååå©ã" },
-                { q: "ä¸ææ¥æå¯ä»¥æºéåï¼", a: "æ²åé¡ï¼åºå§æç²¾éä¸­æçå·¥ä½äººå¡ï¼æºéå®å¨ç¡ç¤ã" },
-                { q: "å¯ä»¥æå®ç¹å®éå¸åï¼", a: "å¯ä»¥å¨è¡¨å®ä¸­æå®éå¸ãåéå¸åææ¬¾å¼ç¥æä¸åï¼å»ºè­°æååç¥ç¹å¥æ³è¦çæ¬¾å¼ï¼å®¢ææåå©ç¢ºèªåº«å­ã" },
-                { q: "é ç´ç¶å¤©è¦å¸¶ä»éº¼å»éå¸ï¼", a: "æé ç´ç·¨èè³éå¸å ±å°å³å¯ï¼ç¡éæå¸¶ç´æ¬è³æãå»ºè­°ç©¿èæç©¿è«çè¡£ç©ï¼ä¸¦äºåå®å¦ï¼å¦éå¦é«®å è³¼è«æååç¥ï¼ã" }
+            { category: "預約與門市", icon: "calendar", items: [
+                { q: "要怎麼預約方案？可以現場過去嗎？", a: "本服務需全面提前預約。請填單提交憑證後，主動聯繫客服核對編號，未聯繫者預約不生效。訂金可現場折抵消費。" },
+                { q: "店鋪資訊在哪裡？我該去哪裡開始行程？", a: "我們在淺草、清水寺、祇園、日本橋均有分店。預約成功後客服會發送詳細地圖指引。" },
+                { q: "如果當天我因為交通遲到了怎麼辦？", a: "採嚴格預約制。遲到逾 30 分鐘預約可能自動取消，訂金恕不退還。若遇突發狀況請第一時間與客服聯絡，我們將盡力協助。" },
+                { q: "不會日文可以溝通嗎？", a: "沒問題！店內有精通中文的工作人員，溝通完全無礙。" },
+                { q: "可以指定特定門市嗎？", a: "可以在表單中指定門市。各門市和服款式略有不同，建議提前告知特別想要的款式，客服會協助確認庫存。" },
+                { q: "預約當天要帶什麼去門市？", a: "憑預約編號至門市報到即可，無需攜帶紙本資料。建議穿著易穿脫的衣物，並事先完妝（如需妝髮加購請提前告知）。" }
             ]},
-            { category: "æ¬¾å¼èç©¿è", icon: "scissors", items: [
-                { q: "æè©²ç©¿åæéæ¯æµ´è¡£ï¼", a: "å¤å­£ï¼6-9æï¼æä¾æµ´è¡£ï¼å¶é¤å­£ç¯æä¾æ­£å¼åæãå¬å¤©å·å¤©æè²¼å¿æºåç¾½ç¹ï¼å¤å¥ï¼æææåï¼è«æ¾å¿ã" },
-                { q: "æ¹æ¡åå«å¦é«®åï¼", a: "æ¹æ¡å¯å è³¼é«®åè¨­è¨ï¼+1,500 JPYï¼ï¼ä½ä¸åå«èé¨å½©å¦ãå¼·çå»ºè­°å°åºåèªè¡å®å¦ï¼é¿ååæèè£å¾é£ä»¥è£å¦ã" },
-                { q: "ç·çåå°å­©ä¹å¯ä»¥é«é©åï¼å­å©¦å¯ä»¥åï¼", a: "æä¾å®æ´çç·å£«ï¼è¢´ãåæï¼èåç«¥æ¹æ¡ï¼3-12æ­²ï¼ãåºæ¼å®å¨èéï¼å­å©¦åè¡åä¸ä¾¿èä¸å»ºè­°é«é©ï¼è«è¦è«ã" },
-                { q: "å¯ä»¥ç¾å ´æ¹æ¬¾å¼åï¼åç­è¦å é¢åï¼", a: "å¯ä»¥ãç¾å ´ä¾ç¾è²¨çæ³èª¿æ´æåç­æ¹æ¡ï¼é ä»è¨éå¨é¡ææµï¼å·®é¡ç¾å ´è£è¶³å³å¯ã" },
-                { q: "åæå°ºå¯¸æéº¼é¸ï¼æå¤§å°ºç¢¼åï¼", a: "åæä»¥è°å¸¶ï¼å¸¶ï¼èª¿æ´ï¼é©åå¤æ¸é«åãèº«é«ç´ 150-175cm åæå°ææ¬¾å¼ï¼ç¹æ®å°ºå¯¸å»ºè­°æååç¥å®¢æç¢ºèªã" },
-                { q: "å¯ä»¥èªå¸¶éä»¶æé«®é£¾åï¼", a: "æ­¡è¿æå¸¶åäººåæ­¡çéä»¶ï¼å¸«åæå¹«æ¨æ­éèå¥æ´é«é åï¼ä½éæ³¨æéä»¶é¢¨æ ¼èåæçåèª¿æ§ã" }
+            { category: "款式與穿著", icon: "scissors", items: [
+                { q: "我該穿和服還是浴衣？", a: "夏季（6-9月）提供浴衣，其餘季節提供正式和服。冬天冷天會貼心準備羽織（外套）或暖暖包，請放心。" },
+                { q: "方案包含妝髮嗎？", a: "方案可加購髮型設計（+1,500 JPY），但不包含臉部彩妝。強烈建議到店前自行完妝，避免和服著裝後難以補妝。" },
+                { q: "男生和小孩也可以體驗嗎？孕婦可以嗎？", a: "提供完整的男士（袴、和服）與兒童方案（3-12歲）。出於安全考量，孕婦及行動不便者不建議體驗，請見諒。" },
+                { q: "可以現場改款式嗎？升等要加錢嗎？", a: "可以。現場依現貨狀況調整或升等方案，預付訂金全額折抵，差額現場補足即可。" },
+                { q: "和服尺寸怎麼選？有大尺碼嗎？", a: "和服以腰帶（帶）調整，適合多數體型。身高約 150-175cm 均有對應款式，特殊尺寸建議提前告知客服確認。" },
+                { q: "可以自帶配件或髮飾嗎？", a: "歡迎攜帶個人喜歡的配件！師傅會幫您搭配融入整體造型，但需注意配件風格與和服的協調性。" }
             ]},
-            { category: "è²»ç¨èéæ¬¾", icon: "credit-card", items: [
-                { q: "è¨éæ¯ä»éº¼ï¼çºä»éº¼è¦åå¯æ¬¾ï¼", a: "è¨é NT$220ï¼ä¾å³æå¯çå«æçºè²»æç®ï¼çºä¿çé ç´åé¡çè²»ç¨ãè¨éæ¼é«é©ç¶æ¥100% å¨é¡ææµæ¶è²»ï¼ç­åæ¼åè²»é ç´ã" },
-                { q: "é ç´å¾æ³åæ¶ï¼éæ¬¾æ¿ç­æ¯ä»éº¼ï¼", a: "é ç´æ¥ 7 å¤©ååæ¶ï¼å¨é¡éæ¬¾ã2-6 å¤©åï¼é 50%ãåä¸æ¥æç¶æ¥ï¼æä¸éè²»ãå»ºè­°ç¢ºå®è¡ç¨å¾åé ç´ã" },
-                { q: "ä¸é¨å¤©å¯ä»¥åæ¶ææ¹æåï¼", a: "é¨å¤©ä»å¯é«é©ï¼åºå§æä¾åæå°ç¨åï¼é¨ä¸­æ¼«æ­¥å¥æé¢¨å³ï¼ä¸å¯å å¤©æ°£éè²»ï¼ä½å¯æ¼é«é©æ¥ 2 å¤©åç³è«æ¹æä¸æ¬¡ã" },
-                { q: "å¼é«ææå£åæè¦è³ ååï¼", a: "ä¸è¬å°é«æ±ï¼ç°å¡µãè¼å¾®æ²¾æï¼ä¸æ¶è²»ãå´éææ¯å¦è¸é ­çç ´ãæè²ç¡æ³ä¿®è£ç­ï¼å°ä¾æå£ç¨åº¦æ¶åè³ åè²»ãå»ºè­°ç¾å ´å è³¼ãå®å¿ä¿éªãæ¹æ¡ã" },
-                { q: "å¯ä»¥å·å¡æé»å­æ¯ä»åï¼", a: "åéå¸æ¥åç¾éï¼æ¥åï¼ä»æ¬¾ãé¨åéå¸æ¯æ´ä¿¡ç¨å¡ï¼å»ºè­°äºååå¦¥æ¥åç¾éï¼è©³æè«å¨é ç´æåå®¢æç¢ºèªã" }
+            { category: "費用與退款", icon: "credit-card", items: [
+                { q: "訂金是什麼？為什麼要先匯款？", a: "訂金 NT$220（依即時匯率含手續費換算）為保留預約名額的費用。訂金於體驗當日100% 全額折抵消費，等同於免費預約。" },
+                { q: "預約後想取消，退款政策是什麼？", a: "預約日 7 天前取消：全額退款。2-6 天前：退 50%。前一日或當日：恕不退費。建議確定行程後再預約。" },
+                { q: "下雨天可以取消或改期嗎？", a: "雨天仍可體驗，店內提供和服專用傘，雨中漫步別有風味！不可因天氣退費，但可於體驗日 2 天前申請改期一次。" },
+                { q: "弄髒或損壞和服要賠償嗎？", a: "一般小髒汙（灰塵、輕微沾染）不收費。嚴重損毀如菸頭燒破、染色無法修補等，將依損壞程度收取賠償費。建議現場加購「安心保險」方案。" },
+                { q: "可以刷卡或電子支付嗎？", a: "各門市接受現金（日圓）付款。部分門市支援信用卡，建議事先備妥日圓現金，詳情請在預約時向客服確認。" }
             ]},
-            { category: "æå½±èè¡æ", icon: "camera", items: [
-                { q: "æä¹åè»ååæé«é©å¯ä»¥ä¸èµ·é ç´åï¼", a: "å¯ä»¥ï¼æä¹åè»å¯æ­éåæé«é©ï¼ç±å°å±¬å¸æ©æ¥éæ¨å¾è¿éå¸èæ¯é»ï¼è¡æå¨ç¨ä»£ç®¡ï¼éå¸¸æ¨è¦ï¼" },
-                { q: "æå½±æ¹æ¡åå«éç¥¨åï¼", a: "æå½±è²»ç¨ä¸å«æ¯é»éç¥¨ãè¥é²å¥æ¶è²»æ¯åï¼æå½±å¸«çéç¥¨è²»éç±å®¢äººä¸åæ¯ä»ã" },
-                { q: "æå½±å¸«ææå¤å°å¼µï¼ä½æäº¤ä»¶ï¼", a: "60 åéç´ææ 100-200 å¼µï¼ç²¾é¸ç²¾ä¿®å¾äº¤ä» 50-100 å¼µé»å­æªãéå¸¸æ¼é«é©å¾ 7 åå·¥ä½å¤©å§ééé²ç«¯é£çµäº¤ä»ã" },
-                { q: "è¡æå¯ä»¥å¯æ¾å¨éå¸åï¼", a: "å¯ä»¥å¨é«é©æéå°è¡æå¯æ¾æ¼éå¸ï¼æ­¸éåæå¾å³å¯ååãè¥æ­éæä¹åè»æåï¼è¡æå¯ç´æ¥æ¾å¨è»ä¸å¨ç¨ä»£ç®¡ã" },
-                { q: "ææå¹¾é»è¦æ­¸éåæï¼å¯ä»¥éæ¥éåï¼", a: "æææ­¸éæéçº 17:00ï¼é¨åéå¸ 17:30ï¼ï¼è«åå¿æºæååºãå¦ééæ¥æ­¸éï¼éæååç¥ä¸¦æ¯ä»é¡å¤è²»ç¨ï¼è©³æè«æ´½å®¢æã" }
+            { category: "攝影與行李", icon: "camera", items: [
+                { q: "旅乘包車和和服體驗可以一起預約嗎？", a: "可以！旅乘包車可搭配和服體驗，由專屬司機接送您往返門市與景點，行李全程代管，非常推薦！" },
+                { q: "攝影方案包含門票嗎？", a: "攝影費用不含景點門票。若進入收費景區，攝影師的門票費需由客人一同支付。" },
+                { q: "攝影師會拍多少張？何時交件？", a: "60 分鐘約拍攝 100-200 張，精選精修後交付 50-100 張電子檔。通常於體驗後 7 個工作天內透過雲端連結交付。" },
+                { q: "行李可以寄放在門市嗎？", a: "可以在體驗期間將行李寄放於門市，歸還和服後即可取回。若搭配旅乘包車服務，行李可直接放在車上全程代管。" },
+                { q: "最晚幾點要歸還和服？可以隔日還嗎？", a: "最晚歸還時間為 17:00（部分門市 17:30），請務必準時回店。如需隔日歸還，需提前告知並支付額外費用，詳情請洽客服。" }
             ]}
         ];
 
         const reels = [
-            { title: "é¨å¤©åæåªéæ¼«æ­¥", label: "æ·ºè Asakusa", type: "facebook", url: "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1286218553433400%2F&show_text=false&width=267&t=0", img: "img/VisualStory-1.jpg" },
-            { title: "æ´åèè¡æ­åæ£ç­", label: "æ¯è¢ Furisode", type: "facebook", url: "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1092483763095996%2F&show_text=false&width=267&t=0", img: "img/VisualStory-2.jpg" },
-            { title: "éç¢§è¼çç°åé¢¨æ", label: "æ©«æ¿± Yokohama", type: "facebook", url: "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1318763070131252%2F&show_text=false&width=267&t=0", img: "img/VisualStory-3.jpg" },
-            { title: "æ¥æ¥åææå½±åå¥", label: "èè£ Dressing", type: "facebook", url: "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F939531925462235%2F&show_text=false&width=267&t=0", img: "img/VisualStory-4.jpg" }
+            { title: "雨天和服優雅漫步", label: "淺草 Asakusa", type: "facebook", url: "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1286218553433400%2F&show_text=false&width=267&t=0", img: "img/VisualStory-1.jpg" },
+            { title: "柴又老街昭和散策", label: "振袖 Furisode", type: "facebook", url: "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1092483763095996%2F&show_text=false&width=267&t=0", img: "img/VisualStory-2.jpg" },
+            { title: "金碧輝煌異域風情", label: "橫濱 Yokohama", type: "facebook", url: "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1318763070131252%2F&show_text=false&width=267&t=0", img: "img/VisualStory-3.jpg" },
+            { title: "春日和服攝影包套", label: "著裝 Dressing", type: "facebook", url: "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F939531925462235%2F&show_text=false&width=267&t=0", img: "img/VisualStory-4.jpg" }
         ];
 
         const reviews = [
-            { name: "Joyce C.", avatar: "JC", location: "å°ç£ Â· äº¬é½æ¸æ°´å¯ºåº", stars: 5, tag: "é¨èæé", text: "ä¸åäººä¸èµ·å»ç©¿æ¯è¢ï¼åºå¡è¶ç´æèå¿å¹«æåæ­éï¼é«®åä¹åå¾éå¸¸æ¼äº®ï¼èµ°å¨æ¸æ°´å¯ºä¸ç´è¢«æç§ååãè¨éä¹æææµï¼å®å¨å¼å¾ï¼", img: "img/GuestReviews-1.jpg" },
-            { name: "Mia & Ken", avatar: "MK", location: "é¦æ¸¯ Â· äº¬é½ç¥ååº", stars: 5, tag: "æä¾¶ç´å¿µ", text: "ç·å¥³æ¬¾å¼é½å¾å¥½çï¼èå¬ç©¿èµ·ä¾å®å¨æ¯æ­¦å£«é¢¨æ ¼ï¼æç©¿ç²¾ç·»åæï¼æ­éä¸èµ·æç§è¶æfuï¼å·¥ä½äººå¡ä¸­æèªªå¾å¾å¥½ï¼å®å¨ä¸ç¨æå¿èªè¨åé¡ã", img: "img/GuestReviews-2.jpg" },
-            { name: "å°éåª½åª", avatar: "å°é", location: "å°ç£ Â· æ±äº¬æ·ºèå¯ºåº", stars: 5, tag: "è¦ªå­åæ¨", text: "å¸¶å°æåä¸èµ·ç©¿ï¼åç«¥æ¬¾å¥½å¯æï¼å¨ç¨å¤§æ¦ä¸ååå°æå°±å®æäºï¼å­©å­å¾èå¥®ãLINEå®¢æåè¦å¾å¿«ï¼é ç´æµç¨æ¸æ¥ï¼æ¨è¦çµ¦è¦å¸¶å°å­©å»æ¥æ¬çå®¶åº­ï¼", img: "img/GuestReviews-3.jpg" },
-            { name: "Amber L.", avatar: "AL", location: "é¦¬ä¾è¥¿äº Â· å¤§éªæ¥æ¬æ©åº", stars: 5, tag: "çæ¥ç´å¿µ", text: "çæ¥ç´å¿µæ¥ç¹å°è¨éåé«é©ï¼æææå½±å¸«è¶å²å®³ï¼æ¯å¼µé½å¾æè³ªæï¼åææ¬¾å¼ççå¾å¤ï¼è±äºå¿«åå°ææé¸å¥½ XD ä¸æ¬¡å»äº¬é½éæåè¨ï¼", img: "img/GuestReviews-4.jpg" },
-            { name: "Lily Wang", avatar: "LW", location: "å°ç£ Â· äº¬é½æ¸æ°´å¯ºåº", stars: 5, tag: "å¥½ååé", text: "æåæ¨è¦ä¾çï¼æ²æ³å°é«é©ééº¼å¥½ï¼é«®åå¸«å¹«æè¨­è¨äºå³çµ±ç·¨é«®ï¼æ´åäººè®äºä¸åæ¨£ãå¹æ ¼åçï¼æåå¾è²¼å¿ï¼ä¸åè¶åææ¼«æ­¥æ ¹æ¬æ¯å¤¢å¹»è¡ç¨ã", img: "img/GuestReviews-5.jpg" },
-            { name: "Ray & Sandy", avatar: "RS", location: "æ°å å¡ Â· äº¬é½ç¥ååº", stars: 5, tag: "èææè¡", text: "èææè¡é¸æä¾éè£¡ç©¿åæï¼ççæ¯è¶æ£çæ±ºå®ï¼æµ´è¡£å¤å­£æ¬¾æ¸æ¶¼å¥½çï¼ç©¿èéç¥åä¸æ´åä¸åå®å¨ä¸ç´¯ãå·¥ä½äººå¡æç§æå·§ä¹å¾å¥½ï¼æ¯åæ¯é»é½å¹«æåæ¾å°æç¾è§åº¦ã", img: "img/GuestReviews-6.jpg" }
+            { name: "Joyce C.", avatar: "JC", location: "台灣 · 京都清水寺店", stars: 5, tag: "閨蜜旅遊", text: "三個人一起去穿振袖，店員超級有耐心幫我們搭配！髮型也做得非常漂亮，走在清水寺一直被拍照哈哈。訂金也有折抵，完全值得！", img: "img/GuestReviews-1.jpg" },
+            { name: "Mia & Ken", avatar: "MK", location: "香港 · 京都祇園店", stars: 5, tag: "情侶紀念", text: "男女款式都很好看，老公穿起來完全是武士風格，我穿精緻和服，搭配一起拍照超有fu！工作人員中文說得很好，完全不用擔心語言問題。", img: "img/GuestReviews-2.jpg" },
+            { name: "小雅媽咪", avatar: "小雅", location: "台灣 · 東京淺草寺店", stars: 5, tag: "親子同樂", text: "帶小朋友一起穿，兒童款好可愛！全程大概一個半小時就完成了，孩子很興奮。LINE客服回覆很快，預約流程清楚，推薦給要帶小孩去日本的家庭！", img: "img/GuestReviews-3.jpg" },
+            { name: "Amber L.", avatar: "AL", location: "馬來西亞 · 大阪日本橋店", stars: 5, tag: "生日紀念", text: "生日紀念日特地訂這個體驗，旅拍攝影師超厲害，每張都很有質感！和服款式真的很多，花了快半小時才選好 XD 下次去京都還會再訂！", img: "img/GuestReviews-4.jpg" },
+            { name: "Lily Wang", avatar: "LW", location: "台灣 · 京都清水寺店", stars: 5, tag: "好友同遊", text: "朋友推薦來的，沒想到體驗這麼好！髮型師幫我設計了傳統編髮，整個人變了一個樣。價格合理，服務很貼心，下午茶和服漫步根本是夢幻行程。", img: "img/GuestReviews-5.jpg" },
+            { name: "Ray & Sandy", avatar: "RS", location: "新加坡 · 京都祇園店", stars: 5, tag: "蜜月旅行", text: "蜜月旅行選擇來這裡穿和服，真的是超棒的決定！浴衣夏季款清涼好看，穿著逛祇園一整個下午完全不累。工作人員拍照技巧也很好，每個景點都幫我們找到最美角度。", img: "img/GuestReviews-6.jpg" }
         ];
 
         function initContent() {
@@ -860,7 +876,7 @@
             const planHTML = plans.map(p => `
                 <div class="group bg-white border border-slate-100 rounded-sm overflow-hidden flex flex-col shadow-sm hover:shadow-xl transition-all duration-700 flex-none w-[240px] md:w-auto snap-center">
                     <div class="aspect-[4/5] relative overflow-hidden"><img src="${p.img}" class="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition-transform duration-1000 group-hover:scale-105" loading="lazy" alt="${p.name}"></div>
-                    <div class="p-6 flex flex-col flex-grow text-left"><h4 class="text-lg font-bold text-[#1A365D] mb-1 uppercase italic font-sans">${p.name}</h4><p class="text-[10px] text-pink-400 font-bold uppercase mb-3 tracking-widest font-sans">${p.sub}</p><p class="text-slate-500 text-sm leading-relaxed mb-4 flex-grow font-sans">${p.desc}</p><p class="mt-auto text-2xl font-bold font-sans">Â¥${p.price}<span class="text-xs ml-1 opacity-50 uppercase font-sans">èµ·</span></p></div>
+                    <div class="p-6 flex flex-col flex-grow text-left"><h4 class="text-lg font-bold text-[#1A365D] mb-1 uppercase italic font-sans">${p.name}</h4><p class="text-[10px] text-pink-400 font-bold uppercase mb-3 tracking-widest font-sans">${p.sub}</p><p class="text-slate-500 text-sm leading-relaxed mb-4 flex-grow font-sans">${p.desc}</p><p class="mt-auto text-2xl font-bold font-sans">¥${p.price}<span class="text-xs ml-1 opacity-50 uppercase font-sans">起</span></p></div>
                 </div>
             `).join('');
             const planMobile = document.getElementById('plan-container-mobile');
@@ -873,7 +889,7 @@
                 ? 'flex md:flex-wrap md:justify-center gap-6 overflow-x-auto md:overflow-x-visible px-6 md:px-10 pb-10 scrollbar-hide snap-x md:snap-none'
                 : 'flex gap-6 overflow-x-auto px-6 md:px-10 pb-10 scrollbar-hide snap-x';
             videoContainer.innerHTML = reels.map((v, i) => `
-                <div class="flex-none w-[240px] md:w-[280px] aspect-[9/16] bg-slate-900 rounded-2xl overflow-hidden relative group snap-center shadow-xl cursor-pointer select-none" onclick="openLightbox(${i})" role="button" aria-label="æ­æ¾ï¼${v.title}">
+                <div class="flex-none w-[240px] md:w-[280px] aspect-[9/16] bg-slate-900 rounded-2xl overflow-hidden relative group snap-center shadow-xl cursor-pointer select-none" onclick="openLightbox(${i})" role="button" aria-label="播放：${v.title}">
                     <img src="${v.img}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:brightness-75" loading="lazy" alt="${v.title}" />
                     <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
                     <div class="absolute inset-0 flex items-center justify-center">
@@ -908,18 +924,18 @@
                 </div>
             `;
 
-            // ææ©ç
+            // 手機版
             const revMobile = document.getElementById('reviews-mobile');
             if (revMobile) revMobile.innerHTML = reviews.map(reviewCardHTML).join('');
 
-            // â æ¡æ©çï¼ç¡éæ»¾åï¼å¡çè¤è£½å©ä»½ï¼
+            // ★ 桌機版：無限滾動（卡片複製兩份）
             const revDesktop = document.getElementById('reviews-desktop');
             if (revDesktop) {
                 const cards = reviews.map(reviewCardHTML).join('');
-                revDesktop.innerHTML = cards + cards; // è¤è£½ä¸ä»½åç¡ç¸«å¾ªç°
+                revDesktop.innerHTML = cards + cards; // 複製一份做無縫循環
             }
 
-            // â FAQ tabsï¼ææ©ç°å­åï¼grid-cols-2 å·²å¨ HTML è¨­å®ï¼
+            // ★ FAQ tabs：手機田字型（grid-cols-2 已在 HTML 設定）
             document.getElementById('faq-tabs').innerHTML = faqData.map((cat, idx) => `
                 <button onclick="switchFaq(${idx})" id="faq-tab-${idx}" class="faq-tab-btn flex items-center justify-center gap-1 px-3 py-3 rounded-sm text-xs font-bold border-2 transition-all cursor-pointer font-sans ${idx === 0 ? 'bg-[#1A365D] border-[#1A365D] text-white shadow-lg' : 'bg-[#FDFCF8] border-slate-100 text-slate-400 hover:border-pink-200'}">
                     <i data-lucide="${cat.icon}" class="w-3 h-3 shrink-0"></i> <span>${cat.category}</span>
@@ -927,16 +943,16 @@
             `).join('');
             switchFaq(0);
 
-            // â éå¸ tabsï¼ææ©ç°å­åï¼grid-cols-2 å·²å¨ HTML è¨­å®ï¼
+            // ★ 門市 tabs：手機田字型（grid-cols-2 已在 HTML 設定）
             document.getElementById('store-tabs').innerHTML = stores.map((s, i) => `
                 <button onclick="switchStore(${i})" id="store-tab-${i}" class="store-tab-btn px-4 md:px-10 py-3 md:py-4 text-xs md:text-sm font-bold border-2 transition-all uppercase rounded-sm cursor-pointer font-sans ${i === 0 ? 'bg-[#1A365D] border-[#1A365D] text-white shadow-xl' : 'bg-white text-slate-400 border-slate-100 hover:border-pink-200'}">${s.name}</button>
             `).join('');
             switchStore(0);
 
-            renderPersonKimonoSelects();
+            document.getElementById('input-plan').innerHTML = plans.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
             if (typeof lucide !== 'undefined') lucide.createIcons();
 
-            // â ææ©çæå½±æ¹æ¡ï¼èªåæ²å°æ¨è¦å¡ï¼ä¸­éï¼
+            // ★ 手機版攝影方案：自動捲到推薦卡（中間）
             if (window.innerWidth < 768) {
                 setTimeout(() => {
                     const mobile = document.getElementById('photo-plans-mobile');
@@ -1036,13 +1052,13 @@
                         </div>
                         <div class="flex items-center gap-4 opacity-60">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="#f9a8d4" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            <p class="text-sm uppercase tracking-widest font-sans">æ¯æ¥ 09:30 â 17:30</p>
+                            <p class="text-sm uppercase tracking-widest font-sans">每日 09:30 – 17:30</p>
                         </div>
                     </div>
                     <div class="mt-14">
                         <a href="${s.map}" target="_blank" rel="noopener" class="inline-flex items-center gap-3 px-8 py-4 bg-[#1A365D] text-white rounded-sm font-bold text-xs uppercase tracking-[0.2em] hover:bg-pink-500 transition-colors font-sans">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                            æ¥ç Google å°å
+                            查看 Google 地圖
                         </a>
                     </div>
                 </div>
@@ -1058,13 +1074,13 @@
             const twd = Math.round(total * 1000 * 0.22);
             const el = document.getElementById('deposit-display');
             const detail = document.getElementById('deposit-detail');
-            if (el) el.textContent = `NT$ ${twd.toLocaleString()} å`;
-            if (detail) detail.textContent = `æ¯äºº 1,000 JPY Ã ${total} äºº â NT$ ${twd.toLocaleString()}ï¼ä¾å³æå¯çï¼`;
+            if (el) el.textContent = `NT$ ${twd.toLocaleString()} 元`;
+            if (detail) detail.textContent = `每人 1,000 JPY × ${total} 人 ≈ NT$ ${twd.toLocaleString()}（依即時匯率）`;
             const amtEl = document.getElementById('bank-info-amount');
-            if (amtEl) amtEl.textContent = `éä»éé¡ï¼NT$ ${twd.toLocaleString()}`;
-            const confirmDepEl = document.getElementById('confirm-deposit-text');
-            if (confirmDepEl) confirmDepEl.textContent = `NT$ ${twd.toLocaleString()}`;
-        }
+            if (amtEl) amtEl.textContent = `需付金額：NT$ ${twd.toLocaleString()}`;
+        
+            const confEl = document.getElementById('confirm-deposit-text');
+            if (confEl) confEl.textContent = twd.toLocaleString();}
         
         function changeGuest(type, delta) {
             const min = type === 'adults' ? 1 : 0;
@@ -1073,58 +1089,36 @@
             updateDepositDisplay();
             renderPersonKimonoSelects();
         }
-        
-        function renderPersonKimonoSelects() {
-            const container = document.getElementById('person-kimono-list');
-            if (!container) return;
-            const total = guestData.adults + guestData.children;
-            const existing = {};
-            container.querySelectorAll('select').forEach(s => { existing[s.dataset.idx] = s.value; });
-            container.innerHTML = '';
-            for (let i = 0; i < total; i++) {
-                const isChild = i >= guestData.adults;
-                const label = isChild ? '小孩 ' + (i - guestData.adults + 1) : '大人 ' + (i + 1);
-                const div = document.createElement('div');
-                div.className = 'flex items-center gap-3 border-b border-slate-100 pb-3';
-                const selOpts = plans.map(p => {
-                    const sel = (existing[i] === p.name) ? 'selected' : '';
-                    return `<option value="${p.name}" ${sel}>${p.name} (¥${p.price} JPY)</option>`;
-                }).join('');
-                div.innerHTML = `<span class="text-sm font-bold text-[#1A365D] font-sans w-14 shrink-0">${label}</span>
-                    <select data-idx="${i}" class="person-kimono flex-1 py-1 outline-none font-bold text-sm bg-transparent cursor-pointer font-sans">
-                        <option value="">待確認（待選）</option>
-                        ${selOpts}
-                    </select>`;
-                container.appendChild(div);
-            }
-        }
-        
-        function switchProofTab(tab) {
-            const imgPanel = document.getElementById('proof-panel-img');
-            const textPanel = document.getElementById('proof-panel-text');
-            const imgBtn = document.getElementById('proof-tab-img');
-            const textBtn = document.getElementById('proof-tab-text');
-            if (tab === 'img') {
-                imgPanel.style.display = ''; textPanel.style.display = 'none';
-                imgBtn.className = 'flex-1 py-2 text-xs font-bold font-sans rounded border transition-all bg-[#1A365D] text-white border-[#1A365D]';
-                textBtn.className = 'flex-1 py-2 text-xs font-bold font-sans rounded border transition-all bg-white text-slate-400 border-slate-200';
-            } else {
-                imgPanel.style.display = 'none'; textPanel.style.display = '';
-                textBtn.className = 'flex-1 py-2 text-xs font-bold font-sans rounded border transition-all bg-[#1A365D] text-white border-[#1A365D]';
-                imgBtn.className = 'flex-1 py-2 text-xs font-bold font-sans rounded border transition-all bg-white text-slate-400 border-slate-200';
-            }
-        }
-        // ââ ææ£ç¢¼å³æé©è­
+        // ── 折扣碼即時驗證
         async function validateCoupon(code) {
             const statusEl = document.getElementById('coupon-status');
-            if (!code || code.trim().length < 2) { statusEl.textContent = ''; return; }
-            statusEl.textContent = '✔ 已套用';
-            statusEl.style.color = '#22c55e';
+            if (!code || code.length < 2) { statusEl.textContent = ''; return; }
+        
+            statusEl.textContent = '確認中...';
+            statusEl.style.color = '#94a3b8';
+        
+            try {
+                const res  = await fetch(APPS_SCRIPT_URL, {
+                    method : 'POST',
+                    mode   : 'no-cors', // GAS 限制
+                    headers: { 'Content-Type': 'text/plain' },
+                    body   : JSON.stringify({
+                        action    : 'validateCoupon',
+                        couponCode: code,
+                        checkDate : document.getElementById('input-date').value || ''
+                    })
+                });
+                // no-cors 無法讀回應，改用簡單前端提示
+                statusEl.textContent = '✓ 已套用';
+                statusEl.style.color = '#22c55e';
+            } catch(e) {
+                statusEl.textContent = '';
+            }
         }
         function validateLast5(input) {
             const hint = document.getElementById('last5-hint');
-            if (input.value.length > 0 && input.value.length < 5) { hint.textContent = `ééè¼¸å¥ ${5 - input.value.length} ä½æ¸å­`; hint.style.color = '#f59e0b'; }
-            else if (input.value.length === 5) { hint.textContent = 'â æ ¼å¼æ­£ç¢º'; hint.style.color = '#22c55e'; }
+            if (input.value.length > 0 && input.value.length < 5) { hint.textContent = `還需輸入 ${5 - input.value.length} 位數字`; hint.style.color = '#f59e0b'; }
+            else if (input.value.length === 5) { hint.textContent = '✓ 格式正確'; hint.style.color = '#22c55e'; }
             else { hint.textContent = ''; }
         }
 
@@ -1133,7 +1127,7 @@
             const label = document.getElementById('file-label-text');
             if (!input.files || !input.files[0]) return;
             const file = input.files[0];
-            label.textContent = 'â³ ä¸å³ä¸­...'; label.style.color = '#f59e0b';
+            label.textContent = '⏳ 上傳中...'; label.style.color = '#f59e0b';
             try {
                 const base64 = await new Promise((resolve, reject) => {
                     const reader = new FileReader();
@@ -1146,23 +1140,19 @@
                 formData.append('key', KIMONO_CONFIG.IMGBB_KEY);
                 const res = await fetch('https://api.imgbb.com/1/upload', { method: 'POST', body: formData });
                 const data = await res.json();
-             if (data.success) { 
-                        proofImageUrl = data.data.url; 
-                        label.innerHTML = `<img src="${proofImageUrl}" class="h-10 w-10 object-cover rounded mr-2 cursor-pointer border border-slate-200" onclick="openProofLightbox(this)" title="點擊放大查看"><span class="text-green-500">✔ 上傳成功（點擊圖片放大）</span>`;
-                        label.style.color = '#22c55e';
-                    }; }
-                else throw new Error('ä¸å³å¤±æ');
-            } catch(err) { label.textContent = 'â ä¸å³å¤±æï¼è«éè©¦'; label.style.color = '#ef4444'; proofImageUrl = ''; }
+                if (data.success) { proofImageUrl = data.data.url; label.innerHTML = '<img src="' + proofImageUrl + '" style="max-height:40px;border-radius:4px;cursor:pointer" onclick="openProofLightbox(\'' + proofImageUrl + '\')" title="點擊放大">'; label.style.color = '#22c55e'; }
+                else throw new Error('上傳失敗');
+            } catch(err) { label.textContent = '❌ 上傳失敗，請重試'; label.style.color = '#ef4444'; proofImageUrl = ''; }
         }
 
         function copyOrderId() {
             const id = document.getElementById('finalOrderId').innerText;
             const btn = document.getElementById('copyBtn');
             navigator.clipboard.writeText(id).then(() => {
-                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> å·²è¤è£½ï¼`;
+                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 已複製！`;
                 btn.style.background = 'rgba(34,197,94,0.3)';
-                setTimeout(() => { btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> è¤è£½ç·¨è`; btn.style.background = ''; }, 2500);
-            }).catch(() => { btn.innerHTML = 'â å·²è¤è£½ï¼'; setTimeout(() => { btn.innerHTML = 'è¤è£½ç·¨è'; }, 2500); });
+                setTimeout(() => { btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> 複製編號`; btn.style.background = ''; }, 2500);
+            }).catch(() => { btn.innerHTML = '✓ 已複製！'; setTimeout(() => { btn.innerHTML = '複製編號'; }, 2500); });
         }
 
         function setStep(step) {
@@ -1179,19 +1169,19 @@
 
         document.getElementById('booking-form-1').onsubmit = (e) => {
             e.preventDefault();
-            if (!document.getElementById('input-time').value) { alert('è«é¸æé ç´ææ®µ'); return; }
+            if (!document.getElementById('input-time').value) { alert('請選擇預約時段'); return; }
             setStep(2); scrollToId('booking');
         };
 
         document.getElementById('booking-form-2').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('finalSubmitBtn');
-            btn.innerHTML = 'éå®ç·¨èä¸­...'; btn.disabled = true;
+            btn.innerHTML = '鎖定編號中...'; btn.disabled = true;
             let lastTime = null;
             try { lastTime = localStorage.getItem('last_booking'); } catch(err) {}
             if (lastTime && Date.now() - Number(lastTime) < 60000) {
-                alert('æäº¤éæ¼é »ç¹ï¼è«æ¼ä¸åéå¾åè©¦ã');
-                btn.disabled = false; btn.innerHTML = 'ç¢ºèªæäº¤ä¸¦åå¾ç·¨è'; return;
+                alert('提交過於頻繁，請於一分鐘後再試。');
+                btn.disabled = false; btn.innerHTML = '確認提交並取得編號'; return;
             }
             const nowJST = new Date(Date.now() + 9 * 60 * 60 * 1000);
             const yy = String(nowJST.getUTCFullYear()).slice(2);
@@ -1219,25 +1209,24 @@
                     const [y, m, d] = date.split('-');
                     const hour = parseInt(time.split(':')[0]);
                     const min = time.split(':')[1];
-                    const period = hour < 12 ? 'ä¸å' : (hour === 12 ? 'ä¸­å' : 'ä¸å');
+                    const period = hour < 12 ? '上午' : (hour === 12 ? '中午' : '下午');
                     const h12 = hour > 12 ? hour - 12 : hour;
                     return `${y}/${m}/${d} ${period}${h12}:${min}`;
                 })(),
                 platform: 'LINE', adults: guestData.adults, children: guestData.children,
-                plan: Array.from(document.querySelectorAll('.person-kimono')).map((s,i) => {
-                    const isChild = i >= guestData.adults;
-                    const label = isChild ? '小孩' + (i - guestData.adults + 1) : '大人' + (i + 1);
-                    return label + ': ' + (s.value || '待確認');
-                }).join('; '),
-                hair: document.getElementById('input-hair').value === 'Yes' ? 'æ¯' : 'å¦',
-                photo: document.getElementById('input-photo').value === 'Yes' ? 'æ¯' : 'å¦',
-                source: 'å®ç¶²',
+                plan: Array.from(document.querySelectorAll('[name="person-kimono"]')).map((s,i)=>(i+1)+'人:'+s.value).join('; ') || '',
+                hair: document.getElementById('input-hair').value === 'Yes' ? '是' : '否',
+                photo: document.getElementById('input-photo').value === 'Yes' ? '是' : '否',
+                source: '官網',
                 couponCode: document.getElementById('input-coupon').value.trim() || '',
                 last5: document.getElementById('input-last5').value.trim(),
-                proofImageUrl: proofImageUrl || (() => {
-                    const textEl = document.getElementById('proof-text');
-                    if (textEl && textEl.value.trim()) return '[TEXT] ' + textEl.value.trim().replace(/\n/g, '; ');
-                    return '';
+                proofImageUrl: (function(){
+                    const txtPanel = document.getElementById('proof-txt-panel');
+                    if (txtPanel && !txtPanel.classList.contains('hidden')) {
+                        const txt = document.getElementById('proof-text-input').value.trim();
+                        return txt ? '[TEXT] ' + txt.replace(/\n+/g, '; ') : proofImageUrl;
+                    }
+                    return proofImageUrl;
                 })()
             };
 
@@ -1250,9 +1239,9 @@
                 try { localStorage.setItem('last_booking', Date.now()); } catch(err) {}
                 setStep(3); scrollToId('booking');
             } catch (err) {
-                console.error('éåºå¤±æ:', err);
-                btn.disabled = false; btn.innerHTML = 'ç¢ºèªæäº¤ä¸¦åå¾ç·¨è';
-                alert('ç¶²è·¯ç°å¸¸ï¼è«æª¢æ¥é£ç·å¾åè©¦ï¼æç´æ¥è¯ç¹« LINE å®¢æã\né¯èª¤ï¼' + err.message);
+                console.error('送出失敗:', err);
+                btn.disabled = false; btn.innerHTML = '確認提交並取得編號';
+                alert('網路異常，請檢查連線後再試，或直接聯繫 LINE 客服。\n錯誤：' + err.message);
             }
         };
 
@@ -1264,6 +1253,7 @@
             fillEl('bank-info-holder', cfg.BANK_HOLDER);
             fillEl('bank-info-account', cfg.BANK_ACCOUNT);
             updateDepositDisplay();
+            renderPersonKimonoSelects();
             document.getElementById('input-date').setAttribute('min', tomorrowStr);
 
             const container = document.getElementById('sakura-container');
@@ -1298,7 +1288,6 @@
             });
 
             initContent();
-            renderPersonKimonoSelects();
             setTimeout(drawProcessLines, 400);
             window.addEventListener('resize', drawProcessLines);
             setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 200);
@@ -1332,77 +1321,104 @@
         function prevVideo() { lbCurrentIdx = (lbCurrentIdx - 1 + reels.length) % reels.length; document.getElementById('lb-iframe').src = 'about:blank'; setTimeout(() => loadLightboxVideo(lbCurrentIdx), 80); }
         function nextVideo() { lbCurrentIdx = (lbCurrentIdx + 1) % reels.length; document.getElementById('lb-iframe').src = 'about:blank'; setTimeout(() => loadLightboxVideo(lbCurrentIdx), 80); }
     
-        // ======== Proof Image Lightbox ========
-        function openProofLightbox(imgEl) {
-            const src = imgEl.src;
-            const overlay = document.createElement('div');
-            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;';
-            overlay.onclick = () => overlay.remove();
-            const img = document.createElement('img');
-            img.src = src;
-            img.style.cssText = 'max-width:90vw;max-height:85vh;object-fit:contain;border-radius:8px;box-shadow:0 0 60px rgba(0,0,0,0.5);';
-            img.onclick = e => e.stopPropagation();
-            const closeBtn = document.createElement('button');
-            closeBtn.innerHTML = '×';
-            closeBtn.style.cssText = 'position:absolute;top:20px;right:24px;background:rgba(255,255,255,0.2);color:white;border:none;font-size:28px;cursor:pointer;width:44px;height:44px;border-radius:50%;line-height:1;';
-            closeBtn.onclick = e => { e.stopPropagation(); overlay.remove(); };
-            overlay.appendChild(img);
-            overlay.appendChild(closeBtn);
-            document.body.appendChild(overlay);
+        // === Per-person kimono selection ===
+        function renderPersonKimonoSelects() {
+            const list = document.getElementById('person-kimono-list');
+            if (!list) return;
+            list.innerHTML = '';
+            const adults = guestData.adults || 0;
+            const children = guestData.children || 0;
+            for (let i = 1; i <= adults; i++) {
+                list.innerHTML += `<div class="flex items-center gap-3 border-b border-slate-100 pb-2">
+                    <span class="text-xs font-bold text-slate-500 font-sans w-16 shrink-0">大人 ${i}</span>
+                    <select name="person-kimono" class="flex-1 py-1 outline-none font-bold text-sm bg-transparent cursor-pointer font-sans">
+                        <option value="">待確認</option>
+                        <option value="一般和服">一般和服</option>
+                    </select>
+                </div>`;
+            }
+            for (let i = 1; i <= children; i++) {
+                list.innerHTML += `<div class="flex items-center gap-3 border-b border-slate-100 pb-2">
+                    <span class="text-xs font-bold text-slate-500 font-sans w-16 shrink-0">小孩 ${i}</span>
+                    <select name="person-kimono" class="flex-1 py-1 outline-none font-bold text-sm bg-transparent cursor-pointer font-sans">
+                        <option value="">待確認</option>
+                        <option value="一般和服">一般和服</option>
+                        <option value="兒童和服">兒童和服</option>
+                    </select>
+                </div>`;
+            }
+            if (adults === 0 && children === 0) {
+                list.innerHTML = '<p class="text-xs text-slate-400 font-sans">請先選擇人數</p>';
+            }
         }
 
-        // ======== Scroll Animations (excluding booking form) ========
+        // === Proof tab switcher ===
+        function switchProofTab(tab) {
+            const imgPanel = document.getElementById('proof-img-panel');
+            const txtPanel = document.getElementById('proof-txt-panel');
+            const imgBtn = document.getElementById('proof-tab-img');
+            const txtBtn = document.getElementById('proof-tab-txt');
+            if (tab === 'img') {
+                imgPanel.classList.remove('hidden');
+                txtPanel.classList.add('hidden');
+                imgBtn.className = 'text-[10px] font-bold px-3 py-1 rounded-full border border-pink-300 text-pink-500 bg-pink-50';
+                txtBtn.className = 'text-[10px] font-bold px-3 py-1 rounded-full border border-slate-200 text-slate-400 bg-white';
+            } else {
+                imgPanel.classList.add('hidden');
+                txtPanel.classList.remove('hidden');
+                imgBtn.className = 'text-[10px] font-bold px-3 py-1 rounded-full border border-slate-200 text-slate-400 bg-white';
+                txtBtn.className = 'text-[10px] font-bold px-3 py-1 rounded-full border border-pink-300 text-pink-500 bg-pink-50';
+            }
+        }
+
+        // === Proof image lightbox ===
+        function openProofLightbox(src) {
+            const lb = document.createElement('div');
+            lb.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;';
+            lb.innerHTML = '<img src="' + src + '" style="max-width:90vw;max-height:90vh;border-radius:8px;box-shadow:0 0 40px rgba(0,0,0,0.5)">';
+            lb.onclick = () => lb.remove();
+            document.body.appendChild(lb);
+        }
+
+        // === Scroll animations (exclude form area) ===
         (function() {
             const style = document.createElement('style');
             style.textContent = `
-                .anim-fade { opacity:0; transform:translateY(28px); transition:opacity 0.7s ease,transform 0.7s ease; }
-                .anim-fade.visible { opacity:1; transform:translateY(0); }
-                .anim-left { opacity:0; transform:translateX(-28px); transition:opacity 0.7s ease,transform 0.7s ease; }
-                .anim-left.visible { opacity:1; transform:translateX(0); }
-                .anim-right { opacity:0; transform:translateX(28px); transition:opacity 0.7s ease,transform 0.7s ease; }
-                .anim-right.visible { opacity:1; transform:translateX(0); }
+                .anim-fade { opacity: 0; transition: opacity 0.7s ease, transform 0.7s ease; transform: translateY(20px); }
+                .anim-left { opacity: 0; transition: opacity 0.7s ease, transform 0.7s ease; transform: translateX(-30px); }
+                .anim-right { opacity: 0; transition: opacity 0.7s ease, transform 0.7s ease; transform: translateX(30px); }
+                .anim-fade.visible, .anim-left.visible, .anim-right.visible { opacity: 1; transform: none; }
             `;
             document.head.appendChild(style);
-
-            function applyAnims() {
-                // Section headings (not in booking)
-                document.querySelectorAll('section > div > div.flex.flex-col.items-center').forEach(el => {
-                    if (!el.closest('#booking')) el.classList.add('anim-fade');
+            document.addEventListener('DOMContentLoaded', function() {
+                document.querySelectorAll('section:not(#booking)').forEach(sec => {
+                    const children = sec.querySelectorAll('h2, h3, p.text-center, .grid > div, .snap-center, .hero-stat');
+                    children.forEach((el, idx) => {
+                        el.classList.add(idx % 3 === 0 ? 'anim-left' : idx % 3 === 1 ? 'anim-right' : 'anim-fade');
+                    });
                 });
-                // Cards
-                document.querySelectorAll('.process-card').forEach((el, i) => {
-                    el.classList.add('anim-fade');
-                    el.style.transitionDelay = (i % 3 * 0.12) + 's';
+                document.querySelectorAll('footer').forEach(f => {
+                    f.querySelectorAll('div, p, a').forEach((el, idx) => {
+                        el.classList.add(idx % 2 === 0 ? 'anim-fade' : 'anim-right');
+                    });
                 });
-                // Hair section
-                const hairGrid = document.querySelector('#sec-hair .grid.lg\\:grid-cols-2');
-                if (hairGrid && hairGrid.children[0]) {
-                    hairGrid.children[0].classList.add('anim-left');
-                    if (hairGrid.children[1]) hairGrid.children[1].classList.add('anim-right');
-                }
-                // Feature cards
-                document.querySelectorAll('#sec-hair .shadow-sm, #sec-photo .hidden.md\\:grid').forEach((el, i) => {
-                    el.classList.add('anim-fade');
-                    el.style.transitionDelay = (i * 0.08) + 's';
-                });
-            }
-
-            function observe() {
-                const obs = new IntersectionObserver(entries => {
-                    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
-                }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+                const obs = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            setTimeout(() => entry.target.classList.add('visible'), 80);
+                        }
+                    });
+                }, { threshold: 0.1 });
                 document.querySelectorAll('.anim-fade, .anim-left, .anim-right').forEach(el => obs.observe(el));
-            }
-
-            setTimeout(() => { applyAnims(); observe(); }, 700);
+            });
         })();
 </script>
 
-    <!-- çç®± -->
+    <!-- 燈箱 -->
     <div id="video-lightbox" class="fixed inset-0 z-[900] flex items-center justify-center p-4 md:p-8" style="display:none; background:rgba(0,0,0,0.92); backdrop-filter:blur(8px);">
         <div class="absolute inset-0" onclick="closeLightbox()"></div>
         <div class="relative z-10 w-full max-w-[360px] md:max-w-[400px]" style="aspect-ratio:9/16;">
-            <button onclick="closeLightbox()" class="absolute -top-12 right-0 w-10 h-10 rounded-full bg-white/10 border border-white/20 text-white flex items-center justify-center hover:bg-white/20 transition-all z-20" aria-label="ééå½±ç">
+            <button onclick="closeLightbox()" class="absolute -top-12 right-0 w-10 h-10 rounded-full bg-white/10 border border-white/20 text-white flex items-center justify-center hover:bg-white/20 transition-all z-20" aria-label="關閉影片">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
             <button onclick="prevVideo()" class="absolute left-[-52px] top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 border border-white/20 text-white hidden md:flex items-center justify-center hover:bg-white/20 transition-all">
