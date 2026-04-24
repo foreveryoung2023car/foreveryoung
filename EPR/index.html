@@ -489,26 +489,26 @@ tbody tr:last-child td{border-bottom:none}
         <div class="kpi blue">
           <div class="kpi-icon">📋</div>
           <div class="kpi-label">本月訂單數</div>
-          <div class="kpi-value" id="kpi-orders">47</div>
-          <div class="kpi-sub">出車行程筆數 <span class="kpi-badge badge-up">↑ 12%</span></div>
+          <div class="kpi-value" id="kpi-orders">—</div>
+          <div class="kpi-sub" id="kpi-orders-sub">出車行程筆數</div>
         </div>
         <div class="kpi green">
           <div class="kpi-icon">💰</div>
           <div class="kpi-label">台幣訂金收款</div>
-          <div class="kpi-value">$865,675</div>
-          <div class="kpi-sub">本月已收 <span class="kpi-badge badge-up">↑ 8%</span></div>
+          <div class="kpi-value" id="kpi-twd">—</div>
+          <div class="kpi-sub" id="kpi-twd-sub">本月已收</div>
         </div>
         <div class="kpi purple">
           <div class="kpi-icon">¥</div>
           <div class="kpi-label">日幣總額</div>
-          <div class="kpi-value">¥3,934K</div>
-          <div class="kpi-sub">含尾款待收 <span class="kpi-badge badge-down">↓ 3%</span></div>
+          <div class="kpi-value" id="kpi-jpy">—</div>
+          <div class="kpi-sub" id="kpi-jpy-sub">含尾款待收</div>
         </div>
         <div class="kpi gold">
           <div class="kpi-icon">⚠️</div>
           <div class="kpi-label">待處理事項</div>
-          <div class="kpi-value">3</div>
-          <div class="kpi-sub"><span class="kpi-badge badge-warn">需要處理</span></div>
+          <div class="kpi-value" id="kpi-pending">—</div>
+          <div class="kpi-sub"><span class="kpi-badge badge-warn" id="kpi-pending-sub">需要處理</span></div>
         </div>
       </div>
 
@@ -1232,19 +1232,44 @@ function initChart(){
 
 // ── DASHBOARD KPI 初始化 ──
 function initDashboardKPIs(){
-  const totalOrders = ORDERS.length;
-  const twdSum = ORDERS.reduce((s,o)=>s+(o.twd||0),0);
-  const jpySum = ORDERS.reduce((s,o)=>s+(o.jpy||0),0);
-  const jpyBal = ORDERS.reduce((s,o)=>s+(o.jpyBal||0),0);
+  const now = new Date();
+  // 本月前綴，例如 "2026/04" 或 "2026-04"
+  const mo = now.getFullYear() + '/' + String(now.getMonth()+1).padStart(2,'0');
+  const moAlt = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+
+  // 本月訂單：只要任一天的 days.date 落在本月，或 odate 在本月
+  const thisMonthOrders = ORDERS.filter(o=>{
+    const odMatch = (o.odate||'').startsWith(mo) || (o.odate||'').startsWith(moAlt);
+    const dayMatch = (o.days||[]).some(d=>(d.date||'').startsWith(mo)||(d.date||'').startsWith(moAlt));
+    return odMatch || dayMatch;
+  });
+
+  const monthCount = thisMonthOrders.length;
+  const twdSum  = thisMonthOrders.reduce((s,o)=>s+(o.twd||0),0);
+  const jpySum  = thisMonthOrders.reduce((s,o)=>s+(o.jpy||0),0);
+  const jpyBal  = thisMonthOrders.reduce((s,o)=>s+(o.jpyBal||0),0);
   const pending = ORDERS.filter(o=>o.status==='pending').length;
 
-  document.getElementById('kpi-orders').textContent = totalOrders;
-  // Update KPI cards with real data via innerHTML
-  const kpis = document.querySelectorAll('.kpi');
-  if(kpis[0]) kpis[0].querySelector('.kpi-value').textContent = totalOrders;
-  if(kpis[1]) kpis[1].querySelector('.kpi-value').textContent = '$'+Math.round(twdSum/1000)+'K';
-  if(kpis[2]) kpis[2].querySelector('.kpi-value').textContent = '¥'+Math.round(jpySum/1000)+'K';
-  if(kpis[3]) kpis[3].querySelector('.kpi-value').textContent = pending;
+  // 更新 Dashboard KPI 卡片（用 ID 精準定位）
+  const elOrders  = document.getElementById('kpi-orders');
+  const elTwd     = document.getElementById('kpi-twd');
+  const elJpy     = document.getElementById('kpi-jpy');
+  const elPending = document.getElementById('kpi-pending');
+  if(elOrders)  elOrders.textContent  = monthCount;
+  if(elTwd)     elTwd.textContent     = '$' + Math.round(twdSum/1000) + 'K';
+  if(elJpy)     elJpy.textContent     = '¥' + Math.round(jpySum/1000) + 'K';
+  if(elPending) elPending.textContent = pending;
+
+  // Sub labels
+  const subOrders  = document.getElementById('kpi-orders-sub');
+  const subTwd     = document.getElementById('kpi-twd-sub');
+  const subJpy     = document.getElementById('kpi-jpy-sub');
+  const subPending = document.getElementById('kpi-pending-sub');
+  if(subOrders)  subOrders.textContent  = '共 ' + ORDERS.length + ' 筆（全部）';
+  if(subTwd)     subTwd.textContent     = '全部合計 $' + twdSum.toLocaleString();
+  if(subJpy)     subJpy.textContent     = '尾款待收 ¥' + jpyBal.toLocaleString();
+  if(subPending) subPending.textContent = pending + ' 筆待處理';
+
   document.getElementById('pendingBadge').textContent = pending;
 }
 
