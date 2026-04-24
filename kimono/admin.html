@@ -202,10 +202,9 @@
         <div><div class="section-label">匯率 (JPY→TWD)</div><input id="e-rate" class="input-field" type="number" step="0.001" placeholder="0.22" oninput="updateCalc()"></div>
         <div class="md:col-span-2 bg-white rounded-xl p-4 border border-slate-100">
           <div class="section-label mb-3">自動試算</div>
-          <div class="grid grid-cols-3 gap-4 text-center">
-            <div><div class="text-slate-400 text-xs mb-1">現場應收(JPY)</div><div id="calc-due" class="font-bold text-[#1A365D]">—</div></div>
-            <div><div class="text-slate-400 text-xs mb-1">訂金後應收(JPY)</div><div id="calc-net" class="font-bold text-emerald-600">—</div></div>
-            <div><div class="text-slate-400 text-xs mb-1">台幣收款(TWD)</div><div id="calc-twd" class="font-bold text-pink-500">—</div></div>
+          <div class="grid grid-cols-2 gap-4 text-center">
+            <div><div class="text-slate-400 text-xs mb-1">現場應收(JPY)</div><div id="calc-due" class="font-bold text-[#1A365D] text-lg">—</div></div>
+            <div><div class="text-slate-400 text-xs mb-1">訂金後應收(JPY)（實際現場收款）</div><div id="calc-net" class="font-bold text-emerald-600 text-lg">—</div></div>
           </div>
         </div>
       </div>
@@ -239,7 +238,7 @@
 <script>
 const GAS_URL = typeof KIMONO_CONFIG !== 'undefined' ? KIMONO_CONFIG.APPS_SCRIPT_URL : '';
 // Fallback passwords (also loaded from GAS 系統設定 sheet)
-const DEFAULT_PASSES = { 'Jun':'kyoto1','Ren':'osaka1','Amy':'kyoto2' };
+const DEFAULT_PASSES = { 'Jun':'kimono','Ren':'kimono','Amy':'kimono' };
 let currentAgent = '';
 let allOrders = [];
 let currentFilter = 'all';
@@ -449,17 +448,14 @@ function switchTab(name, btn) {
 
 // ── CALC ──────────────────────────────────────────────────────
 function updateCalc() {
-  const price   = Number(document.getElementById('e-price').value) || 0;
-  const hair    = Number(document.getElementById('e-hair-fee').value) || 0;
+  const price   = Number(document.getElementById('e-price').value)    || 0;
+  const hair    = Number(document.getElementById('e-hair-fee').value)  || 0;
   const photo   = Number(document.getElementById('e-photo-fee').value) || 0;
-  const deposit = Number(document.getElementById('e-deposit').value) || 0;
-  const rate    = Number(document.getElementById('e-rate').value) || 0.22;
+  const deposit = Number(document.getElementById('e-deposit').value)   || 0;
   const onsite  = price + hair + photo;
   const afterDep = Math.max(0, onsite - deposit);
-  const twd = Math.round(onsite * rate);
   document.getElementById('calc-due').textContent = onsite ? '¥' + onsite.toLocaleString() : '—';
-  document.getElementById('calc-net').textContent = afterDep ? '¥' + afterDep.toLocaleString() : '—';
-  document.getElementById('calc-twd').textContent = twd ? 'NT$' + twd.toLocaleString() : '—';
+  document.getElementById('calc-net').textContent = onsite ? '¥' + afterDep.toLocaleString() : '—';
 }
 
 // ── SAVE ──────────────────────────────────────────────────────
