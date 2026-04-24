@@ -1202,12 +1202,15 @@ function payStatus(o){
 }
 
 // ── CHART ──
+let _revenueChart = null;
 function initChart(){
   const ctx = document.getElementById('revenueChart');
   if(!ctx) return;
+  // 銷毀舊圖表避免「Canvas is already in use」錯誤
+  if(_revenueChart){ _revenueChart.destroy(); _revenueChart=null; }
   // 使用真實訂單資料計算本月台幣
   const twdSum = ORDERS.reduce((s,o)=>s+(o.twd||0),0);
-  new Chart(ctx,{
+  _revenueChart = new Chart(ctx,{
     type:'bar',
     data:{
       labels:['11月','12月','1月','2月','3月','4月'],
@@ -1413,32 +1416,59 @@ async function doLogin(){
 const _GAS_URL='https://script.google.com/macros/s/AKfycbwYsXOxuWJJi07qnnO_WI93ZyM4MrLJ5y-oPPzGUPeo-gxU_YN1EQOFBbffFhEyUnOX/exec';
 const _GAS_TOKEN='lvcheng_erp_2024';
 
+const _CACHE_KEY = '_erp_orders_v1';
+function _applyOrders(orders){
+  ORDERS.length=0;
+  orders.forEach(o=>ORDERS.push(o));
+  try{ filterOrders(); }catch(e){}
+  try{ initDashboardKPIs(); }catch(e){}
+  try{ initChart(); }catch(e){}
+}
 function enterApp(){
   document.getElementById('loginPage').style.display='none';
   document.getElementById('app').style.display='block';
-  renderOrders(ORDERS);
-  initChart();
-  initDashboardKPIs();
   const now=new Date();
   document.getElementById('topbarMonth').textContent=now.getFullYear()+'年'+(now.getMonth()+1)+'月';
-  toast('正在載入訂單資料…','');
-  // 從 Google Apps Script 載入真實資料
+
+  // ── 優先從快取載入，讓畫面立即顯示真實資料 ──
+  let hasCached = false;
+  try{
+    const raw = localStorage.getItem(_CACHE_KEY);
+    if(raw){
+      const cached = JSON.parse(raw);
+      if(Array.isArray(cached) && cached.length > 0){
+        _applyOrders(cached);
+        hasCached = true;
+        toast('📂 快取 '+cached.length+' 筆，背景更新中…','');
+      }
+    }
+  }catch(e){}
+
+  if(!hasCached){
+    // 首次開啟：先顯示空畫面（不顯示假資料）
+    ORDERS.length=0;
+    try{ renderOrders([]); }catch(e){}
+    try{ initDashboardKPIs(); }catch(e){}
+    try{ initChart(); }catch(e){}
+    toast('正在載入訂單資料…','');
+  }
+
+  // ── 背景從 Google Apps Script 取得最新資料 ──
   fetch(_GAS_URL+'?token='+_GAS_TOKEN+'&action=orders')
     .then(r=>r.json())
     .then(data=>{
       if(data.ok && Array.isArray(data.orders) && data.orders.length>0){
-        ORDERS.length=0;
-        data.orders.forEach(o=>ORDERS.push(o));
-        filterOrders();
-        initDashboardKPIs();
-        initChart();
-        toast('✅ 已載入 '+data.orders.length+' 筆訂單（Google Sheets）','ok');
+        // 存入快取供下次開啟立即使用
+        try{ localStorage.setItem(_CACHE_KEY, JSON.stringify(data.orders)); }catch(e){}
+        _applyOrders(data.orders);
+        toast('✅ 已更新 '+data.orders.length+' 筆訂單（Google Sheets）','ok');
       } else {
-        toast('⚠️ 使用本地示範資料（'+ORDERS.length+'筆）','');
+        if(!hasCached) toast('⚠️ 無資料回傳，請確認 GAS 設定','');
       }
     })
-    .catch(()=>{
-      toast('⚠️ 無法連線 API，使用本地示範資料','');
+    .catch(err=>{
+      console.warn('[ERP] API fetch error:',err);
+      if(!hasCached) toast('⚠️ 無法連線 API','');
     });
 }
 function doLogout(){
