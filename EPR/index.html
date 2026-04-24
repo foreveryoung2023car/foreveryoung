@@ -644,6 +644,9 @@ tbody tr:last-child td{border-bottom:none}
           <option value="10座">10座</option>
           <option value="14座">14座</option>
         </select>
+        <select class="fsel" id="fDrv" onchange="filterOrders()">
+          <option value="">所有司機</option>
+        </select>
       </div>
       <div class="card">
         <div class="tbl-wrap">
@@ -684,75 +687,34 @@ tbody tr:last-child td{border-bottom:none}
       <div class="page-head">
         <div class="page-head-left"><h2>收款對帳</h2><p>銀行入帳 vs 訂單核對</p></div>
         <div style="display:flex;gap:8px;align-items:center">
-          <span class="badge b-red">2 筆未核對</span>
-          <button class="btn btn-primary btn-sm">⚡ 一鍵自動核對</button>
+          <span class="badge b-red" id="pay-unmatched-badge" style="display:none"></span>
+          <button class="btn btn-primary btn-sm" onclick="autoMatchPayments()">⚡ 一鍵自動核對</button>
+          <button class="btn btn-ghost btn-sm" onclick="loadPayments(true)">🔄 重新整理</button>
         </div>
       </div>
-      <div class="stats-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
-        <div class="kpi blue"><div class="kpi-icon">💰</div><div class="kpi-label">本月入帳總計</div><div class="kpi-value" style="font-size:20px">$865,675</div><div class="kpi-sub">共 87 筆入帳</div></div>
-        <div class="kpi green"><div class="kpi-icon">✅</div><div class="kpi-label">已核對</div><div class="kpi-value" style="font-size:20px">85 筆</div><div class="kpi-sub">全額相符</div></div>
-        <div class="kpi gold"><div class="kpi-icon">❓</div><div class="kpi-label">未核對</div><div class="kpi-value" style="font-size:20px">2 筆</div><div class="kpi-sub">需手動確認</div></div>
+      <div class="stats-row" id="pay-kpi-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+        <div class="kpi blue"><div class="kpi-icon">💰</div><div class="kpi-label">本月入帳總計</div><div class="kpi-value" id="pay-kpi-total" style="font-size:20px">—</div><div class="kpi-sub" id="pay-kpi-total-sub">載入中…</div></div>
+        <div class="kpi green"><div class="kpi-icon">✅</div><div class="kpi-label">已核對</div><div class="kpi-value" id="pay-kpi-ok" style="font-size:20px">—</div><div class="kpi-sub" id="pay-kpi-ok-sub">全額相符</div></div>
+        <div class="kpi gold"><div class="kpi-icon">❓</div><div class="kpi-label">未核對</div><div class="kpi-value" id="pay-kpi-ng" style="font-size:20px">—</div><div class="kpi-sub" id="pay-kpi-ng-sub">需手動確認</div></div>
+        <div class="kpi purple"><div class="kpi-icon">↩️</div><div class="kpi-label">退款筆數</div><div class="kpi-value" id="pay-kpi-refund" style="font-size:20px">—</div><div class="kpi-sub" id="pay-kpi-refund-sub">本月退款金額</div></div>
       </div>
       <div class="card">
-        <div class="card-hd"><span class="card-title">💳 入帳明細</span>
-          <select class="fsel" style="font-size:11px"><option>所有狀態</option><option>✅ 已核對</option><option>❌ 未核對</option></select>
+        <div class="card-hd">
+          <span class="card-title">💳 入帳明細</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select class="fsel" style="font-size:11px" id="payStatusFilter" onchange="renderPayments()">
+              <option value="">所有狀態</option>
+              <option value="matched">✅ 已核對</option>
+              <option value="unmatched">⚠️ 未核對</option>
+              <option value="refund">↩️ 退款</option>
+            </select>
+            <select class="fsel" style="font-size:11px" id="payMonthFilter" onchange="renderPayments()">
+              <option value="">所有月份</option>
+            </select>
+          </div>
         </div>
-        <div class="tbl-wrap">
-          <table>
-            <thead><tr><th>日期</th><th>金額</th><th>時間</th><th>帳號後碼</th><th>摘要</th><th>對應訂單</th><th>核對狀態</th><th>備註</th><th>操作</th></tr></thead>
-            <tbody>
-              <tr>
-                <td>2026/04/22</td><td class="td-money" style="color:var(--red)">$2,860</td>
-                <td style="font-size:11px;color:var(--muted)">00:01:31</td>
-                <td><code style="background:var(--bg);padding:2px 7px;border-radius:4px;font-size:11px;font-family:monospace">44725</code></td>
-                <td><span class="badge b-gray">ATM轉</span></td>
-                <td><span class="badge b-red">未填入</span></td>
-                <td><div class="pay-status-ng">⚠️ 未核對</div></td>
-                <td style="color:var(--muted2);font-size:11px">—</td>
-                <td><div class="td-actions"><button class="ia ia-edit">補填訂單號</button></div></td>
-              </tr>
-              <tr>
-                <td>2026/04/22</td><td class="td-money" style="color:var(--red)">$1,540</td>
-                <td style="font-size:11px;color:var(--muted)">08:35:24</td>
-                <td><code style="background:var(--bg);padding:2px 7px;border-radius:4px;font-size:11px;font-family:monospace">05368</code></td>
-                <td><span class="badge b-gray">ATM轉</span></td>
-                <td><span class="badge b-red">未填入</span></td>
-                <td><div class="pay-status-ng">⚠️ 未核對</div></td>
-                <td style="color:var(--muted2);font-size:11px">—</td>
-                <td><div class="td-actions"><button class="ia ia-edit">補填訂單號</button></div></td>
-              </tr>
-              <tr>
-                <td>2026/04/21</td><td class="td-money">$2,200</td>
-                <td style="font-size:11px;color:var(--muted)">11:13:28</td>
-                <td><code style="background:var(--bg);padding:2px 7px;border-radius:4px;font-size:11px;font-family:monospace">76626</code></td>
-                <td><span class="badge b-gray">ATM轉</span></td>
-                <td><span class="badge b-blue">#26042101</span></td>
-                <td><div class="pay-status-ok">✅ 已核對</div></td>
-                <td style="font-size:11px;color:var(--muted)">1/2包車訂金</td>
-                <td><div class="td-actions"><button class="ia ia-view">查看訂單</button></div></td>
-              </tr>
-              <tr>
-                <td>2026/04/21</td><td class="td-money">$2,420</td>
-                <td style="font-size:11px;color:var(--muted)">13:25:14</td>
-                <td><code style="background:var(--bg);padding:2px 7px;border-radius:4px;font-size:11px;font-family:monospace">30561</code></td>
-                <td><span class="badge b-gray">ATM轉</span></td>
-                <td><span class="badge b-blue">#26042102</span></td>
-                <td><div class="pay-status-ok">✅ 已核對</div></td>
-                <td style="font-size:11px;color:var(--muted)">金澤包車</td>
-                <td><div class="td-actions"><button class="ia ia-view">查看訂單</button></div></td>
-              </tr>
-              <tr>
-                <td>2026/04/20</td><td class="td-money">$4,400</td>
-                <td style="font-size:11px;color:var(--muted)">23:00:36</td>
-                <td><code style="background:var(--bg);padding:2px 7px;border-radius:4px;font-size:11px;font-family:monospace">09874</code></td>
-                <td><span class="badge b-gray">網路轉</span></td>
-                <td><span class="badge b-blue">#26042010</span></td>
-                <td><div class="pay-status-ok">✅ 已核對</div></td>
-                <td style="font-size:11px;color:var(--muted)">姬佩珊</td>
-                <td><div class="td-actions"><button class="ia ia-view">查看訂單</button></div></td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="tbl-wrap" id="pay-table-wrap">
+          <div style="text-align:center;padding:40px;color:var(--muted)">正在從 Google Sheets 載入入帳資料…</div>
         </div>
       </div>
     </div>
@@ -788,18 +750,12 @@ tbody tr:last-child td{border-bottom:none}
           </table></div>
         </div>
         <div class="card">
-          <div class="card-hd"><span class="card-title">💸 近期支出費用</span></div>
-          <div class="tbl-wrap">
-            <table style="min-width:auto">
-              <thead><tr><th>日期</th><th>項目</th><th>金額</th><th>代墊</th></tr></thead>
-              <tbody>
-                <tr><td style="font-size:11px">2026/03/17</td><td>FB廣告</td><td class="td-money" style="color:var(--red)">$65,250</td><td style="font-size:11px;color:var(--muted)">JUN星展</td></tr>
-                <tr><td style="font-size:11px">2026/03/01</td><td>薪資 Kris</td><td class="td-money">$70,000</td><td style="font-size:11px;color:var(--muted)">—</td></tr>
-                <tr><td style="font-size:11px">2026/03/01</td><td>薪資 小楊</td><td class="td-money">$38,500</td><td style="font-size:11px;color:var(--muted)">—</td></tr>
-                <tr><td style="font-size:11px">2026/02/28</td><td>稅金 佳遊</td><td class="td-money">$6,099</td><td style="font-size:11px;color:var(--muted)">—</td></tr>
-                <tr><td style="font-size:11px">2026/02/13</td><td>FB廣告</td><td class="td-money" style="color:var(--red)">$111,752</td><td style="font-size:11px;color:var(--muted)">JUN星展</td></tr>
-              </tbody>
-            </table>
+          <div class="card-hd">
+            <span class="card-title">💸 近期支出費用</span>
+            <button class="btn btn-ghost btn-sm" onclick="loadExpenses(true)">🔄</button>
+          </div>
+          <div class="tbl-wrap" id="expense-table-wrap">
+            <div style="text-align:center;padding:30px;color:var(--muted);font-size:12px">載入中…</div>
           </div>
         </div>
       </div>
@@ -807,45 +763,44 @@ tbody tr:last-child td{border-bottom:none}
 
     <!-- ── EXCHANGE ── -->
     <div class="page" id="page-exchange">
-      <div class="page-head"><div class="page-head-left"><h2>換匯紀錄</h2><p>台幣 ↔ 日幣換匯歷史</p></div></div>
+      <div class="page-head">
+        <div class="page-head-left"><h2>換匯紀錄</h2><p>台幣 ↔ 日幣換匯歷史</p></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="loadExchanges(true)">🔄 重新整理</button>
+          <button class="btn btn-primary btn-sm" onclick="openNewExchange()">＋ 新增換匯</button>
+        </div>
+      </div>
       <div class="card">
         <div class="card-hd">
           <span class="card-title">💱 換匯明細</span>
-          <span class="badge b-navy">合計換匯：NT$4,207,700 → ¥21,072,596</span>
+          <span class="badge b-navy" id="exchange-total-badge">載入中…</span>
         </div>
-        <div class="tbl-wrap">
-          <table>
-            <thead><tr><th>日期時間</th><th>台幣金額</th><th>日幣金額</th><th>匯率</th><th>備註</th></tr></thead>
-            <tbody>
-              <tr><td style="font-size:12px">2026/04/20 14:43</td><td class="td-money">$400,000</td><td class="td-money" style="color:var(--purple)">¥2,013,085</td><td><code style="font-size:12px">0.1987</code></td><td style="font-size:11px;color:var(--muted)">日本賞換匯禮遇</td></tr>
-              <tr><td style="font-size:12px">2026/04/13 10:11</td><td class="td-money">$230,000</td><td class="td-money" style="color:var(--purple)">¥1,152,305</td><td><code style="font-size:12px">0.1996</code></td><td style="font-size:11px;color:var(--muted)">CUBE精選貴賓優惠</td></tr>
-              <tr><td style="font-size:12px">2026/02/09 11:39</td><td class="td-money">$303,150</td><td class="td-money" style="color:var(--purple)">¥1,500,000</td><td><code style="font-size:12px">0.2021</code></td><td style="font-size:11px;color:var(--muted)">CUBE精選貴賓優惠(C換)</td></tr>
-              <tr><td style="font-size:12px">2026/01/23 15:34</td><td class="td-money">$298,950</td><td class="td-money" style="color:var(--purple)">¥1,500,000</td><td><code style="font-size:12px">0.1993</code></td><td style="font-size:11px;color:var(--muted)">數位通路優惠(C換)</td></tr>
-              <tr><td style="font-size:12px">2026/01/14 16:13</td><td class="td-money">$300,000</td><td class="td-money" style="color:var(--purple)">¥1,502,253</td><td><code style="font-size:12px">0.1997</code></td><td style="font-size:11px;color:var(--muted)">CUBE精選貴賓優惠</td></tr>
-            </tbody>
-          </table>
+        <div class="tbl-wrap" id="exchange-table-wrap">
+          <div style="text-align:center;padding:40px;color:var(--muted)">正在從 Google Sheets 載入換匯資料…</div>
         </div>
       </div>
     </div>
 
     <!-- ── CUSTOMERS ── -->
     <div class="page" id="page-customers">
-      <div class="page-head"><div class="page-head-left"><h2>客戶資料庫</h2><p>搜尋與管理所有客戶</p></div></div>
+      <div class="page-head">
+        <div class="page-head-left"><h2>客戶資料庫</h2><p id="cust-count-label">從訂單資料彙整</p></div>
+      </div>
       <div class="filter-bar">
-        <div class="search-box" style="flex:1"><span class="search-icon">🔍</span><input type="text" placeholder="搜尋姓名、電話、LINE…"></div>
-        <select class="fsel"><option>所有來源</option><option>粉專</option><option>LINE</option><option>IG</option></select>
+        <div class="search-box" style="flex:1"><span class="search-icon">🔍</span><input type="text" id="custSearch" placeholder="搜尋姓名、電話、LINE…" oninput="renderCustomers()"></div>
+        <select class="fsel" id="custChFilter" onchange="renderCustomers()">
+          <option value="">所有來源</option>
+          <option>FB粉專</option><option>FB討論區</option><option>LINE</option><option>IG</option><option>Dcard</option>
+        </select>
+        <select class="fsel" id="custSortFilter" onchange="renderCustomers()">
+          <option value="latest">最近訂單</option>
+          <option value="count">訂單數最多</option>
+          <option value="spending">消費最高</option>
+        </select>
       </div>
       <div class="card">
-        <div class="tbl-wrap">
-          <table>
-            <thead><tr><th>姓名</th><th>電話</th><th>LINE ID</th><th>Email</th><th>來源管道</th><th>訂單數</th><th>最近訂單</th><th>操作</th></tr></thead>
-            <tbody>
-              <tr><td class="td-name">張瑋翔</td><td>0981620953</td><td style="font-size:11px;color:var(--muted)">feo062879</td><td style="font-size:11px">feo062879@gmail.com</td><td><span class="badge b-teal">Dcard</span></td><td><span class="badge b-purple">2 筆</span></td><td style="font-size:11px">2026/04/22</td><td><button class="ia ia-view">查看訂單</button></td></tr>
-              <tr><td class="td-name">何卉妤</td><td>0935051580</td><td style="font-size:11px;color:var(--muted)">hohuiyu43</td><td style="font-size:11px">huiyu43@yahoo.com.tw</td><td><span class="badge b-blue">FB討論區</span></td><td><span class="badge b-purple">2 筆</span></td><td style="font-size:11px">2026/04/23</td><td><button class="ia ia-view">查看訂單</button></td></tr>
-              <tr><td class="td-name">游淑娟</td><td>0961135497</td><td style="font-size:11px;color:var(--muted)">hrcgp777</td><td style="font-size:11px">hrcgp777@gmail.com</td><td><span class="badge b-green">FB粉專</span></td><td><span class="badge b-purple">1 筆</span></td><td style="font-size:11px">2026/04/25</td><td><button class="ia ia-view">查看訂單</button></td></tr>
-              <tr><td class="td-name">羅敬媛</td><td>0930178125</td><td style="font-size:11px;color:var(--muted)">miki811125</td><td style="font-size:11px">george811125@gmail.com</td><td><span class="badge b-green">FB粉專</span></td><td><span class="badge b-purple">1 筆</span></td><td style="font-size:11px">2026/04/26</td><td><button class="ia ia-view">查看訂單</button></td></tr>
-            </tbody>
-          </table>
+        <div class="tbl-wrap" id="cust-table-wrap">
+          <div style="text-align:center;padding:40px;color:var(--muted)">載入訂單資料後自動彙整…</div>
         </div>
       </div>
     </div>
@@ -961,6 +916,53 @@ tbody tr:last-child td{border-bottom:none}
     <div class="modal-ft">
       <button class="btn btn-ghost" onclick="closeMd('detailMd')">關閉</button>
       <button class="btn btn-primary" onclick="openEditFromDetail()">✏️ 編輯訂單</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ EXCHANGE ADD/EDIT MODAL ═══ -->
+<div class="modal-bg" id="exchangeMd">
+  <div class="modal" style="width:480px">
+    <div class="modal-hd">
+      <div><div class="modal-title" id="exchangeMdTitle">新增換匯紀錄</div><div class="modal-sub">填寫換匯明細，儲存後同步至 Google Sheets</div></div>
+      <button class="modal-x" onclick="closeMd('exchangeMd')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="ex-row">
+      <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:12px 16px">
+        <div class="fg" style="grid-column:1/-1"><label>換匯日期時間</label><input class="fi" type="datetime-local" id="ex-datetime"></div>
+        <div class="fg"><label>台幣金額 NT$</label><input class="fi" type="number" id="ex-twd" placeholder="400000" oninput="calcExRate()"></div>
+        <div class="fg"><label>日幣金額 ¥</label><input class="fi" type="number" id="ex-jpy" placeholder="2000000" oninput="calcExRate()"></div>
+        <div class="fg"><label>匯率（自動計算）</label><input class="fi readonly" id="ex-rate" readonly placeholder="0.0000"></div>
+        <div class="fg"><label>備註</label><input class="fi" id="ex-notes" placeholder="換匯通路或備註"></div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="closeMd('exchangeMd')">取消</button>
+      <button class="btn btn-primary" onclick="saveExchange()">💾 儲存換匯紀錄</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAYMENT MATCH MODAL ═══ -->
+<div class="modal-bg" id="payMatchMd">
+  <div class="modal" style="width:560px">
+    <div class="modal-hd">
+      <div><div class="modal-title">補填對應訂單號</div><div class="modal-sub" id="payMatchSub">搜尋並選擇對應訂單</div></div>
+      <button class="modal-x" onclick="closeMd('payMatchMd')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pm-row">
+      <div style="background:var(--bg);padding:12px;border-radius:var(--radius-sm);margin-bottom:14px;font-size:12px" id="pm-payment-info"></div>
+      <div class="search-box" style="margin-bottom:12px">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="pm-search" placeholder="搜尋訂單號、客戶姓名、帳號後碼…" oninput="renderPayMatchList()">
+      </div>
+      <div id="pm-order-list" style="max-height:320px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm)"></div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="closeMd('payMatchMd')">取消</button>
+      <button class="btn btn-primary" id="pm-save-btn" onclick="confirmPayMatch()" disabled>✅ 確認配對</button>
     </div>
   </div>
 </div>
@@ -1417,9 +1419,19 @@ const _GAS_URL='https://script.google.com/macros/s/AKfycbwYsXOxuWJJi07qnnO_WI93Z
 const _GAS_TOKEN='lvcheng_erp_2024';
 
 const _CACHE_KEY = '_erp_orders_v1';
+
+// ── 預熱：頁面一載入就開始 fetch，不等使用者登入 ──
+let _prefetchPromise = null;
+(function prefetch(){
+  try{
+    _prefetchPromise = fetch(_GAS_URL+'?token='+_GAS_TOKEN+'&action=orders').then(r=>r.json());
+  }catch(e){}
+})();
+
 function _applyOrders(orders){
   ORDERS.length=0;
   orders.forEach(o=>ORDERS.push(o));
+  try{ rebuildFilterDropdowns(); }catch(e){}
   try{ filterOrders(); }catch(e){}
   try{ initDashboardKPIs(); }catch(e){}
   try{ initChart(); }catch(e){}
@@ -1453,9 +1465,10 @@ function enterApp(){
     toast('正在載入訂單資料…','');
   }
 
-  // ── 背景從 Google Apps Script 取得最新資料 ──
-  fetch(_GAS_URL+'?token='+_GAS_TOKEN+'&action=orders')
-    .then(r=>r.json())
+  // ── 使用預熱的 fetch（若還在進行中就等它，否則重新發）──
+  const fetchPromise = _prefetchPromise || fetch(_GAS_URL+'?token='+_GAS_TOKEN+'&action=orders').then(r=>r.json());
+  _prefetchPromise = null; // 用完就清掉
+  fetchPromise
     .then(data=>{
       if(data.ok && Array.isArray(data.orders) && data.orders.length>0){
         // 存入快取供下次開啟立即使用
@@ -1470,6 +1483,8 @@ function enterApp(){
       console.warn('[ERP] API fetch error:',err);
       if(!hasCached) toast('⚠️ 無法連線 API','');
     });
+  // 同時載入入帳/換匯/支出（用快取先顯示，背景更新）
+  loadAllExtra(false);
 }
 function doLogout(){
   sessionStorage.removeItem('_ea');
@@ -1551,18 +1566,44 @@ function renderOrders(list){
   document.getElementById('pagerInfo').textContent=`顯示 1–${Math.min(list.length,10)} / ${list.length} 筆`;
 }
 
+function rebuildFilterDropdowns(){
+  // 月份：從訂單 days 取得所有出現過的 YYYY/MM
+  const months = [...new Set(ORDERS.flatMap(o=>(o.days||[]).map(d=>(d.date||'').slice(0,7)).filter(Boolean)))].sort().reverse();
+  const fMonth = document.getElementById('fMonth');
+  const curMo = fMonth ? fMonth.value : '';
+  if(fMonth){
+    fMonth.innerHTML = '<option value="">所有月份</option>' +
+      months.map(m=>{
+        const [y,mo]=m.split('/');
+        const label=y+'年'+parseInt(mo)+'月';
+        const sel=(m===curMo)||(!curMo&&m===new Date().getFullYear()+'/'+ String(new Date().getMonth()+1).padStart(2,'0'))?'selected':'';
+        return `<option value="${m}" ${sel}>${label}</option>`;
+      }).join('');
+  }
+  // 司機：從 days 取得所有司機名
+  const drivers = [...new Set(ORDERS.flatMap(o=>(o.days||[]).map(d=>d.driver||'').filter(Boolean)))].sort();
+  const fDrv = document.getElementById('fDrv');
+  if(fDrv){
+    const curDrv = fDrv.value;
+    fDrv.innerHTML = '<option value="">所有司機</option>' +
+      drivers.map(d=>`<option value="${d}"${d===curDrv?' selected':''}>${d}</option>`).join('');
+  }
+}
+
 function filterOrders(){
   const q=document.getElementById('srch').value.toLowerCase();
   const mo=document.getElementById('fMonth').value;
   const cs=document.getElementById('fCS').value;
   const st=document.getElementById('fSt').value;
   const vh=document.getElementById('fVh').value;
+  const drv=(document.getElementById('fDrv')||{}).value||'';
   renderOrders(ORDERS.filter(o=>{
     if(q&&!o.id.toLowerCase().includes(q)&&!o.name.toLowerCase().includes(q)&&!o.phone.includes(q)&&!(o.line||'').toLowerCase().includes(q)) return false;
     if(mo){const anyMatch=(o.days||[]).some(d=>d.date&&d.date.startsWith(mo));if(!anyMatch)return false;}
     if(cs&&o.split!==cs) return false;
     if(st&&o.status!==st) return false;
     if(vh&&!(o.days||[]).some(d=>(d.vehicle||'').includes(vh))) return false;
+    if(drv&&!(o.days||[]).some(d=>(d.driver||'')=== drv)) return false;
     return true;
   }));
 }
@@ -1713,7 +1754,10 @@ function collectDayRows(){
 function openNew(){
   document.getElementById('orderMdTitle').textContent='新增訂單';
   const now=new Date(), ds=now.toISOString().split('T')[0];
-  const newId='#'+now.getFullYear().toString().slice(2)+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0')+Math.floor(Math.random()*90+10);
+  // 訂單編號格式：#YYMMDD序號（當天已有幾筆+1）
+  const prefix='#'+now.getFullYear().toString().slice(2)+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');
+  const todayCnt=ORDERS.filter(o=>o.id&&o.id.startsWith(prefix)).length;
+  const newId=prefix+String(todayCnt+1).padStart(2,'0');
   document.getElementById('f-id').value=newId;
   document.getElementById('f-odate').value=ds;
   document.getElementById('f-status').value='pending';
@@ -1811,6 +1855,410 @@ if(sessionStorage.getItem('_ea')==='1'){
   document.getElementById('app').style.display='none';
   setTimeout(()=>{const i=document.getElementById('pwInput');if(i)i.focus();},100);
 }
+
+// ══════════════════════════════════════════
+// 動態資料區 — PAYMENTS / EXCHANGES / EXPENSES
+// ══════════════════════════════════════════
+let PAYMENTS  = [];
+let EXCHANGES = [];
+let EXPENSES  = [];
+
+const _CACHE_PAY = '_erp_payments_v1';
+const _CACHE_EX  = '_erp_exchanges_v1';
+const _CACHE_EXP = '_erp_expenses_v1';
+
+// ─── 資料載入 ───
+function loadAllExtra(forceRefresh){
+  loadPayments(forceRefresh);
+  loadExchanges(forceRefresh);
+  loadExpenses(forceRefresh);
+}
+
+function loadPayments(forceRefresh){
+  if(!forceRefresh){
+    try{
+      const raw=localStorage.getItem(_CACHE_PAY);
+      if(raw){ PAYMENTS=JSON.parse(raw); renderPayments(); renderPaymentKPIs(); }
+    }catch(e){}
+  }
+  fetch(_GAS_URL+'?token='+_GAS_TOKEN+'&action=payments')
+    .then(r=>r.json()).then(d=>{
+      if(d.ok && Array.isArray(d.payments)){
+        PAYMENTS=d.payments;
+        try{localStorage.setItem(_CACHE_PAY,JSON.stringify(PAYMENTS));}catch(e){}
+        renderPayments();
+        renderPaymentKPIs();
+        if(forceRefresh) toast('✅ 入帳資料已更新','ok');
+      }
+    }).catch(()=>{ if(forceRefresh) toast('⚠️ 無法載入入帳資料',''); });
+}
+
+function loadExchanges(forceRefresh){
+  if(!forceRefresh){
+    try{
+      const raw=localStorage.getItem(_CACHE_EX);
+      if(raw){ EXCHANGES=JSON.parse(raw); renderExchanges(); }
+    }catch(e){}
+  }
+  fetch(_GAS_URL+'?token='+_GAS_TOKEN+'&action=exchanges')
+    .then(r=>r.json()).then(d=>{
+      if(d.ok && Array.isArray(d.exchanges)){
+        EXCHANGES=d.exchanges;
+        try{localStorage.setItem(_CACHE_EX,JSON.stringify(EXCHANGES));}catch(e){}
+        renderExchanges();
+        if(forceRefresh) toast('✅ 換匯資料已更新','ok');
+      }
+    }).catch(()=>{ if(forceRefresh) toast('⚠️ 無法載入換匯資料',''); });
+}
+
+function loadExpenses(forceRefresh){
+  if(!forceRefresh){
+    try{
+      const raw=localStorage.getItem(_CACHE_EXP);
+      if(raw){ EXPENSES=JSON.parse(raw); renderExpenses(); }
+    }catch(e){}
+  }
+  fetch(_GAS_URL+'?token='+_GAS_TOKEN+'&action=expenses')
+    .then(r=>r.json()).then(d=>{
+      if(d.ok && Array.isArray(d.expenses)){
+        EXPENSES=d.expenses;
+        try{localStorage.setItem(_CACHE_EXP,JSON.stringify(EXPENSES));}catch(e){}
+        renderExpenses();
+        if(forceRefresh) toast('✅ 支出資料已更新','ok');
+      }
+    }).catch(()=>{ if(forceRefresh) toast('⚠️ 無法載入支出資料',''); });
+}
+
+// ─── 收款對帳 Render ───
+function renderPaymentKPIs(){
+  const now=new Date();
+  const mo=now.getFullYear()+'/'+String(now.getMonth()+1).padStart(2,'0');
+  const thisMo=PAYMENTS.filter(p=>(p.date||'').startsWith(mo));
+  const inflow=thisMo.filter(p=>!p.isRefund);
+  const refunds=thisMo.filter(p=>p.isRefund);
+  const matched=inflow.filter(p=>p.orderId&&p.orderId.trim()!=='');
+  const unmatched=inflow.filter(p=>!p.orderId||p.orderId.trim()==='');
+  const totalAmt=inflow.reduce((s,p)=>s+(p.amount||0),0);
+  const refundAmt=refunds.reduce((s,p)=>s+(p.amount||0),0);
+  const setEl=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  setEl('pay-kpi-total','$'+totalAmt.toLocaleString());
+  setEl('pay-kpi-total-sub','共 '+inflow.length+' 筆入帳');
+  setEl('pay-kpi-ok',matched.length+' 筆');
+  setEl('pay-kpi-ok-sub','合計 $'+matched.reduce((s,p)=>s+(p.amount||0),0).toLocaleString());
+  setEl('pay-kpi-ng',unmatched.length+' 筆');
+  setEl('pay-kpi-ng-sub','需手動確認');
+  setEl('pay-kpi-refund',refunds.length+' 筆');
+  setEl('pay-kpi-refund-sub','退款 $'+refundAmt.toLocaleString());
+  const badge=document.getElementById('pay-unmatched-badge');
+  if(badge){
+    if(unmatched.length>0){badge.textContent=unmatched.length+' 筆未核對';badge.style.display='';}
+    else{badge.style.display='none';}
+  }
+  // 月份下拉
+  const months=[...new Set(PAYMENTS.map(p=>(p.date||'').slice(0,7)).filter(Boolean))].sort().reverse();
+  const pmf=document.getElementById('payMonthFilter');
+  if(pmf){
+    const cur=pmf.value;
+    pmf.innerHTML='<option value="">所有月份</option>'+
+      months.map(m=>{const[y,mm]=m.split('/');return`<option value="${m}"${m===cur?' selected':''}>${y}年${parseInt(mm)}月</option>`;}).join('');
+  }
+}
+
+function renderPayments(){
+  const wrap=document.getElementById('pay-table-wrap');
+  if(!wrap) return;
+  const stFilter=(document.getElementById('payStatusFilter')||{}).value||'';
+  const moFilter=(document.getElementById('payMonthFilter')||{}).value||'';
+  let list=PAYMENTS.filter(p=>{
+    if(moFilter&&!(p.date||'').startsWith(moFilter)) return false;
+    if(stFilter==='matched'&&(!p.orderId||!p.orderId.trim()||p.isRefund)) return false;
+    if(stFilter==='unmatched'&&(p.orderId&&p.orderId.trim()||p.isRefund)) return false;
+    if(stFilter==='refund'&&!p.isRefund) return false;
+    return true;
+  });
+  if(!list.length){wrap.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">沒有符合條件的入帳紀錄</div>';return;}
+  const rows=list.map(p=>{
+    const isMatched=p.orderId&&p.orderId.trim()&&!p.isRefund;
+    const isRefund=p.isRefund;
+    const amtColor=isRefund?'color:var(--purple)':(isMatched?'':'color:var(--text)');
+    const orderCell=isRefund
+      ?'<span class="badge" style="background:var(--purple-light);color:var(--purple)">↩️ 退款</span>'
+      :(isMatched
+        ?`<span class="badge b-blue" style="cursor:pointer" onclick="openDetail('${p.orderId}')">${p.orderId}</span>`
+        :'<span class="badge b-red">未填入</span>');
+    const statusCell=isRefund
+      ?'<span class="badge" style="background:var(--purple-light);color:var(--purple)">退款</span>'
+      :(isMatched
+        ?'<div class="pay-status-ok">✅ 已核對</div>'
+        :'<div class="pay-status-ng">⚠️ 未核對</div>');
+    const actionCell=isRefund?'—'
+      :(isMatched
+        ?`<button class="ia ia-edit" onclick="openPayMatch(${p.row},'${p.orderId}')">修改</button>`
+        :`<button class="ia ia-edit" style="background:var(--red-light);color:var(--red)" onclick="openPayMatch(${p.row},'')">補填訂單號</button>`);
+    return`<tr>
+      <td style="font-size:11px;white-space:nowrap">${p.date||'—'}</td>
+      <td class="td-money" style="${amtColor}">$${(p.amount||0).toLocaleString()}</td>
+      <td style="font-size:11px;color:var(--muted)">${p.time||'—'}</td>
+      <td><code style="background:var(--bg);padding:2px 7px;border-radius:4px;font-size:11px">${p.acct||'—'}</code></td>
+      <td><span class="badge b-gray">${p.type||'—'}</span></td>
+      <td>${orderCell}</td>
+      <td>${statusCell}</td>
+      <td style="font-size:11px;color:var(--muted);max-width:120px">${p.notes||'—'}</td>
+      <td><div class="td-actions">${actionCell}</div></td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML=`<table><thead><tr><th>日期</th><th>金額</th><th>時間</th><th>帳號後碼</th><th>類型</th><th>對應訂單</th><th>核對狀態</th><th>備註</th><th>操作</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+// ─── 自動核對 ───
+function autoMatchPayments(){
+  let matched=0;
+  PAYMENTS.forEach(p=>{
+    if(p.isRefund||p.orderId) return;
+    const acct=p.acct||'';
+    const o=ORDERS.find(o=>o.acct&&o.acct.toString()===acct);
+    if(o){
+      p.orderId=o.id;
+      matched++;
+    }
+  });
+  if(matched===0){toast('沒有新配對到的入帳','');return;}
+  renderPayments();
+  renderPaymentKPIs();
+  toast('✅ 自動核對配對了 '+matched+' 筆','ok');
+  // 寫回 GAS
+  PAYMENTS.filter(p=>p.orderId).forEach(p=>{
+    fetch(_GAS_URL+'?token='+_GAS_TOKEN+'&action=matchPayment&row='+p.row+'&orderId='+encodeURIComponent(p.orderId))
+      .catch(()=>{});
+  });
+}
+
+// ─── 補填訂單號 Modal ───
+let _pmSelectedOrderId='';
+function openPayMatch(row, curOrderId){
+  _pmSelectedOrderId=curOrderId||'';
+  document.getElementById('pm-row').value=row;
+  const p=PAYMENTS.find(x=>x.row===row)||{};
+  document.getElementById('pm-payment-info').innerHTML=
+    `<b>入帳日期：</b>${p.date||'—'} &nbsp; <b>金額：</b>$${(p.amount||0).toLocaleString()} &nbsp; <b>帳號後碼：</b>${p.acct||'—'} &nbsp; <b>時間：</b>${p.time||'—'}`;
+  document.getElementById('pm-search').value='';
+  document.getElementById('pm-save-btn').disabled=!_pmSelectedOrderId;
+  renderPayMatchList();
+  openMd('payMatchMd');
+}
+function renderPayMatchList(){
+  const q=(document.getElementById('pm-search').value||'').toLowerCase();
+  const list=ORDERS.filter(o=>{
+    if(!q) return true;
+    return o.id.toLowerCase().includes(q)||o.name.toLowerCase().includes(q)||(o.acct||'').includes(q);
+  }).slice(0,30);
+  const el=document.getElementById('pm-order-list');
+  el.innerHTML=list.map(o=>{
+    const sel=o.id===_pmSelectedOrderId;
+    return`<div style="padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;justify-content:space-between;align-items:center;${sel?'background:var(--blue-light);':''}hover"
+      onclick="selectPayOrder('${o.id}')">
+      <div><b style="font-size:12px">${o.id}</b> <span style="font-size:12px;color:var(--muted);margin-left:8px">${o.name}</span></div>
+      <div style="font-size:11px;color:var(--muted)">帳號：${o.acct||'—'} | $${(o.twd||0).toLocaleString()}</div>
+      ${sel?'<span style="color:var(--blue);font-size:14px">✓</span>':''}
+    </div>`;
+  }).join('');
+}
+function selectPayOrder(id){
+  _pmSelectedOrderId=id;
+  document.getElementById('pm-save-btn').disabled=false;
+  renderPayMatchList();
+}
+function confirmPayMatch(){
+  const row=parseInt(document.getElementById('pm-row').value);
+  const p=PAYMENTS.find(x=>x.row===row);
+  if(!p||!_pmSelectedOrderId) return;
+  p.orderId=_pmSelectedOrderId;
+  renderPayments();
+  renderPaymentKPIs();
+  closeMd('payMatchMd');
+  toast('✅ 已配對訂單 '+_pmSelectedOrderId,'ok');
+  // 寫回 GAS
+  fetch(_GAS_URL+'?token='+_GAS_TOKEN+'&action=matchPayment&row='+row+'&orderId='+encodeURIComponent(_pmSelectedOrderId))
+    .then(r=>r.json()).then(d=>{ if(d.ok) toast('✅ 已同步至 Google Sheets','ok'); })
+    .catch(()=>toast('⚠️ Sheets 同步失敗，請手動更新',''));
+}
+
+// ─── 換匯紀錄 Render ───
+function renderExchanges(){
+  const wrap=document.getElementById('exchange-table-wrap');
+  if(!wrap) return;
+  const list=[...EXCHANGES].sort((a,b)=>(b.datetime||'').localeCompare(a.datetime||''));
+  const totalTWD=list.reduce((s,e)=>s+(e.twd||0),0);
+  const totalJPY=list.reduce((s,e)=>s+(e.jpy||0),0);
+  const badge=document.getElementById('exchange-total-badge');
+  if(badge) badge.textContent='合計換匯：NT$'+totalTWD.toLocaleString()+' → ¥'+totalJPY.toLocaleString();
+  if(!list.length){wrap.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">尚無換匯紀錄</div>';return;}
+  const rows=list.map(e=>`<tr>
+    <td style="font-size:12px;white-space:nowrap">${e.datetime||'—'}</td>
+    <td class="td-money">$${(e.twd||0).toLocaleString()}</td>
+    <td class="td-money" style="color:var(--purple)">¥${(e.jpy||0).toLocaleString()}</td>
+    <td><code style="font-size:12px">${(e.rate||0).toFixed(4)}</code></td>
+    <td style="font-size:11px;color:var(--muted)">${e.notes||'—'}</td>
+    <td><div class="td-actions">
+      <button class="ia ia-edit" onclick="openEditExchange(${e.row})">編輯</button>
+      <button class="ia ia-del" onclick="deleteExchange(${e.row})">刪除</button>
+    </div></td>
+  </tr>`).join('');
+  wrap.innerHTML=`<table><thead><tr><th>日期時間</th><th>台幣金額</th><th>日幣金額</th><th>匯率</th><th>備註</th><th>操作</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+// ─── 換匯 Modal ───
+function openNewExchange(){
+  document.getElementById('exchangeMdTitle').textContent='新增換匯紀錄';
+  document.getElementById('ex-row').value='';
+  const now=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  document.getElementById('ex-datetime').value=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  document.getElementById('ex-twd').value='';
+  document.getElementById('ex-jpy').value='';
+  document.getElementById('ex-rate').value='';
+  document.getElementById('ex-notes').value='';
+  openMd('exchangeMd');
+}
+function openEditExchange(row){
+  const e=EXCHANGES.find(x=>x.row===row);
+  if(!e) return;
+  document.getElementById('exchangeMdTitle').textContent='編輯換匯紀錄';
+  document.getElementById('ex-row').value=row;
+  document.getElementById('ex-datetime').value=(e.datetime||'').replace(' ','T').substring(0,16);
+  document.getElementById('ex-twd').value=e.twd||'';
+  document.getElementById('ex-jpy').value=e.jpy||'';
+  document.getElementById('ex-rate').value=(e.rate||0).toFixed(4);
+  document.getElementById('ex-notes').value=e.notes||'';
+  openMd('exchangeMd');
+}
+function calcExRate(){
+  const twd=parseFloat(document.getElementById('ex-twd').value)||0;
+  const jpy=parseFloat(document.getElementById('ex-jpy').value)||0;
+  const el=document.getElementById('ex-rate');
+  if(twd>0&&jpy>0) el.value=(twd/jpy).toFixed(4);
+  else el.value='';
+}
+function saveExchange(){
+  const row=document.getElementById('ex-row').value;
+  const dt=(document.getElementById('ex-datetime').value||'').replace('T',' ');
+  const twd=parseInt(document.getElementById('ex-twd').value)||0;
+  const jpy=parseInt(document.getElementById('ex-jpy').value)||0;
+  const rate=parseFloat(document.getElementById('ex-rate').value)||parseFloat((twd/jpy).toFixed(4))||0;
+  const notes=document.getElementById('ex-notes').value||'';
+  if(!dt||!twd||!jpy){toast('請填寫日期、台幣及日幣金額','');return;}
+  const url=_GAS_URL+'?token='+_GAS_TOKEN+'&action=saveExchange'
+    +'&row='+encodeURIComponent(row)
+    +'&datetime='+encodeURIComponent(dt)
+    +'&twd='+twd+'&jpy='+jpy+'&rate='+rate
+    +'&notes='+encodeURIComponent(notes);
+  toast('儲存中…','');
+  fetch(url).then(r=>r.json()).then(d=>{
+    if(d.ok){
+      // 更新本地
+      const idx=EXCHANGES.findIndex(e=>e.row===(d.newRow||parseInt(row)));
+      const newRec={row:d.newRow||parseInt(row),datetime:dt,twd,jpy,rate,notes};
+      if(idx>=0) EXCHANGES[idx]=newRec; else EXCHANGES.push(newRec);
+      try{localStorage.setItem(_CACHE_EX,JSON.stringify(EXCHANGES));}catch(e){}
+      renderExchanges();
+      closeMd('exchangeMd');
+      toast('✅ 換匯紀錄已儲存','ok');
+    } else { toast('⚠️ 儲存失敗：'+(d.error||'GAS 錯誤'),''); }
+  }).catch(()=>toast('⚠️ 無法連線 GAS',''));
+}
+function deleteExchange(row){
+  if(!confirm('確定要刪除這筆換匯紀錄嗎？')) return;
+  fetch(_GAS_URL+'?token='+_GAS_TOKEN+'&action=deleteExchange&row='+row)
+    .then(r=>r.json()).then(d=>{
+      if(d.ok){
+        EXCHANGES=EXCHANGES.filter(e=>e.row!==row);
+        try{localStorage.setItem(_CACHE_EX,JSON.stringify(EXCHANGES));}catch(e){}
+        renderExchanges();
+        toast('✅ 已刪除','ok');
+      } else { toast('⚠️ 刪除失敗',''); }
+    }).catch(()=>toast('⚠️ 無法連線 GAS',''));
+}
+
+// ─── 支出費用 Render ───
+function renderExpenses(){
+  const wrap=document.getElementById('expense-table-wrap');
+  if(!wrap) return;
+  if(!EXPENSES.length){wrap.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);font-size:12px">尚無支出資料</div>';return;}
+  const rows=EXPENSES.slice(0,20).map(e=>`<tr>
+    <td style="font-size:11px;white-space:nowrap">${e.date||'—'}</td>
+    <td>${e.item||'—'}</td>
+    <td class="td-money" style="${(e.amount||0)<0?'color:var(--red)':''}">$${Math.abs(e.amount||0).toLocaleString()}</td>
+    <td style="font-size:11px;color:var(--muted)">${e.paidBy||'—'}</td>
+  </tr>`).join('');
+  wrap.innerHTML=`<table style="min-width:auto"><thead><tr><th>日期</th><th>項目</th><th>金額</th><th>代墊</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+// ─── 客戶資料庫 Render ───
+function renderCustomers(){
+  const wrap=document.getElementById('cust-table-wrap');
+  if(!wrap) return;
+  const q=(document.getElementById('custSearch')||{value:''}).value.toLowerCase();
+  const chF=(document.getElementById('custChFilter')||{value:''}).value;
+  const sort=(document.getElementById('custSortFilter')||{value:'latest'}).value;
+  // 以電話號碼為 key 聚合
+  const custMap={};
+  ORDERS.forEach(o=>{
+    const key=o.phone||o.name;
+    if(!custMap[key]) custMap[key]={name:o.name,phone:o.phone,line:o.line||'',email:o.email||'',chs:new Set(),orders:[],twd:0};
+    custMap[key].orders.push(o);
+    custMap[key].twd+=(o.twd||0);
+    if(o.ch) custMap[key].chs.add(o.ch);
+  });
+  let list=Object.values(custMap);
+  list.forEach(c=>{
+    const dates=c.orders.flatMap(o=>(o.days||[]).map(d=>d.date||'')).filter(Boolean).sort();
+    c.latestDate=dates[dates.length-1]||'';
+    c.chList=[...c.chs].join('、');
+  });
+  if(q) list=list.filter(c=>c.name.toLowerCase().includes(q)||c.phone.includes(q)||(c.line||'').toLowerCase().includes(q));
+  if(chF) list=list.filter(c=>c.chs.has(chF));
+  list.sort((a,b)=>{
+    if(sort==='count') return b.orders.length-a.orders.length;
+    if(sort==='spending') return b.twd-a.twd;
+    return (b.latestDate||'').localeCompare(a.latestDate||'');
+  });
+  const countLabel=document.getElementById('cust-count-label');
+  if(countLabel) countLabel.textContent='共 '+list.length+' 位客戶，來自 '+Object.keys(custMap).length+' 筆訂單';
+  if(!list.length){wrap.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">找不到符合條件的客戶</div>';return;}
+  const chBadgeMap={'FB粉專':'b-green','FB討論區':'b-blue','LINE':'b-teal','IG':'b-purple','Dcard':'b-gold'};
+  const rows=list.map(c=>{
+    const chBadges=c.orders.reduce((s,o)=>o.ch?s.add(o.ch):s,new Set());
+    const badges=[...chBadges].map(ch=>`<span class="badge ${chBadgeMap[ch]||'b-gray'}" style="font-size:10px">${ch}</span>`).join(' ');
+    return`<tr>
+      <td class="td-name" style="cursor:pointer;color:var(--blue)" onclick="filterByCustomer('${c.phone}')">${c.name}</td>
+      <td>${c.phone}</td>
+      <td style="font-size:11px;color:var(--muted)">${c.line||'—'}</td>
+      <td style="font-size:11px">${c.email||'—'}</td>
+      <td>${badges}</td>
+      <td><span class="badge b-purple">${c.orders.length} 筆</span></td>
+      <td style="font-size:11px;color:var(--muted2)">$${c.twd.toLocaleString()}</td>
+      <td style="font-size:11px">${c.latestDate||'—'}</td>
+      <td><button class="ia ia-view" onclick="filterByCustomer('${c.phone}')">查看訂單</button></td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML=`<table><thead><tr><th>姓名</th><th>電話</th><th>LINE ID</th><th>Email</th><th>來源管道</th><th>訂單數</th><th>消費金額</th><th>最近出車</th><th>操作</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+function filterByCustomer(phone){
+  goPage('orders');
+  setTimeout(()=>{
+    const s=document.getElementById('srch');
+    if(s){s.value=phone;filterOrders();}
+  },100);
+}
+
+// ─── 頁面切換時觸發對應渲染 ───
+const _origGoPage=goPage;
+goPage=function(id,el){
+  _origGoPage(id,el);
+  if(id==='payment') renderPayments();
+  if(id==='exchange') renderExchanges();
+  if(id==='customers') renderCustomers();
+};
 </script>
 </body>
 </html>
