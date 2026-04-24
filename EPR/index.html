@@ -129,7 +129,7 @@ a{text-decoration:none;color:inherit}
 .btn-ghost:hover{background:var(--bg);border-color:var(--border2)}
 .btn-danger{background:var(--red-light);color:var(--red);border:1px solid #fecaca}
 .btn-danger:hover{background:#fecaca}
-.btn-sl{padding:6px 12px;font-size:12px}
+.btn-sm{padding:6px 12px;font-size:12px}
 .btn-xs{padding:4px 9px;font-size:11px}
 
 /* ── STATS GRID ── */
@@ -344,8 +344,8 @@ tbody tr:last-child td{border-bottom:none}
 /* ── DAYS TABLE (form) ── */
 .days-section{grid-column:1/-1;border:1.5px solid var(--blue-light);border-radius:var(--radius);overflow:hidden;margin-top:4px}
 .days-scroll{overflow-x:auto}
-.days-hdr{display:grid;grid-template-columns;90px 56px 106px 114px 120px 120px 62px 68px 68px 40px 96px 28px;gap:5px;background:#eff6ff;padding:7px 10px;font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.3px;min-width:1000px}
-.day-row{display:grid;grid-template-columns;90px 56px 106px 114px 120px 120px 62px 68px 68px 40px 96px 28px;gap:5px;padding:7px 10px;border-top:1px solid var(--border);align-items:center;min-width:1000px}
+.days-hdr{display:grid;grid-template-columns:90px 56px 106px 114px 120px 120px 62px 68px 68px 40px 96px 28px;gap:5px;background:#eff6ff;padding:7px 10px;font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.3px;min-width:1000px}
+.day-row{display:grid;grid-template-columns:90px 56px 106px 114px 120px 120px 62px 68px 68px 40px 96px 28px;gap:5px;padding:7px 10px;border-top:1px solid var(--border);align-items:center;min-width:1000px}
 .day-row .di{padding:5px 7px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;width:100%;min-width:0;background:white;transition:border-color .15s}
 .day-row .di:focus{border-color:var(--blue);outline:none;background:white}
 .btn-del-day{width:28px;height:28px;border-radius:6px;background:var(--red-light);color:var(--red);font-size:14px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
@@ -818,7 +818,7 @@ tbody tr:last-child td{border-bottom:none}
             <thead><tr><th>日期時間</th><th>台幣金額</th><th>日幣金額</th><th>匯率</th><th>備註</th></tr></thead>
             <tbody>
               <tr><td style="font-size:12px">2026/04/20 14:43</td><td class="td-money">$400,000</td><td class="td-money" style="color:var(--purple)">¥2,013,085</td><td><code style="font-size:12px">0.1987</code></td><td style="font-size:11px;color:var(--muted)">日本賞換匯禮遇</td></tr>
-              <tr><td style="font-size:12px">2026/04/13 10:11</td><td class="td-money">$230,000</td><td class="td-money" style="color:var(--purple)">¥1,115,305</td><td><code style="font-size:12px">0.1996</code></td><td style="font-size:11px;color:var(--muted)">CUBE精選貴賓優惠</td></tr>
+              <tr><td style="font-size:12px">2026/04/13 10:11</td><td class="td-money">$230,000</td><td class="td-money" style="color:var(--purple)">¥1,152,305</td><td><code style="font-size:12px">0.1996</code></td><td style="font-size:11px;color:var(--muted)">CUBE精選貴賓優惠</td></tr>
               <tr><td style="font-size:12px">2026/02/09 11:39</td><td class="td-money">$303,150</td><td class="td-money" style="color:var(--purple)">¥1,500,000</td><td><code style="font-size:12px">0.2021</code></td><td style="font-size:11px;color:var(--muted)">CUBE精選貴賓優惠(C換)</td></tr>
               <tr><td style="font-size:12px">2026/01/23 15:34</td><td class="td-money">$298,950</td><td class="td-money" style="color:var(--purple)">¥1,500,000</td><td><code style="font-size:12px">0.1993</code></td><td style="font-size:11px;color:var(--muted)">數位通路優惠(C換)</td></tr>
               <tr><td style="font-size:12px">2026/01/14 16:13</td><td class="td-money">$300,000</td><td class="td-money" style="color:var(--purple)">¥1,502,253</td><td><code style="font-size:12px">0.1997</code></td><td style="font-size:11px;color:var(--muted)">CUBE精選貴賓優惠</td></tr>
@@ -882,7 +882,7 @@ tbody tr:last-child td{border-bottom:none}
               <span class="badge b-green" style="margin-left:auto">● 已連線</span>
             </div>
             <div style="padding:13px;background:var(--bg);border-radius:var(--radius-sm);display:flex;align-items:center;gap:12px">
-              <span style="font-size:20px">🍊</span>
+              <span style="font-size:20px">📊</span>
               <div><div style="font-weight:700;font-size:13px">旅乘帳款</div><div style="font-size:11px;color:var(--muted)">財務總帳</div></div>
               <span class="badge b-green" style="margin-left:auto">● 已連線</span>
             </div>
@@ -1054,7 +1054,7 @@ tbody tr:last-child td{border-bottom:none}
 // 一筆訂單 (Order) 可包含多天出車明細 (days[])
 // ══════════════════════════════════════════════════
 
-const ORDERS = [
+let ORDERS = [
   // ── 單天：機場接送 ──
   {
     id:'#26042201', odate:'2026/04/22',
@@ -1140,11 +1140,11 @@ const ORDERS = [
       {date:'2026/04/27',time:'15:30',vehicle:'7座舒適款',driver:'大阪-小田',
        from:'關西機場T1',to:'大阪難波飯店',pax:'2大',luggage:'2件',childSeat:0,drvfee:18000,drvPaid:false,flightNote:'華航CI155-14:50著'},
       {date:'2026/04/28',time:'09:00',vehicle:'7座舒適款',driver:'大阪-小田',
-       from:'大阪難波飯店',to:'京都嵐山+金閣寺',pax:'2大',luggane:'隨身',childSeat:0,drvfee:32000,drvPaid:false,flightNote:''},
+       from:'大阪難波飯店',to:'京都嵐山+金閣寺',pax:'2大',luggage:'隨身',childSeat:0,drvfee:32000,drvPaid:false,flightNote:''},
       {date:'2026/04/29',time:'08:30',vehicle:'7座舒適款',driver:'大阪-小田',
        from:'京都飯店',to:'奈良一日遊',pax:'2大',luggage:'隨身',childSeat:0,drvfee:28000,drvPaid:false,flightNote:''},
       {date:'2026/04/30',time:'09:00',vehicle:'7座舒適款',driver:'大阪-小田',
-       from:'大阪飯店',to:'神戶+有馬溫泉一日遊',pax:'2大',luggane:'隨身',childSeat:0,drvfee:35000,drvPaid:false,flightNote:''},
+       from:'大阪飯店',to:'神戶+有馬溫泉一日遊',pax:'2大',luggage:'隨身',childSeat:0,drvfee:35000,drvPaid:false,flightNote:''},
       {date:'2026/05/01',time:'14:00',vehicle:'7座舒適款',driver:'大阪-小田',
        from:'大阪飯店',to:'關西機場T1-長榮BR198',pax:'2大',luggage:'2件',childSeat:0,drvfee:18000,drvPaid:false,flightNote:'長榮BR198-17:10飛'}
     ]
@@ -1385,6 +1385,9 @@ async function doLogin(){
   }catch(e){showPwErr('驗證失敗，請重試');}
   finally{btn.textContent='🔐 登入系統';btn.disabled=false;}
 }
+const _GAS_URL='https://script.google.com/macros/s/AKfycbwYsXOxuWJJi07qnnO_WI93ZyM4MrLJ5y-oPPzGUPeo-gxU_YN1EQOFBbffFhEyUnOX/exec';
+const _GAS_TOKEN='lvcheng_erp_2024';
+
 function enterApp(){
   document.getElementById('loginPage').style.display='none';
   document.getElementById('app').style.display='block';
@@ -1393,7 +1396,25 @@ function enterApp(){
   initDashboardKPIs();
   const now=new Date();
   document.getElementById('topbarMonth').textContent=now.getFullYear()+'年'+(now.getMonth()+1)+'月';
-  toast('歡迎回來，Jun！','ok');
+  toast('正在載入訂單資料…','');
+  // 從 Google Apps Script 載入真實資料
+  fetch(_GAS_URL+'?token='+_GAS_TOKEN+'&action=orders')
+    .then(r=>r.json())
+    .then(data=>{
+      if(data.ok && Array.isArray(data.orders) && data.orders.length>0){
+        ORDERS.length=0;
+        data.orders.forEach(o=>ORDERS.push(o));
+        filterOrders();
+        initDashboardKPIs();
+        initChart();
+        toast('✅ 已載入 '+data.orders.length+' 筆訂單（Google Sheets）','ok');
+      } else {
+        toast('⚠️ 使用本地示範資料（'+ORDERS.length+'筆）','');
+      }
+    })
+    .catch(()=>{
+      toast('⚠️ 無法連線 API，使用本地示範資料','');
+    });
 }
 function doLogout(){
   sessionStorage.removeItem('_ea');
@@ -1738,4 +1759,3 @@ if(sessionStorage.getItem('_ea')==='1'){
 </script>
 </body>
 </html>
- 
