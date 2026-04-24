@@ -689,7 +689,7 @@ tbody tr:last-child td{border-bottom:none}
         <div style="display:flex;gap:8px;align-items:center">
           <span class="badge b-red" id="pay-unmatched-badge" style="display:none"></span>
           <button class="btn btn-primary btn-sm" onclick="autoMatchPayments()">⚡ 一鍵自動核對</button>
-          <button class="btn btn-ghost btn-sm" onclick="loadPayments(true)">🔄 重新整理</button>
+          <button class="btn btn-primary btn-sm" onclick="openNewPayment()">＋ 新增入帳</button>
         </div>
       </div>
       <div class="stats-row" id="pay-kpi-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
@@ -752,7 +752,7 @@ tbody tr:last-child td{border-bottom:none}
         <div class="card">
           <div class="card-hd">
             <span class="card-title">💸 近期支出費用</span>
-            <button class="btn btn-ghost btn-sm" onclick="loadExpenses(true)">🔄</button>
+            <button class="btn btn-primary btn-sm" onclick="openNewExpense()">＋ 新增支出</button>
           </div>
           <div class="tbl-wrap" id="expense-table-wrap">
             <div style="text-align:center;padding:30px;color:var(--muted);font-size:12px">載入中…</div>
@@ -765,10 +765,7 @@ tbody tr:last-child td{border-bottom:none}
     <div class="page" id="page-exchange">
       <div class="page-head">
         <div class="page-head-left"><h2>換匯紀錄</h2><p>台幣 ↔ 日幣換匯歷史</p></div>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-ghost btn-sm" onclick="loadExchanges(true)">🔄 重新整理</button>
-          <button class="btn btn-primary btn-sm" onclick="openNewExchange()">＋ 新增換匯</button>
-        </div>
+        <button class="btn btn-primary btn-sm" onclick="openNewExchange()">＋ 新增換匯</button>
       </div>
       <div class="card">
         <div class="card-hd">
@@ -920,11 +917,68 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
+<!-- ═══ PAYMENT ADD MODAL ═══ -->
+<div class="modal-bg" id="payAddMd">
+  <div class="modal" style="width:480px">
+    <div class="modal-hd">
+      <div><div class="modal-title" id="payAddMdTitle">新增入帳紀錄</div><div class="modal-sub">手動新增銀行入帳，儲存在本機</div></div>
+      <button class="modal-x" onclick="closeMd('payAddMd')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pa-row">
+      <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:12px 16px">
+        <div class="fg"><label>入帳日期</label><input class="fi" type="date" id="pa-date"></div>
+        <div class="fg"><label>入帳時間</label><input class="fi" type="time" id="pa-time" value="00:00"></div>
+        <div class="fg"><label>金額 NT$</label><input class="fi" type="number" id="pa-amount" placeholder="2860"></div>
+        <div class="fg"><label>帳號後碼</label><input class="fi" id="pa-acct" placeholder="44725"></div>
+        <div class="fg"><label>類型</label>
+          <select class="fi" id="pa-type">
+            <option>ATM轉</option><option>網路轉</option><option>臨櫃</option><option>LINE Pay</option>
+          </select>
+        </div>
+        <div class="fg"><label>對應訂單號（可空）</label><input class="fi" id="pa-orderid" placeholder="#26042201"></div>
+        <div class="fg" style="grid-column:1/-1"><label>備註</label><input class="fi" id="pa-notes" placeholder="備註說明"></div>
+        <div class="fg" style="grid-column:1/-1;display:flex;align-items:center;gap:8px">
+          <input type="checkbox" id="pa-refund" style="width:16px;height:16px">
+          <label for="pa-refund" style="font-weight:400;color:var(--muted)">這是退款（負向入帳）</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="closeMd('payAddMd')">取消</button>
+      <button class="btn btn-primary" onclick="savePayment()">💾 儲存入帳</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ EXPENSE ADD MODAL ═══ -->
+<div class="modal-bg" id="expAddMd">
+  <div class="modal" style="width:420px">
+    <div class="modal-hd">
+      <div><div class="modal-title">新增支出</div><div class="modal-sub">手動新增費用項目，儲存在本機</div></div>
+      <button class="modal-x" onclick="closeMd('expAddMd')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="exp-row">
+      <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:12px 16px">
+        <div class="fg"><label>日期</label><input class="fi" type="date" id="exp-date"></div>
+        <div class="fg"><label>代墊人</label><input class="fi" id="exp-paidby" placeholder="JUN星展"></div>
+        <div class="fg" style="grid-column:1/-1"><label>項目說明</label><input class="fi" id="exp-item" placeholder="FB廣告、薪資…"></div>
+        <div class="fg" style="grid-column:1/-1"><label>金額 NT$</label><input class="fi" type="number" id="exp-amount" placeholder="65000"></div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="closeMd('expAddMd')">取消</button>
+      <button class="btn btn-primary" onclick="saveExpense()">💾 儲存支出</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ EXCHANGE ADD/EDIT MODAL ═══ -->
 <div class="modal-bg" id="exchangeMd">
   <div class="modal" style="width:480px">
     <div class="modal-hd">
-      <div><div class="modal-title" id="exchangeMdTitle">新增換匯紀錄</div><div class="modal-sub">填寫換匯明細，儲存後同步至 Google Sheets</div></div>
+      <div><div class="modal-title" id="exchangeMdTitle">新增換匯紀錄</div><div class="modal-sub">填寫換匯明細，儲存在本機</div></div>
       <button class="modal-x" onclick="closeMd('exchangeMd')">✕</button>
     </div>
     <div class="modal-body">
@@ -1868,65 +1922,57 @@ const _CACHE_EX  = '_erp_exchanges_v1';
 const _CACHE_EXP = '_erp_expenses_v1';
 
 // ─── 資料載入 ───
+// ── GAS API 模式（先顯示快取，背景更新）──
 function loadAllExtra(forceRefresh){
-  loadPayments(forceRefresh);
-  loadExchanges(forceRefresh);
-  loadExpenses(forceRefresh);
+  // 1) 先從 localStorage 快速顯示
+  try{ const r=localStorage.getItem(_CACHE_PAY);  if(r){ PAYMENTS=JSON.parse(r);  } }catch(e){}
+  try{ const r=localStorage.getItem(_CACHE_EX);   if(r){ EXCHANGES=JSON.parse(r); } }catch(e){}
+  try{ const r=localStorage.getItem(_CACHE_EXP);  if(r){ EXPENSES=JSON.parse(r);  } }catch(e){}
+  renderPayments(); renderPaymentKPIs();
+  renderExchanges();
+  renderExpenses();
+  // 2) 背景從 GAS 拉最新資料
+  const base = _GAS_URL+'?token='+_GAS_TOKEN;
+  Promise.all([
+    fetch(base+'&action=payments').then(r=>r.json()).catch(()=>null),
+    fetch(base+'&action=exchanges').then(r=>r.json()).catch(()=>null),
+    fetch(base+'&action=expenses').then(r=>r.json()).catch(()=>null)
+  ]).then(([pay,ex,exp])=>{
+    let updated = false;
+    if(pay && pay.ok && Array.isArray(pay.payments)){
+      PAYMENTS = pay.payments;
+      try{localStorage.setItem(_CACHE_PAY,JSON.stringify(PAYMENTS));}catch(e){}
+      updated = true;
+    }
+    if(ex && ex.ok && Array.isArray(ex.exchanges)){
+      EXCHANGES = ex.exchanges;
+      try{localStorage.setItem(_CACHE_EX,JSON.stringify(EXCHANGES));}catch(e){}
+      updated = true;
+    }
+    if(exp && exp.ok && Array.isArray(exp.expenses)){
+      EXPENSES = exp.expenses;
+      try{localStorage.setItem(_CACHE_EXP,JSON.stringify(EXPENSES));}catch(e){}
+      updated = true;
+    }
+    if(updated){
+      renderPayments(); renderPaymentKPIs();
+      renderExchanges();
+      renderExpenses();
+      if(forceRefresh) toast('✅ 資料已同步','ok');
+    }
+  }).catch(()=>{});
 }
-
-function loadPayments(forceRefresh){
-  if(!forceRefresh){
-    try{
-      const raw=localStorage.getItem(_CACHE_PAY);
-      if(raw){ PAYMENTS=JSON.parse(raw); renderPayments(); renderPaymentKPIs(); }
-    }catch(e){}
-  }
-  fetch(_GAS_URL+'?token='+_GAS_TOKEN+'&action=payments')
-    .then(r=>r.json()).then(d=>{
-      if(d.ok && Array.isArray(d.payments)){
-        PAYMENTS=d.payments;
-        try{localStorage.setItem(_CACHE_PAY,JSON.stringify(PAYMENTS));}catch(e){}
-        renderPayments();
-        renderPaymentKPIs();
-        if(forceRefresh) toast('✅ 入帳資料已更新','ok');
-      }
-    }).catch(()=>{ if(forceRefresh) toast('⚠️ 無法載入入帳資料',''); });
-}
-
-function loadExchanges(forceRefresh){
-  if(!forceRefresh){
-    try{
-      const raw=localStorage.getItem(_CACHE_EX);
-      if(raw){ EXCHANGES=JSON.parse(raw); renderExchanges(); }
-    }catch(e){}
-  }
-  fetch(_GAS_URL+'?token='+_GAS_TOKEN+'&action=exchanges')
-    .then(r=>r.json()).then(d=>{
-      if(d.ok && Array.isArray(d.exchanges)){
-        EXCHANGES=d.exchanges;
-        try{localStorage.setItem(_CACHE_EX,JSON.stringify(EXCHANGES));}catch(e){}
-        renderExchanges();
-        if(forceRefresh) toast('✅ 換匯資料已更新','ok');
-      }
-    }).catch(()=>{ if(forceRefresh) toast('⚠️ 無法載入換匯資料',''); });
-}
-
-function loadExpenses(forceRefresh){
-  if(!forceRefresh){
-    try{
-      const raw=localStorage.getItem(_CACHE_EXP);
-      if(raw){ EXPENSES=JSON.parse(raw); renderExpenses(); }
-    }catch(e){}
-  }
-  fetch(_GAS_URL+'?token='+_GAS_TOKEN+'&action=expenses')
-    .then(r=>r.json()).then(d=>{
-      if(d.ok && Array.isArray(d.expenses)){
-        EXPENSES=d.expenses;
-        try{localStorage.setItem(_CACHE_EXP,JSON.stringify(EXPENSES));}catch(e){}
-        renderExpenses();
-        if(forceRefresh) toast('✅ 支出資料已更新','ok');
-      }
-    }).catch(()=>{ if(forceRefresh) toast('⚠️ 無法載入支出資料',''); });
+function savePaymentsLocal(){ try{localStorage.setItem(_CACHE_PAY,JSON.stringify(PAYMENTS));}catch(e){} }
+function saveExchangesLocal(){ try{localStorage.setItem(_CACHE_EX,JSON.stringify(EXCHANGES));}catch(e){} }
+function saveExpensesLocal(){ try{localStorage.setItem(_CACHE_EXP,JSON.stringify(EXPENSES));}catch(e){} }
+function loadPayments(){ loadAllExtra(true); }
+function loadExchanges(){ loadAllExtra(true); }
+function loadExpenses(){ loadAllExtra(true); }
+// 將 matchPayment 的結果也回寫到 GAS
+function syncMatchPaymentToGAS(row, orderId){
+  if(!row || row < 2) return;
+  fetch(_GAS_URL+'?token='+_GAS_TOKEN+'&action=matchPay&row='+row+'&orderId='+encodeURIComponent(orderId))
+    .then(r=>r.json()).catch(()=>{});
 }
 
 // ─── 收款對帳 Render ───
@@ -2025,12 +2071,8 @@ function autoMatchPayments(){
   if(matched===0){toast('沒有新配對到的入帳','');return;}
   renderPayments();
   renderPaymentKPIs();
+  savePaymentsLocal();
   toast('✅ 自動核對配對了 '+matched+' 筆','ok');
-  // 寫回 GAS
-  PAYMENTS.filter(p=>p.orderId).forEach(p=>{
-    fetch(_GAS_URL+'?token='+_GAS_TOKEN+'&action=matchPayment&row='+p.row+'&orderId='+encodeURIComponent(p.orderId))
-      .catch(()=>{});
-  });
 }
 
 // ─── 補填訂單號 Modal ───
@@ -2073,14 +2115,11 @@ function confirmPayMatch(){
   const p=PAYMENTS.find(x=>x.row===row);
   if(!p||!_pmSelectedOrderId) return;
   p.orderId=_pmSelectedOrderId;
-  renderPayments();
-  renderPaymentKPIs();
+  savePaymentsLocal();
+  syncMatchPaymentToGAS(row, _pmSelectedOrderId); // 回寫 GAS Sheets
+  renderPayments(); renderPaymentKPIs();
   closeMd('payMatchMd');
   toast('✅ 已配對訂單 '+_pmSelectedOrderId,'ok');
-  // 寫回 GAS
-  fetch(_GAS_URL+'?token='+_GAS_TOKEN+'&action=matchPayment&row='+row+'&orderId='+encodeURIComponent(_pmSelectedOrderId))
-    .then(r=>r.json()).then(d=>{ if(d.ok) toast('✅ 已同步至 Google Sheets','ok'); })
-    .catch(()=>toast('⚠️ Sheets 同步失敗，請手動更新',''));
 }
 
 // ─── 換匯紀錄 Render ───
@@ -2147,36 +2186,23 @@ function saveExchange(){
   const rate=parseFloat(document.getElementById('ex-rate').value)||parseFloat((twd/jpy).toFixed(4))||0;
   const notes=document.getElementById('ex-notes').value||'';
   if(!dt||!twd||!jpy){toast('請填寫日期、台幣及日幣金額','');return;}
-  const url=_GAS_URL+'?token='+_GAS_TOKEN+'&action=saveExchange'
-    +'&row='+encodeURIComponent(row)
-    +'&datetime='+encodeURIComponent(dt)
-    +'&twd='+twd+'&jpy='+jpy+'&rate='+rate
-    +'&notes='+encodeURIComponent(notes);
-  toast('儲存中…','');
-  fetch(url).then(r=>r.json()).then(d=>{
-    if(d.ok){
-      // 更新本地
-      const idx=EXCHANGES.findIndex(e=>e.row===(d.newRow||parseInt(row)));
-      const newRec={row:d.newRow||parseInt(row),datetime:dt,twd,jpy,rate,notes};
-      if(idx>=0) EXCHANGES[idx]=newRec; else EXCHANGES.push(newRec);
-      try{localStorage.setItem(_CACHE_EX,JSON.stringify(EXCHANGES));}catch(e){}
-      renderExchanges();
-      closeMd('exchangeMd');
-      toast('✅ 換匯紀錄已儲存','ok');
-    } else { toast('⚠️ 儲存失敗：'+(d.error||'GAS 錯誤'),''); }
-  }).catch(()=>toast('⚠️ 無法連線 GAS',''));
+  // 純本地儲存（不寫回 Sheets）
+  const existIdx=EXCHANGES.findIndex(e=>e.row===parseInt(row));
+  const newRow=existIdx>=0?parseInt(row):(EXCHANGES.reduce((m,e)=>Math.max(m,e.row||0),0)+1);
+  const newRec={row:newRow,datetime:dt,twd,jpy,rate,notes};
+  if(existIdx>=0) EXCHANGES[existIdx]=newRec; else EXCHANGES.push(newRec);
+  saveExchangesLocal();
+  renderExchanges();
+  closeMd('exchangeMd');
+  toast('✅ 換匯紀錄已儲存','ok');
 }
 function deleteExchange(row){
   if(!confirm('確定要刪除這筆換匯紀錄嗎？')) return;
-  fetch(_GAS_URL+'?token='+_GAS_TOKEN+'&action=deleteExchange&row='+row)
-    .then(r=>r.json()).then(d=>{
-      if(d.ok){
-        EXCHANGES=EXCHANGES.filter(e=>e.row!==row);
-        try{localStorage.setItem(_CACHE_EX,JSON.stringify(EXCHANGES));}catch(e){}
-        renderExchanges();
-        toast('✅ 已刪除','ok');
-      } else { toast('⚠️ 刪除失敗',''); }
-    }).catch(()=>toast('⚠️ 無法連線 GAS',''));
+  // 純本地刪除
+  EXCHANGES=EXCHANGES.filter(e=>e.row!==row);
+  saveExchangesLocal();
+  renderExchanges();
+  toast('✅ 已刪除','ok');
 }
 
 // ─── 支出費用 Render ───
@@ -2249,6 +2275,69 @@ function filterByCustomer(phone){
     const s=document.getElementById('srch');
     if(s){s.value=phone;filterOrders();}
   },100);
+}
+
+// ─── 新增入帳 ───
+function openNewPayment(){
+  document.getElementById('payAddMdTitle').textContent='新增入帳紀錄';
+  document.getElementById('pa-row').value='';
+  const now=new Date(), pad=n=>String(n).padStart(2,'0');
+  document.getElementById('pa-date').value=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  document.getElementById('pa-time').value=`${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  document.getElementById('pa-amount').value='';
+  document.getElementById('pa-acct').value='';
+  document.getElementById('pa-orderid').value='';
+  document.getElementById('pa-notes').value='';
+  document.getElementById('pa-refund').checked=false;
+  document.getElementById('pa-type').value='ATM轉';
+  openMd('payAddMd');
+}
+function savePayment(){
+  const row=document.getElementById('pa-row').value;
+  const date=document.getElementById('pa-date').value.replace(/-/g,'/');
+  const time=document.getElementById('pa-time').value;
+  const amount=parseInt(document.getElementById('pa-amount').value)||0;
+  const acct=document.getElementById('pa-acct').value.trim();
+  const type=document.getElementById('pa-type').value;
+  const orderId=document.getElementById('pa-orderid').value.trim();
+  const notes=document.getElementById('pa-notes').value.trim();
+  const isRefund=document.getElementById('pa-refund').checked;
+  if(!date||!amount){toast('請填寫日期和金額','');return;}
+  const existIdx=PAYMENTS.findIndex(p=>p.row===parseInt(row));
+  const newRow=existIdx>=0?parseInt(row):(PAYMENTS.reduce((m,p)=>Math.max(m,p.row||0),0)+1);
+  const rec={row:newRow,date,time,amount:isRefund?-Math.abs(amount):Math.abs(amount),acct,type,orderId,notes,isRefund};
+  if(existIdx>=0) PAYMENTS[existIdx]=rec; else PAYMENTS.unshift(rec);
+  savePaymentsLocal();
+  renderPayments(); renderPaymentKPIs();
+  closeMd('payAddMd');
+  toast('✅ 入帳紀錄已儲存','ok');
+}
+
+// ─── 新增支出 ───
+function openNewExpense(){
+  document.getElementById('exp-row').value='';
+  const now=new Date(), pad=n=>String(n).padStart(2,'0');
+  document.getElementById('exp-date').value=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  document.getElementById('exp-item').value='';
+  document.getElementById('exp-amount').value='';
+  document.getElementById('exp-paidby').value='';
+  openMd('expAddMd');
+}
+function saveExpense(){
+  const row=document.getElementById('exp-row').value;
+  const date=document.getElementById('exp-date').value.replace(/-/g,'/');
+  const item=document.getElementById('exp-item').value.trim();
+  const amount=parseInt(document.getElementById('exp-amount').value)||0;
+  const paidBy=document.getElementById('exp-paidby').value.trim();
+  if(!date||!item||!amount){toast('請填寫日期、項目和金額','');return;}
+  const existIdx=EXPENSES.findIndex(e=>e.row===parseInt(row));
+  const newRow=existIdx>=0?parseInt(row):(EXPENSES.reduce((m,e)=>Math.max(m,e.row||0),0)+1);
+  const rec={row:newRow,date,item,amount,paidBy};
+  if(existIdx>=0) EXPENSES[existIdx]=rec; else EXPENSES.unshift(rec);
+  saveExpensesLocal();
+  renderExpenses();
+  closeMd('expAddMd');
+  toast('✅ 支出已儲存','ok');
 }
 
 // ─── 頁面切換時觸發對應渲染 ───
