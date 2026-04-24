@@ -1326,50 +1326,46 @@ function initDashboardKPIs(){
 }
 
 // ── DASHBOARD 客服業績動態渲染 ──
-function renderDashboardPerformance(){
-  const now = new Date();
-  const mo    = now.getFullYear()+'/'+String(now.getMonth()+1).padStart(2,'0');
-  const moAlt = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+// 各客服顯示樣式設定（順序即顯示順序）
+const _PERF_STYLES = {
+  'Christina': '',
+  'David':     'background:linear-gradient(135deg,var(--gold),#fbbf24)',
+  'Wei':       'background:linear-gradient(135deg,var(--purple),#a855f7)',
+  'Jun':       'background:linear-gradient(135deg,var(--teal),#06b6d4)',
+};
 
+function renderDashboardPerformance(bonusMap){
+  const now = new Date();
   // 更新月份標籤
   const lbl = document.getElementById('perf-month-label');
   if(lbl) lbl.textContent = now.getFullYear()+'年'+(now.getMonth()+1)+'月';
 
-  // 篩出本月訂單
-  const thisMonthOrders = ORDERS.filter(o=>{
-    const odMatch = (o.odate||'').startsWith(mo)||(o.odate||'').startsWith(moAlt);
-    const dayMatch = (o.days||[]).some(d=>(d.date||'').startsWith(mo)||(d.date||'').startsWith(moAlt));
-    return odMatch||dayMatch;
-  });
-
-  // 計算各客服本月獎金（台幣 × %）
-  const map = {};
-  thisMonthOrders.forEach(o=>{
-    const sp = o.split||'';
-    if(!sp) return;
-    const m = sp.match(/^(.+?)-([\d.]+)%$/);
-    if(!m) return;
-    const name = m[1].trim();
-    const pct  = parseFloat(m[2])/100;
-    if(!map[name]) map[name] = 0;
-    map[name] += Math.round((o.twd||0) * pct);
-  });
-
-  const styles = {
-    'Christina': '',
-    'Renjun':    'background:linear-gradient(135deg,var(--teal),#06b6d4)',
-    'Wei':       'background:linear-gradient(135deg,var(--purple),#a855f7)',
-    'David':     'background:linear-gradient(135deg,var(--gold),#fbbf24)',
-  };
-
   const container = document.getElementById('perf-grid-container');
   if(!container) return;
 
-  // 固定顯示順序，金額 0 也要顯示
-  const agents = Object.keys(styles);
-  container.innerHTML = agents.map(name=>{
-    const amt = map[name]||0;
-    const st  = styles[name];
+  // 若沒傳入資料，先顯示 loading 狀態
+  if(!bonusMap){
+    container.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:16px">載入中…</div>';
+    return;
+  }
+
+  // bonusMap 格式來自 GAS 獎金 Sheet：{ 'Christina-15%': 84471, 'David-15%': 0, ... }
+  // 把 key 拆成姓名，同一人多筆（Jun-20%/Jun-10%）加總
+  const nameMap = {};
+  Object.entries(bonusMap).forEach(([key, val])=>{
+    const m = key.match(/^(.+?)[-–]/);
+    const name = m ? m[1].trim() : key.trim();
+    nameMap[name] = (nameMap[name]||0) + (typeof val==='number'?val:0);
+  });
+
+  // 依 _PERF_STYLES 順序渲染；若 Sheet 有未知人名也一起顯示
+  const known = Object.keys(_PERF_STYLES);
+  const extra = Object.keys(nameMap).filter(n=>!known.includes(n));
+  const allAgents = [...known, ...extra];
+
+  container.innerHTML = allAgents.map(name=>{
+    const amt = nameMap[name]||0;
+    const st  = _PERF_STYLES[name]||'';
     return `<div class="perf-card">
       <div class="perf-avatar"${st?' style="'+st+'"':''}>${name[0]}</div>
       <div class="perf-name">${name}</div>
@@ -1377,6 +1373,18 @@ function renderDashboardPerformance(){
       <div class="perf-sub">客服獎金</div>
     </div>`;
   }).join('');
+}
+
+// 從 GAS 獎金 Sheet 拉資料後呼叫 renderDashboardPerformance
+function loadDashboardPerformance(){
+  renderDashboardPerformance(null); // 先顯示 loading
+  fetch(_GAS_URL+'?token='+_GAS_TOKEN+'&action=bonus')
+    .then(r=>r.json())
+    .then(data=>{
+      if(data.ok && data.bonus) renderDashboardPerformance(data.bonus);
+      else renderDashboardPerformance({});
+    })
+    .catch(()=>renderDashboardPerformance({}));
 }
 
 // ── FINANCE PAGE RENDER ──
@@ -1538,7 +1546,7 @@ function _applyOrders(orders){
   try{ rebuildFilterDropdowns(); }catch(e){}
   try{ filterOrders(); }catch(e){}
   try{ initDashboardKPIs(); }catch(e){}
-  try{ renderDashboardPerformance(); }catch(e){}
+  try{ loadDashboardPerformance(); }catch(e){}
   try{ initChart(); }catch(e){}
 }
 function enterApp(){
@@ -1566,7 +1574,7 @@ function enterApp(){
     ORDERS.length=0;
     try{ renderOrders([]); }catch(e){}
     try{ initDashboardKPIs(); }catch(e){}
-    try{ renderDashboardPerformance(); }catch(e){}
+    try{ loadDashboardPerformance(); }catch(e){}
     try{ initChart(); }catch(e){}
     toast('正在載入訂單資料…','');
   }
@@ -1932,7 +1940,7 @@ function saveOrder(){
   else ORDERS.unshift(ord);
   filterOrders();
   initDashboardKPIs();
-  renderDashboardPerformance();
+  loadDashboardPerformance();
   toast(`✅ 訂單 ${id} 已儲存（${days.length}天出車）`,'ok');
   closeMd('orderMd');
 }
