@@ -577,34 +577,9 @@ tbody tr:last-child td{border-bottom:none}
           </div>
         </div>
         <div class="card">
-          <div class="card-hd"><span class="card-title">👥 本月客服業績</span><span class="badge b-navy">2026年4月</span></div>
+          <div class="card-hd"><span class="card-title">👥 本月客服業績</span><span class="badge b-navy" id="perf-month-label"></span></div>
           <div class="card-body">
-            <div class="perf-grid">
-              <div class="perf-card">
-                <div class="perf-avatar">C</div>
-                <div class="perf-name">Christina</div>
-                <div class="perf-val">$84,471</div>
-                <div class="perf-sub">客服獎金</div>
-              </div>
-              <div class="perf-card">
-                <div class="perf-avatar" style="background:linear-gradient(135deg,var(--teal),#06b6d4)">R</div>
-                <div class="perf-name">Renjun</div>
-                <div class="perf-val">$19,409</div>
-                <div class="perf-sub">客服獎金</div>
-              </div>
-              <div class="perf-card">
-                <div class="perf-avatar" style="background:linear-gradient(135deg,var(--purple),#a855f7)">W</div>
-                <div class="perf-name">Wei</div>
-                <div class="perf-val">$67,032</div>
-                <div class="perf-sub">客服獎金</div>
-              </div>
-              <div class="perf-card">
-                <div class="perf-avatar" style="background:linear-gradient(135deg,var(--gold),#fbbf24)">D</div>
-                <div class="perf-name">David</div>
-                <div class="perf-val">$161</div>
-                <div class="perf-sub">客服獎金</div>
-              </div>
-            </div>
+            <div class="perf-grid" id="perf-grid-container"></div>
           </div>
         </div>
       </div>
@@ -1264,17 +1239,35 @@ function initChart(){
   if(!ctx) return;
   // 銷毀舊圖表避免「Canvas is already in use」錯誤
   if(_revenueChart){ _revenueChart.destroy(); _revenueChart=null; }
-  // 使用真實訂單資料計算本月台幣
-  const twdSum = ORDERS.reduce((s,o)=>s+(o.twd||0),0);
+  // 依月份計算（只算當月訂單的 twd 加總）
+  function monthTwd(yr, mo){
+    const pfx1 = yr+'/'+String(mo).padStart(2,'0');
+    const pfx2 = yr+'-'+String(mo).padStart(2,'0');
+    return ORDERS.filter(o=>{
+      const od=(o.odate||''); const hasOd=od.startsWith(pfx1)||od.startsWith(pfx2);
+      const hasDy=(o.days||[]).some(d=>(d.date||'').startsWith(pfx1)||(d.date||'').startsWith(pfx2));
+      return hasOd||hasDy;
+    }).reduce((s,o)=>s+(o.twd||0),0);
+  }
+  const now=new Date(); const yr=now.getFullYear();
+  // 建立近 6 個月標籤與真實資料
+  const months=[]; const labels=[];
+  for(let i=5;i>=0;i--){
+    const d=new Date(yr, now.getMonth()-i, 1);
+    months.push({y:d.getFullYear(),m:d.getMonth()+1});
+    labels.push(d.getFullYear()+'/'+(d.getMonth()+1)+'月');
+  }
+  const twdData = months.map(({y,m})=>Math.round(monthTwd(y,m)/1000)/10);
+  const twdSum = twdData[twdData.length-1]; // 當月（僅供下方變數相容）
   _revenueChart = new Chart(ctx,{
     type:'bar',
     data:{
-      labels:['11月','12月','1月','2月','3月','4月'],
+      labels: labels,
       datasets:[{
         label:'台幣訂金 (萬元)',
-        data:[57.8,70.9,102.2,114.3,129.9, Math.round(twdSum/1000)/10],
-        backgroundColor:['rgba(37,99,235,.12)','rgba(37,99,235,.12)','rgba(37,99,235,.12)','rgba(37,99,235,.12)','rgba(37,99,235,.12)','rgba(37,99,235,.35)'],
-        borderColor:['rgba(37,99,235,.4)','rgba(37,99,235,.4)','rgba(37,99,235,.4)','rgba(37,99,235,.4)','rgba(37,99,235,.4)','rgba(37,99,235,.9)'],
+        data: twdData,
+        backgroundColor: twdData.map((_,i)=>i===twdData.length-1?'rgba(37,99,235,.35)':'rgba(37,99,235,.12)'),
+        borderColor: twdData.map((_,i)=>i===twdData.length-1?'rgba(37,99,235,.9)':'rgba(37,99,235,.4)'),
         borderWidth:2, borderRadius:6,
       }]
     },
@@ -1332,6 +1325,60 @@ function initDashboardKPIs(){
   document.getElementById('pendingBadge').textContent = pending;
 }
 
+// ── DASHBOARD 客服業績動態渲染 ──
+function renderDashboardPerformance(){
+  const now = new Date();
+  const mo    = now.getFullYear()+'/'+String(now.getMonth()+1).padStart(2,'0');
+  const moAlt = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+
+  // 更新月份標籤
+  const lbl = document.getElementById('perf-month-label');
+  if(lbl) lbl.textContent = now.getFullYear()+'年'+(now.getMonth()+1)+'月';
+
+  // 篩出本月訂單
+  const thisMonthOrders = ORDERS.filter(o=>{
+    const odMatch = (o.odate||'').startsWith(mo)||(o.odate||'').startsWith(moAlt);
+    const dayMatch = (o.days||[]).some(d=>(d.date||'').startsWith(mo)||(d.date||'').startsWith(moAlt));
+    return odMatch||dayMatch;
+  });
+
+  // 計算各客服本月獎金（台幣 × %）
+  const map = {};
+  thisMonthOrders.forEach(o=>{
+    const sp = o.split||'';
+    if(!sp) return;
+    const m = sp.match(/^(.+?)-([\d.]+)%$/);
+    if(!m) return;
+    const name = m[1].trim();
+    const pct  = parseFloat(m[2])/100;
+    if(!map[name]) map[name] = 0;
+    map[name] += Math.round((o.twd||0) * pct);
+  });
+
+  const styles = {
+    'Christina': '',
+    'Renjun':    'background:linear-gradient(135deg,var(--teal),#06b6d4)',
+    'Wei':       'background:linear-gradient(135deg,var(--purple),#a855f7)',
+    'David':     'background:linear-gradient(135deg,var(--gold),#fbbf24)',
+  };
+
+  const container = document.getElementById('perf-grid-container');
+  if(!container) return;
+
+  // 固定顯示順序，金額 0 也要顯示
+  const agents = Object.keys(styles);
+  container.innerHTML = agents.map(name=>{
+    const amt = map[name]||0;
+    const st  = styles[name];
+    return `<div class="perf-card">
+      <div class="perf-avatar"${st?' style="'+st+'"':''}>${name[0]}</div>
+      <div class="perf-name">${name}</div>
+      <div class="perf-val">$${amt.toLocaleString()}</div>
+      <div class="perf-sub">客服獎金</div>
+    </div>`;
+  }).join('');
+}
+
 // ── FINANCE PAGE RENDER ──
 function renderFinance(){
   const now = new Date();
@@ -1371,17 +1418,18 @@ function renderFinance(){
   });
   const spTb = document.querySelector('#fin-split-table tbody');
   if(spTb){
-    spTb.innerHTML='';
+    const spRows = [];
     Object.entries(splitMap).sort((a,b)=>b[1].jpy-a[1].jpy).forEach(([sp,v])=>{
       const pct = sp.match(/[\d.]+%/)?sp.match(/[\d.]+%/)[0]:'—';
-      spTb.innerHTML+=`<tr>
+      spRows.push(`<tr>
         <td><span class="badge b-navy" style="font-size:11px">${sp}</span></td>
         <td style="font-weight:600">${v.count} 筆</td>
         <td class="td-money" style="color:var(--purple)">¥${v.jpy.toLocaleString()}</td>
         <td class="td-money" style="color:var(--gold);font-weight:700">¥${v.splitAmt.toLocaleString()}</td>
         <td style="font-size:12px;color:var(--muted)">${pct}</td>
-      </tr>`;
+      </tr>`);
     });
+    spTb.innerHTML = spRows.join('');
   }
 
   // Driver fee table
@@ -1397,36 +1445,38 @@ function renderFinance(){
   });
   const drvTb = document.querySelector('#fin-driver-table tbody');
   if(drvTb){
-    drvTb.innerHTML='';
+    const drvRows = [];
     Object.entries(drvMap).sort((a,b)=>b[1].total-a[1].total).forEach(([drv,v])=>{
       const unpaid = v.total - v.paid;
-      drvTb.innerHTML+=`<tr>
+      drvRows.push(`<tr>
         <td style="font-weight:600;font-size:12px">${drv}</td>
         <td>${v.days} 天</td>
         <td class="td-money" style="color:var(--purple)">¥${v.total.toLocaleString()}</td>
         <td class="td-money" style="color:var(--green)">¥${v.paid.toLocaleString()}</td>
         <td><span class="badge ${unpaid>0?'b-red':'b-green'}" style="font-size:11px">${unpaid>0?'¥'+unpaid.toLocaleString()+' 待付':'✅ 已結清'}</span></td>
-      </tr>`;
+      </tr>`);
     });
+    drvTb.innerHTML = drvRows.join('');
   }
 
   // Orders detail table
   const ordTb = document.querySelector('#fin-orders-table tbody');
   if(ordTb){
-    ordTb.innerHTML='';
+    const ordRows = [];
     ORDERS.forEach(o=>{
       const f=calcFinancials(o);
       const ps=payStatus(o);
-      ordTb.innerHTML+=`<tr>
+      ordRows.push(`<tr>
         <td class="td-order" style="cursor:pointer" onclick="openDetail('${o.id}')">${o.id}</td>
         <td style="font-weight:600">${o.name}</td>
-        <td class="td-money" style="color:var(--purple)">¥${o.jpy.toLocaleString()}</td>
+        <td class="td-money" style="color:var(--purple)">¥${(o.jpy||0).toLocaleString()}</td>
         <td class="td-money" style="color:var(--green)">¥${(o.jpyPaid||0).toLocaleString()}</td>
         <td><span class="badge ${ps.cls}" style="font-size:10px">${ps.label}</span></td>
         <td class="td-money" style="color:var(--blue)">¥${f.totalDrvFee.toLocaleString()}</td>
         <td class="td-money" style="font-weight:700;color:${f.profit>=0?'var(--green)':'var(--red)'}">¥${f.profit.toLocaleString()}</td>
-      </tr>`;
+      </tr>`);
     });
+    ordTb.innerHTML = ordRows.join('');
   }
 }
 
@@ -1488,6 +1538,7 @@ function _applyOrders(orders){
   try{ rebuildFilterDropdowns(); }catch(e){}
   try{ filterOrders(); }catch(e){}
   try{ initDashboardKPIs(); }catch(e){}
+  try{ renderDashboardPerformance(); }catch(e){}
   try{ initChart(); }catch(e){}
 }
 function enterApp(){
@@ -1515,6 +1566,7 @@ function enterApp(){
     ORDERS.length=0;
     try{ renderOrders([]); }catch(e){}
     try{ initDashboardKPIs(); }catch(e){}
+    try{ renderDashboardPerformance(); }catch(e){}
     try{ initChart(); }catch(e){}
     toast('正在載入訂單資料…','');
   }
@@ -1880,6 +1932,7 @@ function saveOrder(){
   else ORDERS.unshift(ord);
   filterOrders();
   initDashboardKPIs();
+  renderDashboardPerformance();
   toast(`✅ 訂單 ${id} 已儲存（${days.length}天出車）`,'ok');
   closeMd('orderMd');
 }
