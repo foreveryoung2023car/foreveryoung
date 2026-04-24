@@ -343,14 +343,38 @@ tbody tr:last-child td{border-bottom:none}
 
 /* ── DAYS TABLE (form) ── */
 .days-section{grid-column:1/-1;border:1.5px solid var(--blue-light);border-radius:var(--radius);overflow:hidden;margin-top:4px}
-.days-hdr{display:grid;grid-template-columns:96px 68px 120px 1fr 1fr 78px 78px 60px 32px;gap:5px;background:#eff6ff;padding:7px 10px;font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.3px}
-.day-row{display:grid;grid-template-columns:96px 68px 120px 1fr 1fr 78px 78px 60px 32px;gap:5px;padding:7px 10px;border-top:1px solid var(--border);align-items:center}
+.days-scroll{overflow-x:auto}
+.days-hdr{display:grid;grid-template-columns:90px 56px 106px 114px 120px 120px 62px 68px 68px 40px 96px 28px;gap:5px;background:#eff6ff;padding:7px 10px;font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.3px;min-width:1000px}
+.day-row{display:grid;grid-template-columns:90px 56px 106px 114px 120px 120px 62px 68px 68px 40px 96px 28px;gap:5px;padding:7px 10px;border-top:1px solid var(--border);align-items:center;min-width:1000px}
 .day-row .di{padding:5px 7px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;width:100%;min-width:0;background:white;transition:border-color .15s}
 .day-row .di:focus{border-color:var(--blue);outline:none;background:white}
 .btn-del-day{width:28px;height:28px;border-radius:6px;background:var(--red-light);color:var(--red);font-size:14px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
 .btn-del-day:hover{background:#fecaca}
 .days-add{padding:8px 10px;background:#f8fafc;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;font-weight:600;color:var(--blue);transition:background .15s}
 .days-add:hover{background:#eff6ff}
+
+/* ── FINANCIAL KPI CARDS (detail modal) ── */
+.fin-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.fin-kpi{border-radius:var(--radius);padding:14px;border:1.5px solid}
+.fin-kpi.fk-twd{background:#f0fdf4;border-color:#bbf7d0}
+.fin-kpi.fk-jpy{background:#f5f3ff;border-color:#ddd6fe}
+.fin-kpi.fk-bal{background:#fffbeb;border-color:#fde68a}
+.fin-kpi.fk-drv{background:#eff6ff;border-color:#bfdbfe}
+.fin-kpi label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px}
+.fin-kpi .fkv{font-size:18px;font-weight:800;line-height:1}
+.fin-kpi .fkv.green{color:#15803d}
+.fin-kpi .fkv.purple{color:#6d28d9}
+.fin-kpi .fkv.gold{color:#b45309}
+.fin-kpi .fkv.blue{color:#1e40af}
+.fin-kpi .fks{font-size:11px;color:var(--muted);margin-top:4px}
+.profit-row{background:var(--bg);border-radius:var(--radius-sm);padding:10px 14px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:12px}
+.profit-row .pr-item{display:flex;align-items:center;gap:6px}
+.profit-row .pr-label{color:var(--muted);font-weight:600}
+.profit-row .pr-val{font-weight:800}
+.drvpaid-tag{font-size:10px;padding:2px 6px;border-radius:99px;font-weight:700}
+.drvpaid-yes{background:#dcfce7;color:#15803d}
+.drvpaid-no{background:#fee2e2;color:#991b1b}
+@media(max-width:768px){.fin-kpis{grid-template-columns:1fr 1fr}}
 
 /* ── DAYS TABLE (detail) ── */
 .days-detail-wrap{overflow-x:auto;margin-top:2px}
@@ -617,9 +641,10 @@ tbody tr:last-child td{border-bottom:none}
                 <th>第一天行程</th>
                 <th>車型 / 司機</th>
                 <th>台幣訂金</th>
-                <th>日幣總額</th>
-                <th>狀態</th>
-                <th>饭務</th>
+                <th>日幣 / 尾款</th>
+                <th>收款狀態</th>
+                <th>訂單狀態</th>
+                <th>業務</th>
                 <th>操作</th>
               </tr>
             </thead>
@@ -719,28 +744,33 @@ tbody tr:last-child td{border-bottom:none}
 
     <!-- ── FINANCE ── -->
     <div class="page" id="page-finance">
-      <div class="page-head"><div class="page-head-left"><h2>財務報表</h2><p>收支概覽與獎金計算</p></div></div>
-      <div class="stats-row" style="margin-bottom:16px">
-        <div class="kpi blue"><div class="kpi-icon">📥</div><div class="kpi-label">本月台幣淨利</div><div class="kpi-value" style="font-size:18px">$1,230,874</div><div class="kpi-sub">扣除司機費後</div></div>
-        <div class="kpi purple"><div class="kpi-icon">¥</div><div class="kpi-label">本月日幣淨利</div><div class="kpi-value" style="font-size:18px">¥5,593K</div><div class="kpi-sub">扣除司機費後</div></div>
-        <div class="kpi gold"><div class="kpi-icon">💸</div><div class="kpi-label">本月支出費用</div><div class="kpi-value" style="font-size:18px">$65,250</div><div class="kpi-sub">廣告+薪資</div></div>
-        <div class="kpi green"><div class="kpi-icon">🎁</div><div class="kpi-label">客服獎金合計</div><div class="kpi-value" style="font-size:18px">$152,253</div><div class="kpi-sub">待發放</div></div>
+      <div class="page-head"><div class="page-head-left"><h2>財務報表</h2><p>收支概覽與獎金計算 — 即時計算自訂單資料</p></div>
+        <button class="btn btn-ghost btn-sm" onclick="renderFinance()">🔄 重新計算</button>
+      </div>
+      <div class="stats-row" id="fin-kpi-row" style="margin-bottom:16px"></div>
+      <div class="grid-2" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-hd"><span class="card-title">🏦 分潤帳戶統計</span><span class="badge b-navy" id="fin-month-label"></span></div>
+          <div class="tbl-wrap"><table id="fin-split-table" style="min-width:auto">
+            <thead><tr><th>分潤帳戶</th><th>訂單數</th><th>日幣總額</th><th>分潤金額</th><th>分潤率</th></tr></thead>
+            <tbody></tbody>
+          </table></div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><span class="card-title">🚗 司機費用追蹤</span></div>
+          <div class="tbl-wrap"><table id="fin-driver-table" style="min-width:auto">
+            <thead><tr><th>司機</th><th>出車天數</th><th>應付費用</th><th>已付費用</th><th>待付</th></tr></thead>
+            <tbody></tbody>
+          </table></div>
+        </div>
       </div>
       <div class="grid-2">
         <div class="card">
-          <div class="card-hd"><span class="card-title">📊 月份收支紀錄</span></div>
-          <div class="tbl-wrap">
-            <table style="min-width:auto">
-              <thead><tr><th>月份</th><th>台幣訂金</th><th>日幣總額</th><th>客服獎金</th></tr></thead>
-              <tbody>
-                <tr><td>2026年4月</td><td class="td-money">$865,675</td><td class="td-money" style="color:var(--purple)">¥3,934,453</td><td>$152,253</td></tr>
-                <tr><td>2026年3月</td><td class="td-money">$1,299,330</td><td class="td-money" style="color:var(--purple)">¥5,906,047</td><td>$173,511</td></tr>
-                <tr><td>2026年2月</td><td class="td-money">$1,143,208</td><td class="td-money" style="color:var(--purple)">¥5,194,400</td><td>$218,729</td></tr>
-                <tr><td>2026年1月</td><td class="td-money">$1,022,454</td><td class="td-money" style="color:var(--purple)">¥4,647,518</td><td>$152,197</td></tr>
-                <tr><td>2025年12月</td><td class="td-money">$709,634</td><td class="td-money" style="color:var(--purple)">¥3,219,973</td><td>$127,804</td></tr>
-              </tbody>
-            </table>
-          </div>
+          <div class="card-hd"><span class="card-title">📋 訂單收款明細</span></div>
+          <div class="tbl-wrap"><table id="fin-orders-table" style="min-width:auto">
+            <thead><tr><th>訂單</th><th>客戶</th><th>日幣總額</th><th>已收</th><th>尾款</th><th>司機費</th><th>毛利</th></tr></thead>
+            <tbody></tbody>
+          </table></div>
         </div>
         <div class="card">
           <div class="card-hd"><span class="card-title">💸 近期支出費用</span></div>
@@ -787,27 +817,127 @@ tbody tr:last-child td{border-bottom:none}
     <div class="page" id="page-customers">
       <div class="page-head"><div class="page-head-left"><h2>客戶資料庫</h2><p>搜尋與管理所有客戶</p></div></div>
       <div class="filter-bar">
-        <div class="search-box" style="flex:1"><span class="search-icon">🔍</span><input type="text" placeholder="搜尋姓名、電話、LINE;…"></div>
-        <select class="fsel"><option>所有來源</option><option>粉尸</option><option>LINE</option><option>IG</option></select>
+        <div class="search-box" style="flex:1"><span class="search-icon">🔍</span><input type="text" placeholder="搜尋姓名、電話、LINE���"></div>
+        <select class="fsel"><option>所有來源</option><option>粉專</option><option>LINE</option><option>IG</option></select>
       </div>
       <div class="card">
         <div class="tbl-wrap">
           <table>
-            <thead><tr><th>姓�56VTc�Ѡ��Ѡ��n��Ѡ��Ѡ�1%9�%�Ѡ��Ѡ������Ѡ��Ѡ�����C����L�Ѡ��Ѡ����Z��V��Ѡ��Ѡ��r��G���Z��Ѡ��Ѡ��N7��p�Ѡ������ѡ����(�������������щ����(�������������������ѐ�������ѐ���������מF/��P�ѐ��ѐ������������ѐ��ѐ���屔􉙽�еͥ������퍽����مȠ����ѕ��������������ѐ��ѐ���屔􉙽�еͥ���������������������������ѐ��ѐ������������􉉅������ѕ������ɐ�������ѐ��ѐ������������􉉅��������������ȃ���������ѐ��ѐ���屔􉙽�еͥ�����������ؼ�м���ѐ��ѐ����ѽ�������􉥄����٥�܈��~��r/���Z����ѽ���ѐ�����(�������������������ѐ�������ѐ���������W�6'����ѐ��ѐ������������ѐ��ѐ���屔􉙽�еͥ������퍽����مȠ����ѕ�������ե�����ѐ��ѐ���屔􉙽�еͥ���������ե����兡����������ѐ��ѐ������������􉉅��������Ք����;��[�6 �������ѐ��ѐ������������􉉅��������������ȃ���������ѐ��ѐ���屔􉙽�еͥ�����������ؼ�м���ѐ��ѐ����ѽ�������􉥄����٥�܈��~��r/���Z����ѽ���ѐ�����(�������������������ѐ�������ѐ�����������G��|�ѐ��ѐ������������ѐ��ѐ���屔􉙽�еͥ������퍽����مȠ����ѕ�����ɍ������ѐ��ѐ���屔􉙽�еͥ���������ɍ���������������ѐ��ѐ������������􉉅�������ɕ������'�� �������ѐ��ѐ������������􉉅��������������ă���������ѐ��ѐ���屔􉙽�еͥ�����������ؼ�м���ѐ��ѐ����ѽ�������􉥄����٥�܈��~��r/���Z����ѽ���ѐ�����(�������������������ѐ�������ѐ����������V���l�ѐ��ѐ������������ѐ��ѐ���屔􉙽�еͥ������퍽����مȠ����ѕ���������������ѐ��ѐ���屔􉙽�еͥ�����������ɝ�����������������ѐ��ѐ������������􉉅�������ɕ������'�� �������ѐ��ѐ������������􉉅��������������ă���������ѐ��ѐ���屔􉙽�еͥ�����������ؼ�м���ѐ��ѐ����ѽ�������􉥄����٥�܈��~��r/���Z����ѽ���ѐ�����(�������������щ����(�����������х����(��������𽑥��(������𽑥��(����𽑥��((����������R�R �MQQ%9L��R�R ����(�����؁��������������������͕�ѥ��̈�(�������؁������������������؁�������������������Ј��������Ǣ����h����������R������B�"����k�����h���𽑥��𽑥��(�������؁������ɥ��Ȉ�(���������؁�����􉍅ɐ��(�����������؁�����􉍅ɐ����������������􉍅ɐ�ѥѱ����~F������R������B���������ѽ��������Ѹ��Ѹ��ɥ���䁉Ѹ�ʹ����,��ZÖ�x���ѽ��𽑥��(�����������؁�����􉍅ɐ������(�������������х������屔�ݥ�Ѡ�����퉽ɑ�ȵ������͔鍽����͔�����ݥ�Ѡ��Ѽ��(���������������ѡ������ȁ��屔􉉽ɑ�ȵ���ѽ������ͽ����مȠ����ɑ�Ȥ���Ѡ���屔���������������ѕ�е�����鱕��홽�еͥ������퍽����مȠ����ѕ��������R���Ѡ��Ѡ���屔���������������ѕ�е�����鱕��홽�еͥ������퍽����مȠ����ѕ������K�&��Ѡ��Ѡ���屔􉙽�еͥ������퍽����مȠ����ѕ�����N7��p�Ѡ������ѡ����(���������������щ����(������������������ȁ��屔􉉽ɑ�ȵ���ѽ������ͽ����مȠ��������ѐ���屔�����������������؁��屔􉙽�еݕ��������홽�еͥ��������)ջ��#�����$𽑥���؁��屔􉙽�еͥ������퍽����مȠ����ѕ������ͥ����չ���������𽑥���ѐ��ѐ������������􉉅������ɕ����~FD�������������ѐ��ѐ���屔�ѕ�е�����鍕�ѕ�홽�еͥ������퍽����مȠ����ѕ�����P�ѐ�����(������������������ȁ��屔􉉽ɑ�ȵ���ѽ������ͽ����مȠ��������ѐ���屔�����������������؁��屔􉙽�еݕ��������홽�еͥ��������
-�ɥ�ѥ��𽑥���؁��屔􉙽�еͥ������퍽����مȠ����ѕ������ɥ�ѥ�����������𽑥���ѐ��ѐ������������􉉅��������Ք���~:������r4�������ѐ��ѐ���屔�ѕ�е�����鍕�ѕȈ����ѽ�������􉥄�������Ј�����R����ѽ���ѐ�����(������������������ȁ��屔􉉽ɑ�ȵ���ѽ������ͽ����مȠ��������ѐ���屔�����������������؁��屔􉙽�еݕ��������홽�еͥ��������I���ո𽑥���؁��屔􉙽�еͥ������퍽����مȠ����ѕ����ɕ��չ���������𽑥���ѐ��ѐ������������􉉅��������Ք���~:������r4�������ѐ��ѐ���屔�ѕ�е�����鍕�ѕȈ����ѽ�������􉥄�������Ј�����R����ѽ���ѐ�����(���������������������ѐ���屔�����������������؁��屔􉙽�еݕ��������홽�еͥ��������]��𽑥���؁��屔􉙽�еͥ������퍽����مȠ����ѕ����ݕ����������𽑥���ѐ��ѐ������������􉉅��������Ք���~:������r4�������ѐ��ѐ���屔�ѕ�е�����鍕�ѕȈ����ѽ�������􉥄�������Ј�����R����ѽ���ѐ�����(���������������щ����(�������������х����(����������𽑥��(��������𽑥��(���������؁�����􉍅ɐ��(�����������؁�����􉍅ɐ����������������􉍅ɐ�ѥѱ����~R\�������M����̃����k�.�,������𽑥��(�����������؁�����􉍅ɐ����䈁��屔􉑥�����陱��홱�൑�ɕ�ѥ��鍽�յ�흅��������(�������������؁��屔�������������퉅���ɽչ��مȠ�����퉽ɑ�ȵɅ�����مȠ��Ʌ���̵ʹ�푥�����陱��텱�����ѕ��鍕�ѕ�흅��������(����������������������屔􉙽�еͥ���������~N,������(������������������؁��屔􉙽�еݕ��������홽�еͥ���������^��`��^��r����RǢ�3�2��(𽑥���؁��屔􉙽�еͥ������퍽����مȠ����ѕ�������Z����Zg��𽑥��𽑥��(�������������������������􉉅�������ɕ������屔􉵅ɝ���������Ѽ���^<���˦���h������(������������𽑥��(�������������؁��屔�������������퉅���ɽչ��مȠ�����퉽ɑ�ȵɅ�����مȠ��Ʌ���̵ʹ�푥�����陱��텱�����ѕ��鍕�ѕ�흅��������(����������������������屔􉙽�еͥ���������~J�������(������������������؁��屔􉙽�еݕ��������홽�еͥ���������^��`�����"ۖ2������뢪4𽑥���؁��屔􉙽�еͥ������퍽����مȠ����ѕ��������ϖ�7��Ϣ��Zd𽑥��𽑥��(�������������������������􉉅�������ɕ������屔􉵅ɝ���������Ѽ���^<���˦���h������(������������𽑥��(�������������؁��屔�������������퉅���ɽչ��مȠ�����퉽ɑ�ȵɅ�����مȠ��Ʌ���̵ʹ�푥�����陱��텱�����ѕ��鍕�ѕ�흅��������(����������������������屔􉙽�еͥ���������~N(������(������������������؁��屔􉙽�еݕ��������홽�еͥ���������^��c��Ϛ��𽑥���؁��屔􉙽�еͥ������퍽����مȠ����ѕ�����ʇ�.g������𽑥��𽑥��(�������������������������􉉅�������ɕ������屔􉵅ɝ���������Ѽ���^<���˦���h������(������������𽑥��(����������𽑥��(��������𽑥��(������𽑥��(����𽑥��((��𽵅���(𽑥��((������VC�VC�V@�=IH�Q%0�5=0��VC�VC�V@����(�؁�����􉵽����������􉑕х��5���(���؁�����􉵽�������屔�ݥ�Ѡ��������(�����؁�����􉵽��������(����������؁�����􉵽����ѥѱ�����􉑕х��Q�ѱ������Z���Ϛ𽑥���؁�����􉵽�����Ո����􉑕х��MՈ��𽑥��𽑥��(���������ѽ�������􉵽��������������􉍱�͕5�����х��5������rT���ѽ��(����𽑥��(�����؁�����􉵽���������(�������؁��􉑕х��	����̈���屔􉑥�����陱��흅�����홱���Ʌ���Ʌ����ɝ������ѽ��������𽑥��((��������������+�b;��â������(�������؁������̈��~j@����+�b;������������􉑐���卽չЈ������􉑅䵍�չе�������������𽑥��(�������؁�����􉑅�̵��х����Ʌ���(���������х���������􉑅�̵х�����(�����������ѡ����(����������������(���������������Ѡ���屔�ݥ�Ѡ���������Ѡ�(���������������Ѡ����+�^��r|�Ѡ�(���������������Ѡ��f�ZL�Ѡ�(���������������Ѡ���+�z,�Ѡ�(���������������Ѡ��>㚦|�Ѡ�(���������������Ѡ���f�r��Ѡ�(���������������Ѡ��n��j�r��Ѡ�(���������������Ѡ����V��Ѡ�(���������������Ѡ���3�v8�Ѡ�(���������������Ѡ��>㚦����Ѡ�(���������������Ѡ��
-g����Ѡ�(����������������(�����������ѡ����(�����������щ��䁥�􉑐����̵щ�����щ����(���������х����(������𽑥��((�������؁�����̈���屔􉵅ɝ���ѽ���������~F������"ۚ���(𽑥��(�������؁�����􉑕х����ɥ���(���������؁�����􉑘��񱅉�����O���YQ����������������􉑐�������������𽑥��(���������؁�����􉑘��񱅉�����d𽱅������������􉑐��������������𽑥��(���������؁�����􉑘��񱅉���1%9𽱅������������􉑐���ne"></span></div>
+            <thead><tr><th>姓名</th><th>電話</th><th>LINE ID</th><th>Email</th><th>來源管道</th><th>訂單數</th><th>最近訂單</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr><td class="td-name">張瑋翔</td><td>0981620953</td><td style="font-size:11px;color:var(--muted)">feo062879</td><td style="font-size:11px">feo062879@gmail.com</td><td><span class="badge b-teal">Dcard</span></td><td><span class="badge b-purple">2 筆</span></td><td style="font-size:11px">2026/04/22</td><td><button class="ia ia-view">查看訂單</button></td></tr>
+              <tr><td class="td-name">何卉妤</td><td>0935051580</td><td style="font-size:11px;color:var(--muted)">hohuiyu43</td><td style="font-size:11px">huiyu43@yahoo.com.tw</td><td><span class="badge b-blue">FB討論區</span></td><td><span class="badge b-purple">2 筆</span></td><td style="font-size:11px">2026/04/23</td><td><button class="ia ia-view">查看訂單</button></td></tr>
+              <tr><td class="td-name">游淑娟</td><td>0961135497</td><td style="font-size:11px;color:var(--muted)">hrcgp777</td><td style="font-size:11px">hrcgp777@gmail.com</td><td><span class="badge b-green">FB粉專</span></td><td><span class="badge b-purple">1 筆</span></td><td style="font-size:11px">2026/04/25</td><td><button class="ia ia-view">查看訂單</button></td></tr>
+              <tr><td class="td-name">羅敬媛</td><td>0930178125</td><td style="font-size:11px;color:var(--muted)">miki811125</td><td style="font-size:11px">george811125@gmail.com</td><td><span class="badge b-green">FB粉專</span></td><td><span class="badge b-purple">1 筆</span></td><td style="font-size:11px">2026/04/26</td><td><button class="ia ia-view">查看訂單</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS ── -->
+    <div class="page" id="page-settings">
+      <div class="page-head"><div class="page-head-left"><h2>系統�h�定</h2><p>使用者管理與連線設定</p></div></div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-hd"><span class="card-title">👥 使用者管理</span><button class="btn btn-primary btn-sm">＋ 新增</button></div>
+          <div class="card-body">
+            <table style="width:100%;border-collapse:collapse;min-width:auto">
+              <thead><tr style="border-bottom:1px solid var(--border)"><th style="padding:6px 0;text-align:left;font-size:11px;color:var(--muted)">使用者</th><th style="padding:6px 0;text-align:left;font-size:11px;color:var(--muted)">角色</th><th style="font-size:11px;color:var(--muted)">操作</th></tr></thead>
+              <tbody>
+                <tr style="border-bottom:1px solid var(--bg)"><td style="padding:9px 0"><div style="font-weight:700;font-size:13px">Jun（你）</div><div style="font-size:11px;color:var(--muted)">designbyjun@gmail.com</div></td><td><span class="badge b-red">👑 超管</span></td><td style="text-align:center;font-size:11px;color:var(--muted)">—</td></tr>
+                <tr style="border-bottom:1px solid var(--bg)"><td style="padding:9px 0"><div style="font-weight:700;font-size:13px">Christina</div><div style="font-size:11px;color:var(--muted)">christina@gmail.com</div></td><td><span class="badge b-blue">🎧 客服</span></td><td style="text-align:center"><button class="ia ia-edit">修改</button></td></tr>
+                <tr style="border-bottom:1px solid var(--bg)"><td style="padding:9px 0"><div style="font-weight:700;font-size:13px">Renjun</div><div style="font-size:11px;color:var(--muted)">renjun@gmail.com</div></td><td><span class="badge b-blue">🎧 客服</span></td><td style="text-align:center"><button class="ia ia-edit">修改</button></td></tr>
+                <tr><td style="padding:9px 0"><div style="font-weight:700;font-size:13px">Wei</div><div style="font-size:11px;color:var(--muted)">wei@gmail.com</div></td><td><span class="badge b-blue">🎧 客服</span></td><td style="text-align:center"><button class="ia ia-edit">修改</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><span class="card-title">🔗 Google Sheets 連線狀態</span></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+            <div style="padding:13px;background:var(--bg);border-radius:var(--radius-sm);display:flex;align-items:center;gap:12px">
+              <span style="font-size:20px">📋</span>
+              <div><div style="font-weight:700;font-size:13px">旅乘-日本自由行包車</div><div style="font-size:11px;color:var(--muted)">主訂單資料庫</div></div>
+              <span class="badge b-green" style="margin-left:auto">● 已連線</span>
+            </div>
+            <div style="padding:13px;background:var(--bg);border-radius:var(--radius-sm);display:flex;align-items:center;gap:12px">
+              <span style="font-size:20px">💳</span>
+              <div><div style="font-weight:700;font-size:13px">旅乘-客戶匯款確認</div><div style="font-size:11px;color:var(--muted)">入帳對帳資料</div></div>
+              <span class="badge b-green" style="margin-left:auto">● 已連線</span>
+            </div>
+            <div style="padding:13px;background:var(--bg);border-radius:var(--radius-sm);display:flex;align-items:center;gap:12px">
+              <span style="font-size:20px">📊</span>
+              <div><div style="font-weight:700;font-size:13px">旅乘帳款</div><div style="font-size:11px;color:var(--muted)">財務總帳</div></div>
+              <span class="badge b-green" style="margin-left:auto">● 已連線</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══ ORDER DETAIL MODAL ═══ -->
+<div class="modal-bg" id="detailMd">
+  <div class="modal" style="width:820px">
+    <div class="modal-hd">
+      <div><div class="modal-title" id="detailTitle">訂單詳情</div><div class="modal-sub" id="detailSub"></div></div>
+      <button class="modal-x" onclick="closeMd('detailMd')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="detailBadges" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px"></div>
+
+      <!-- 財務概覽 KPI -->
+      <div class="ds">💰 財務概覽</div>
+      <div class="fin-kpis" id="fin-kpis"></div>
+      <div class="profit-row" id="profit-row"></div>
+
+      <!-- 出車明細表 -->
+      <div class="ds" style="margin-top:16px">🚐 出車明細 <span id="dd-daycount" class="day-count-badge"></span></div>
+      <div class="days-detail-wrap">
+        <table class="days-table">
+          <thead>
+            <tr>
+              <th style="width:30px">#</th>
+              <th>出車日期</th>
+              <th>時間</th>
+              <th>車型</th>
+              <th>司機</th>
+              <th>出發地</th>
+              <th>目的地</th>
+              <th>人數</th>
+              <th>行李</th>
+              <th>司機費</th>
+              <th>已付</th>
+              <th>航班備註</th>
+            </tr>
+          </thead>
+          <tbody id="dd-days-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="ds" style="margin-top:16px">👤 客戶資訊</div>
+      <div class="detail-grid">
+        <div class="df"><label>姓名</label><span id="dd-name"></span></div>
+        <div class="df"><label>電話</label><span id="dd-phone"></span></div>
+        <div class="df"><label>LINE</label><span id="dd-line"></span></div>
         <div class="df" style="grid-column:span 2"><label>Email</label><span id="dd-email" style="font-size:12px"></span></div>
         <div class="df"><label>曝光管道</label><span id="dd-channel"></span></div>
       </div>
 
-      <div class="ds">💰 財務資訊</div>
+      <div class="ds">💳 金流明細</div>
       <div class="detail-grid">
         <div class="df"><label>台幣訂金</label><span id="dd-twd" style="color:var(--green);font-weight:800;font-size:16px"></span></div>
         <div class="df"><label>日幣總額</label><span id="dd-jpy" style="color:var(--purple);font-weight:800;font-size:16px"></span></div>
-        <div class="df"><label>日幣尾款</label><span id="dd-jpybal"></span></div>
+        <div class="df"><label>日幣訂金 (15%)</label><span id="dd-jpydeposit" style="font-weight:700"></span></div>
+        <div class="df"><label>日幣已收</label><span id="dd-jpypaid" style="font-weight:700"></span></div>
+        <div class="df"><label>日幣尾款待收</label><span id="dd-jpybal" style="font-weight:700"></span></div>
         <div class="df"><label>分潤帳戶</label><span id="dd-split"></span></div>
         <div class="df"><label>匯率</label><span id="dd-rate"></span></div>
         <div class="df"><label>帳號後碼</label><span id="dd-acct"></span></div>
+        <div class="df" style="grid-column:span 1"><label>品牌</label><span id="dd-brand"></span></div>
       </div>
 
       <div class="ds">📝 備註</div>
@@ -850,15 +980,18 @@ g����Ѡ�(����������������(����
         <!-- 出車明細 -->
         <div class="form-section" style="display:flex;align-items:center;justify-content:space-between">
           <span>🚐 出車明細</span>
-          <span style="font-size:11px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">每行代表一天出車，可新增多天</span>
+          <span style="font-size:11px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">每行代表$��天出車，可新增多天</span>
         </div>
         <div class="full" style="grid-column:1/-1">
           <div class="days-section" id="daysSection">
-            <div class="days-hdr">
-              <span>出車日期</span><span>時間</span><span>車型</span><span>司機</span>
-              <span>出發地</span><span>目的地</span><span>人數</span><span>行李</span><span></span>
+            <div class="days-scroll">
+              <div class="days-hdr">
+                <span>出車日期</span><span>時間</span><span>車型</span><span>司機</span>
+                <span>出發地</span><span>目的地</span><span>人數</span><span>行李</span>
+                <span>司機費¥</span><span>已付</span><span>航班備註</span><span></span>
+              </div>
+              <div id="dayRows"></div>
             </div>
-            <div id="dayRows"></div>
             <div class="days-add" onclick="addDayRow()">
               ＋ 新增一天出車
             </div>
@@ -884,7 +1017,8 @@ g����Ѡ�(����������������(����
         <div class="fg"><label>台幣訂金 (NT$)</label><input class="fi" type="number" placeholder="0" id="f-twd"></div>
         <div class="fg"><label>日幣總額 (¥)</label><input class="fi" type="number" placeholder="0" id="f-jpy"></div>
         <div class="fg"><label>日幣訂金15% (¥)</label><input class="fi" type="number" placeholder="0" id="f-jpydeposit"></div>
-        <div class="fg"><label>日幣尾款 (¥)</label><input class="fi" type="number" placeholder="0" id="f-jpybal"></div>
+        <div class="fg"><label>日幣已收 (¥)</label><input class="fi" type="number" placeholder="0" id="f-jpypaid"></div>
+        <div class="fg"><label>日幣尾款待收 (¥)</label><input class="fi" type="number" placeholder="0" id="f-jpybal"></div>
         <div class="fg"><label>匯率</label><input class="fi" type="number" step="0.001" placeholder="0.22" id="f-rate"></div>
         <div class="fg"><label>帳號後碼（末5碼）</label><input class="fi" placeholder="後5碼" id="f-acct"></div>
         <div class="fg full"><label>備註</label><textarea class="fi" rows="3" id="f-notes" style="resize:vertical"></textarea></div>
@@ -902,7 +1036,7 @@ g����Ѡ�(����������������(����
 <script>
 // ══════════════════════════════════════════════════
 // 旅乘 ERP — 多天出車訂單資料模型
-// 一筆訂單 (Order) 可包含多天出車明細 (days[])
+// 一筇訂單 (Order) 可包含多天出車明細 (days[])
 // ══════════════════════════════════════════════════
 
 const ORDERS = [
@@ -911,12 +1045,12 @@ const ORDERS = [
     id:'#26042201', odate:'2026/04/22',
     name:'張瑋翔', phone:'0981620953', line:'feo062879', email:'feo062879@gmail.com',
     ch:'Dcard', fb:'',
-    twd:880, jpy:18000, jpyDeposit:2700, jpyBal:0, rate:0.22,
+    twd:880, jpy:18000, jpyDeposit:2700, jpyPaid:18000, jpyBal:0, rate:0.22,
     split:'WTGT-15%', brand:'旅乘', status:'confirmed',
     notes:'VN311-9:30飛', acct:'',
     days:[
       {date:'2026/04/22',time:'06:00',vehicle:'7座舒適款',driver:'東京-李勇軍',
-       from:'HOUSE IKEBUKURO',to:'東京成田T1-VN311',pax:'4大',luggage:'4件',childSeat:0,drvfee:18000,flightNote:'VN311-9:30飛'}
+       from:'HOUSE IKEBUKURO',to:'東京成田T1-VN311',pax:'4大',luggage:'4件',childSeat:0,drvfee:18000,drvPaid:true,flightNote:'VN311-9:30飛'}
     ]
   },
   // ── 3天：富士山+日光+機場 ──
@@ -924,16 +1058,16 @@ const ORDERS = [
     id:'#26042101', odate:'2026/04/21',
     name:'何卉妤', phone:'0935051580', line:'hohuiyu43', email:'huiyu43@yahoo.com.tw',
     ch:'FB討論區', fb:'何小宇',
-    twd:2542, jpy:65000, jpyDeposit:9750, jpyBal:29193, rate:0.22,
+    twd:2542, jpy:65000, jpyDeposit:9750, jpyPaid:9750, jpyBal:29193, rate:0.22,
     split:'Jun-10%', brand:'旅乘', status:'pending',
     notes:'行李較多，需確認空間', acct:'76626',
     days:[
       {date:'2026/04/23',time:'09:00',vehicle:'10座豐田海獅',driver:'東京-小徐',
-       from:'池袋飯店',to:'富士山河口湖一日遊',pax:'5大2小',luggage:'10-12件28吋',childSeat:1,drvfee:25000,flightNote:''},
+       from:'池袋飯店',to:'富士山河口湖一日遊',pax:'5大2小',luggage:'10-12件28吋',childSeat:1,drvfee:25000,drvPaid:false,flightNote:''},
       {date:'2026/04/24',time:'08:30',vehicle:'10座豐田海獅',driver:'東京-小徐',
-       from:'新宿飯店',to:'日光東照宮一日遊',pax:'5大2小',luggage:'10-12件28吋',childSeat:1,drvfee:22000,flightNote:''},
+       from:'新宿飯店',to:'日光東照宮一日遊',pax:'5大2小',luggage:'10-12件28吋',childSeat:1,drvfee:22000,drvPaid:false,flightNote:''},
       {date:'2026/04/25',time:'10:00',vehicle:'7座舒適款',driver:'東京-李勇軍',
-       from:'新宿飯店',to:'東京羽田T3-長榮BR189',pax:'5大2小',luggage:'10-12件28吋',childSeat:1,drvfee:18000,flightNote:'長榮BR189-12:00飛'}
+       from:'新宿飯店',to:'東京羽田T3-長榮BR189',pax:'5大2小',luggage:'10-12件28吋',childSeat:1,drvfee:18000,drvPaid:false,flightNote:'長榮BR189-12:00飛'}
     ]
   },
   // ── 2天：富士山+機場 ──
@@ -941,14 +1075,14 @@ const ORDERS = [
     id:'#26042102', odate:'2026/04/21',
     name:'徐苡庭', phone:'0922086602', line:'0922086602', email:'puppy0925@yahoo.com.tw',
     ch:'FB粉專', fb:'Fandyhsu',
-    twd:440, jpy:25000, jpyDeposit:3750, jpyBal:21000, rate:0.22,
+    twd:440, jpy:25000, jpyDeposit:3750, jpyPaid:4000, jpyBal:21000, rate:0.22,
     split:'WTGT-15%', brand:'旅乘', status:'confirmed',
     notes:'', acct:'30561',
     days:[
       {date:'2026/04/22',time:'09:00',vehicle:'10座豐田海獅',driver:'東京-小徐',
-       from:'東京日和飯店',to:'富士山一日遊往返',pax:'6大',luggage:'隨身行李',childSeat:0,drvfee:19000,flightNote:''},
+       from:'東京日和飯店',to:'富士山一日遊往返',pax:'6大',luggage:'隨身行李',childSeat:0,drvfee:19000,drvPaid:true,flightNote:''},
       {date:'2026/04/23',time:'14:00',vehicle:'7座舒適款',driver:'東京-李勇軍',
-       from:'新宿飯店',to:'成田機場T2-CI155',pax:'6大',luggage:'隨身行李',childSeat:0,drvfee:6000,flightNote:'CI155-15:40飛'}
+       from:'新宿飯店',to:'成田機場T2-CI155',pax:'6大',luggage:'隨身行李',childSeat:0,drvfee:6000,drvPaid:false,flightNote:'CI155-15:40飛'}
     ]
   },
   // ── 單天：機場接機 ──
@@ -956,12 +1090,12 @@ const ORDERS = [
     id:'#26042010', odate:'2026/04/20',
     name:'游淑娟', phone:'0961135497', line:'hrcgp777', email:'hrcgp777@gmail.com',
     ch:'FB粉專', fb:'Patty Yu',
-    twd:440, jpy:12000, jpyDeposit:1800, jpyBal:0, rate:0.22,
+    twd:440, jpy:12000, jpyDeposit:1800, jpyPaid:12000, jpyBal:0, rate:0.22,
     split:'WTGT-15%', brand:'旅乘', status:'confirmed',
     notes:'長榮BR106-11:15著', acct:'09874',
     days:[
       {date:'2026/04/25',time:'11:15',vehicle:'7座舒適款',driver:'九州-福岡小弟',
-       from:'福岡國際機場T1',to:'天神中洲飯店',pax:'3大',luggage:'4件',childSeat:0,drvfee:12000,flightNote:'長榮BR106-11:15著'}
+       from:'福岡國際機場T1',to:'天神中洲飯店',pax:'3大',luggage:'4件',childSeat:0,drvfee:12000,drvPaid:true,flightNote:'長榮BR106-11:15著'}
     ]
   },
   // ── 2天：九州動物園+黑川溫泉 ──
@@ -969,14 +1103,14 @@ const ORDERS = [
     id:'#26042011', odate:'2026/04/20',
     name:'羅敬媛', phone:'0930178125', line:'miki811125', email:'george811125@gmail.com',
     ch:'FB粉專', fb:'羅敬媛',
-    twd:660, jpy:65000, jpyDeposit:9750, jpyBal:0, rate:0.22,
+    twd:660, jpy:65000, jpyDeposit:9750, jpyPaid:65000, jpyBal:0, rate:0.22,
     split:'WTGT-15%', brand:'旅乘', status:'confirmed',
     notes:'', acct:'',
     days:[
       {date:'2026/04/26',time:'09:00',vehicle:'10座豐田海獅',driver:'九州-小王',
-       from:'天神博多飯店',to:'九州動物園+由布院一日遊',pax:'4大1小',luggage:'4件+2小件',childSeat:1,drvfee:40000,flightNote:''},
+       from:'天神博多飯店',to:'九州動物園+由布院一日遊',pax:'4大1小',luggage:'4件+2小件',childSeat:1,drvfee:40000,drvPaid:true,flightNote:''},
       {date:'2026/04/27',time:'08:00',vehicle:'10座豐田海獅',driver:'九州-小王',
-       from:'由布院飯店',to:'黑川溫泉+阿蘇山一日遊',pax:'4大1小',luggage:'4件+2小件',childSeat:1,drvfee:25000,flightNote:''}
+       from:'由布院飯店',to:'黑川溫泉+阿蘇山一日遊',pax:'4大1小',luggage:'4件+2小件',childSeat:1,drvfee:25000,drvPaid:true,flightNote:''}
     ]
   },
   // ── 5天：大阪+京都+奈良+神戶+機場 ──
@@ -984,20 +1118,20 @@ const ORDERS = [
     id:'#26042301', odate:'2026/04/19',
     name:'陳美玲', phone:'0912345678', line:'meiling123', email:'meiling@gmail.com',
     ch:'LINE', fb:'',
-    twd:1320, jpy:180000, jpyDeposit:27000, jpyBal:153000, rate:0.22,
+    twd:1320, jpy:180000, jpyDeposit:27000, jpyPaid:27000, jpyBal:153000, rate:0.22,
     split:'WTGT-15%', brand:'旅乘', status:'pending',
     notes:'華航CI155落地 14:50', acct:'',
     days:[
       {date:'2026/04/27',time:'15:30',vehicle:'7座舒適款',driver:'大阪-小田',
-       from:'關西機場T1',to:'大阪難波飯店',pax:'2大',luggage:'2件',childSeat:0,drvfee:18000,flightNote:'華航CI155-14:50著'},
+       from:'關西機場T1',to:'大阪難波飯店',pax:'2大',luggage:'2件',childSeat:0,drvfee:18000,drvPaid:false,flightNote:'華航CI155-14:50著'},
       {date:'2026/04/28',time:'09:00',vehicle:'7座舒適款',driver:'大阪-小田',
-       from:'大阪難波飯店',to:'京都嵐山+金閣寺',pax:'2大',luggage:'隨身',childSeat:0,drvfee:32000,flightNote:''},
+       from:'大阪難波飯店',to:'京都嵐山+金閣寺',pax:'2大',luggage:'隨身',childSeat:0,drvfee:32000,drvPaid:false,flightNote:''},
       {date:'2026/04/29',time:'08:30',vehicle:'7座舒適款',driver:'大阪-小田',
-       from:'京都飯店',to:'奈良一日遊',pax:'2大',luggage:'隨身',childSeat:0,drvfee:28000,flightNote:''},
+       from:'京都飯店',to:'奈良一日遊',pax:'2大',luggage:'隨身',childSeat:0,drvfee:28000,drvPaid:false,flightNote:''},
       {date:'2026/04/30',time:'09:00',vehicle:'7座舒適款',driver:'大阪-小田',
-       from:'大阪飯店',to:'神戶+有馬溫泉一日遊',pax:'2大',luggage:'隨身',childSeat:0,drvfee:35000,flightNote:''},
+       from:'大阪飯店',to:'神戶+有馬溫泉一日遊',pax:'2大',luggage:'隨身',childSeat:0,drvfee:35000,drvPaid:false,flightNote:''},
       {date:'2026/05/01',time:'14:00',vehicle:'7座舒適款',driver:'大阪-小田',
-       from:'大阪飯店',to:'關西機場T1-長榮BR198',pax:'2大',luggage:'2件',childSeat:0,drvfee:18000,flightNote:'長榮BR198-17:10飛'}
+       from:'大阪飯店',to:'關西機場T1-長榮BR198',pax:'2大',luggage:'2件',childSeat:0,drvfee:18000,drvPaid:false,flightNote:'長榮BR198-17:10飛'}
     ]
   },
   // ── 單天：完成訂單 ──
@@ -1005,12 +1139,12 @@ const ORDERS = [
     id:'#26042501', odate:'2026/04/18',
     name:'王建民', phone:'0966123456', line:'jianmin', email:'jianmin@gmail.com',
     ch:'粉專', fb:'王建民',
-    twd:3520, jpy:40000, jpyDeposit:6000, jpyBal:0, rate:0.22,
+    twd:3520, jpy:40000, jpyDeposit:6000, jpyPaid:40000, jpyBal:0, rate:0.22,
     split:'WTGT-15%', brand:'旅乘', status:'completed',
     notes:'長榮BR189-12:00飛', acct:'',
     days:[
       {date:'2026/04/29',time:'10:00',vehicle:'7座豪華款',driver:'東京-李勇軍',
-       from:'新宿飯店',to:'羽田機場T3-長榮BR189',pax:'6大',luggage:'10件28吋',childSeat:0,drvfee:40000,flightNote:'長榮BR189-12:00飛'}
+       from:'新宿飯店',to:'羽田機場T3-長榮BR189',pax:'6大',luggage:'10件28吋',childSeat:0,drvfee:40000,drvPaid:true,flightNote:'長榮BR189-12:00飛'}
     ]
   }
 ];
@@ -1033,26 +1167,46 @@ function dateRange(o){
   return fmt(dates[0])+'～'+fmt(dates[dates.length-1]);
 }
 
+// ── 財務計算 ──
+function calcFinancials(o){
+  const totalDrvFee = (o.days||[]).reduce((s,d)=>s+(d.drvfee||0),0);
+  const drvPaidAmt  = (o.days||[]).filter(d=>d.drvPaid).reduce((s,d)=>s+(d.drvfee||0),0);
+  const drvUnpaid   = totalDrvFee - drvPaidAmt;
+  const pct = parseFloat(((o.split||'0-0%').match(/[\d.]+%/)||['0%'])[0])/100;
+  const splitAmt    = Math.round((o.jpy||0) * pct);
+  const profit      = (o.jpy||0) - totalDrvFee - splitAmt;
+  return {totalDrvFee, drvPaidAmt, drvUnpaid, splitAmt, profit};
+}
+
+// ── 收款狀態 ──
+function payStatus(o){
+  const bal = o.jpyBal||0;
+  if(bal<=0) return {label:'✅ 已付清',cls:'b-green'};
+  if((o.jpyPaid||0)>0) return {label:`⚠️ 尾款¥${bal.toLocaleString()}`,cls:'b-yellow'};
+  return {label:`❌ 待收¥${bal.toLocaleString()}`,cls:'b-red'};
+}
+
 // ── CHART ──
 function initChart(){
   const ctx = document.getElementById('revenueChart');
   if(!ctx) return;
+  // D��用真實訂單資料計算本月台幣
+  const twdSum = ORDERS.reduce((s,o)=>s+(o.twd||0),0);
   new Chart(ctx,{
     type:'bar',
     data:{
       labels:['11月','12月','1月','2月','3月','4月'],
       datasets:[{
         label:'台幣訂金 (萬元)',
-        data:[57.8,70.9,102.2,114.3,129.9,86.6],
-        backgroundColor:'rgba(37,99,235,.15)',
-        borderColor:'rgba(37,99,235,.7)',
+        data:[57.8,70.9,102.2,114.3,129.9, Math.round(twdSum/1000)/10],
+        backgroundColor:['rgba(37,99,235,.12)','rgba(37,99,235,.12)','rgba(37,99,235,.12)','rgba(37,99,235,.12)','rgba(37,99,235,.12)','rgba(37,99,235,.35)'],
+        borderColor:['rgba(37,99,235,.4)','rgba(37,99,235,.4)','rgba(37,99,235,.4)','rgba(37,99,235,.4)','rgba(37,99,235,.4)','rgba(37,99,235,.9)'],
         borderWidth:2, borderRadius:6,
-        hoverBackgroundColor:'rgba(37,99,235,.25)',
       }]
     },
     options:{
       responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'NT$ '+ctx.raw+'萬'}}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'NT$ '+c.raw+'萬'}}},
       scales:{
         y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:11},callback:v=>v+'萬'}},
         x:{grid:{display:false},ticks:{font:{size:11}}}
@@ -1061,12 +1215,129 @@ function initChart(){
   });
 }
 
+// ── DASHBOARD KPI 初始化 ──
+function initDashboardKPIs(){
+  const totalOrders = ORDERS.length;
+  const twdSum = ORDERS.reduce((s,o)=>s+(o.twd||0),0);
+  const jpySum = ORDERS.reduce((s,o)=>s+(o.jpy||0),0);
+  const jpyBal = ORDERS.reduce((s,o)=>s+(o.jpyBal||0),0);
+  const pending = ORDERS.filter(o=>o.status==='pending').length;
+
+  document.getElementById('kpi-orders').textContent = totalOrders;
+  // Update KPI cards with real data via innerHTML
+  const kpis = document.querySelectorAll('.kpi');
+  if(kpis[0]) kpis[0].querySelector('.kpi-value').textContent = totalOrders;
+  if(kpis[1]) kpis[1].querySelector('.kpi-value').textContent = '$'+Math.round(twdSum/1000)+'K';
+  if(kpis[2]) kpis[2].querySelector('.kpi-value').textContent = '¥'+Math.round(jpySum/1000)+'K';
+  if(kpis[3]) kpis[3].querySelector('.kpi-value').textContent = pending;
+  document.getElementById('pendingBadge').textContent = pending;
+}
+
+// ── FINANCE PAGE RENDER ──
+function renderFinance(){
+  const now = new Date();
+  const monthLabel = now.getFullYear()+'年'+(now.getMonth()+1)+'月';
+  const el = document.getElementById('fin-month-label');
+  if(el) el.textContent = monthLabel;
+
+  // KPI row
+  const twdSum   = ORDERS.reduce((s,o)=>s+(o.twd||0),0);
+  const jpySum   = ORDERS.reduce((s,o)=>s+(o.jpy||0),0);
+  const jpyBal   = ORDERS.reduce((s,o)=>s+(o.jpyBal||0),0);
+  const drvTotal = ORDERS.reduce((s,o)=>{
+    const f=calcFinancials(o); return s+f.totalDrvFee;
+  },0);
+  const drvUnpaidTotal = ORDERS.reduce((s,o)=>{
+    const f=calcFinancials(o); return s+f.drvUnpaid;
+  },0);
+  const profitTotal = ORDERS.reduce((s,o)=>{
+    const f=calcFinancials(o); return s+f.profit;
+  },0);
+
+  const kr = document.getElementById('fin-kpi-row');
+  if(kr) kr.innerHTML=`
+    <div class="kpi blue"><div class="kpi-icon">💰</div><div class="kpi-label">台幣訂金收款</div><div class="kpi-value" style="font-size:18px">$${twdSum.toLocaleString()}</div><div class="kpi-sub">共 ${ORDERS.length} 筆訂單</div></div>
+    <div class="kpi purple"><div class="kpi-icon">¥</div><div class="kpi-label">日幣尾款待收</div><div class="kpi-value" style="font-size:18px">¥${jpyBal.toLocaleString()}</div><div class="kpi-sub">日幣總額 ¥${jpySum.toLocaleString()}</div></div>
+    <div class="kpi gold"><div class="kpi-icon">🚗</div><div class="kpi-label">司機費待付</div><div class="kpi-value" style="font-size:18px">¥${drvUnpaidTotal.toLocaleString()}</div><div class="kpi-sub">合計應付 ¥${drvTotal.toLocaleString()}</div></div>
+    <div class="kpi green"><div class="kpi-icon">📈</div><div class="kpi-label">預估毛利</div><div class="kpi-value" style="font-size:18px">¥${profitTotal.toLocaleString()}</div><div class="kpi-sub">扣除司機費與分潤後</div></div>`;
+
+  // Split table
+  const splitMap = {};
+  ORDERS.forEach(o=>{
+    const sp = o.split||'未分配';
+    if(!splitMap[sp]) splitMap[sp]={count:0,jpy:0,splitAmt:0};
+    splitMap[sp].count++;
+    splitMap[sp].jpy += o.jpy||0;
+    splitMap[sp].splitAmt += calcFinancials(o).splitAmt;
+  });
+  const spTb = document.querySelector('#fin-split-table tbody');
+  if(spTb){
+    spTb.innerHTML='';
+    Object.entries(splitMap).sort((a,b)=>b[1].jpy-a[1].jpy).forEach(([sp,v])=>{
+      const pct = sp.match(/[\d.]+%/)?sp.match(/[\d.]+%/)[0]:'—';
+      spTb.innerHTML+=`<tr>
+        <td><span class="badge b-navy" style="font-size:11px">${sp}</span></td>
+        <td style="font-weight:600">${v.count} 筆</td>
+        <td class="td-money" style="color:var(--purple)">¥${v.jpy.toLocaleString()}</td>
+        <td class="td-money" style="color:var(--gold);font-weight:700">¥${v.splitAmt.toLocaleString()}</td>
+        <td style="font-size:12px;color:var(--muted)">${pct}</td>
+      </tr>`;
+    });
+  }
+
+  // Driver fee table
+  const drvMap = {};
+  ORDERS.forEach(o=>{
+    (o.days||[]).forEach(d=>{
+      const drv = d.driver||'未指定';
+      if(!drvMap[drv]) drvMap[drv]={days:0,total:0,paid:0};
+      drvMap[drv].days++;
+      drvMap[drv].total += d.drvfee||0;
+      if(d.drvPaid) drvMap[drv].paid += d.drvfee||0;
+    });
+  });
+  const drvTb = document.querySelector('#fin-driver-table tbody');
+  if(drvTb){
+    drvTb.innerHTML='';
+    Object.entries(drvMap).sort((a,b)=>b[1].total-a[1].total).forEach(([drv,v])=>{
+      const unpaid = v.total - v.paid;
+      drvTb.innerHTML+=`<tr>
+        <td style="font-weight:600;font-size:12px">${drv}</td>
+        <td>${v.days} 天</td>
+        <td class="td-money" style="color:var(--purple)">¥${v.total.toLocaleString()}</td>
+        <td class="td-money" style="color:var(--green)">¥${v.paid.toLocaleString()}</td>
+        <td><span class="badge ${unpaid>0?'b-red':'b-green'}" style="font-size:11px">${unpaid>0?'¥'+unpaid.toLocaleString()+' 待付':'✅ 已結清'}</span></td>
+      </tr>`;
+    });
+  }
+
+  // Orders detail table
+  const ordTb = document.querySelector('#fin-orders-table tbody');
+  if(ordTb){
+    ordTb.innerHTML='';
+    ORDERS.forEach(o=>{
+      const f=calcFinancials(o);
+      const ps=payStatus(o);
+      ordTb.innerHTML+=`<tr>
+        <td class="td-order" style="cursor:pointer" onclick="openDetail('${o.id}')">${o.id}</td>
+        <td style="font-weight:600">${o.name}</td>
+        <td class="td-money" style="color:var(--purple)">¥${o.jpy.toLocaleString()}</td>
+        <td class="td-money" style="color:var(--green)">¥${(o.jpyPaid||0).toLocaleString()}</td>
+        <td><span class="badge ${ps.cls}" style="font-size:10px">${ps.label}</span></td>
+        <td class="td-money" style="color:var(--blue)">¥${f.totalDrvFee.toLocaleString()}</td>
+        <td class="td-money" style="font-weight:700;color:${f.profit>=0?'var(--green)':'var(--red)'}">¥${f.profit.toLocaleString()}</td>
+      </tr>`;
+    });
+  }
+}
+
 // ── LOGIN ──
 function doLogin(){
   document.getElementById('loginPage').style.display='none';
   document.getElementById('app').style.display='block';
   renderOrders(ORDERS);
   initChart();
+  initDashboardKPIs();
   const now=new Date();
   document.getElementById('topbarMonth').textContent=now.getFullYear()+'年'+(now.getMonth()+1)+'月';
   toast('歡迎回來，Jun！','ok');
@@ -1085,6 +1356,7 @@ function goPage(id,el){
   document.getElementById('page-'+id).classList.add('active');
   if(el) el.classList.add('active');
   document.getElementById('topbarTitle').textContent=PAGE_TITLES[id]||id;
+  if(id==='finance') renderFinance();
   closeSb();
 }
 function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sbOverlay').classList.toggle('open')}
@@ -1096,45 +1368,46 @@ function renderOrders(list){
   const mc=document.getElementById('orderMCards');
   tb.innerHTML=''; mc.innerHTML='';
   if(!list.length){
-    tb.innerHTML='<tr><td colspan="10"><div class="empty"><div class="ei">📭</div><p>沒有符合條件的訂單</p></div></td></tr>';
+    tb.innerHTML='<tr><td colspan="11"><div class="empty"><div class="ei">📭</div><p>沒有符合條件的訂單</p></div></td></tr>';
     document.getElementById('orderCount').textContent='0';
     document.getElementById('pagerInfo').textContent='無資料';
     return;
   }
   list.forEach(o=>{
-    const s = ST[o.status];
+    const s  = ST[o.status];
+    const ps = payStatus(o);
     const d0 = (o.days&&o.days.length) ? o.days[0] : {};
-    const n = (o.days&&o.days.length) || 1;
-    const rangeTxt = dateRange(o);
-    const dayBadge = n>1 ? `<span class="day-count-badge">🚐 ${n}天</span>` : '';
+    const n  = (o.days&&o.days.length) || 1;
+    const rangeTxt   = dateRange(o);
+    const dayBadge   = n>1 ? `<span class="day-count-badge">🚐 ${n}天</span>` : '';
     const firstRoute = d0.from ? `<div class="td-route">${d0.from}</div><div class="td-muted td-route">→ ${d0.to||''}</div>` : '—';
-    const firstVehicle = d0.vehicle||'—';
-    const firstDriver = d0.driver||'—';
+    const bal = o.jpyBal||0;
 
     tb.innerHTML+=`<tr>
       <td><div class="td-order">${o.id}</div><div class="td-muted">${o.odate}</div></td>
       <td><div class="td-date-range">${rangeTxt}${dayBadge}</div></td>
       <td><div class="td-name">${o.name}</div><div class="td-muted">${o.ch}</div></td>
       <td>${firstRoute}</td>
-      <td><div style="font-size:12px;font-weight:600">${firstVehicle}</div><div class="td-muted">${firstDriver}</div></td>
+      <td><div style="font-size:12px;font-weight:600">${d0.vehicle||'—'}</div><div class="td-muted">${d0.driver||'—'}</div></td>
       <td><div class="td-money">$${o.twd.toLocaleString()}</div></td>
-      <td><div class="td-money td-jpy">¥${o.jpy.toLocaleString()}</div></td>
+      <td><div class="td-money td-jpy">¥${o.jpy.toLocaleString()}</div>${bal>0?`<div style="font-size:10px;color:var(--gold);margin-top:2px">尾款¥${bal.toLocaleString()}</div>`:''}</td>
+      <td><span class="badge ${ps.cls}" style="font-size:10px">${ps.label}</span></td>
       <td><span class="badge ${s.cls}">${s.label}</span></td>
       <td><span class="badge b-navy" style="font-size:10px">${o.split}</span></td>
       <td><div class="td-actions"><button class="ia ia-view" onclick="openDetail('${o.id}')">詳情</button><button class="ia ia-edit" onclick="openEdit('${o.id}')">編輯</button></div></td>
     </tr>`;
 
-    // Mobile card
     mc.innerHTML+=`<div class="m-card">
       <div class="m-card-top"><span class="m-card-id">${o.id}</span><span class="badge ${s.cls}">${s.label}</span></div>
       <div class="m-card-grid">
         <div class="m-field"><label>客戶</label><span>${o.name}</span></div>
         <div class="m-field"><label>出車期間</label><span>${rangeTxt}${n>1?` (${n}天)`:''}</span></div>
-        <div class="m-field"><label>第一天車型</label><span style="font-size:11px">${firstVehicle}</span></div>
-        <div class="m-field"><label>第一天司機</label><span style="font-size:11px">${firstDriver}</span></div>
+        <div class="m-field"><label>車型</label><span style="font-size:11px">${d0.vehicle||'—'}</span></div>
+        <div class="m-field"><label>司機</label><span style="font-size:11px">${d0.driver||'—'}</span></div>
         <div class="m-field"><label>台幣訂金</label><span style="color:var(--green)">$${o.twd.toLocaleString()}</span></div>
-        <div class="m-field"><label>日幣總額</label><span style="color:var(--purple)">¥${o.jpy.toLocaleString()}</span></div>
+        <div class="m-field"><label>日幣</label><span style="color:var(--purple)">¥${o.jpy.toLocaleString()}</span></div>
       </div>
+      <div style="margin-top:8px"><span class="badge ${ps.cls}" style="font-size:10px">${ps.label}</span></div>
       ${d0.from?`<div class="m-route">📍 ${d0.from} → ${d0.to||''}</div>`:''}
       <div class="m-actions"><button class="ia ia-view" onclick="openDetail('${o.id}')">詳情</button><button class="ia ia-edit" onclick="openEdit('${o.id}')">編輯</button></div>
     </div>`;
@@ -1151,11 +1424,7 @@ function filterOrders(){
   const vh=document.getElementById('fVh').value;
   renderOrders(ORDERS.filter(o=>{
     if(q&&!o.id.toLowerCase().includes(q)&&!o.name.toLowerCase().includes(q)&&!o.phone.includes(q)&&!(o.line||'').toLowerCase().includes(q)) return false;
-    if(mo){
-      // 月份篩選：只要任一天在該月份即符合
-      const anyMatch = (o.days||[]).some(d=>d.date&&d.date.startsWith(mo));
-      if(!anyMatch) return false;
-    }
+    if(mo){const anyMatch=(o.days||[]).some(d=>d.date&&d.date.startsWith(mo));if(!anyMatch)return false;}
     if(cs&&o.split!==cs) return false;
     if(st&&o.status!==st) return false;
     if(vh&&!(o.days||[]).some(d=>(d.vehicle||'').includes(vh))) return false;
@@ -1168,33 +1437,55 @@ function openDetail(id){
   const o=ORDERS.find(x=>x.id===id); if(!o) return;
   currentDetailId=id;
   const s=ST[o.status];
+  const ps=payStatus(o);
   const n=(o.days||[]).length;
   document.getElementById('detailTitle').textContent='訂單詳情 — '+o.name;
   document.getElementById('detailSub').textContent=o.id+' | 訂購日期：'+o.odate+' | '+n+'天行程';
   document.getElementById('detailBadges').innerHTML=
     `<span class="badge ${s.cls}">${s.label}</span>`+
+    `<span class="badge ${ps.cls}" style="font-size:10px">${ps.label}</span>`+
     `<span class="badge b-navy">${o.split}</span>`+
     `<span class="badge b-purple">${n} 天出車</span>`+
-    `<span class="badge b-teal">${o.ch}</span>`+
-    `<span class="badge b-gray">${o.brand||'旅乘'}</span>`;
+    `<span class="badge b-teal">${o.ch}</span>`;
   document.getElementById('dd-daycount').textContent=n+' 天';
+
+  // 財務 KPI cards
+  const f = calcFinancials(o);
+  const jpyPaid = o.jpyPaid||0;
+  const balColor = (o.jpyBal||0)>0 ? 'gold' : 'green';
+  document.getElementById('fin-kpis').innerHTML=`
+    <div class="fin-kpi fk-twd"><label>台幣訂金收款</label><div class="fkv green">$${o.twd.toLocaleString()}</div><div class="fks">帳號後碼：${o.acct||'—'}</div></div>
+    <div class="fin-kpi fk-jpy"><label>日幣已收</label><div class="fkv purple">¥${jpyPaid.toLocaleString()}</div><div class="fks">訂金15%：¥${(o.jpyDeposit||0).toLocaleString()}</div></div>
+    <div class="fin-kpi fk-bal"><label>日幣尾款待收</label><div class="fkv ${balColor}">¥${(o.jpyBal||0).toLocaleString()}</div><div class="fks">${(o.jpyBal||0)<=0?'✅ 已全額付清':'⚠️ 尚未收款'}</div></div>
+    <div class="fin-kpi fk-drv"><label>司機費合計</label><div class="fkv blue">¥${f.totalDrvFee.toLocaleString()}</div><div class="fks">待付：¥${f.drvUnpaid.toLocaleString()}</div></div>`;
+
+  // 毛利行
+  document.getElementById('profit-row').innerHTML=`
+    <div class="pr-item"><span class="pr-label">日幣總額</span><span class="pr-val" style="color:var(--purple)">¥${o.jpy.toLocaleString()}</span></div>
+    <span style="color:var(--muted)">−</span>
+    <div class="pr-item"><span class="pr-label">司機費</span><span class="pr-val" style="color:var(--blue)">¥${f.totalDrvFee.toLocaleString()}</span></div>
+    <span style="color:var(--muted)">−</span>
+    <div class="pr-item"><span class="pr-label">分潤(${o.split})</span><span class="pr-val" style="color:var(--gold)">¥${f.splitAmt.toLocaleString()}</span></div>
+    <span style="color:var(--muted)">=</span>
+    <div class="pr-item"><span class="pr-label">毛利</span><span class="pr-val" style="font-size:15px;color:${f.profit>=0?'var(--green)':'var(--red)'}">¥${f.profit.toLocaleString()}</span></div>`;
 
   // 出車明細表
   const tbody=document.getElementById('dd-days-tbody');
   tbody.innerHTML='';
   (o.days||[]).forEach((d,i)=>{
-    const seat=d.childSeat>0?`<span class="badge b-yellow" style="font-size:10px">安全椅×${d.childSeat}</span>`:'';
+    const seat=d.childSeat>0?` <span class="badge b-yellow" style="font-size:9px">安全椅×${d.childSeat}</span>`:'';
     tbody.innerHTML+=`<tr>
       <td><span class="day-num-chip">${i+1}</span></td>
       <td style="font-weight:700;white-space:nowrap">${d.date||'—'}</td>
       <td style="font-weight:600;white-space:nowrap">${d.time||'—'}</td>
       <td><span class="badge b-gray" style="font-size:10px">${d.vehicle||'—'}</span></td>
       <td style="font-size:12px;white-space:nowrap">${d.driver||'—'}</td>
-      <td style="font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis">${d.from||'—'}</td>
-      <td style="font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis">${d.to||'—'}</td>
-      <td style="font-size:12px;white-space:nowrap">${d.pax||'—'} ${seat}</td>
+      <td style="font-size:12px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.from||'—'}</td>
+      <td style="font-size:12px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.to||'—'}</td>
+      <td style="font-size:12px;white-space:nowrap">${d.pax||'—'}${seat}</td>
       <td style="font-size:11px;color:var(--muted)">${d.luggage||'—'}</td>
       <td style="font-weight:700;color:var(--purple);font-size:12px">${d.drvfee>0?'¥'+d.drvfee.toLocaleString():'—'}</td>
+      <td><span class="drvpaid-tag ${d.drvPaid?'drvpaid-yes':'drvpaid-no'}">${d.drvPaid?'✓ 已付':'✗ 未付'}</span></td>
       <td style="font-size:11px;color:var(--muted)">${d.flightNote||'—'}</td>
     </tr>`;
   });
@@ -1206,13 +1497,18 @@ function openDetail(id){
   document.getElementById('dd-email').textContent=o.email||'—';
   document.getElementById('dd-channel').textContent=o.ch;
 
-  // 財務資訊
+  // 金流明細
   document.getElementById('dd-twd').textContent='$'+o.twd.toLocaleString();
   document.getElementById('dd-jpy').textContent='¥'+o.jpy.toLocaleString();
-  document.getElementById('dd-jpybal').textContent=o.jpyBal>0?'¥'+o.jpyBal.toLocaleString()+' 待收':'已付清';
+  document.getElementById('dd-jpydeposit').textContent='¥'+(o.jpyDeposit||0).toLocaleString();
+  document.getElementById('dd-jpypaid').textContent='¥'+(o.jpyPaid||0).toLocaleString();
+  const balEl=document.getElementById('dd-jpybal');
+  balEl.textContent=(o.jpyBal||0)>0?'¥'+o.jpyBal.toLocaleString()+' 待收':'—';
+  balEl.style.color=(o.jpyBal||0)>0?'var(--gold)':'var(--green)';
   document.getElementById('dd-split').textContent=o.split;
   document.getElementById('dd-rate').textContent=o.rate||'—';
   document.getElementById('dd-acct').textContent=o.acct||'—';
+  document.getElementById('dd-brand').textContent=o.brand||'旅乘';
   document.getElementById('dd-notes').textContent=o.notes||'（無備註）';
   openMd('detailMd');
 }
@@ -1225,16 +1521,18 @@ function makeDayRowHtml(idx, d){
   d = d||{};
   const vehicles=['7座舒適款','7座豪華款','10座豐田海獅','14座豐田海獅','19座考斯特','5座舒適款'];
   const vOpts=vehicles.map(v=>`<option${(d.vehicle===v)?' selected':''}>${v}</option>`).join('');
-  const seats=[0,1,2,3].map(n=>`<option value="${n}"${d.childSeat==n?' selected':''}>${n===0?'不需要':n+'個'}</option>`).join('');
   return `<div class="day-row" id="dr-${idx}">
-    <input class="di" type="date" value="${(d.date||'').replace(/\//g,'-')}" placeholder="出車日期" title="出車日期">
-    <input class="di" type="time" value="${d.time||''}" placeholder="時間" title="出發時間">
+    <input class="di" type="date" value="${(d.date||'').replace(/\//g,'-')}" title="出車日期">
+    <input class="di" type="time" value="${d.time||''}" title="出發時間">
     <select class="di" title="車型">${vOpts}</select>
-    <input class="di" value="${d.driver||''}" placeholder="司機（地區-姓名）" title="司機">
+    <input class="di" value="${d.driver||''}" placeholder="地區-姓名" title="司機">
     <input class="di" value="${d.from||''}" placeholder="出發地" title="出發地">
     <input class="di" value="${d.to||''}" placeholder="目的地" title="目的地">
     <input class="di" value="${d.pax||''}" placeholder="人數" title="乘車人數">
-    <input class="di" value="${d.luggage||''}" placeholder="行李" title="行李">
+    <input class="di" value="${d.luggage||''}" placeholder="行李件數" title="行李">
+    <input class="di" type="number" value="${d.drvfee||''}" placeholder="¥0" title="司機費">
+    <select class="di" title="司機費已付"><option value="0"${!d.drvPaid?' selected':''}>未付</option><option value="1"${d.drvPaid?' selected':''}>已付</option></select>
+    <input class="di" value="${d.flightNote||''}" placeholder="航班號時間" title="航班備註">
     <button class="btn-del-day" onclick="delDayRow('dr-${idx}')" title="刪除此天">×</button>
   </div>`;
 }
@@ -1246,11 +1544,8 @@ function addDayRow(d){
 
 function delDayRow(id){
   const el=document.getElementById(id);
-  if(el && document.getElementById('dayRows').children.length>1){
-    el.remove();
-  } else {
-    toast('訂單至少需保留一天出車明細','');
-  }
+  if(el && document.getElementById('dayRows').children.length>1){el.remove();}
+  else{toast('訂單至少需保留一天出車明細','');}
 }
 
 function clearDayRows(){
@@ -1260,10 +1555,9 @@ function clearDayRows(){
 
 function collectDayRows(){
   const rows=document.querySelectorAll('#dayRows .day-row');
-  const days=[];
-  rows.forEach(row=>{
+  return Array.from(rows).map(row=>{
     const inputs=row.querySelectorAll('input,select');
-    days.push({
+    return {
       date:(inputs[0].value||'').replace(/-/g,'/'),
       time:inputs[1].value||'',
       vehicle:inputs[2].value||'',
@@ -1272,10 +1566,12 @@ function collectDayRows(){
       to:inputs[5].value||'',
       pax:inputs[6].value||'',
       luggage:inputs[7].value||'',
-      childSeat:0, drvfee:0, flightNote:''
-    });
+      drvfee:parseInt(inputs[8].value)||0,
+      drvPaid:inputs[9].value==='1',
+      flightNote:inputs[10].value||'',
+      childSeat:0
+    };
   });
-  return days;
 }
 
 // ── FORM: OPEN NEW / EDIT ──
@@ -1288,7 +1584,7 @@ function openNew(){
   document.getElementById('f-status').value='pending';
   document.getElementById('f-split').value='WTGT-15%';
   ['f-name','f-phone','f-line','f-email','f-fb','f-acct','f-notes'].forEach(i=>{const e=document.getElementById(i);if(e)e.value='';});
-  ['f-twd','f-jpy','f-jpydeposit','f-jpybal','f-rate'].forEach(i=>{const e=document.getElementById(i);if(e)e.value='';});
+  ['f-twd','f-jpy','f-jpydeposit','f-jpypaid','f-jpybal'].forEach(i=>{const e=document.getElementById(i);if(e)e.value='';});
   document.getElementById('f-rate').value='0.22';
   clearDayRows();
   addDayRow({date:ds.replace(/-/g,'/')});
@@ -1311,6 +1607,7 @@ function openEdit(id){
   document.getElementById('f-twd').value=o.twd||0;
   document.getElementById('f-jpy').value=o.jpy||0;
   document.getElementById('f-jpydeposit').value=o.jpyDeposit||0;
+  document.getElementById('f-jpypaid').value=o.jpyPaid||0;
   document.getElementById('f-jpybal').value=o.jpyBal||0;
   document.getElementById('f-rate').value=o.rate||0.22;
   document.getElementById('f-acct').value=o.acct||'';
@@ -1323,7 +1620,34 @@ function openEdit(id){
 function saveOrder(){
   const days=collectDayRows();
   if(!days.length||!days[0].date){toast('請至少填寫一天出車日期','');return;}
-  toast(`✅ 訂單已儲存（${days.length}天出車）`,'ok');
+  const id=document.getElementById('f-id').value;
+  const ord={
+    id,
+    odate:document.getElementById('f-odate').value.replace(/-/g,'/'),
+    status:document.getElementById('f-status').value,
+    split:document.getElementById('f-split').value,
+    name:document.getElementById('f-name').value,
+    phone:document.getElementById('f-phone').value,
+    line:document.getElementById('f-line').value,
+    email:document.getElementById('f-email').value,
+    fb:document.getElementById('f-fb').value,
+    ch:document.getElementById('f-ch').value,
+    twd:parseInt(document.getElementById('f-twd').value)||0,
+    jpy:parseInt(document.getElementById('f-jpy').value)||0,
+    jpyDeposit:parseInt(document.getElementById('f-jpydeposit').value)||0,
+    jpyPaid:parseInt(document.getElementById('f-jpypaid').value)||0,
+    jpyBal:parseInt(document.getElementById('f-jpybal').value)||0,
+    rate:parseFloat(document.getElementById('f-rate').value)||0.22,
+    acct:document.getElementById('f-acct').value,
+    notes:document.getElementById('f-notes').value,
+    brand:'旅乘', days
+  };
+  const idx=ORDERS.findIndex(x=>x.id===id);
+  if(idx>=0) ORDERS[idx]=ord;
+  else ORDERS.unshift(ord);
+  filterOrders();
+  initDashboardKPIs();
+  toast(`✅ 訂單 ${id} 已儲存（${days.length}天出車）`,'ok');
   closeMd('orderMd');
 }
 
