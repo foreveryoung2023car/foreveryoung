@@ -129,7 +129,7 @@ a{text-decoration:none;color:inherit}
 .btn-ghost:hover{background:var(--bg);border-color:var(--border2)}
 .btn-danger{background:var(--red-light);color:var(--red);border:1px solid #fecaca}
 .btn-danger:hover{background:#fecaca}
-.btn-sm{padding:6px 12px;font-size:12px}
+.btn-sl{padding:6px 12px;font-size:12px}
 .btn-xs{padding:4px 9px;font-size:11px}
 
 /* ── STATS GRID ── */
@@ -344,8 +344,8 @@ tbody tr:last-child td{border-bottom:none}
 /* ── DAYS TABLE (form) ── */
 .days-section{grid-column:1/-1;border:1.5px solid var(--blue-light);border-radius:var(--radius);overflow:hidden;margin-top:4px}
 .days-scroll{overflow-x:auto}
-.days-hdr{display:grid;grid-template-columns:90px 56px 106px 114px 120px 120px 62px 68px 68px 40px 96px 28px;gap:5px;background:#eff6ff;padding:7px 10px;font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.3px;min-width:1000px}
-.day-row{display:grid;grid-template-columns:90px 56px 106px 114px 120px 120px 62px 68px 68px 40px 96px 28px;gap:5px;padding:7px 10px;border-top:1px solid var(--border);align-items:center;min-width:1000px}
+.days-hdr{display:grid;grid-template-columns;90px 56px 106px 114px 120px 120px 62px 68px 68px 40px 96px 28px;gap:5px;background:#eff6ff;padding:7px 10px;font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.3px;min-width:1000px}
+.day-row{display:grid;grid-template-columns;90px 56px 106px 114px 120px 120px 62px 68px 68px 40px 96px 28px;gap:5px;padding:7px 10px;border-top:1px solid var(--border);align-items:center;min-width:1000px}
 .day-row .di{padding:5px 7px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;width:100%;min-width:0;background:white;transition:border-color .15s}
 .day-row .di:focus{border-color:var(--blue);outline:none;background:white}
 .btn-del-day{width:28px;height:28px;border-radius:6px;background:var(--red-light);color:var(--red);font-size:14px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
@@ -412,11 +412,26 @@ tbody tr:last-child td{border-bottom:none}
       <div class="login-card-logo">🚐</div>
       <div class="login-card-title">歡迎登入</div>
       <div class="login-card-sub">旅乘 ERP 管理系統 · 僅限授權人員</div>
-      <button class="btn-google" onclick="doLogin()">
-        <svg viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-        使用 Google 帳號登入
+      <div style="margin-bottom:12px">
+        <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:6px">存取密碼</label>
+        <div style="position:relative">
+          <input id="pwInput" type="password" placeholder="請輸入系統密碼"
+            style="width:100%;padding:12px 44px 12px 14px;border:1.5px solid var(--border2);border-radius:var(--radius);font-size:14px;background:#fafbfc;transition:all .2s"
+            onkeydown="if(event.key==='Enter')doLogin()"
+            oninput="hidePwErr()"
+            onfocus="this.style.borderColor='var(--blue)';this.style.boxShadow='0 0 0 3px rgba(37,99,235,.1)'"
+            onblur="this.style.borderColor='var(--border2)';this.style.boxShadow='none'">
+          <button onclick="togglePwVis()" type="button"
+            style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:var(--muted);padding:0;line-height:1"
+            id="pwToggleBtn" title="顯示/隱藏密碼">👁</button>
+        </div>
+        <div id="pwErr" style="display:none;font-size:11px;color:var(--red);margin-top:6px;padding:6px 10px;background:var(--red-light);border-radius:6px;border:1px solid #fecaca"></div>
+      </div>
+      <button onclick="doLogin()" id="loginBtn"
+        style="width:100%;padding:13px;border-radius:var(--radius);background:linear-gradient(135deg,var(--blue),var(--sky));color:white;font-size:14px;font-weight:700;border:none;cursor:pointer;transition:all .2s;box-shadow:0 4px 12px rgba(37,99,235,.3);letter-spacing:.3px">
+        🔐 登入系統
       </button>
-      <div class="login-sep">系統資訊</div>
+      <div class="login-sep" style="margin-top:20px">系統資訊</div>
       <div class="login-note">此系統僅限授權人員使用<br>如需申請帳號，請聯繫管理員 Jun</div>
     </div>
   </div>
@@ -803,7 +818,7 @@ tbody tr:last-child td{border-bottom:none}
             <thead><tr><th>日期時間</th><th>台幣金額</th><th>日幣金額</th><th>匯率</th><th>備註</th></tr></thead>
             <tbody>
               <tr><td style="font-size:12px">2026/04/20 14:43</td><td class="td-money">$400,000</td><td class="td-money" style="color:var(--purple)">¥2,013,085</td><td><code style="font-size:12px">0.1987</code></td><td style="font-size:11px;color:var(--muted)">日本賞換匯禮遇</td></tr>
-              <tr><td style="font-size:12px">2026/04/13 10:11</td><td class="td-money">$230,000</td><td class="td-money" style="color:var(--purple)">¥1,152,305</td><td><code style="font-size:12px">0.1996</code></td><td style="font-size:11px;color:var(--muted)">CUBE精選貴賓優惠</td></tr>
+              <tr><td style="font-size:12px">2026/04/13 10:11</td><td class="td-money">$230,000</td><td class="td-money" style="color:var(--purple)">¥1,115,305</td><td><code style="font-size:12px">0.1996</code></td><td style="font-size:11px;color:var(--muted)">CUBE精選貴賓優惠</td></tr>
               <tr><td style="font-size:12px">2026/02/09 11:39</td><td class="td-money">$303,150</td><td class="td-money" style="color:var(--purple)">¥1,500,000</td><td><code style="font-size:12px">0.2021</code></td><td style="font-size:11px;color:var(--muted)">CUBE精選貴賓優惠(C換)</td></tr>
               <tr><td style="font-size:12px">2026/01/23 15:34</td><td class="td-money">$298,950</td><td class="td-money" style="color:var(--purple)">¥1,500,000</td><td><code style="font-size:12px">0.1993</code></td><td style="font-size:11px;color:var(--muted)">數位通路優惠(C換)</td></tr>
               <tr><td style="font-size:12px">2026/01/14 16:13</td><td class="td-money">$300,000</td><td class="td-money" style="color:var(--purple)">¥1,502,253</td><td><code style="font-size:12px">0.1997</code></td><td style="font-size:11px;color:var(--muted)">CUBE精選貴賓優惠</td></tr>
@@ -817,7 +832,7 @@ tbody tr:last-child td{border-bottom:none}
     <div class="page" id="page-customers">
       <div class="page-head"><div class="page-head-left"><h2>客戶資料庫</h2><p>搜尋與管理所有客戶</p></div></div>
       <div class="filter-bar">
-        <div class="search-box" style="flex:1"><span class="search-icon">🔍</span><input type="text" placeholder="搜尋姓名、電話、LINE���"></div>
+        <div class="search-box" style="flex:1"><span class="search-icon">🔍</span><input type="text" placeholder="搜尋姓名、電話、LINE…"></div>
         <select class="fsel"><option>所有來源</option><option>粉專</option><option>LINE</option><option>IG</option></select>
       </div>
       <div class="card">
@@ -837,7 +852,7 @@ tbody tr:last-child td{border-bottom:none}
 
     <!-- ── SETTINGS ── -->
     <div class="page" id="page-settings">
-      <div class="page-head"><div class="page-head-left"><h2>系統�h�定</h2><p>使用者管理與連線設定</p></div></div>
+      <div class="page-head"><div class="page-head-left"><h2>系統設定</h2><p>使用者管理與連線設定</p></div></div>
       <div class="grid-2">
         <div class="card">
           <div class="card-hd"><span class="card-title">👥 使用者管理</span><button class="btn btn-primary btn-sm">＋ 新增</button></div>
@@ -867,7 +882,7 @@ tbody tr:last-child td{border-bottom:none}
               <span class="badge b-green" style="margin-left:auto">● 已連線</span>
             </div>
             <div style="padding:13px;background:var(--bg);border-radius:var(--radius-sm);display:flex;align-items:center;gap:12px">
-              <span style="font-size:20px">📊</span>
+              <span style="font-size:20px">🍊</span>
               <div><div style="font-weight:700;font-size:13px">旅乘帳款</div><div style="font-size:11px;color:var(--muted)">財務總帳</div></div>
               <span class="badge b-green" style="margin-left:auto">● 已連線</span>
             </div>
@@ -980,7 +995,7 @@ tbody tr:last-child td{border-bottom:none}
         <!-- 出車明細 -->
         <div class="form-section" style="display:flex;align-items:center;justify-content:space-between">
           <span>🚐 出車明細</span>
-          <span style="font-size:11px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">每行代表$��天出車，可新增多天</span>
+          <span style="font-size:11px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">每行代表一天出車，可新增多天</span>
         </div>
         <div class="full" style="grid-column:1/-1">
           <div class="days-section" id="daysSection">
@@ -1036,7 +1051,7 @@ tbody tr:last-child td{border-bottom:none}
 <script>
 // ══════════════════════════════════════════════════
 // 旅乘 ERP — 多天出車訂單資料模型
-// 一筇訂單 (Order) 可包含多天出車明細 (days[])
+// 一筆訂單 (Order) 可包含多天出車明細 (days[])
 // ══════════════════════════════════════════════════
 
 const ORDERS = [
@@ -1125,11 +1140,11 @@ const ORDERS = [
       {date:'2026/04/27',time:'15:30',vehicle:'7座舒適款',driver:'大阪-小田',
        from:'關西機場T1',to:'大阪難波飯店',pax:'2大',luggage:'2件',childSeat:0,drvfee:18000,drvPaid:false,flightNote:'華航CI155-14:50著'},
       {date:'2026/04/28',time:'09:00',vehicle:'7座舒適款',driver:'大阪-小田',
-       from:'大阪難波飯店',to:'京都嵐山+金閣寺',pax:'2大',luggage:'隨身',childSeat:0,drvfee:32000,drvPaid:false,flightNote:''},
+       from:'大阪難波飯店',to:'京都嵐山+金閣寺',pax:'2大',luggane:'隨身',childSeat:0,drvfee:32000,drvPaid:false,flightNote:''},
       {date:'2026/04/29',time:'08:30',vehicle:'7座舒適款',driver:'大阪-小田',
        from:'京都飯店',to:'奈良一日遊',pax:'2大',luggage:'隨身',childSeat:0,drvfee:28000,drvPaid:false,flightNote:''},
       {date:'2026/04/30',time:'09:00',vehicle:'7座舒適款',driver:'大阪-小田',
-       from:'大阪飯店',to:'神戶+有馬溫泉一日遊',pax:'2大',luggage:'隨身',childSeat:0,drvfee:35000,drvPaid:false,flightNote:''},
+       from:'大阪飯店',to:'神戶+有馬溫泉一日遊',pax:'2大',luggane:'隨身',childSeat:0,drvfee:35000,drvPaid:false,flightNote:''},
       {date:'2026/05/01',time:'14:00',vehicle:'7座舒適款',driver:'大阪-小田',
        from:'大阪飯店',to:'關西機場T1-長榮BR198',pax:'2大',luggage:'2件',childSeat:0,drvfee:18000,drvPaid:false,flightNote:'長榮BR198-17:10飛'}
     ]
@@ -1190,7 +1205,7 @@ function payStatus(o){
 function initChart(){
   const ctx = document.getElementById('revenueChart');
   if(!ctx) return;
-  // D��用真實訂單資料計算本月台幣
+  // 使用真實訂單資料計算本月台幣
   const twdSum = ORDERS.reduce((s,o)=>s+(o.twd||0),0);
   new Chart(ctx,{
     type:'bar',
@@ -1331,8 +1346,46 @@ function renderFinance(){
   }
 }
 
-// ── LOGIN ──
-function doLogin(){
+// ── LOGIN (密碼驗證 — SHA-256，原始密碼不在程式碼內) ──
+const _PH = '9d52e58890ab74ffe42bf1f97aa14bef9218171ee41ff131c429e04045d58aaa';
+async function _h(s){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function showPwErr(msg){
+  const e=document.getElementById('pwErr');
+  e.textContent='⚠️ '+msg; e.style.display='block';
+  document.getElementById('pwInput').style.borderColor='var(--red)';
+}
+function hidePwErr(){
+  document.getElementById('pwErr').style.display='none';
+  document.getElementById('pwInput').style.borderColor='';
+}
+function togglePwVis(){
+  const inp=document.getElementById('pwInput');
+  const btn=document.getElementById('pwToggleBtn');
+  if(inp.type==='password'){inp.type='text';btn.textContent='🙈';}
+  else{inp.type='password';btn.textContent='👁';}
+}
+async function doLogin(){
+  const pw=(document.getElementById('pwInput').value||'').trim();
+  if(!pw){showPwErr('請輸入密碼');return;}
+  const btn=document.getElementById('loginBtn');
+  btn.textContent='驗證中…'; btn.disabled=true;
+  try{
+    const h=await _h(pw);
+    if(h===_PH){
+      sessionStorage.setItem('_ea','1');
+      enterApp();
+    } else {
+      showPwErr('密碼錯誤，請再試一次');
+      document.getElementById('pwInput').value='';
+      document.getElementById('pwInput').focus();
+    }
+  }catch(e){showPwErr('驗證失敗，請重試');}
+  finally{btn.textContent='🔐 登入系統';btn.disabled=false;}
+}
+function enterApp(){
   document.getElementById('loginPage').style.display='none';
   document.getElementById('app').style.display='block';
   renderOrders(ORDERS);
@@ -1343,8 +1396,14 @@ function doLogin(){
   toast('歡迎回來，Jun！','ok');
 }
 function doLogout(){
+  sessionStorage.removeItem('_ea');
   document.getElementById('app').style.display='none';
   document.getElementById('loginPage').style.display='flex';
+  const inp=document.getElementById('pwInput');
+  if(inp){inp.value='';inp.type='password';}
+  const btn=document.getElementById('pwToggleBtn');
+  if(btn) btn.textContent='👁';
+  hidePwErr();
   toast('已成功登出');
 }
 
@@ -1667,7 +1726,16 @@ function toast(msg,type=''){
 }
 
 // ── INIT ──
-renderOrders(ORDERS);
+// 若同一瀏覽器 session 已驗證過，直接進入（重新整理不需重新輸入密碼）
+if(sessionStorage.getItem('_ea')==='1'){
+  enterApp();
+} else {
+  // 確保登入頁顯示、聚焦密碼欄
+  document.getElementById('loginPage').style.display='flex';
+  document.getElementById('app').style.display='none';
+  setTimeout(()=>{const i=document.getElementById('pwInput');if(i)i.focus();},100);
+}
 </script>
 </body>
 </html>
+ 
