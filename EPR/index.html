@@ -6,7 +6,7 @@
 <title>旅乘 ERP — 日本自由行包車管理系統</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-:root {h
+:root {
   --navy: #0c1f3f;
   --navy2: #142849;
   --navy3: #1e3a5f;
@@ -81,7 +81,7 @@ a{text-decoration:none;color:inherit}
 .layout{display:flex;min-height:100vh}
 
 /* ── SIDEBAR ── */
-.sidebar{width:var(--sidebar-w);background:var(--navy);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:transform .3s ease}
+.sidebar{width:var(--sidebar-w);background:#0c1f3f !important;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100%;min-height:100vh;z-index:100;transition:transform .3s ease;box-shadow:2px 0 12px rgba(0,0,0,.18)}
 .sb-brand{padding:20px 18px 18px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:11px}
 .sb-brand-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--blue),var(--sky));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
 .sb-brand-text{line-height:1}
@@ -116,7 +116,8 @@ a{text-decoration:none;color:inherit}
 /* ── MAIN ── */
 .main{margin-left:var(--sidebar-w);padding-top:var(--topbar-h);min-height:100vh}
 .page{display:none;padding:24px}
-.page.active{display:block}
+.page.active{display:block;animation:pageIn .18s ease}
+@keyframes pageIn{from{opacity:.5;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 .page-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap}
 .page-head-left h2{font-size:18px;font-weight:800;color:var(--text);letter-spacing:-.3px}
 .page-head-left p{font-size:12px;color:var(--muted);margin-top:3px}
@@ -337,6 +338,23 @@ tbody tr:last-child td{border-bottom:none}
   .grid-3{grid-template-columns:1fr}
 }
 
+/* ── DAY TOGGLE TABS ── */
+.day-tab-bar{display:flex;gap:6px;align-items:center}
+.day-tab{padding:5px 14px;border-radius:99px;font-size:12px;font-weight:600;background:var(--bg);color:var(--muted);border:1.5px solid var(--border);transition:all .15s;cursor:pointer}
+.day-tab.active{background:var(--blue);color:white;border-color:var(--blue);box-shadow:0 2px 6px rgba(37,99,235,.3)}
+.day-tab:hover:not(.active){background:var(--bg2);color:var(--text)}
+
+/* ── FINANCE SECTION HEADINGS ── */
+.fin-section{margin-top:20px;margin-bottom:10px;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;display:flex;align-items:center;gap:8px}
+.fin-section::after{content:'';flex:1;height:1px;background:var(--border)}
+.fin-cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.fin-cat{background:white;border-radius:var(--radius);padding:14px 16px;border:1px solid var(--border);box-shadow:var(--shadow-sm)}
+.fin-cat-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.fin-cat-val{font-size:19px;font-weight:800;letter-spacing:-.5px}
+.fin-cat-sub{font-size:11px;color:var(--muted);margin-top:4px}
+@media(max-width:900px){.fin-cat-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.fin-cat-grid{grid-template-columns:1fr}}
+
 /* ── MULTI-DAY BADGE ── */
 .day-count-badge{display:inline-flex;align-items:center;gap:3px;background:rgba(37,99,235,.1);color:var(--blue);font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;margin-left:5px}
 .td-date-range{font-size:12px;font-weight:700;color:var(--text2)}
@@ -525,24 +543,10 @@ tbody tr:last-child td{border-bottom:none}
         <div class="card">
           <div class="card-hd">
             <span class="card-title">⚠️ 待處理事項</span>
-            <span class="badge b-red">3 項待辦</span>
+            <span class="badge b-red" id="pending-badge-count">載入中…</span>
           </div>
-          <div class="card-body card-body-0" style="padding:0 20px">
-            <div class="al-item">
-              <div class="al-icon">💳</div>
-              <div><div class="al-t">未核對入帳 2 筆</div><div class="al-s">$2,860 + $1,540 尚未對應訂單號</div></div>
-              <div class="al-action"><button class="btn btn-ghost btn-xs" onclick="goPage('payment',document.querySelectorAll('.sb-item')[2])">前往</button></div>
-            </div>
-            <div class="al-item">
-              <div class="al-icon">📨</div>
-              <div><div class="al-t">確認訊息未發送 1 筆</div><div class="al-s">訂單 #26042201 尚未發送行程確認</div></div>
-              <div class="al-action"><button class="btn btn-ghost btn-xs" onclick="openDetail('#26042201')">查看</button></div>
-            </div>
-            <div class="al-item">
-              <div class="al-icon">💴</div>
-              <div><div class="al-t">日幣尾款未收 5 筆</div><div class="al-s">本月合計待收 ¥187,000</div></div>
-              <div class="al-action"><button class="btn btn-ghost btn-xs" onclick="goPage('orders',document.querySelectorAll('.sb-item')[1])">前往</button></div>
-            </div>
+          <div class="card-body card-body-0" style="padding:0 20px" id="pending-alerts-list">
+            <div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">計算中…</div>
           </div>
         </div>
       </div>
@@ -551,29 +555,13 @@ tbody tr:last-child td{border-bottom:none}
         <div class="card">
           <div class="card-hd">
             <span class="card-title">📅 近期出車行程</span>
-            <button class="btn btn-ghost btn-sm" onclick="goPage('orders',document.querySelectorAll('.sb-item')[1])">查看全部</button>
+            <div class="day-tab-bar">
+              <button class="day-tab active" id="tab-today" onclick="switchTripTab('today')">今日出車</button>
+              <button class="day-tab" id="tab-tomorrow" onclick="switchTripTab('tomorrow')">明日出車</button>
+            </div>
           </div>
-          <div class="card-body card-body-0" style="padding:0 20px">
-            <div class="tl-item">
-              <div class="tl-dot" style="background:#eff6ff">🚐</div>
-              <div class="tl-content"><div class="t">張瑋翔 — 成田機場接送</div><div class="s">7座 · 李勇軍 · 06:00</div></div>
-              <div class="tl-right"><div class="am">¥18,000</div><div class="dt"><span class="badge b-green">今天</span></div></div>
-            </div>
-            <div class="tl-item">
-              <div class="tl-dot" style="background:#f0fdfa">🗻</div>
-              <div class="tl-content"><div class="t">何卉妤 — 富士山一日遊</div><div class="s">10座 · 九州-小王 · 09:00</div></div>
-              <div class="tl-right"><div class="am">¥65,000</div><div class="dt"><span class="badge b-blue">4/24</span></div></div>
-            </div>
-            <div class="tl-item">
-              <div class="tl-dot" style="background:#fdf4ff">✈️</div>
-              <div class="tl-content"><div class="t">游淑娟 — 羽田機場送機</div><div class="s">7座 · 李勇軍 · 11:15</div></div>
-              <div class="tl-right"><div class="am">¥12,000</div><div class="dt"><span class="badge b-gray">4/25</span></div></div>
-            </div>
-            <div class="tl-item">
-              <div class="tl-dot" style="background:#fffbeb">🦌</div>
-              <div class="tl-content"><div class="t">羅敬媛 — 九州動物園</div><div class="s">10座 · 九州-小王 · 09:00</div></div>
-              <div class="tl-right"><div class="am">¥65,000</div><div class="dt"><span class="badge b-gray">4/26</span></div></div>
-            </div>
+          <div class="card-body card-body-0" style="padding:0 20px" id="upcoming-trips-list">
+            <div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">載入中…</div>
           </div>
         </div>
         <div class="card">
@@ -696,13 +684,25 @@ tbody tr:last-child td{border-bottom:none}
 
     <!-- ── FINANCE ── -->
     <div class="page" id="page-finance">
-      <div class="page-head"><div class="page-head-left"><h2>財務報表</h2><p>收支概覽與獎金計算 — 即時計算自訂單資料</p></div>
+      <div class="page-head"><div class="page-head-left"><h2>財務報表</h2><p>收支概覽與獎金計算 — 即時計算自訂單資料 <span class="badge b-navy" id="fin-month-label" style="font-size:11px"></span></p></div>
         <button class="btn btn-ghost btn-sm" onclick="renderFinance()">🔄 重新計算</button>
       </div>
-      <div class="stats-row" id="fin-kpi-row" style="margin-bottom:16px"></div>
+
+      <!-- ── 核心 KPI ── -->
+      <div class="stats-row" id="fin-kpi-row" style="margin-bottom:4px"></div>
+
+      <!-- ── 收入細分 ── -->
+      <div class="fin-section">💰 收入明細</div>
+      <div class="fin-cat-grid" id="fin-income-cats"></div>
+
+      <!-- ── 支出細分 ── -->
+      <div class="fin-section">💸 支出明細</div>
+      <div class="fin-cat-grid" id="fin-expense-cats"></div>
+
+      <!-- ── 分潤 + 司機 ── -->
       <div class="grid-2" style="margin-bottom:16px">
         <div class="card">
-          <div class="card-hd"><span class="card-title">🏦 分潤帳戶統計</span><span class="badge b-navy" id="fin-month-label"></span></div>
+          <div class="card-hd"><span class="card-title">🏦 分潤帳戶統計</span></div>
           <div class="tbl-wrap"><table id="fin-split-table" style="min-width:auto">
             <thead><tr><th>分潤帳戶</th><th>訂單數</th><th>日幣總額</th><th>分潤金額</th><th>分潤率</th></tr></thead>
             <tbody></tbody>
@@ -716,7 +716,16 @@ tbody tr:last-child td{border-bottom:none}
           </table></div>
         </div>
       </div>
-      <div class="grid-2">
+
+      <!-- ── 車型分析 + 收款明細 ── -->
+      <div class="grid-2" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-hd"><span class="card-title">🚐 車型出車統計</span></div>
+          <div class="tbl-wrap"><table id="fin-vehicle-table" style="min-width:auto">
+            <thead><tr><th>車型</th><th>出車天數</th><th>日幣合計</th><th>司機費合計</th><th>佔比</th></tr></thead>
+            <tbody></tbody>
+          </table></div>
+        </div>
         <div class="card">
           <div class="card-hd"><span class="card-title">📋 訂單收款明細</span></div>
           <div class="tbl-wrap"><table id="fin-orders-table" style="min-width:auto">
@@ -724,14 +733,16 @@ tbody tr:last-child td{border-bottom:none}
             <tbody></tbody>
           </table></div>
         </div>
-        <div class="card">
-          <div class="card-hd">
-            <span class="card-title">💸 近期支出費用</span>
-            <button class="btn btn-primary btn-sm" onclick="openNewExpense()">＋ 新增支出</button>
-          </div>
-          <div class="tbl-wrap" id="expense-table-wrap">
-            <div style="text-align:center;padding:30px;color:var(--muted);font-size:12px">載入中…</div>
-          </div>
+      </div>
+
+      <!-- ── 支出紀錄 ── -->
+      <div class="card">
+        <div class="card-hd">
+          <span class="card-title">🧾 近期支出費用</span>
+          <button class="btn btn-primary btn-sm" onclick="openNewExpense()">＋ 新增支出</button>
+        </div>
+        <div class="tbl-wrap" id="expense-table-wrap">
+          <div style="text-align:center;padding:30px;color:var(--muted);font-size:12px">載入中…</div>
         </div>
       </div>
     </div>
@@ -1325,13 +1336,125 @@ function initDashboardKPIs(){
   document.getElementById('pendingBadge').textContent = pending;
 }
 
+// ── DASHBOARD 近期出車行程 ──
+let _tripTab = 'today';
+function switchTripTab(mode){
+  _tripTab = mode;
+  document.getElementById('tab-today').classList.toggle('active', mode==='today');
+  document.getElementById('tab-tomorrow').classList.toggle('active', mode==='tomorrow');
+  renderUpcomingTrips(mode);
+}
+function _dateStr(offset){
+  const d = new Date(); d.setDate(d.getDate()+(offset||0));
+  return d.getFullYear()+'/'
+    +String(d.getMonth()+1).padStart(2,'0')+'/'
+    +String(d.getDate()).padStart(2,'0');
+}
+function renderUpcomingTrips(mode){
+  const targetDate = _dateStr(mode==='tomorrow'?1:0);
+  const trips = [];
+  ORDERS.forEach(o=>{
+    (o.days||[]).forEach(d=>{
+      if((d.date||'').replace(/-/g,'/')===targetDate) trips.push({o,d});
+    });
+  });
+  trips.sort((a,b)=>(a.d.time||'').localeCompare(b.d.time||''));
+  const container = document.getElementById('upcoming-trips-list');
+  if(!container) return;
+  if(!trips.length){
+    const label = mode==='tomorrow'?'明天':'今天';
+    container.innerHTML=`<div style="text-align:center;padding:24px;color:var(--muted)"><div style="font-size:28px;margin-bottom:6px">🗓️</div><div style="font-size:12px">${label}暫無出車行程</div></div>`;
+    return;
+  }
+  const routeIcon=r=>{
+    if(/機場|airport/i.test(r)) return '✈️';
+    if(/富士/i.test(r)) return '🗻';
+    if(/九州/i.test(r)) return '🦌';
+    if(/日光|神社|寺/i.test(r)) return '⛩️';
+    if(/迪士尼|disney/i.test(r)) return '🎡';
+    return '🚐';
+  };
+  container.innerHTML=trips.map(({o,d})=>{
+    const route=(d.from||'')+(d.to||'');
+    const icon=routeIcon(route);
+    const driverParts=(d.driver||'').split('-');
+    const driverRegion=driverParts.length>1?driverParts[0]:'';
+    const driverName=driverParts.length>1?driverParts[1]:(d.driver||'—');
+    return `<div class="tl-item">
+      <div class="tl-dot" style="background:#eff6ff;font-size:16px">${icon}</div>
+      <div class="tl-content" style="min-width:0">
+        <div class="t">${o.name} <span style="font-size:11px;color:var(--muted);font-weight:500">· ${d.time||'—'} 出發</span></div>
+        <div class="s" style="margin-top:2px">${d.vehicle||'—'}</div>
+        <div class="s" style="margin-top:2px;color:var(--blue);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.from||''} → ${d.to||''}</div>
+      </div>
+      <div class="tl-right" style="flex-shrink:0;min-width:72px">
+        <div style="font-size:11px;font-weight:700;color:var(--navy)">${driverRegion?'<span style="color:var(--muted);font-weight:500">'+driverRegion+'</span> ':''}</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text2)">${driverName}</div>
+        <div style="margin-top:4px"><span class="badge ${d.drvPaid?'b-green':'b-yellow'}" style="font-size:10px">${d.drvPaid?'費✓':'費未付'}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── DASHBOARD 待處理事項 ──
+function renderPendingAlerts(){
+  const items=[];
+  // 1. 待確認訂單
+  const pendingOrds=ORDERS.filter(o=>o.status==='pending');
+  if(pendingOrds.length>0) items.push({
+    icon:'📋',
+    title:`待確認訂單 ${pendingOrds.length} 筆`,
+    sub: pendingOrds.map(o=>o.id).slice(0,3).join('、')+(pendingOrds.length>3?'…':''),
+    onclick:`goPage('orders',document.querySelectorAll('.sb-item')[1])`,label:'前往'
+  });
+  // 2. 日幣尾款未收
+  const unpaidOrds=ORDERS.filter(o=>(o.jpyBal||0)>0);
+  const unpaidJpySum=unpaidOrds.reduce((s,o)=>s+(o.jpyBal||0),0);
+  if(unpaidOrds.length>0) items.push({
+    icon:'💴',
+    title:`日幣尾款未收 ${unpaidOrds.length} 筆`,
+    sub:`合計待收 ¥${unpaidJpySum.toLocaleString()}`,
+    onclick:`goPage('orders',document.querySelectorAll('.sb-item')[1])`,label:'前往'
+  });
+  // 3. 司機費未付
+  const drvUnpaidOrds=ORDERS.filter(o=>(o.days||[]).some(d=>!d.drvPaid&&(d.drvfee||0)>0));
+  const drvUnpaidSum=drvUnpaidOrds.reduce((s,o)=>{return s+calcFinancials(o).drvUnpaid;},0);
+  if(drvUnpaidOrds.length>0) items.push({
+    icon:'🚗',
+    title:`司機費待付 ${drvUnpaidOrds.length} 筆`,
+    sub:`合計 ¥${drvUnpaidSum.toLocaleString()} 未結清`,
+    onclick:`goPage('finance',document.querySelectorAll('.sb-item')[3])`,label:'查看'
+  });
+
+  const badge=document.getElementById('pending-badge-count');
+  if(badge){
+    badge.textContent=items.length+' 項待辦';
+    badge.className=items.length>0?'badge b-red':'badge b-green';
+  }
+  const kpiPendingEl=document.getElementById('kpi-pending');
+  if(kpiPendingEl) kpiPendingEl.textContent=items.length;
+
+  const container=document.getElementById('pending-alerts-list');
+  if(!container) return;
+  if(!items.length){
+    container.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-size:12px">✅ 目前沒有待處理事項</div>';
+    return;
+  }
+  container.innerHTML=items.map(it=>`
+    <div class="al-item">
+      <div class="al-icon">${it.icon}</div>
+      <div><div class="al-t">${it.title}</div><div class="al-s">${it.sub}</div></div>
+      <div class="al-action"><button class="btn btn-ghost btn-xs" onclick="${it.onclick}">${it.label}</button></div>
+    </div>`).join('');
+}
+
 // ── DASHBOARD 客服業績動態渲染 ──
 // 各客服顯示樣式設定（順序即顯示順序）
 const _PERF_STYLES = {
   'Christina': '',
   'David':     'background:linear-gradient(135deg,var(--gold),#fbbf24)',
   'Wei':       'background:linear-gradient(135deg,var(--purple),#a855f7)',
-  'RenJun':       'background:linear-gradient(135deg,var(--teal),#06b6d4)',
+  'RenJun':    'background:linear-gradient(135deg,var(--teal),#06b6d4)',
 };
 
 function renderDashboardPerformance(bonusMap){
@@ -1394,20 +1517,21 @@ function renderFinance(){
   const el = document.getElementById('fin-month-label');
   if(el) el.textContent = monthLabel;
 
-  // KPI row
-  const twdSum   = ORDERS.reduce((s,o)=>s+(o.twd||0),0);
-  const jpySum   = ORDERS.reduce((s,o)=>s+(o.jpy||0),0);
-  const jpyBal   = ORDERS.reduce((s,o)=>s+(o.jpyBal||0),0);
-  const drvTotal = ORDERS.reduce((s,o)=>{
-    const f=calcFinancials(o); return s+f.totalDrvFee;
-  },0);
-  const drvUnpaidTotal = ORDERS.reduce((s,o)=>{
-    const f=calcFinancials(o); return s+f.drvUnpaid;
-  },0);
-  const profitTotal = ORDERS.reduce((s,o)=>{
-    const f=calcFinancials(o); return s+f.profit;
-  },0);
+  // ── 基礎計算 ──
+  const twdSum         = ORDERS.reduce((s,o)=>s+(o.twd||0),0);
+  const jpySum         = ORDERS.reduce((s,o)=>s+(o.jpy||0),0);
+  const jpyPaidSum     = ORDERS.reduce((s,o)=>s+(o.jpyPaid||0),0);
+  const jpyDepositSum  = ORDERS.reduce((s,o)=>s+(o.jpyDeposit||0),0);
+  const jpyBal         = ORDERS.reduce((s,o)=>s+(o.jpyBal||0),0);
+  const drvTotal       = ORDERS.reduce((s,o)=>s+calcFinancials(o).totalDrvFee,0);
+  const drvPaid        = ORDERS.reduce((s,o)=>s+calcFinancials(o).drvPaidAmt,0);
+  const drvUnpaidTotal = ORDERS.reduce((s,o)=>s+calcFinancials(o).drvUnpaid,0);
+  const splitTotal     = ORDERS.reduce((s,o)=>s+calcFinancials(o).splitAmt,0);
+  const profitTotal    = ORDERS.reduce((s,o)=>s+calcFinancials(o).profit,0);
+  const confirmedCnt   = ORDERS.filter(o=>o.status==='confirmed'||o.status==='completed').length;
+  const pendingCnt     = ORDERS.filter(o=>o.status==='pending').length;
 
+  // ── KPI 核心 4 卡 ──
   const kr = document.getElementById('fin-kpi-row');
   if(kr) kr.innerHTML=`
     <div class="kpi blue"><div class="kpi-icon">💰</div><div class="kpi-label">台幣訂金收款</div><div class="kpi-value" style="font-size:18px">$${twdSum.toLocaleString()}</div><div class="kpi-sub">共 ${ORDERS.length} 筆訂單</div></div>
@@ -1415,7 +1539,46 @@ function renderFinance(){
     <div class="kpi gold"><div class="kpi-icon">🚗</div><div class="kpi-label">司機費待付</div><div class="kpi-value" style="font-size:18px">¥${drvUnpaidTotal.toLocaleString()}</div><div class="kpi-sub">合計應付 ¥${drvTotal.toLocaleString()}</div></div>
     <div class="kpi green"><div class="kpi-icon">📈</div><div class="kpi-label">預估毛利</div><div class="kpi-value" style="font-size:18px">¥${profitTotal.toLocaleString()}</div><div class="kpi-sub">扣除司機費與分潤後</div></div>`;
 
-  // Split table
+  // ── 收入明細 細分卡 ──
+  const incEl = document.getElementById('fin-income-cats');
+  if(incEl) incEl.innerHTML=`
+    <div class="fin-cat">
+      <div class="fin-cat-label">🇹🇼 台幣訂金</div>
+      <div class="fin-cat-val" style="color:var(--blue)">$${twdSum.toLocaleString()}</div>
+      <div class="fin-cat-sub">已確認 ${confirmedCnt} 筆 · 待確認 ${pendingCnt} 筆</div>
+    </div>
+    <div class="fin-cat">
+      <div class="fin-cat-label">🇯🇵 日幣已收小計</div>
+      <div class="fin-cat-val" style="color:var(--purple)">¥${jpyPaidSum.toLocaleString()}</div>
+      <div class="fin-cat-sub">含訂金 ¥${jpyDepositSum.toLocaleString()}</div>
+    </div>
+    <div class="fin-cat">
+      <div class="fin-cat-label">⏳ 日幣尾款未收</div>
+      <div class="fin-cat-val" style="color:${jpyBal>0?'var(--gold)':'var(--green)'}">¥${jpyBal.toLocaleString()}</div>
+      <div class="fin-cat-sub">${jpyBal>0?ORDERS.filter(o=>(o.jpyBal||0)>0).length+' 筆尚未收清':'✅ 全數已收'}
+      </div>
+    </div>`;
+
+  // ── 支出明細 細分卡 ──
+  const expEl = document.getElementById('fin-expense-cats');
+  if(expEl) expEl.innerHTML=`
+    <div class="fin-cat">
+      <div class="fin-cat-label">🚗 司機費已付</div>
+      <div class="fin-cat-val" style="color:var(--green)">¥${drvPaid.toLocaleString()}</div>
+      <div class="fin-cat-sub">司機費合計 ¥${drvTotal.toLocaleString()}</div>
+    </div>
+    <div class="fin-cat">
+      <div class="fin-cat-label">🚗 司機費待付</div>
+      <div class="fin-cat-val" style="color:${drvUnpaidTotal>0?'var(--red)':'var(--green)'}">¥${drvUnpaidTotal.toLocaleString()}</div>
+      <div class="fin-cat-sub">${drvUnpaidTotal>0?ORDERS.filter(o=>calcFinancials(o).drvUnpaid>0).length+' 筆訂單未結清':'✅ 司機費已全付'}</div>
+    </div>
+    <div class="fin-cat">
+      <div class="fin-cat-label">🏦 分潤費用</div>
+      <div class="fin-cat-val" style="color:var(--gold)">¥${splitTotal.toLocaleString()}</div>
+      <div class="fin-cat-sub">平均分潤率 ${jpySum>0?Math.round(splitTotal/jpySum*100)+'%':'—'}</div>
+    </div>`;
+
+  // ── 分潤帳戶 table ──
   const splitMap = {};
   ORDERS.forEach(o=>{
     const sp = o.split||'未分配';
@@ -1426,21 +1589,19 @@ function renderFinance(){
   });
   const spTb = document.querySelector('#fin-split-table tbody');
   if(spTb){
-    const spRows = [];
-    Object.entries(splitMap).sort((a,b)=>b[1].jpy-a[1].jpy).forEach(([sp,v])=>{
+    spTb.innerHTML = Object.entries(splitMap).sort((a,b)=>b[1].jpy-a[1].jpy).map(([sp,v])=>{
       const pct = sp.match(/[\d.]+%/)?sp.match(/[\d.]+%/)[0]:'—';
-      spRows.push(`<tr>
+      return `<tr>
         <td><span class="badge b-navy" style="font-size:11px">${sp}</span></td>
         <td style="font-weight:600">${v.count} 筆</td>
         <td class="td-money" style="color:var(--purple)">¥${v.jpy.toLocaleString()}</td>
         <td class="td-money" style="color:var(--gold);font-weight:700">¥${v.splitAmt.toLocaleString()}</td>
         <td style="font-size:12px;color:var(--muted)">${pct}</td>
-      </tr>`);
-    });
-    spTb.innerHTML = spRows.join('');
+      </tr>`;
+    }).join('');
   }
 
-  // Driver fee table
+  // ── 司機費 table ──
   const drvMap = {};
   ORDERS.forEach(o=>{
     (o.days||[]).forEach(d=>{
@@ -1453,28 +1614,60 @@ function renderFinance(){
   });
   const drvTb = document.querySelector('#fin-driver-table tbody');
   if(drvTb){
-    const drvRows = [];
-    Object.entries(drvMap).sort((a,b)=>b[1].total-a[1].total).forEach(([drv,v])=>{
+    drvTb.innerHTML = Object.entries(drvMap).sort((a,b)=>b[1].total-a[1].total).map(([drv,v])=>{
       const unpaid = v.total - v.paid;
-      drvRows.push(`<tr>
+      return `<tr>
         <td style="font-weight:600;font-size:12px">${drv}</td>
         <td>${v.days} 天</td>
         <td class="td-money" style="color:var(--purple)">¥${v.total.toLocaleString()}</td>
         <td class="td-money" style="color:var(--green)">¥${v.paid.toLocaleString()}</td>
         <td><span class="badge ${unpaid>0?'b-red':'b-green'}" style="font-size:11px">${unpaid>0?'¥'+unpaid.toLocaleString()+' 待付':'✅ 已結清'}</span></td>
-      </tr>`);
-    });
-    drvTb.innerHTML = drvRows.join('');
+      </tr>`;
+    }).join('');
   }
 
-  // Orders detail table
+  // ── 車型分析 table ──
+  const vehMap = {};
+  const totalJpy = jpySum || 1;
+  ORDERS.forEach(o=>{
+    (o.days||[]).forEach(d=>{
+      const v = d.vehicle||'未指定';
+      if(!vehMap[v]) vehMap[v]={days:0,jpy:0,drvfee:0};
+      vehMap[v].days++;
+      // 按天數均分日幣到各天
+      const dayCount = (o.days||[]).length || 1;
+      vehMap[v].jpy += Math.round((o.jpy||0)/dayCount);
+      vehMap[v].drvfee += d.drvfee||0;
+    });
+  });
+  const vehTb = document.querySelector('#fin-vehicle-table tbody');
+  if(vehTb){
+    vehTb.innerHTML = Object.entries(vehMap).sort((a,b)=>b[1].days-a[1].days).map(([v,d])=>{
+      const pct = Math.round(d.jpy/totalJpy*100);
+      return `<tr>
+        <td><span class="badge b-blue" style="font-size:11px">${v}</span></td>
+        <td style="font-weight:600">${d.days} 天</td>
+        <td class="td-money" style="color:var(--purple)">¥${d.jpy.toLocaleString()}</td>
+        <td class="td-money" style="color:var(--blue)">¥${d.drvfee.toLocaleString()}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="flex:1;height:5px;background:var(--bg2);border-radius:99px;overflow:hidden">
+              <div style="width:${pct}%;height:100%;background:var(--blue);border-radius:99px"></div>
+            </div>
+            <span style="font-size:11px;color:var(--muted);width:28px;text-align:right">${pct}%</span>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ── 訂單收款明細 table ──
   const ordTb = document.querySelector('#fin-orders-table tbody');
   if(ordTb){
-    const ordRows = [];
-    ORDERS.forEach(o=>{
+    ordTb.innerHTML = ORDERS.map(o=>{
       const f=calcFinancials(o);
       const ps=payStatus(o);
-      ordRows.push(`<tr>
+      return `<tr>
         <td class="td-order" style="cursor:pointer" onclick="openDetail('${o.id}')">${o.id}</td>
         <td style="font-weight:600">${o.name}</td>
         <td class="td-money" style="color:var(--purple)">¥${(o.jpy||0).toLocaleString()}</td>
@@ -1482,9 +1675,8 @@ function renderFinance(){
         <td><span class="badge ${ps.cls}" style="font-size:10px">${ps.label}</span></td>
         <td class="td-money" style="color:var(--blue)">¥${f.totalDrvFee.toLocaleString()}</td>
         <td class="td-money" style="font-weight:700;color:${f.profit>=0?'var(--green)':'var(--red)'}">¥${f.profit.toLocaleString()}</td>
-      </tr>`);
-    });
-    ordTb.innerHTML = ordRows.join('');
+      </tr>`;
+    }).join('');
   }
 }
 
@@ -1532,6 +1724,12 @@ const _GAS_TOKEN='lvcheng_erp_2024';
 
 const _CACHE_KEY = '_erp_orders_v1';
 
+// ── Preload 版本管理：追蹤資料版本，避免重複 render ──
+let _dataVersion = 0;          // 每次 ORDERS 更新就 +1
+let _extraVersion = 0;         // 每次 payments/exchanges/expenses 更新就 +1
+const _renderedAt = {};        // { pageName: dataVersion }
+let _preloadTimer = null;      // 背景 preload 排程
+
 // ── 預熱：頁面一載入就開始 fetch，不等使用者登入 ──
 let _prefetchPromise = null;
 (function prefetch(){
@@ -1543,19 +1741,49 @@ let _prefetchPromise = null;
 function _applyOrders(orders){
   ORDERS.length=0;
   orders.forEach(o=>ORDERS.push(o));
+  _dataVersion++;
+
+  // ── 優先：首頁需要的全部立刻 render ──
   try{ rebuildFilterDropdowns(); }catch(e){}
   try{ filterOrders(); }catch(e){}
   try{ initDashboardKPIs(); }catch(e){}
+  try{ renderUpcomingTrips(_tripTab); }catch(e){}
+  try{ renderPendingAlerts(); }catch(e){}
   try{ loadDashboardPerformance(); }catch(e){}
   try{ initChart(); }catch(e){}
+
+  // ── 背景：其他頁面 preload（首頁畫完後再跑，不搶資源）──
+  clearTimeout(_preloadTimer);
+  _preloadTimer = setTimeout(_preloadOtherPages, 300);
+}
+
+function _preloadOtherPages(){
+  const v = _dataVersion;
+  // 用 rAF 分幀執行，避免佔用主執行緒造成畫面卡頓
+  requestAnimationFrame(()=>{
+    try{ renderFinance();   _renderedAt['finance']   = v; }catch(e){}
+    requestAnimationFrame(()=>{
+      try{ renderCustomers(); _renderedAt['customers'] = v; }catch(e){}
+    });
+  });
 }
 function enterApp(){
+  // ── Step 1：立刻顯示完整框架（sidebar、topbar、頁面骨架全部就位）──
   document.getElementById('loginPage').style.display='none';
   document.getElementById('app').style.display='block';
   const now=new Date();
   document.getElementById('topbarMonth').textContent=now.getFullYear()+'年'+(now.getMonth()+1)+'月';
 
-  // ── 優先從快取載入，讓畫面立即顯示真實資料 ──
+  // ── Step 2：等瀏覽器畫完框架（2 個 rAF 保證 shell 已 paint）再載入資料 ──
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      _enterAppLoadData();
+    });
+  });
+}
+
+function _enterAppLoadData(){
+  // Phase A：快取優先（零網路延遲，立即填入數據）
   let hasCached = false;
   try{
     const raw = localStorage.getItem(_CACHE_KEY);
@@ -1570,22 +1798,21 @@ function enterApp(){
   }catch(e){}
 
   if(!hasCached){
-    // 首次開啟：先顯示空畫面（不顯示假資料）
-    ORDERS.length=0;
-    try{ renderOrders([]); }catch(e){}
+    // 第一次開啟沒有快取：顯示 skeleton（「—」佔位）並等 API
     try{ initDashboardKPIs(); }catch(e){}
+    try{ renderUpcomingTrips('today'); }catch(e){}
+    try{ renderPendingAlerts(); }catch(e){}
     try{ loadDashboardPerformance(); }catch(e){}
     try{ initChart(); }catch(e){}
-    toast('正在載入訂單資料…','');
+    toast('正在從 Google Sheets 載入資料…','');
   }
 
-  // ── 使用預熱的 fetch（若還在進行中就等它，否則重新發）──
+  // Phase B：向 GAS 拉最新資料（預熱 fetch 或新發）
   const fetchPromise = _prefetchPromise || fetch(_GAS_URL+'?token='+_GAS_TOKEN+'&action=orders').then(r=>r.json());
-  _prefetchPromise = null; // 用完就清掉
+  _prefetchPromise = null;
   fetchPromise
     .then(data=>{
       if(data.ok && Array.isArray(data.orders) && data.orders.length>0){
-        // 存入快取供下次開啟立即使用
         try{ localStorage.setItem(_CACHE_KEY, JSON.stringify(data.orders)); }catch(e){}
         _applyOrders(data.orders);
         toast('✅ 已更新 '+data.orders.length+' 筆訂單（Google Sheets）','ok');
@@ -1597,7 +1824,8 @@ function enterApp(){
       console.warn('[ERP] API fetch error:',err);
       if(!hasCached) toast('⚠️ 無法連線 API','');
     });
-  // 同時載入入帳/換匯/支出（用快取先顯示，背景更新）
+
+  // Phase C：收款/換匯/支出（各自有快取，同步背景更新）
   loadAllExtra(false);
 }
 function doLogout(){
@@ -1620,7 +1848,32 @@ function goPage(id,el){
   document.getElementById('page-'+id).classList.add('active');
   if(el) el.classList.add('active');
   document.getElementById('topbarTitle').textContent=PAGE_TITLES[id]||id;
-  if(id==='finance') renderFinance();
+
+  // ── 智慧 render：只有資料比上次 render 還新才重跑 ──
+  if(id==='finance'){
+    if(_renderedAt['finance'] !== _dataVersion){
+      renderFinance();
+      _renderedAt['finance'] = _dataVersion;
+    }
+  }
+  if(id==='customers'){
+    if(_renderedAt['customers'] !== _dataVersion){
+      renderCustomers();
+      _renderedAt['customers'] = _dataVersion;
+    }
+  }
+  if(id==='payment'){
+    if(_renderedAt['payment'] !== _extraVersion){
+      renderPayments(); renderPaymentKPIs();
+      _renderedAt['payment'] = _extraVersion;
+    }
+  }
+  if(id==='exchange'){
+    if(_renderedAt['exchange'] !== _extraVersion){
+      renderExchanges();
+      _renderedAt['exchange'] = _extraVersion;
+    }
+  }
   closeSb();
 }
 function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sbOverlay').classList.toggle('open')}
@@ -1938,11 +2191,20 @@ function saveOrder(){
   const idx=ORDERS.findIndex(x=>x.id===id);
   if(idx>=0) ORDERS[idx]=ord;
   else ORDERS.unshift(ord);
+  _dataVersion++;
+  // 清除舊的 preload 快取，讓下次導頁時重新計算
+  delete _renderedAt['finance'];
+  delete _renderedAt['customers'];
   filterOrders();
   initDashboardKPIs();
+  renderUpcomingTrips(_tripTab);
+  renderPendingAlerts();
   loadDashboardPerformance();
   toast(`✅ 訂單 ${id} 已儲存（${days.length}天出車）`,'ok');
   closeMd('orderMd');
+  // 背景重新 preload
+  clearTimeout(_preloadTimer);
+  _preloadTimer = setTimeout(_preloadOtherPages, 400);
 }
 
 // ── MODAL ──
@@ -1985,14 +2247,21 @@ const _CACHE_EXP = '_erp_expenses_v1';
 // ─── 資料載入 ───
 // ── GAS API 模式（先顯示快取，背景更新）──
 function loadAllExtra(forceRefresh){
-  // 1) 先從 localStorage 快速顯示
-  try{ const r=localStorage.getItem(_CACHE_PAY);  if(r){ PAYMENTS=JSON.parse(r);  } }catch(e){}
-  try{ const r=localStorage.getItem(_CACHE_EX);   if(r){ EXCHANGES=JSON.parse(r); } }catch(e){}
-  try{ const r=localStorage.getItem(_CACHE_EXP);  if(r){ EXPENSES=JSON.parse(r);  } }catch(e){}
-  renderPayments(); renderPaymentKPIs();
-  renderExchanges();
-  renderExpenses();
-  // 2) 背景從 GAS 拉最新資料
+  // 1) 先從 localStorage 快速顯示（cache-first）
+  let hadCache = false;
+  try{ const r=localStorage.getItem(_CACHE_PAY);  if(r){ PAYMENTS=JSON.parse(r);  hadCache=true; } }catch(e){}
+  try{ const r=localStorage.getItem(_CACHE_EX);   if(r){ EXCHANGES=JSON.parse(r); hadCache=true; } }catch(e){}
+  try{ const r=localStorage.getItem(_CACHE_EXP);  if(r){ EXPENSES=JSON.parse(r);  hadCache=true; } }catch(e){}
+  if(hadCache){
+    _extraVersion++;
+    renderPayments(); renderPaymentKPIs();
+    renderExchanges();
+    renderExpenses();
+    _renderedAt['payment']  = _extraVersion;
+    _renderedAt['exchange'] = _extraVersion;
+  }
+
+  // 2) 背景從 GAS 拉最新資料（靜默更新，不打斷使用者）
   const base = _GAS_URL+'?token='+_GAS_TOKEN;
   Promise.all([
     fetch(base+'&action=payments').then(r=>r.json()).catch(()=>null),
@@ -2016,9 +2285,12 @@ function loadAllExtra(forceRefresh){
       updated = true;
     }
     if(updated){
+      _extraVersion++;
       renderPayments(); renderPaymentKPIs();
       renderExchanges();
       renderExpenses();
+      _renderedAt['payment']  = _extraVersion;
+      _renderedAt['exchange'] = _extraVersion;
       if(forceRefresh) toast('✅ 資料已同步','ok');
     }
   }).catch(()=>{});
