@@ -53,7 +53,7 @@ a{text-decoration:none;color:inherit}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
 
-/* ── LOGIN ── */
+/* ── LOGIN ──*/
 #loginPage{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--navy) 0%,#0a3060 50%,#0d1f3c 100%);position:relative;overflow:hidden}
 #loginPage::before{content:'';position:absolute;width:800px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(37,99,235,.15),transparent 70%);top:-300px;right:-200px;pointer-events:none}
 #loginPage::after{content:'';position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(14,165,233,.1),transparent 70%);bottom:-150px;left:-100px;pointer-events:none}
@@ -737,7 +737,7 @@ tbody tr:last-child td{border-bottom:none}
 
       <!-- ── 支出紀錄 ── -->
       <div class="card">
-        <div class="card-hd">
+   <div class="card-hd">
           <span class="card-title">🧾 近期支出費用</span>
           <button class="btn btn-primary btn-sm" onclick="openNewExpense()">＋ 新增支出</button>
         </div>
@@ -1022,7 +1022,7 @@ tbody tr:last-child td{border-bottom:none}
         <div class="fg"><label>訂購日期</label><input class="fi" type="date" id="f-odate"></div>
         <div class="fg"><label>狀態</label>
           <select class="fi" id="f-status">
-            <option value="pending">待確認</option>
+       <option value="pending">待確認</option>
             <option value="confirmed">已確認</option>
             <option value="completed">已完成</option>
           </select>
@@ -1219,8 +1219,7 @@ let currentDetailId = null;
 function dateRange(o){
   if(!o.days||!o.days.length) return '—';
   const dates = o.days.map(d=>d.date).sort();
-  const fmt = d => d.replace(/\d{4}\//,'').replace('/','/');
-  if(dates.length===1) return fmt(dates[0]);
+  const fmt = d => d.replace(/\d{4}\//,'').replace('/','/');  if(dates.length===1) return fmt(dates[0]);
   return fmt(dates[0])+'～'+fmt(dates[dates.length-1]);
 }
 
@@ -1728,7 +1727,7 @@ const _CACHE_KEY = '_erp_orders_v1';
 let _dataVersion = 0;          // 每次 ORDERS 更新就 +1
 let _extraVersion = 0;         // 每次 payments/exchanges/expenses 更新就 +1
 const _renderedAt = {};        // { pageName: dataVersion }
-let _preloadTimer = null;      // 背景 preload 排程
+let _preloadTimer = null;      // 胍景 preload 排程
 
 // ── 預熱：頁面一載入就開始 fetch，不等使用者登入 ──
 let _prefetchPromise = null;
@@ -1752,7 +1751,7 @@ function _applyOrders(orders){
   try{ loadDashboardPerformance(); }catch(e){}
   try{ initChart(); }catch(e){}
 
-  // ── 背景：其他頁面 preload（首頁畫完後再跑，不搶資源）──
+  // ── 胍景：其他頁面 preload（首頁畫完後再跑，不搶資源）──
   clearTimeout(_preloadTimer);
   _preloadTimer = setTimeout(_preloadOtherPages, 300);
 }
@@ -1792,7 +1791,7 @@ function _enterAppLoadData(){
       if(Array.isArray(cached) && cached.length > 0){
         _applyOrders(cached);
         hasCached = true;
-        toast('📂 快取 '+cached.length+' 筆，背景更新中…','');
+        toast('📂 快取 '+cached.length+' 筆，胍景更新中…','');
       }
     }
   }catch(e){}
@@ -1825,7 +1824,7 @@ function _enterAppLoadData(){
       if(!hasCached) toast('⚠️ 無法連線 API','');
     });
 
-  // Phase C：收款/換匯/支出（各自有快取，同步背景更新）
+  // Phase C：收款/換匯/支出（各自有快取，同步胍景更新）
   loadAllExtra(false);
 }
 function doLogout(){
@@ -1930,7 +1929,7 @@ function renderOrders(list){
     </div>`;
   });
   document.getElementById('orderCount').textContent=list.length;
-  document.getElementById('pagerInfo').textContent=`顯示 1–${Math.min(list.length,10)} / ${list.length} 筆`;
+  document.getElementById('pagerInfo').textContent=`顯示 1–3${Math.min(list.length,10)} / ${list.length} 筆`;
 }
 
 function rebuildFilterDropdowns(){
@@ -2066,16 +2065,16 @@ function makeDayRowHtml(idx, d){
   const vOpts=vehicles.map(v=>`<option${(d.vehicle===v)?' selected':''}>${v}</option>`).join('');
   return `<div class="day-row" id="dr-${idx}">
     <input class="di" type="date" value="${(d.date||'').replace(/\//g,'-')}" title="出車日期">
-    <input class="di" type="time" value="${d.time||''}" title="出發時間">
+    <input class="di" type="time" value="${d.time||""}" title="出發時間">
     <select class="di" title="車型">${vOpts}</select>
-    <input class="di" value="${d.driver||''}" placeholder="地區-姓名" title="司機">
-    <input class="di" value="${d.from||''}" placeholder="出發地" title="出發地">
-    <input class="di" value="${d.to||''}" placeholder="目的地" title="目的地">
-    <input class="di" value="${d.pax||''}" placeholder="人數" title="乘車人數">
-    <input class="di" value="${d.luggage||''}" placeholder="行李件數" title="行李">
-    <input class="di" type="number" value="${d.drvfee||''}" placeholder="¥0" title="司機費">
-    <select class="di" title="司機費已付"><option value="0"${!d.drvPaid?' selected':''}>未付</option><option value="1"${d.drvPaid?' selected':''}>已付</option></select>
-    <input class="di" value="${d.flightNote||''}" placeholder="航班號時間" title="航班備註">
+    <input class="di" value="${d.driver||""}" placeholder="地區-姓名" title="司機">
+    <input class="di" value="${d.from||""}" placeholder="出發地" title="出發地">
+    <input class="di" value="${d.to||""}" placeholder="目的地" title="目的地">
+    <input class="di" value="${d.pax||""}" placeholder="人數" title="乘車人數">
+    <input class="di" value="${d.luggage||""}" placeholder="行李件數" title="行李">
+    <input class="di" type="number" value="${d.drvfee||""}" placeholder="¥0" title="司機費">
+    <select class="di" title="司機費已付"><option value="0"${!d.drvPaid?' selected':''>未付</option><option value="1"${d.drvPaid?' selected':''>已付</option></select>
+    <input class="di" value="${d.flightNote||""}" placeholder="航班號時間" title="航班備註">
     <button class="btn-del-day" onclick="delDayRow('dr-${idx}')" title="刪除此天">×</button>
   </div>`;
 }
