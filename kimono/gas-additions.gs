@@ -4,23 +4,26 @@
  * ------------------------------------------------------------
  *  本檔需貼進 Apps Script Editor 既有的 Code.gs 內。
  *  新增兩個 action：
- *    1. adminLogin   — 對「系統設定」分頁驗證客服姓名與密碼
+ *    1. adminLogin   — 對「系統設定」key/value 分頁驗證客服密碼
  *    2. uploadImage  — 後端代理上傳到 imgbb，前端不再帶 key
  *
  *  並提供 verifyAdminToken 給 adminGetOrders / adminUpdate 使用。
  * ============================================================
  *
  *  ── 安裝步驟 ───────────────────────────────────────────────
- *  1) Sheets 開一個分頁「系統設定」，A 欄起放：
+ *  1) Sheets 內已存在的「系統設定」分頁是 key/value 結構：
  *
- *       A 欄: 客服姓名   B 欄: 密碼(明碼)   C 欄: 啟用(TRUE/FALSE)
- *       Jun           kimono           TRUE
- *       Ren           ren_pass         TRUE
- *       Amy           amy_pass         FALSE   ← 停用
+ *       A 欄: 設定項目              B 欄: 設定值
+ *       匯率                       0.22
+ *       店家密碼_kyoto1            京都清水寺店
+ *       客服_1                     Jun
+ *       客服密碼_Jun               <隨機密碼>      ← 客服密碼用這個 key 命名
+ *       客服密碼_Ren               <隨機密碼>
+ *       客服密碼_Amy               <隨機密碼>
  *
  *  2) Apps Script Editor → 左下「⚙ 專案設定」→ 指令碼屬性
  *       新增屬性：
- *         IMGBB_KEY       = fc071a07584cffd920bd85321439cc6b   (或新申請)
+ *         IMGBB_KEY       = fc071a07584cffd920bd85321439cc6b  (或新申請)
  *         ADMIN_TOKEN_TTL = 28800   (秒；預設 8 小時)
  *
  *  3) 把本檔內容整段貼進你的 Code.gs 結尾。
@@ -34,21 +37,36 @@
  *        var auth = verifyAdminToken(payload);
  *        if (!auth.ok) return jsonOut({ status:'unauthorized', message:'請重新登入' });
  *
- *  4) 重新部署 Web App（部署 → 新增部署 → 類型「網頁應用程式」）。
- *     URL 不會變（因為是同一個指令碼），不需改 config.js。
- *
- *  ── 安全等級 ───────────────────────────────────────────────
- *  • 密碼以明碼存 Sheets，僅工作室內部成員可見此 Sheet → 中等。
- *  • 想升級成 hash：把 hashPassword() 取消註解，並改寫 Sheet 的 B 欄為 hash 結果。
- *  • Token 是隨機 16 byte hex，存入 Script Properties，TTL 過期自動失效。
+ *  4) 重新部署 Web App（部署 → 管理部署作業 → 編輯 → 版本：新版本 → 部署）。
+ *     URL 不會變（同一個 deploy ID），不需改 config.js。
  *
  *  ── 維護 ───────────────────────────────────────────────────
- *  • 新增客服：在「系統設定」加一行，填姓名/密碼/TRUE → 完成。
- *  • 停用客服：把 C 欄改成 FALSE。
- *  • 改密碼  ：直接改 B 欄，下次登入即生效。
- *  • 換 imgbb key：改 Script Properties 的 IMGBB_KEY，立即生效。
+ *  • 改密碼  ：到 系統設定 sheet，找 客服密碼_<name>，改 B 欄即可
+ *  • 加客服  ：在 系統設定 sheet 加一行 客服密碼_<新姓名> | <密碼>
+ *  • 停用客服：把該行的密碼欄清空，或刪掉整行
+ *  • 換 imgbb key：改 Script Properties 的 IMGBB_KEY，立即生效
  * ============================================================
  */
+
+
+// ── 0. 讀取 系統設定 為 key/value Map（含 cache 5 秒）──────
+var __SETTINGS_CACHE = { ts: 0, map: null };
+function getSettings_() {
+  if (__SETTINGS_CACHE.map && (Date.now() - __SETTINGS_CACHE.ts) < 5000) {
+    return __SETTINGS_CACHE.map;
+  }
+  var sheet = SpreadsheetApp.getActive().getSheetByName('系統設定');
+  if (!sheet) return {};
+  var values = sheet.getRange(2, 1, sheet.getLastRow() - 1, 2).getValues();
+  var map = {};
+  for (var i = 0; i < values.length; i++) {
+    var k = (values[i][0] || '').toString().trim();
+    var v = values[i][1];
+    if (k) map[k] = v;
+  }
+  __SETTINGS_CACHE = { ts: Date.now(), map: map };
+  return map;
+}
 
 
 // ── 1. 客服登入 ──────────────────────────────────────────────
@@ -57,38 +75,26 @@ function adminLogin(payload) {
   var pass = (payload.password || '').toString();
   if (!name || !pass) return { status: 'error', message: '請填入姓名與密碼' };
 
-  var sheet = SpreadsheetApp.getActive().getSheetByName('系統設定');
-  if (!sheet) return { status: 'error', message: '伺服器尚未設定客服名單' };
+  var settings = getSettings_();
+  var stored = settings['客服密碼_' + name];
 
-  var values = sheet.getRange(2, 1, sheet.getLastRow() - 1, 3).getValues();
-  for (var i = 0; i < values.length; i++) {
-    var row = values[i];
-    var rowName    = (row[0] || '').toString().trim();
-    var rowPass    = (row[1] || '').toString();
-    var rowEnabled = row[2] === true || row[2] === 'TRUE' || row[2] === 'true';
-
-    if (rowName === name) {
-      if (!rowEnabled) return { status: 'error', message: '此帳號已停用，請聯絡管理員' };
-      // 想用 hash 改成： if (hashPassword(pass) === rowPass) { ... }
-      if (rowPass === pass) {
-        var token = issueAdminToken(name);
-        return { status: 'success', agent: name, token: token };
-      } else {
-        return { status: 'error', message: '密碼錯誤，請再試一次' };
-      }
-    }
+  if (stored === undefined || stored === null || stored === '') {
+    return { status: 'error', message: '查無此客服姓名' };
   }
-  return { status: 'error', message: '查無此客服姓名' };
+  if (stored.toString() !== pass) {
+    return { status: 'error', message: '密碼錯誤，請再試一次' };
+  }
+
+  var token = issueAdminToken(name);
+  return { status: 'success', agent: name, token: token };
 }
 
 
 // ── 2. Token 發行 / 驗證 ─────────────────────────────────────
-// Token 存進 Script Properties：key = 'ADM_' + token，value = JSON({name, exp})
 function issueAdminToken(name) {
   var props = PropertiesService.getScriptProperties();
-  var ttl   = parseInt(props.getProperty('ADMIN_TOKEN_TTL') || '28800', 10); // 預設 8 小時
+  var ttl   = parseInt(props.getProperty('ADMIN_TOKEN_TTL') || '28800', 10);
 
-  // 16 byte 隨機 hex
   var bytes = [];
   for (var i = 0; i < 16; i++) bytes.push(Math.floor(Math.random() * 256));
   var token = bytes.map(function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
@@ -122,7 +128,7 @@ function uploadImage(payload) {
   var base64 = (payload.image || '').toString();
   if (!base64) return { status: 'error', message: '沒有收到圖片' };
 
-  // 簡單防呆：base64 約 1.37 倍原始大小，限制 ~7MB base64 ≈ 5MB 原檔
+  // base64 約 1.37 倍原始大小，限制 ~7MB base64 ≈ 5MB 原檔
   if (base64.length > 7 * 1024 * 1024) {
     return { status: 'error', message: '檔案過大（超過 5MB）' };
   }
@@ -147,20 +153,7 @@ function uploadImage(payload) {
 }
 
 
-// ── 4. (選用) 密碼 Hash ──────────────────────────────────────
-// 想升級成 hash 儲存：把 adminLogin 內比對改成 hashPassword(pass) === rowPass，
-// 然後手動把 Sheets B 欄的明碼換成下面這個函式跑出來的字串。
-// function hashPassword(pass) {
-//   var raw = Utilities.computeDigest(
-//     Utilities.DigestAlgorithm.SHA_256,
-//     pass + '||旅乘x和服salt2026',  // 改成你自己的 salt
-//     Utilities.Charset.UTF_8
-//   );
-//   return raw.map(function (b) { return ('0' + (b & 0xff).toString(16)).slice(-2); }).join('');
-// }
-
-
-// ── 5. 在 adminGetOrders / adminUpdate 開頭該怎麼接 ──────────
+// ── 4. 在 adminGetOrders / adminUpdate 開頭該怎麼接 ──────────
 // 範例（請依你現有寫法套用）：
 //
 //   function adminGetOrders(payload) {
