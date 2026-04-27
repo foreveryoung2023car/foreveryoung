@@ -237,9 +237,8 @@
 
 <script>
 const GAS_URL = typeof KIMONO_CONFIG !== 'undefined' ? KIMONO_CONFIG.APPS_SCRIPT_URL : '';
-// Fallback passwords (also loaded from GAS 系統設定 sheet)
-const DEFAULT_PASSES = { 'Jun':'kimono','Ren':'kimono','Amy':'kimono' };
 let currentAgent = '';
+let adminToken  = '';
 let allOrders = [];
 let currentFilter = 'all';
 let editingOrder = null;
@@ -251,37 +250,46 @@ function showLogin() {
   document.getElementById('logout-btn').classList.add('hidden');
   document.getElementById('nav-agent').textContent = '';
   currentAgent = '';
+  adminToken = '';
   localStorage.removeItem('admin_agent');
+  localStorage.removeItem('admin_token');
 }
 
-function doLogin() {
+async function doLogin() {
   const name = document.getElementById('login-name').value.trim();
   const pass = document.getElementById('login-pass').value;
   const err  = document.getElementById('login-err');
+  const btn  = document.querySelector('#login-screen button[onclick="doLogin()"]');
   if (!name || !pass) { err.textContent='請填入姓名與密碼'; err.classList.remove('hidden'); return; }
 
-  // Try to get passwords from GAS
-  fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'getOperators' }) })
-    .then(r => r.json()).catch(() => null)
-    .then(data => {
-      // Build pass map from operators list or fallback
-      let passes = DEFAULT_PASSES;
-      if (data && data.status === 'success' && data.operators) {
-        // operators is array of agent names; passwords are in 系統設定
-      }
-      // Verify against DEFAULT_PASSES (client-side for now)
-      if (DEFAULT_PASSES[name] === pass) {
-        enterDashboard(name);
-      } else {
-        err.textContent = '密碼錯誤，請再試一次';
-        err.classList.remove('hidden');
-      }
+  err.classList.add('hidden');
+  if (btn) { btn.disabled = true; btn.textContent = '驗證中…'; }
+
+  try {
+    const res  = await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'adminLogin', name: name, password: pass })
     });
+    const data = await res.json();
+    if (data && data.status === 'success' && data.token) {
+      enterDashboard(data.agent || name, data.token);
+    } else {
+      err.textContent = (data && data.message) || '密碼錯誤，請再試一次';
+      err.classList.remove('hidden');
+    }
+  } catch (e) {
+    err.textContent = '無法連線到伺服器，請稍後再試';
+    err.classList.remove('hidden');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '登入'; }
+  }
 }
 
-function enterDashboard(name) {
+function enterDashboard(name, token) {
   currentAgent = name;
+  adminToken  = token || '';
   localStorage.setItem('admin_agent', name);
+  if (adminToken) localStorage.setItem('admin_token', adminToken);
   document.getElementById('login-err').classList.add('hidden');
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('dashboard').classList.remove('hidden');
@@ -290,10 +298,11 @@ function enterDashboard(name) {
   loadOrders();
 }
 
-// Auto-login
+// Auto-login (only if both agent name and token are present)
 (function() {
-  const saved = localStorage.getItem('admin_agent');
-  if (saved) enterDashboard(saved);
+  const savedName  = localStorage.getItem('admin_agent');
+  const savedToken = localStorage.getItem('admin_token');
+  if (savedName && savedToken) enterDashboard(savedName, savedToken);
 })();
 
 // ── LOAD ORDERS ──────────────────────────────────────────────
@@ -304,11 +313,12 @@ function loadOrders() {
 
   fetch(GAS_URL, {
     method: 'POST',
-    body: JSON.stringify({ action: 'adminGetOrders', filter: 'all', search: '' })
+    body: JSON.stringify({ action: 'adminGetOrders', filter: 'all', search: '', token: adminToken, agent: currentAgent })
   })
   .then(r => r.json())
   .then(data => {
     document.getElementById('orders-loading').classList.add('hidden');
+    if (data.status === 'unauthorized') { showLogin(); return; }
     if (data.status === 'success' || data.status === 'ok') {
       allOrders = data.orders || [];
       updateStats();
@@ -468,6 +478,7 @@ function saveOrder() {
   const payload = {
     action: 'adminUpdate',
     agent: currentAgent,
+    token: adminToken,
     orderId: editingOrder.orderId,
     name:         document.getElementById('e-name').value,
     phone:        document.getElementById('e-phone').value,
@@ -495,22 +506,9 @@ function saveOrder() {
     .then(r => r.json())
     .then(data => {
       btn.textContent = '💾 儲存變更'; btn.disabled = false;
+      if (data.status === 'unauthorized') { showLogin(); return; }
       if (data.status === 'ok' || data.status === 'success') {
         msg.textContent = '✅ 儲存成功！'; msg.className = 'text-center text-sm mt-3 text-emerald-600'; msg.classList.remove('hidden');
         // Update local cache
         const idx = allOrders.findIndex(o => o.orderId === editingOrder.orderId);
-        if (idx >= 0) Object.assign(allOrders[idx], payload);
-        filterOrders(); updateStats();
-        setTimeout(closeModal, 1500);
-      } else {
-        msg.textContent = '❌ ' + (data.message || '儲存失敗'); msg.className = 'text-center text-sm mt-3 text-red-500'; msg.classList.remove('hidden');
-      }
-    })
-    .catch(e => {
-      btn.textContent = '💾 儲存變更'; btn.disabled = false;
-      msg.textContent = '❌ 連線失敗: ' + e.message; msg.className = 'text-center text-sm mt-3 text-red-500'; msg.classList.remove('hidden');
-    });
-}
-</script>
-</body>
-</html>
+        if (idx >= 0) Object.assign(allOrders[idx
