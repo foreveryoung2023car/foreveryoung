@@ -23,7 +23,8 @@ const KIMONO_CONFIG = {
     BANK_HOLDER:    '佳遊國際旅行社有限公司',
     DEPOSIT_TWD:    220,
     DEPOSIT_JPY:    1000,
-    IMGBB_KEY:      'fc071a07584cffd920bd85321439cc6b',
+    // IMGBB_KEY 已移除 — 圖片上傳改由 GAS 代理 (action: 'uploadImage')
+    // Key 存放於 Apps Script Editor → 專案設定 → Script Properties → IMGBB_KEY
 
     // ★ 頁面路徑
     INDEX_URL:      './index.html',
