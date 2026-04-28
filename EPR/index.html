@@ -2073,7 +2073,7 @@ function makeDayRowHtml(idx, d){
     <input class="di" value="${d.pax||""}" placeholder="人數" title="乘車人數">
     <input class="di" value="${d.luggage||""}" placeholder="行李件數" title="行李">
     <input class="di" type="number" value="${d.drvfee||""}" placeholder="¥0" title="司機費">
-    <select class="di" title="司機費已付"><option value="0"${!d.drvPaid?' selected':''>未付</option><option value="1"${d.drvPaid?' selected':''>已付</option></select>
+    <select class="di" title="司機費已付"><option value="0"${!d.drvPaid?' selected':''}>未付</option><option value="1"${d.drvPaid?' selected':''}>已付</option></select>
     <input class="di" value="${d.flightNote||""}" placeholder="航班號時間" title="航班備註">
     <button class="btn-del-day" onclick="delDayRow('dr-${idx}')" title="刪除此天">×</button>
   </div>`;
