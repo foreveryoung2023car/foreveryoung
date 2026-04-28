@@ -511,4 +511,18 @@ function saveOrder() {
         msg.textContent = '✅ 儲存成功！'; msg.className = 'text-center text-sm mt-3 text-emerald-600'; msg.classList.remove('hidden');
         // Update local cache
         const idx = allOrders.findIndex(o => o.orderId === editingOrder.orderId);
-        if (idx >= 0) Object.assign(allOrders[idx
+        if (idx >= 0) Object.assign(allOrders[idx], payload);
+        filterOrders(); updateStats();
+        setTimeout(closeModal, 1500);
+      } else {
+        msg.textContent = '❌ ' + (data.message || '儲存失敗'); msg.className = 'text-center text-sm mt-3 text-red-500'; msg.classList.remove('hidden');
+      }
+    })
+    .catch(e => {
+      btn.textContent = '💾 儲存變更'; btn.disabled = false;
+      msg.textContent = '❌ 連線失敗: ' + e.message; msg.className = 'text-center text-sm mt-3 text-red-500'; msg.classList.remove('hidden');
+    });
+}
+</script>
+</body>
+</html>
