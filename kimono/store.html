@@ -372,10 +372,10 @@ function card(o){
         <div class="text-3xl font-bold text-[#1A365D] mb-2 font-sans">${o.name}</div>
         <div class="flex gap-4 flex-wrap text-base text-slate-500 font-sans">
           <span>📞 末3碼：<strong class="text-[#1A365D] text-lg">${o.phone?o.phone.slice(-3):'—'}</strong></span>
-          <span>👥 ${o.guests}</span>
+          <span>👥 ${o.guestsLabel || (function(){const g=parseGuests(o.adults);return guestsLabel(g.adults,g.children);})()}</span>
         </div>
         <div class="text-base text-slate-500 font-sans mt-1">👘 ${o.plan} ${dc}</div>
-        <div class="text-xs text-slate-400 font-sans mt-1 tracking-wider">⏰ ${o.bookingDate}</div>
+        <div class="text-xs text-slate-500 font-sans mt-1 tracking-wider">⏰ ${fmtBookingDateTime(o.bookingDate)}</div>
       </div>
       <svg id="arr-${o.orderId}" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#94a3b8" stroke-width="2.5" style="flex-shrink:0;margin-top:4px;transition:transform 0.25s;"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
@@ -475,10 +475,52 @@ function toggleCard(id){
   if(!open){ d.classList.add('open'); a.style.transform='rotate(180deg)'; }
 }
 
+
+// v2.3: 解析 "2大1小" 格式 → {adults, children}
+function parseGuests(s) {
+  if (s === null || s === undefined) return { adults: 1, children: 0 };
+  if (typeof s === 'number') return { adults: s, children: 0 };
+  const str = String(s);
+  const a = str.match(/(\d+)\s*大/);
+  const c = str.match(/(\d+)\s*小/);
+  return { adults: a ? parseInt(a[1]) : (parseInt(str) || 1), children: c ? parseInt(c[1]) : 0 };
+}
+function guestsLabel(adults, children) {
+  return children > 0 ? adults + '大' + children + '小' : adults + '大';
+}
+// v2.3: 格式化 bookingDate 顯示
+function fmtBookingDateTime(s) {
+  if (!s) return '—';
+  const str = String(s);
+  // Try chinese format: 2026/05/10 上午10:00
+  let m = str.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})\s*(上午|下午|中午)?\s*(\d{1,2}):(\d{2})/);
+  if (m) {
+    let h = parseInt(m[5]);
+    if (m[4] === '下午' && h < 12) h += 12;
+    if (m[4] === '上午' && h === 12) h = 0;
+    const dt = new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3]), h, parseInt(m[6]));
+    if (!isNaN(dt)) {
+      const wk = ['日','一','二','三','四','五','六'][dt.getDay()];
+      return (dt.getMonth()+1) + '/' + dt.getDate() + ' (' + wk + ') ' + String(h).padStart(2,'0') + ':' + m[6];
+    }
+  }
+  // Fallback: ISO date
+  const d = new Date(str);
+  if (!isNaN(d)) {
+    const wk = ['日','一','二','三','四','五','六'][d.getDay()];
+    const time = (d.getHours() || d.getMinutes()) ? ' ' + String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0') : '';
+    return (d.getMonth()+1) + '/' + d.getDate() + ' (' + wk + ')' + time;
+  }
+  return str.slice(0, 16);
+}
+
 // ── 人數
 function chgCnt(oid,type,delta){
   const o=allOrders.find(x=>x.orderId===oid);
-  if(!guestCounts[oid]) guestCounts[oid]={adults:o?.adults||1,children:o?.children||0,origDeposit:o?.depositJPY||0};
+  if(!guestCounts[oid]) {
+    const g = parseGuests(o?.adults);
+    guestCounts[oid]={adults: g.adults, children: g.children, origDeposit: Number(o?.depositJPY)||Number(o?.deposit)||0};
+  }
   const gc=guestCounts[oid];
   if(type==='adults')   gc.adults  =Math.max(1,gc.adults  +delta);
   if(type==='children') gc.children=Math.max(0,gc.children+delta);
@@ -506,7 +548,7 @@ function calcPrev(oid,discount,deposit){
   const hf=parseFloat(document.getElementById('hf-'+oid)?.value)||0;
   const pf=parseFloat(document.getElementById('pf-'+oid)?.value)||0;
   const gc=guestCounts[oid];
-  const dep=gc?(gc.adults+gc.children)*1000:deposit;
+  const dep=gc?(gc.adults+gc.children)*1000:(Number(deposit)||0);
   const pvEl=document.getElementById('pv-'+oid);
   if(pp<=0){ pvEl?.classList.add('hidden'); return; }
   pvEl?.classList.remove('hidden');
@@ -527,11 +569,17 @@ function openModal(oid,discount,origDeposit){
   if(!pp){ alert('請填寫和服原價！'); return; }
   const o=allOrders.find(x=>x.orderId===oid);
   const gc=guestCounts[oid];
-  const adults=gc?gc.adults:(o?.adults||1), children=gc?gc.children:(o?.children||0);
-  const newDep=(adults+children)*1000, diff=newDep-origDeposit;
-  const actual=Math.round(pp*(discount/10));
-  const onsite=Math.max(actual+hf+pf-newDep,0);
-  const newGuest=children>0?`${adults}大${children}小`:`${adults}大`;
+  // v2.3: parse adults if it's a string like "2大1小"
+  const baseG = parseGuests(o?.adults);
+  const adults  = gc ? gc.adults  : baseG.adults;
+  const children= gc ? gc.children: baseG.children;
+  const origDep = Number(origDeposit) || 0;
+  const newDep  = (adults + children) * 1000;
+  const diff    = newDep - origDep;
+  const actual  = Math.round((Number(pp)||0) * (Number(discount)||10) / 10);
+  const onsite  = Math.max(actual + (Number(hf)||0) + (Number(pf)||0) - newDep, 0);
+  const newGuest= guestsLabel(adults, children);
+  const oldGuest= baseG.adults + (baseG.children>0 ? '大' + baseG.children + '小' : '大');
   pendingSubmit={oid,pp,hf,pf,note,adults,children,newDep,diff};
   document.getElementById('m-oid').textContent=oid;
   document.getElementById('m-due').textContent='¥'+fmt(onsite)+' JPY';
@@ -543,7 +591,7 @@ function openModal(oid,discount,origDeposit){
     ${note?`<div class="text-slate-400 text-sm font-sans py-2">備註：${note}</div>`:''}
     <div class="h-2"></div>`;
   const gEl=document.getElementById('m-guest');
-  if(newGuest!==o?.guests){ gEl.textContent=`👥 人數變更：${o?.guests} → ${newGuest}`; gEl.classList.remove('hidden'); }
+  if(newGuest!==oldGuest){ gEl.textContent='👥 人數變更：'+oldGuest+' → '+newGuest; gEl.classList.remove('hidden'); }
   else gEl.classList.add('hidden');
   const eEl=document.getElementById('m-extra');
   if(diff>0){ document.getElementById('m-extra-amt').textContent=`¥${fmt(diff)} JPY`; eEl.classList.remove('hidden'); }
@@ -559,7 +607,7 @@ async function submitUpdate(){
   const btn=document.getElementById('mConfirmBtn'), err=document.getElementById('mErr');
   btn.textContent='送出中...'; btn.disabled=true; err.classList.add('hidden');
   try{
-    const res=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'storeUpdate',storeKey,orderId:pendingSubmit.oid,planPrice:pendingSubmit.pp,hairFee:pendingSubmit.hf,photoFee:pendingSubmit.pf,adults:pendingSubmit.adults,children:pendingSubmit.children,note:pendingSubmit.note})});
+    const res=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'storeUpdate',storeKey,orderId:pendingSubmit.oid,price:pendingSubmit.pp,planPrice:pendingSubmit.pp,hairFee:pendingSubmit.hf,photoFee:pendingSubmit.pf,adults:pendingSubmit.adults,children:pendingSubmit.children,remark:pendingSubmit.note,note:pendingSubmit.note})});
     const d=await res.json();
     if(d.status!=='success'){ err.textContent=d.message||'送出失敗'; err.classList.remove('hidden'); return; }
     closeModal(); await loadOrders(); alert(`✅ ${pendingSubmit.oid} 已更新！`);

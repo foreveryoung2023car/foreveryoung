@@ -164,12 +164,12 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 <div class="petal" style="width:7px;height:7px;background:#fce7f3;left:85%;animation-duration:20s;animation-delay:2s;top:-20px"></div>
 
 <nav class="admin-nav shadow-lg sticky top-0 z-40">
-  <div class="max-w-[1500px] mx-auto px-4 py-3 flex items-center justify-between gap-4">
-    <div class="flex items-center gap-3 flex-shrink-0">
-      <div class="w-10 h-10 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-lg">旅</div>
-      <div>
-        <div class="text-white font-bold text-base tracking-wide title-serif">旅乘 x 和服</div>
-        <div class="text-white/60 text-[11px] tracking-[0.25em]">ADMIN PORTAL · v2.2.1</div>
+  <div class="max-w-[1500px] mx-auto px-2 md:px-4 py-2 md:py-3 flex items-center justify-between gap-2 md:gap-4">
+    <div class="flex items-center gap-2 flex-shrink-0 min-w-0">
+      <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
+      <div class="min-w-0 hidden xs:block sm:block">
+        <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
+        <div class="text-white/60 text-[10px] tracking-[0.2em] hidden md:block">ADMIN PORTAL · v2.2.1</div>
       </div>
     </div>
     <div id="global-search-wrap" class="hidden md:flex flex-1 max-w-md">
@@ -182,7 +182,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <button onclick="toggleDark()" class="text-white/80 hover:text-white text-base" title="深色模式">🌓</button>
       <button onclick="loadOrders()" class="text-white/80 hover:text-white text-base hidden md:block" title="重新載入">↻</button>
       <span id="nav-agent" class="text-white text-sm hidden md:block font-semibold"></span>
-      <button onclick="showLogin()" id="logout-btn" class="text-white hover:bg-white/10 text-sm border border-white/30 px-3 py-1.5 rounded-lg hidden font-semibold">登出</button>
+      <button onclick="showLogin()" id="logout-btn" class="text-white hover:bg-white/10 text-xs border border-white/30 px-2 py-1 md:px-3 md:py-1.5 md:text-sm rounded-lg hidden font-semibold whitespace-nowrap shrink-0">登出</button>
     </div>
   </div>
   <div id="section-tabs" class="max-w-[1500px] mx-auto px-4 hidden overflow-x-auto">
