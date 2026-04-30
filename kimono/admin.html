@@ -135,6 +135,10 @@
   .recon-row.mismatch{background:#FEF2F2}
   .recon-row.pending{background:#FFFBEB}
 
+
+  body, #topNav, .container { max-width: 100vw; overflow-x: clip; }
+  #topNav .max-w-7xl { flex-wrap: nowrap; min-width: 0; }
+  #topNav .max-w-7xl > * { min-width: 0; }
 /* === v2.3 typography accessibility (font size up + darker text) === */
 .text-\[10px\] { font-size: 11.5px !important; }
 .text-\[11px\] { font-size: 12.5px !important; }
@@ -668,6 +672,31 @@ function showErr(msg) {
   document.getElementById('orders-list').innerHTML = '<div class="text-center py-10 text-red-600 font-semibold"><div class="text-2xl mb-2">⚠️</div>' + msg + '</div>';
 }
 
+function fmtBookingDateTime(s){
+  // Customer chose date+time at submit; bookingDate may be 'YYYY/M/D 上午H:MM' or ISO
+  if(!s) return '—';
+  const str = String(s);
+  // Try the chinese 12h format first: 2026/05/10 上午10:00
+  let m = str.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})\s*(上午|下午|中午)?\s*(\d{1,2}):(\d{2})/);
+  if(m){
+    let h = parseInt(m[5]);
+    if(m[4]==='下午' && h<12) h+=12;
+    if(m[4]==='上午' && h===12) h=0;
+    const dt = new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3]), h, parseInt(m[6]));
+    if(!isNaN(dt)){
+      const wk = ['日','一','二','三','四','五','六'][dt.getDay()];
+      return (dt.getMonth()+1)+'/'+dt.getDate()+' ('+wk+') '+String(h).padStart(2,'0')+':'+m[6];
+    }
+  }
+  // Fallback to date-only
+  const d = new Date(str);
+  if(!isNaN(d)){
+    const wk = ['日','一','二','三','四','五','六'][d.getDay()];
+    const time = (d.getHours()||d.getMinutes()) ? ' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0') : '';
+    return (d.getMonth()+1)+'/'+d.getDate()+' ('+wk+')'+time;
+  }
+  return str.slice(0,16);
+}
 function fmtDateTime(s){ if(!s) return ''; const d=new Date(s); if(isNaN(d)) return String(s).slice(0,16); const m=String(d.getMonth()+1).padStart(2,'0'); const dd=String(d.getDate()).padStart(2,'0'); const hh=String(d.getHours()).padStart(2,'0'); const mm=String(d.getMinutes()).padStart(2,'0'); return m+'/'+dd+' '+hh+':'+mm; }
 function fmtY(n){ n = Number(n)||0; return n ? '¥'+n.toLocaleString() : '—'; }
 function fmtY0(n){ n = Number(n)||0; return '¥'+n.toLocaleString(); }
@@ -872,6 +901,12 @@ function setFilter(f, btn){
   currentFilter = f;
   document.querySelectorAll('#sec-orders .tab-btn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
+  // v2.3: clear leftover date range when switching status filter
+  // (otherwise 行事曆 modal-set date keeps filtering things out)
+  const dFrom = document.getElementById('f-date-from');
+  const dTo   = document.getElementById('f-date-to');
+  if (dFrom) dFrom.value = '';
+  if (dTo)   dTo.value   = '';
   filterOrders();
 }
 
@@ -969,7 +1004,7 @@ function renderOrders(orders){
             daysTag+
           '</div>'+
           '<div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm bg-slate-50 p-3 rounded-lg mb-2">'+
-            '<div><div class="text-xs text-slate-600 font-semibold">📅 體驗日期</div><div class="font-bold text-[#1A365D]">'+fmtDate(o.bookingDate)+'</div></div>'+
+            '<div><div class="text-xs text-slate-600 font-semibold">📅 體驗日期</div><div class="font-bold text-[#1A365D]">'+fmtBookingDateTime(o.bookingDate)+'</div></div>'+
             '<div><div class="text-xs text-slate-600 font-semibold">📞 電話</div><div class="font-bold">'+(o.phone||'—')+'</div></div>'+
             '<div><div class="text-xs text-slate-600 font-semibold">👥 人數</div><div class="font-bold">'+(o.adults||o.pax||'—')+'</div></div>'+
             '<div><div class="text-xs text-slate-600 font-semibold">👘 款式</div><div class="font-bold truncate" title="'+(o.plan||'')+'">'+(o.plan||'—')+'</div></div>'+

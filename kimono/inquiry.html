@@ -92,12 +92,12 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
   <div class="relative z-10 max-w-lg mx-auto px-5">
     <p class="text-pink-300 font-bold tracking-[0.8em] text-[10px] mb-4 uppercase italic font-sans">Order Inquiry</p>
     <h1 class="text-3xl md:text-4xl font-bold text-white tracking-[0.2em] uppercase mb-3">訂單查詢</h1>
-    <p class="text-white/40 text-xs tracking-[0.3em] uppercase font-sans">查看預約狀態、費用明細，或申請退款</p>
+    <p class="text-white/70 text-sm tracking-[0.25em] uppercase font-sans">查看預約狀態、費用明細，或申請退款</p>
     <div class="mt-5 w-10 h-0.5 bg-pink-400/50 mx-auto"></div>
   </div>
 </header>
 
-<main class="max-w-lg mx-auto px-4 py-10 pb-24">
+<main class="max-w-2xl mx-auto px-4 py-10 pb-24">
 
   <!-- 查詢表單 -->
   <div id="formCard" class="bg-white shadow-2xl rounded-sm border border-slate-50 p-8 md:p-10 fade-up">
@@ -114,13 +114,13 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
     <!-- Mode A: query by order ID + email/phone -->
     <div id="form-byid">
       <div class="mb-6">
-        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">訂單編號 <span class="text-pink-400">*</span></label>
+        <label class="block text-[12px] font-bold text-slate-600 uppercase tracking-[0.2em] mb-2 font-sans">訂單編號 <span class="text-pink-400">*</span></label>
         <input type="text" id="orderId" placeholder="K260421001" autocomplete="off"
           oninput="this.value=this.value.toUpperCase()"
           class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-xl font-bold bg-transparent transition-colors font-sans tracking-[0.1em] placeholder:text-slate-200 placeholder:font-normal placeholder:text-base">
       </div>
       <div class="mb-5">
-        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">Email <span class="text-pink-400">*</span></label>
+        <label class="block text-[12px] font-bold text-slate-600 uppercase tracking-[0.2em] mb-2 font-sans">Email <span class="text-pink-400">*</span></label>
         <input type="email" id="email" placeholder="your@email.com" autocomplete="off"
           class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-base font-bold bg-transparent transition-colors font-sans placeholder:text-slate-200 placeholder:font-normal">
       </div>
@@ -130,7 +130,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
         <div class="flex-1 h-px bg-slate-100"></div>
       </div>
       <div class="mb-6">
-        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">手機號碼</label>
+        <label class="block text-[12px] font-bold text-slate-600 uppercase tracking-[0.2em] mb-2 font-sans">手機號碼</label>
         <input type="tel" id="phone" placeholder="0912345678" autocomplete="off"
           class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-base font-bold bg-transparent transition-colors font-sans placeholder:text-slate-200 placeholder:font-normal">
         <p class="text-[10px] text-slate-300 mt-2 font-sans">※ Email 或手機號碼填寫其中一項即可</p>
@@ -140,12 +140,12 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
     <!-- Mode B: query by full name + phone (exact match) -->
     <div id="form-bynamephone" class="hidden">
       <div class="mb-6">
-        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">姓名（全名）<span class="text-pink-400">*</span></label>
+        <label class="block text-[12px] font-bold text-slate-600 uppercase tracking-[0.2em] mb-2 font-sans">姓名（全名）<span class="text-pink-400">*</span></label>
         <input type="text" id="qNamePhoneName" placeholder="例：王小明" autocomplete="off"
           class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-base font-bold bg-transparent transition-colors font-sans placeholder:text-slate-200 placeholder:font-normal">
       </div>
       <div class="mb-6">
-        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">手機號碼 <span class="text-pink-400">*</span></label>
+        <label class="block text-[12px] font-bold text-slate-600 uppercase tracking-[0.2em] mb-2 font-sans">手機號碼 <span class="text-pink-400">*</span></label>
         <input type="tel" id="qNamePhonePhone" placeholder="0912345678" autocomplete="off"
           class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-base font-bold bg-transparent transition-colors font-sans placeholder:text-slate-200 placeholder:font-normal">
         <p class="text-[10px] text-slate-300 mt-2 font-sans">※ 姓名與手機需與下單時完全一致；找不到時請改用訂單編號查詢</p>
@@ -185,19 +185,19 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 
         <!-- 預約內容 -->
         <div>
-          <p class="text-[10px] font-bold text-pink-400 tracking-[0.5em] uppercase font-sans mb-5 flex items-center gap-3">預約內容 <span class="flex-1 h-px bg-pink-100"></span></p>
+          <p class="text-[13px] font-bold text-pink-500 tracking-[0.3em] uppercase font-sans mb-5 flex items-center gap-3">預約內容 <span class="flex-1 h-px bg-pink-100"></span></p>
           <div class="grid grid-cols-2 gap-x-6 gap-y-5">
-            <div><p class="text-[9px] text-slate-400 uppercase tracking-[0.3em] font-sans mb-1">體驗日期</p><p id="r-bookingDate" class="font-bold text-[#1A365D] font-sans text-sm">—</p></div>
-            <div><p class="text-[9px] text-slate-400 uppercase tracking-[0.3em] font-sans mb-1">人數</p><p id="r-guests" class="font-bold text-[#1A365D] font-sans text-sm">—</p></div>
-            <div class="col-span-2"><p class="text-[9px] text-slate-400 uppercase tracking-[0.3em] font-sans mb-1">和服款式</p><p id="r-plan" class="font-bold text-[#1A365D] font-sans text-sm">—</p></div>
-            <div><p class="text-[9px] text-slate-400 uppercase tracking-[0.3em] font-sans mb-1">妝髮造型</p><p id="r-hair" class="font-bold text-[#1A365D] font-sans text-sm">—</p></div>
-            <div><p class="text-[9px] text-slate-400 uppercase tracking-[0.3em] font-sans mb-1">旅拍攝影</p><p id="r-photo" class="font-bold text-[#1A365D] font-sans text-sm">—</p></div>
+            <div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">體驗日期</p><p id="r-bookingDate" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
+            <div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">人數</p><p id="r-guests" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
+            <div class="col-span-2"><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">和服款式</p><p id="r-plan" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
+            <div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">妝髮造型</p><p id="r-hair" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
+            <div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">旅拍攝影</p><p id="r-photo" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
           </div>
         </div>
 
         <!-- 費用明細 -->
         <div>
-          <p class="text-[10px] font-bold text-pink-400 tracking-[0.5em] uppercase font-sans mb-5 flex items-center gap-3">費用明細 <span class="flex-1 h-px bg-pink-100"></span></p>
+          <p class="text-[13px] font-bold text-pink-500 tracking-[0.3em] uppercase font-sans mb-5 flex items-center gap-3">費用明細 <span class="flex-1 h-px bg-pink-100"></span></p>
           <div id="feeTable" class="rounded-sm overflow-hidden border border-slate-100"></div>
         </div>
 
@@ -243,7 +243,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
               <p class="text-[10px] font-bold text-pink-400 tracking-[0.5em] uppercase font-sans mb-2 flex items-center gap-3">退款資料填寫 <span class="flex-1 h-px bg-pink-100"></span></p>
 
               <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">退款原因 <span class="text-pink-400">*</span></label>
+                <label class="block text-[12px] font-bold text-slate-600 uppercase tracking-[0.2em] mb-2 font-sans">退款原因 <span class="text-pink-400">*</span></label>
                 <select id="rf-reason" required class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-sm font-bold bg-transparent cursor-pointer font-sans transition-colors">
                   <option value="">請選擇退款原因</option>
                   <option value="行程臨時變更">行程臨時變更</option>
@@ -255,39 +255,39 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
               </div>
 
               <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">補充說明（選填）</label>
+                <label class="block text-[12px] font-bold text-slate-600 uppercase tracking-[0.2em] mb-2 font-sans">補充說明（選填）</label>
                 <textarea id="rf-note" rows="2" placeholder="如有其他說明請填寫..."
                   class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-sm bg-transparent font-sans resize-none transition-colors placeholder:text-slate-200"></textarea>
               </div>
 
               <div class="pt-2">
-                <p class="text-[10px] font-bold text-pink-400 tracking-[0.5em] uppercase font-sans mb-5 flex items-center gap-3">收款帳戶（台灣）<span class="flex-1 h-px bg-pink-100"></span></p>
+                <p class="text-[13px] font-bold text-pink-500 tracking-[0.3em] uppercase font-sans mb-5 flex items-center gap-3">收款帳戶（台灣）<span class="flex-1 h-px bg-pink-100"></span></p>
                 <div class="space-y-6">
                   <div class="grid grid-cols-2 gap-4">
                     <div>
-                      <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">銀行代碼 <span class="text-pink-400">*</span></label>
+                      <label class="block text-[12px] font-bold text-slate-600 uppercase tracking-[0.2em] mb-2 font-sans">銀行代碼 <span class="text-pink-400">*</span></label>
                       <input id="rf-bankCode" type="text" required maxlength="3" placeholder="008" oninput="this.value=this.value.replace(/[^0-9]/g,'')"
                         class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-lg font-bold bg-transparent font-sans transition-colors placeholder:text-slate-200 placeholder:font-normal">
                     </div>
                     <div>
-                      <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">銀行名稱 <span class="text-pink-400">*</span></label>
+                      <label class="block text-[12px] font-bold text-slate-600 uppercase tracking-[0.2em] mb-2 font-sans">銀行名稱 <span class="text-pink-400">*</span></label>
                       <input id="rf-bankName" type="text" required placeholder="華南銀行"
                         class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-base font-bold bg-transparent font-sans transition-colors placeholder:text-slate-200 placeholder:font-normal">
                     </div>
                   </div>
                   <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">銀行帳號 <span class="text-pink-400">*</span></label>
+                    <label class="block text-[12px] font-bold text-slate-600 uppercase tracking-[0.2em] mb-2 font-sans">銀行帳號 <span class="text-pink-400">*</span></label>
                     <input id="rf-account" type="text" required placeholder="請輸入完整帳號（純數字）" oninput="this.value=this.value.replace(/[^0-9]/g,'')"
                       class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-xl font-bold bg-transparent font-sans tracking-[0.1em] transition-colors placeholder:text-slate-200 placeholder:font-normal placeholder:text-sm placeholder:tracking-normal">
                     <div class="error-hint" id="err-account">帳號格式不正確（至少 8 碼）</div>
                   </div>
                   <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">戶名 <span class="text-pink-400">*</span></label>
+                    <label class="block text-[12px] font-bold text-slate-600 uppercase tracking-[0.2em] mb-2 font-sans">戶名 <span class="text-pink-400">*</span></label>
                     <input id="rf-accountName" type="text" required placeholder="請輸入帳戶戶名（與存摺相同）"
                       class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-base font-bold bg-transparent font-sans transition-colors placeholder:text-slate-200 placeholder:font-normal">
                   </div>
                   <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">聯絡電話 <span class="text-pink-400">*</span></label>
+                    <label class="block text-[12px] font-bold text-slate-600 uppercase tracking-[0.2em] mb-2 font-sans">聯絡電話 <span class="text-pink-400">*</span></label>
                     <input id="rf-phone" type="tel" required placeholder="0912345678" oninput="this.value=this.value.replace(/[^0-9]/g,'')"
                       class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-base font-bold bg-transparent font-sans transition-colors placeholder:text-slate-200 placeholder:font-normal">
                   </div>
@@ -356,15 +356,15 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
           <p class="text-[10px] font-bold text-[#1A365D] uppercase tracking-[0.3em] font-sans flex items-center gap-2 mb-2">接下來的步驟 <span class="flex-1 h-px bg-slate-100"></span></p>
           <div class="flex gap-3 items-start">
             <div class="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 font-bold text-xs font-sans">1</div>
-            <div><p class="font-bold text-[#1A365D] font-sans text-sm">審核並確認退款金額</p><p class="text-slate-400 text-xs font-sans mt-0.5">依退改政策核算，確認後寄送退款確認信</p></div>
+            <div><p class="font-bold text-[#1A365D] font-sans text-base">審核並確認退款金額</p><p class="text-slate-400 text-xs font-sans mt-0.5">依退改政策核算，確認後寄送退款確認信</p></div>
           </div>
           <div class="flex gap-3 items-start">
             <div class="w-7 h-7 rounded-full bg-pink-100 text-pink-500 flex items-center justify-center shrink-0 font-bold text-xs font-sans">2</div>
-            <div><p class="font-bold text-[#1A365D] font-sans text-sm">收到退款確認信</p><p class="text-slate-400 text-xs font-sans mt-0.5">系統自動寄送至您的 Email，請注意查收</p></div>
+            <div><p class="font-bold text-[#1A365D] font-sans text-base">收到退款確認信</p><p class="text-slate-400 text-xs font-sans mt-0.5">系統自動寄送至您的 Email，請注意查收</p></div>
           </div>
           <div class="flex gap-3 items-start">
             <div class="w-7 h-7 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0 font-bold text-xs font-sans">3</div>
-            <div><p class="font-bold text-[#1A365D] font-sans text-sm">退款匯入帳號</p><p class="text-slate-400 text-xs font-sans mt-0.5">確認後 <span class="font-bold text-[#1A365D]">3-5 個工作天</span>內退款</p></div>
+            <div><p class="font-bold text-[#1A365D] font-sans text-base">退款匯入帳號</p><p class="text-slate-400 text-xs font-sans mt-0.5">確認後 <span class="font-bold text-[#1A365D]">3-5 個工作天</span>內退款</p></div>
           </div>
         </div>
         <div class="flex gap-3 justify-center flex-wrap">
