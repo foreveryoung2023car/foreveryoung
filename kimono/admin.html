@@ -267,6 +267,14 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
         <div id="upcoming-list" class="space-y-2 text-sm"></div>
       </div>
     </div>
+
+    <!-- v2.3 拍攝景點天氣熱區 -->
+    <div class="panel mt-4">
+      <h3 class="text-[#1A365D] mb-3 flex justify-between title-serif"><span>🌤 拍攝景點 7 日天氣</span><button onclick="loadWeather(true)" class="text-xs text-slate-600 hover:text-[#1A365D] font-semibold">↻ 重新整理</button></h3>
+      <div id="weather-container" class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+        <div class="text-slate-500 text-center py-6 col-span-3">載入中…</div>
+      </div>
+    </div>
   </section>
 
   <section id="sec-orders" class="section">
@@ -1654,6 +1662,99 @@ window.__isFakeOrder = function(o){
   }, 500);
 })();
 console.log('%c[v2.2.1] fake order filter ready','color:#1A365D;font-weight:bold');
+
+
+// ── v2.3 weather widget (Open-Meteo, no key required) ──
+const KIMONO_WX_CITIES = [
+  { name: '京都', lat: 35.0116, lng: 135.7681 },
+  { name: '大阪', lat: 34.6937, lng: 135.5023 },
+  { name: '東京', lat: 35.6762, lng: 139.6503 }
+];
+const WX_CACHE_KEY = 'kimono_wx_cache_v1';
+const WX_CACHE_TTL = 30 * 60 * 1000;  // 30 minutes
+function wxIcon(code){
+  if(code===0) return '☀️';
+  if(code<=3) return '🌤';
+  if(code<=48) return '🌫';
+  if(code<=57) return '🌦';
+  if(code<=67) return '🌧';
+  if(code<=77) return '🌨';
+  if(code<=82) return '🌧';
+  if(code<=86) return '🌨';
+  if(code===95) return '⛈';
+  if(code>=96) return '⛈';
+  return '·';
+}
+function wxLabel(code){
+  if(code===0) return '晴';
+  if(code<=3) return '多雲';
+  if(code<=48) return '霧';
+  if(code<=57) return '毛雨';
+  if(code<=67) return '雨';
+  if(code<=77) return '雪';
+  if(code<=82) return '陣雨';
+  if(code<=86) return '雪';
+  if(code>=95) return '雷雨';
+  return '—';
+}
+async function loadWeather(force){
+  const container = document.getElementById('weather-container');
+  if(!container) return;
+  // Cached?
+  if(!force){
+    try{
+      const cached = JSON.parse(localStorage.getItem(WX_CACHE_KEY)||'null');
+      if(cached && cached.ts && Date.now() - cached.ts < WX_CACHE_TTL){
+        renderWeather(cached.data);
+        return;
+      }
+    }catch(_){}
+  }
+  try{
+    const results = await Promise.all(KIMONO_WX_CITIES.map(async c=>{
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lng}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia/Tokyo&forecast_days=7`;
+      const r = await fetch(url);
+      const d = await r.json();
+      return { city: c.name, daily: d.daily };
+    }));
+    localStorage.setItem(WX_CACHE_KEY, JSON.stringify({ ts: Date.now(), data: results }));
+    renderWeather(results);
+  }catch(e){
+    container.innerHTML = '<div class="text-red-500 text-center py-4 col-span-3">天氣資料載入失敗：'+e.message+'</div>';
+  }
+}
+function renderWeather(results){
+  const container = document.getElementById('weather-container');
+  if(!container) return;
+  const mdLabels = ['一','二','三','四','五','六','日'];
+  container.innerHTML = results.map(r=>{
+    const d = r.daily;
+    if(!d) return '<div class="bg-white border border-slate-100 rounded-lg p-3"><div class="font-bold text-[#1A365D]">'+r.city+'</div><div class="text-xs text-red-400">無資料</div></div>';
+    const days = d.time.map((iso,i)=>{
+      const dt = new Date(iso);
+      const md = mdLabels[(dt.getDay()+6)%7];
+      const isToday = i===0;
+      return '<div class="flex flex-col items-center px-1.5 py-2 rounded '+(isToday?'bg-amber-50 border border-amber-200':'bg-slate-50')+'">'+
+        '<div class="text-[11px] text-slate-700 font-bold">'+(isToday?'今':(dt.getMonth()+1)+'/'+dt.getDate())+'</div>'+
+        '<div class="text-[10px] text-slate-500">'+md+'</div>'+
+        '<div class="text-2xl my-1" title="'+wxLabel(d.weathercode[i])+'">'+wxIcon(d.weathercode[i])+'</div>'+
+        '<div class="text-[11px] font-bold text-rose-600">'+Math.round(d.temperature_2m_max[i])+'°</div>'+
+        '<div class="text-[11px] text-blue-600">'+Math.round(d.temperature_2m_min[i])+'°</div>'+
+        (d.precipitation_probability_max[i]>=20? '<div class="text-[10px] text-blue-500 mt-0.5">💧'+d.precipitation_probability_max[i]+'%</div>':'')+
+        '</div>';
+    }).join('');
+    return '<div class="bg-white border border-slate-100 rounded-lg p-3">'+
+      '<div class="font-bold text-[#1A365D] mb-2">📍 '+r.city+'</div>'+
+      '<div class="grid grid-cols-7 gap-1">'+days+'</div>'+
+      '</div>';
+  }).join('');
+}
+// Auto-load on dashboard show or initial load
+document.addEventListener('DOMContentLoaded', () => {
+  // Delay so dashboard is mounted
+  setTimeout(loadWeather, 300);
+});
+
 </script>
 </body>
 </html>
