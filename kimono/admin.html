@@ -152,7 +152,7 @@
 input.input-field, textarea.input-field, select.input-field { font-size: 15px !important; }
 </style>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen" style="overflow-x:hidden">
 
 <div class="petal" style="width:10px;height:10px;background:#f9a8d4;left:8%;animation-duration:18s;top:-20px"></div>
 <div class="petal" style="width:8px;height:8px;background:#fbcfe8;left:30%;animation-duration:22s;animation-delay:4s;top:-20px"></div>
@@ -299,6 +299,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="flex justify-between items-center mt-4 pt-3 border-t border-slate-200 flex-wrap gap-2">
         <div class="flex flex-wrap gap-2">
           <button class="tab-btn active" onclick="setFilter('all',this)">全部 <span id="cnt-all" class="ml-1 opacity-80">0</span></button>
+          <button class="tab-btn" onclick="setFilter('today',this)">📍 今天 <span id="cnt-today" class="ml-1 opacity-80">0</span></button>
           <button class="tab-btn" onclick="setFilter('pending',this)">待確認 <span id="cnt-pending" class="ml-1 opacity-80">0</span></button>
           <button class="tab-btn" onclick="setFilter('confirmed',this)">已確認 <span id="cnt-confirmed" class="ml-1 opacity-80">0</span></button>
           <button class="tab-btn" onclick="setFilter('refund',this)">有退款 <span id="cnt-refund" class="ml-1 opacity-80">0</span></button>
@@ -659,6 +660,7 @@ function showErr(msg) {
   document.getElementById('orders-list').innerHTML = '<div class="text-center py-10 text-red-600 font-semibold"><div class="text-2xl mb-2">⚠️</div>' + msg + '</div>';
 }
 
+function fmtDateTime(s){ if(!s) return ''; const d=new Date(s); if(isNaN(d)) return String(s).slice(0,16); const m=String(d.getMonth()+1).padStart(2,'0'); const dd=String(d.getDate()).padStart(2,'0'); const hh=String(d.getHours()).padStart(2,'0'); const mm=String(d.getMinutes()).padStart(2,'0'); return m+'/'+dd+' '+hh+':'+mm; }
 function fmtY(n){ n = Number(n)||0; return n ? '¥'+n.toLocaleString() : '—'; }
 function fmtY0(n){ n = Number(n)||0; return '¥'+n.toLocaleString(); }
 function fmtDate(s){ if(!s) return '—'; const d = new Date(s); if(isNaN(d)) return s; return d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0'); }
@@ -882,7 +884,20 @@ function filterOrders(){
   document.getElementById('cnt-confirmed').textContent = list.filter(o=>o.confirmed).length;
   document.getElementById('cnt-refund').textContent = list.filter(o=>Number(o.refundAmount)>0).length;
   document.getElementById('cnt-anomaly').textContent = list.filter(isAnomaly).length;
+  // Today count
+  (function(){
+    const today0=new Date(); today0.setHours(0,0,0,0);
+    const today1=new Date(); today1.setHours(23,59,59,999);
+    const todayCnt = list.filter(o=>{const d=new Date(o.bookingDate); return !isNaN(d) && d>=today0 && d<=today1;}).length;
+    const cntEl = document.getElementById('cnt-today'); if(cntEl) cntEl.textContent = todayCnt;
+  })();
 
+  // Today filter — orders whose bookingDate is today (JST)
+  if(currentFilter==='today') {
+    const today0 = new Date(); today0.setHours(0,0,0,0);
+    const today1 = new Date(); today1.setHours(23,59,59,999);
+    list = list.filter(o=>{ const d=new Date(o.bookingDate); return !isNaN(d) && d>=today0 && d<=today1; });
+  }
   if(currentFilter==='pending') list = list.filter(o=>!o.confirmed && !(Number(o.refundAmount)>0));
   if(currentFilter==='confirmed') list = list.filter(o=>o.confirmed);
   if(currentFilter==='refund') list = list.filter(o=>Number(o.refundAmount)>0);
@@ -896,6 +911,8 @@ function filterOrders(){
   if(fHair!=='') list = list.filter(o=>String(o.hair===true||o.hair==='true')===fHair);
   if(fPhoto!=='') list = list.filter(o=>String(o.photo===true||o.photo==='true')===fPhoto);
 
+  // Default sort: most recently submitted first (so today's new orders surface)
+  if(!fSort) list.sort((a,b)=> new Date(b.submitDate||b.createdAt||b.bookingDate||0) - new Date(a.submitDate||a.createdAt||a.bookingDate||0));
   if(fSort==='booking-asc') list.sort((a,b)=>new Date(a.bookingDate||0)-new Date(b.bookingDate||0));
   if(fSort==='booking-desc') list.sort((a,b)=>new Date(b.bookingDate||0)-new Date(a.bookingDate||0));
   if(fSort==='amount-desc') list.sort((a,b)=>totalAmount(b)-totalAmount(a));
@@ -933,13 +950,13 @@ function renderOrders(orders){
     const daysTag = days!==null && !isNaN(days) ? (days<0? '<span class="pill bg-slate-200 text-slate-700">已過 '+Math.abs(days)+' 天</span>' : days===0? '<span class="pill bg-amber-100 text-amber-800">📍 今天到店</span>' : days<=3? '<span class="pill bg-amber-100 text-amber-800">⏰ 剩 '+days+' 天</span>' : '<span class="pill bg-blue-100 text-blue-800">剩 '+days+' 天</span>') : '';
 
     return '<div class="order-card '+cls+' '+sel+' p-5">'+
-      '<div class="flex items-start gap-3">'+
+      '<div class="flex flex-col md:flex-row items-stretch md:items-start gap-3">'+
         '<input type="checkbox" class="checkbox-lg mt-1" '+(selectedIds.has(o.orderId)?'checked':'')+' onclick="event.stopPropagation();toggleSelect(\''+(o.orderId||'')+'\')">'+
         '<div class="flex-1 min-w-0">'+
           '<div class="flex items-center gap-2 mb-2 flex-wrap">'+
             badge+
             '<span class="font-bold text-[#1A365D] text-lg">'+(o.name||'—')+'</span>'+
-            '<span class="text-slate-600 text-sm font-mono">'+(o.orderId||'')+'</span>'+
+            '<span class="text-slate-600 text-sm font-mono">'+(o.orderId||'')+'</span>'+(o.submitDate? '<span class="text-[11px] text-slate-500 ml-1">下單 '+fmtDateTime(o.submitDate)+'</span>':'')+
             (o.platform? '<span class="pill bg-blue-100 text-blue-800">📱 '+o.platform+'</span>':'')+
             daysTag+
           '</div>'+
@@ -962,7 +979,7 @@ function renderOrders(orders){
             (o.agent? '<span class="tag" style="background:#E0E7FF;color:#3730A3;border-color:#A5B4FC">👤 '+o.agent+'</span>':'')+
           '</div>'+
         '</div>'+
-        '<div class="flex flex-col gap-1.5 flex-shrink-0">'+
+        '<div class="flex flex-row md:flex-col gap-1.5 flex-shrink-0 mt-2 md:mt-0 w-full md:w-auto">'+
           '<button onclick="openEdit(\''+(o.orderId||'')+'\')" class="btn-navy px-3 py-1.5 rounded-lg text-sm">✏️ 編輯</button>'+
           (!o.confirmed && !anomaly ? '<button onclick="quickConfirm(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-emerald-400 text-emerald-700 rounded-lg text-sm hover:bg-emerald-50 font-semibold">✅ 快速確認</button>' : '')+
           '<button onclick="copyOrderId(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-slate-300 rounded-lg text-sm hover:bg-slate-50 font-semibold">📋 複製編號</button>'+
@@ -1070,12 +1087,25 @@ function showDayOrders(dateStr){
   const dt = new Date(dateStr);
   const dayOrders = allOrders.filter(o=>{const od=new Date(o.bookingDate); return !isNaN(od) && od.toDateString()===dt.toDateString();});
   if(!dayOrders.length){ toast('該日無預約','warning'); return; }
-  switchSection('orders', document.querySelector('[data-sec=orders]'));
+  // Show inline popup instead of jumping to orders list
+  let pop = document.getElementById('day-orders-popup');
+  if(!pop){
+    pop = document.createElement('div');
+    pop.id = 'day-orders-popup';
+    pop.className = 'modal-overlay';
+    pop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px';
+    pop.onclick = (e)=>{ if(e.target===pop) pop.remove(); };
+    document.body.appendChild(pop);
+  }
   const yyyy = dt.getFullYear(); const mm = String(dt.getMonth()+1).padStart(2,'0'); const dd = String(dt.getDate()).padStart(2,'0');
-  const iso = yyyy+'-'+mm+'-'+dd;
-  document.getElementById('f-date-from').value = iso;
-  document.getElementById('f-date-to').value = iso;
-  filterOrders();
+  pop.innerHTML = '<div style="background:white;border-radius:12px;max-width:640px;width:100%;max-height:85vh;overflow:auto;padding:20px"><div class="flex justify-between items-center mb-3"><h3 class="font-bold text-lg text-[#1A365D]">📅 '+yyyy+'/'+mm+'/'+dd+' 預約清單（'+dayOrders.length+' 筆）</h3><button onclick="document.getElementById(\'day-orders-popup\').remove()" class="text-2xl text-slate-400 hover:text-slate-700">×</button></div>'+
+    dayOrders.map(o=>'<div class="border border-slate-200 rounded-lg p-3 mb-2 hover:bg-slate-50 cursor-pointer" onclick="document.getElementById(\'day-orders-popup\').remove();openEdit(\''+o.orderId+'\')">'+
+      '<div class="flex justify-between items-start gap-2"><div class="flex-1 min-w-0"><div class="font-bold text-[#1A365D]">'+(o.name||'—')+' <span class="text-xs text-slate-600 font-mono">'+(o.orderId||'')+'</span></div>'+
+      '<div class="text-sm text-slate-700 mt-1">👥 '+(o.adults||o.pax||'—')+' ｜ 👘 '+(o.plan||'—')+'</div>'+
+      '<div class="text-xs text-slate-600 mt-1">📞 '+(o.phone||'—')+(o.platform?' ｜ 📱 '+o.platform:'')+'</div></div>'+
+      '<div class="flex flex-col gap-1 flex-shrink-0">'+(o.confirmed?'<span class="badge badge-confirmed">已確認</span>':'<span class="badge badge-pending">待確認</span>')+'</div></div></div>'
+    ).join('')+
+    '<div class="text-center mt-3"><button onclick="document.getElementById(\'day-orders-popup\').remove();switchSection(\'orders\',document.querySelector(\'[data-sec=orders]\'));document.getElementById(\'f-date-from\').value=\''+yyyy+'-'+mm+'-'+dd+'\';document.getElementById(\'f-date-to\').value=\''+yyyy+'-'+mm+'-'+dd+'\';filterOrders();" class="text-sm text-[#1A365D] underline">在訂單管理中以日期 filter 開啟 →</button></div></div>';
 }
 
 // ── CUSTOMERS（從訂單聚合） ──
