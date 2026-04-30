@@ -1594,8 +1594,13 @@ window.__isFakeOrder = function(o){
     /* 載入完後讓 render 重畫 */
     if (typeof allOrders !== 'undefined' && Array.isArray(allOrders) && allOrders.length){
       try {
-        if (typeof renderOrders === 'function') renderOrders();
+        if (typeof filterOrders === 'function') filterOrders();
+        else if (typeof renderOrders === 'function') renderOrders();
+      } catch(e){ console.warn('[v2.2.1] render after sweep failed:', e); }
+      try {
         if (typeof renderDashboard === 'function') renderDashboard();
+      } catch(e){}
+      try {
         if (typeof renderCustomers === 'function' && document.getElementById('cust-stat-total')) renderCustomers();
       } catch(e){}
       clearInterval(interval);
