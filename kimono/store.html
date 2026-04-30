@@ -269,6 +269,30 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
         </label>
       </div>
 
+      <!-- v2.4.1: 活動折扣（預設無折，5:5 拆帳） -->
+      <div>
+        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">活動折扣</label>
+        <div class="grid grid-cols-4 gap-2">
+          <label class="flex items-center justify-center border-2 border-[#1A365D] bg-[#1A365D] text-white rounded-lg py-2 cursor-pointer font-sans text-sm font-bold" id="wi-disc-10-l">
+            <input type="radio" name="wi-disc" value="10" class="hidden" onchange="wiSetDisc(10)" checked>
+            無折
+          </label>
+          <label class="flex items-center justify-center border-2 border-slate-200 rounded-lg py-2 cursor-pointer font-sans text-sm font-bold text-slate-600" id="wi-disc-9-l">
+            <input type="radio" name="wi-disc" value="9" class="hidden" onchange="wiSetDisc(9)">
+            9 折
+          </label>
+          <label class="flex items-center justify-center border-2 border-slate-200 rounded-lg py-2 cursor-pointer font-sans text-sm font-bold text-slate-600" id="wi-disc-85-l">
+            <input type="radio" name="wi-disc" value="8.5" class="hidden" onchange="wiSetDisc(8.5)">
+            85 折
+          </label>
+          <label class="flex items-center justify-center border-2 border-slate-200 rounded-lg py-2 cursor-pointer font-sans text-sm font-bold text-slate-600" id="wi-disc-8-l">
+            <input type="radio" name="wi-disc" value="8" class="hidden" onchange="wiSetDisc(8)">
+            8 折
+          </label>
+        </div>
+        <p class="text-[11px] text-slate-500 mt-1 font-sans">※ 預設無折＝ 5:5 拆帳；有折扣時店家固定拿 50%，旅乘吸收折扣</p>
+      </div>
+
       <!-- 金額 -->
       <div class="bg-[#FDFCF8] border-2 border-slate-200 rounded-lg p-4 space-y-3">
         <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider font-sans">金額（日幣）</div>
@@ -290,15 +314,15 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 
       <!-- 自動試算 -->
       <div class="bg-blue-50 border-l-4 border-blue-400 rounded-r-lg p-4 space-y-1.5">
-        <div class="text-[11px] font-bold text-blue-700 uppercase tracking-wider font-sans mb-2">📊 試算（自動 9 折）</div>
+        <div class="text-[11px] font-bold text-blue-700 uppercase tracking-wider font-sans mb-2">📊 試算</div>
         <div class="flex justify-between font-sans"><span class="text-slate-700">客人現場應付</span><span id="wi-due" class="font-bold text-lg text-[#1A365D]">¥0</span></div>
         <div class="flex justify-between font-sans text-sm"><span class="text-slate-500">　▸ 和服 9 折</span><span id="wi-discounted" class="text-slate-600">¥0</span></div>
         <div class="flex justify-between font-sans text-sm"><span class="text-slate-500">　▸ 妝髮 + 攝影</span><span id="wi-extras" class="text-slate-600">¥0</span></div>
         <hr class="border-blue-200 my-2">
         <div class="flex justify-between font-sans"><span class="text-slate-700">店家保留</span><span id="wi-shop" class="font-bold text-emerald-700">¥0</span></div>
-        <div class="flex justify-between font-sans text-xs text-slate-500 -mt-1"><span>　▸ 和服 50% + 妝髮 + 攝影</span><span></span></div>
+        <div class="flex justify-between font-sans text-xs text-slate-500 -mt-1"><span>　▸ 和服 50% + 妝髮 + 攝影（固定）</span><span></span></div>
         <div class="flex justify-between font-sans"><span class="text-slate-700">月底匯給旅乘</span><span id="wi-ours" class="font-bold text-pink-600">¥0</span></div>
-        <div class="flex justify-between font-sans text-xs text-slate-500 -mt-1"><span>　▸ 和服 40%</span><span></span></div>
+        <div class="flex justify-between font-sans text-xs text-slate-500 -mt-1"><span>　▸ 客付和服費 − 店家 50%（折扣由旅乘吸收）</span><span></span></div>
       </div>
 
       <!-- 備註 -->
@@ -787,6 +811,9 @@ function openWalkInModal() {
   document.getElementById('wi-hair').checked = false;
   document.getElementById('wi-photo').checked = false;
   document.getElementById('wi-nationality').value = '台灣';
+  // Reset discount to 無折 (default)
+  wiSetDisc(10);
+  const r10 = document.querySelector('input[name="wi-disc"][value="10"]'); if (r10) r10.checked = true;
   wiCalc();
   document.getElementById('wiErr').classList.add('hidden');
   document.getElementById('walkInModal').classList.add('show');
@@ -800,20 +827,37 @@ function wiChg(type, delta) {
   document.getElementById('wi-cnt-a').textContent = wiCount.adults;
   document.getElementById('wi-cnt-c').textContent = wiCount.children;
 }
+let wiDiscount = 10;  // default: 無折 = 5:5
+function wiSetDisc(d) {
+  wiDiscount = Number(d) || 10;
+  // Update visual: highlight selected
+  ['10','9','85','8'].forEach(k => {
+    const el = document.getElementById('wi-disc-' + k + '-l');
+    if (!el) return;
+    const v = k === '85' ? 8.5 : Number(k);
+    if (v === wiDiscount) {
+      el.className = 'flex items-center justify-center border-2 border-[#1A365D] bg-[#1A365D] text-white rounded-lg py-2 cursor-pointer font-sans text-sm font-bold';
+    } else {
+      el.className = 'flex items-center justify-center border-2 border-slate-200 rounded-lg py-2 cursor-pointer font-sans text-sm font-bold text-slate-600';
+    }
+  });
+  wiCalc();
+}
 function wiCalc() {
   const pp = Number(document.getElementById('wi-pp').value) || 0;
   const hf = Number(document.getElementById('wi-hf').value) || 0;
   const pf = Number(document.getElementById('wi-pf').value) || 0;
-  const discounted = Math.round(pp * 0.9);   // 客人付的和服費（9折）
+  const d = wiDiscount;
+  const discounted = Math.round(pp * d / 10);     // 客人付的和服費（依折數）
   const extras = hf + pf;
-  const due = discounted + extras;            // 客人現場應付
-  const shopKeep = Math.round(pp * 0.5) + extras;  // 店家保留：和服 50% + 妝髮 + 攝影
-  const ours = Math.round(pp * 0.4);          // 旅乘：和服 40%（月底匯）
+  const due = discounted + extras;                 // 客人現場應付
+  const shopKeep = Math.round(pp * 0.5) + extras;  // 店家固定保留：和服 50% + 妝髮 + 攝影
+  const ours = discounted - Math.round(pp * 0.5); // 旅乘：客付和服 - 店家 50%
   document.getElementById('wi-due').textContent = '¥' + fmt(due);
-  document.getElementById('wi-discounted').textContent = '¥' + fmt(discounted);
+  document.getElementById('wi-discounted').textContent = '¥' + fmt(discounted) + (d < 10 ? ' (' + d + ' 折)' : ' (無折)');
   document.getElementById('wi-extras').textContent = '¥' + fmt(extras);
   document.getElementById('wi-shop').textContent = '¥' + fmt(shopKeep);
-  document.getElementById('wi-ours').textContent = '¥' + fmt(ours);
+  document.getElementById('wi-ours').textContent = '¥' + fmt(ours) + (ours < 0 ? ' ⚠️' : '');
 }
 async function wiSubmit() {
   const name = document.getElementById('wi-name').value.trim();
@@ -847,6 +891,7 @@ async function wiSubmit() {
         adults: wiCount.adults, children: wiCount.children,
         plan, hair, photo,
         planPrice: pp, hairFee: hf, photoFee: pf,
+        discount: wiDiscount,
         note
       })
     });

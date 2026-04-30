@@ -1856,10 +1856,23 @@ function renderWalkinMonth() {
     return !isNaN(d) && d >= start && d < end;
   });
 
-  // Aggregate
-  const totalRevenue = monthOrders.reduce((s, o) => s + (Number(o.price) || Number(o.kimonoPrice) || 0) * 0.9 + (Number(o.hairFee)||0) + (Number(o.photoFee)||0), 0);
-  const shopKeep    = monthOrders.reduce((s, o) => s + Math.round((Number(o.price)||Number(o.kimonoPrice)||0) * 0.5) + (Number(o.hairFee)||0) + (Number(o.photoFee)||0), 0);
-  const oursOwed    = monthOrders.reduce((s, o) => s + Math.round((Number(o.price)||Number(o.kimonoPrice)||0) * 0.4), 0);
+  // Aggregate (uses per-order discount: o.rate = 折數，10=無折)
+  const orderCalc = (o) => {
+    const pp = Number(o.price) || Number(o.kimonoPrice) || 0;
+    const d = (function(){ const r = Number(o.rate); return (r >= 5 && r <= 10) ? r : 10; })();
+    const hf = Number(o.hairFee) || 0;
+    const pf = Number(o.photoFee) || 0;
+    const discounted = Math.round(pp * d / 10);
+    return {
+      pp, d, hf, pf,
+      due: discounted + hf + pf,
+      shopKeep: Math.round(pp * 0.5) + hf + pf,
+      ours: Math.max(0, discounted - Math.round(pp * 0.5))
+    };
+  };
+  const totalRevenue = monthOrders.reduce((s, o) => s + orderCalc(o).due, 0);
+  const shopKeep    = monthOrders.reduce((s, o) => s + orderCalc(o).shopKeep, 0);
+  const oursOwed    = monthOrders.reduce((s, o) => s + orderCalc(o).ours, 0);
 
   document.getElementById('walkin-stat-count').textContent = monthOrders.length;
   document.getElementById('walkin-stat-revenue').textContent = '¥' + Math.round(totalRevenue).toLocaleString();
@@ -1877,11 +1890,11 @@ function renderWalkinMonth() {
     else if (src.indexOf('tokyo') >= 0 || src.indexOf('淺草') >= 0) store = '東京淺草寺店';
     else store = '未分類';
     if (!byStore[store]) byStore[store] = { orders: [], pp: 0, due: 0, ours: 0 };
-    const pp = Number(o.price) || Number(o.kimonoPrice) || 0;
+    const calc = orderCalc(o);
     byStore[store].orders.push(o);
-    byStore[store].pp += pp;
-    byStore[store].due += Math.round(pp * 0.9) + (Number(o.hairFee)||0) + (Number(o.photoFee)||0);
-    byStore[store].ours += Math.round(pp * 0.4);
+    byStore[store].pp += calc.pp;
+    byStore[store].due += calc.due;
+    byStore[store].ours += calc.ours;
   });
 
   const storeGrid = document.getElementById('walkin-stores-grid');
@@ -1906,23 +1919,21 @@ function renderWalkinMonth() {
 
   // Detail table
   document.getElementById('walkin-table').innerHTML = monthOrders.length === 0 ? '<div class="text-center text-slate-500 py-6">本月無 walk-in 訂單</div>' :
-    '<table class="w-full text-sm"><thead><tr class="bg-slate-100 text-slate-600"><th class="p-2 text-left">日期</th><th class="p-2 text-left">編號</th><th class="p-2 text-left">姓名</th><th class="p-2 text-left">門市</th><th class="p-2 text-right">和服</th><th class="p-2 text-right">妝髮</th><th class="p-2 text-right">攝影</th><th class="p-2 text-right">客付</th><th class="p-2 text-right text-pink-600">旅乘</th></tr></thead><tbody>' +
+    '<table class="w-full text-sm"><thead><tr class="bg-slate-100 text-slate-600"><th class="p-2 text-left">日期</th><th class="p-2 text-left">編號</th><th class="p-2 text-left">姓名</th><th class="p-2 text-left">門市</th><th class="p-2 text-center">折扣</th><th class="p-2 text-right">和服</th><th class="p-2 text-right">妝髮</th><th class="p-2 text-right">攝影</th><th class="p-2 text-right">客付</th><th class="p-2 text-right text-pink-600">旅乘</th></tr></thead><tbody>' +
     monthOrders.sort((a,b)=>new Date(b.bookingDate||0)-new Date(a.bookingDate||0)).map(o => {
-      const pp = Number(o.price) || Number(o.kimonoPrice) || 0;
-      const hf = Number(o.hairFee) || 0;
-      const pf = Number(o.photoFee) || 0;
-      const due = Math.round(pp * 0.9) + hf + pf;
-      const ours = Math.round(pp * 0.4);
-      const d = new Date(o.bookingDate);
-      return '<tr class="border-b border-slate-100 hover:bg-slate-50"><td class="p-2">' + (d.getMonth()+1) + '/' + d.getDate() + '</td>' +
+      const c = orderCalc(o);
+      const dt = new Date(o.bookingDate);
+      const discTag = c.d === 10 ? '<span class="text-slate-400">無折</span>' : '<span class="text-pink-600 font-bold">' + c.d + '折</span>';
+      return '<tr class="border-b border-slate-100 hover:bg-slate-50"><td class="p-2">' + (dt.getMonth()+1) + '/' + dt.getDate() + '</td>' +
              '<td class="p-2 font-mono text-xs">' + (o.orderId||'') + '</td>' +
              '<td class="p-2 font-bold">' + (o.name||'') + '</td>' +
              '<td class="p-2 text-xs">' + String(o.source||'').replace('walk-in@','') + '</td>' +
-             '<td class="p-2 text-right">¥' + pp.toLocaleString() + '</td>' +
-             '<td class="p-2 text-right">¥' + hf.toLocaleString() + '</td>' +
-             '<td class="p-2 text-right">¥' + pf.toLocaleString() + '</td>' +
-             '<td class="p-2 text-right font-bold">¥' + due.toLocaleString() + '</td>' +
-             '<td class="p-2 text-right font-bold text-pink-600">¥' + ours.toLocaleString() + '</td></tr>';
+             '<td class="p-2 text-center">' + discTag + '</td>' +
+             '<td class="p-2 text-right">¥' + c.pp.toLocaleString() + '</td>' +
+             '<td class="p-2 text-right">¥' + c.hf.toLocaleString() + '</td>' +
+             '<td class="p-2 text-right">¥' + c.pf.toLocaleString() + '</td>' +
+             '<td class="p-2 text-right font-bold">¥' + c.due.toLocaleString() + '</td>' +
+             '<td class="p-2 text-right font-bold text-pink-600">¥' + c.ours.toLocaleString() + '</td></tr>';
     }).join('') + '</tbody></table>';
 }
 
@@ -1942,8 +1953,14 @@ function generateInvoice(storeName, monthYM) {
     return !isNaN(d) && d.getFullYear() === y && d.getMonth() === m - 1;
   });
 
-  const totalPP = monthOrders.reduce((s, o) => s + (Number(o.price)||Number(o.kimonoPrice)||0), 0);
-  const totalOurs = monthOrders.reduce((s, o) => s + Math.round((Number(o.price)||Number(o.kimonoPrice)||0) * 0.4), 0);
+  // Use same per-order calc as monthly aggregator
+  const orderCalcInv = (o) => {
+    const pp = Number(o.price) || Number(o.kimonoPrice) || 0;
+    const d = (function(){ const r = Number(o.rate); return (r >= 5 && r <= 10) ? r : 10; })();
+    return { pp, d, ours: Math.max(0, Math.round(pp * d / 10) - Math.round(pp * 0.5)) };
+  };
+  const totalPP = monthOrders.reduce((s, o) => s + orderCalcInv(o).pp, 0);
+  const totalOurs = monthOrders.reduce((s, o) => s + orderCalcInv(o).ours, 0);
 
   const today = new Date();
   const invHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>請款單 ${storeName} ${y}年${m}月</title>
@@ -1975,13 +1992,13 @@ function generateInvoice(storeName, monthYM) {
       <b>本期筆數</b><span>${monthOrders.length} 筆</span>
     </div>
     <table>
-      <thead><tr><th>日期</th><th>訂單編號</th><th>姓名</th><th class="num">和服原價</th><th class="num">應付旅乘 (40%)</th></tr></thead>
+      <thead><tr><th>日期</th><th>訂單編號</th><th>姓名</th><th>折扣</th><th class="num">和服原價</th><th class="num">應付旅乘</th></tr></thead>
       <tbody>
       ${monthOrders.map(o => {
-        const d = new Date(o.bookingDate);
-        const pp = Number(o.price)||Number(o.kimonoPrice)||0;
-        const ours = Math.round(pp * 0.4);
-        return '<tr><td>' + (d.getMonth()+1) + '/' + d.getDate() + '</td><td>' + (o.orderId||'') + '</td><td>' + (o.name||'') + '</td><td class="num">¥' + pp.toLocaleString() + '</td><td class="num">¥' + ours.toLocaleString() + '</td></tr>';
+        const dt = new Date(o.bookingDate);
+        const c = orderCalcInv(o);
+        const discTag = c.d === 10 ? '無折' : c.d + '折';
+        return '<tr><td>' + (dt.getMonth()+1) + '/' + dt.getDate() + '</td><td>' + (o.orderId||'') + '</td><td>' + (o.name||'') + '</td><td>' + discTag + '</td><td class="num">¥' + c.pp.toLocaleString() + '</td><td class="num">¥' + c.ours.toLocaleString() + '</td></tr>';
       }).join('')}
       </tbody>
     </table>
@@ -1990,7 +2007,7 @@ function generateInvoice(storeName, monthYM) {
       <span style="font-size:28px;color:#C9A961">¥${totalOurs.toLocaleString()} JPY</span>
     </div>
     <div class="footer">
-      <p>※ 拆帳規則：和服原價 × 40% 為旅乘應收，店家保留 50% + 妝髮費 + 攝影費</p>
+      <p>※ 拆帳規則：店家固定保留和服原價 50% + 妝髮費 + 攝影費；旅乘應收 = 客人付的和服費 − 店家 50%（折扣由旅乘吸收）</p>
       <p>※ 請於每月 5 日前匯款至下方旅乘指定帳戶</p>
     </div>
     <div class="stamp">
