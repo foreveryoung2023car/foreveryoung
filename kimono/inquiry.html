@@ -105,27 +105,51 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <h2 class="text-lg font-bold text-[#1A365D] uppercase tracking-[0.3em] font-sans">查詢我的訂單</h2>
       <p class="text-slate-400 text-xs mt-2 font-sans tracking-wider">請輸入預約時的聯絡資料</p>
     </div>
-    <div class="mb-6">
-      <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">訂單編號 <span class="text-pink-400">*</span></label>
-      <input type="text" id="orderId" placeholder="K260421001" autocomplete="off"
-        oninput="this.value=this.value.toUpperCase()"
-        class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-xl font-bold bg-transparent transition-colors font-sans tracking-[0.1em] placeholder:text-slate-200 placeholder:font-normal placeholder:text-base">
+    <!-- Tab switcher -->
+    <div class="flex border border-slate-200 rounded-md mb-7 p-1 bg-slate-50 font-sans">
+      <button id="tab-byid" type="button" onclick="switchQueryMode('byid')" class="flex-1 py-2 text-sm font-bold tracking-wider rounded transition-all bg-[#1A365D] text-white">訂單編號查詢</button>
+      <button id="tab-bynamephone" type="button" onclick="switchQueryMode('bynamephone')" class="flex-1 py-2 text-sm font-bold tracking-wider rounded transition-all text-slate-500">姓名 + 電話</button>
     </div>
-    <div class="mb-5">
-      <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">Email <span class="text-pink-400">*</span></label>
-      <input type="email" id="email" placeholder="your@email.com" autocomplete="off"
-        class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-base font-bold bg-transparent transition-colors font-sans placeholder:text-slate-200 placeholder:font-normal">
+
+    <!-- Mode A: query by order ID + email/phone -->
+    <div id="form-byid">
+      <div class="mb-6">
+        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">訂單編號 <span class="text-pink-400">*</span></label>
+        <input type="text" id="orderId" placeholder="K260421001" autocomplete="off"
+          oninput="this.value=this.value.toUpperCase()"
+          class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-xl font-bold bg-transparent transition-colors font-sans tracking-[0.1em] placeholder:text-slate-200 placeholder:font-normal placeholder:text-base">
+      </div>
+      <div class="mb-5">
+        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">Email <span class="text-pink-400">*</span></label>
+        <input type="email" id="email" placeholder="your@email.com" autocomplete="off"
+          class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-base font-bold bg-transparent transition-colors font-sans placeholder:text-slate-200 placeholder:font-normal">
+      </div>
+      <div class="flex items-center gap-3 my-5">
+        <div class="flex-1 h-px bg-slate-100"></div>
+        <span class="text-slate-300 text-xs font-sans font-bold tracking-[0.3em] uppercase">或</span>
+        <div class="flex-1 h-px bg-slate-100"></div>
+      </div>
+      <div class="mb-6">
+        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">手機號碼</label>
+        <input type="tel" id="phone" placeholder="0912345678" autocomplete="off"
+          class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-base font-bold bg-transparent transition-colors font-sans placeholder:text-slate-200 placeholder:font-normal">
+        <p class="text-[10px] text-slate-300 mt-2 font-sans">※ Email 或手機號碼填寫其中一項即可</p>
+      </div>
     </div>
-    <div class="flex items-center gap-3 my-5">
-      <div class="flex-1 h-px bg-slate-100"></div>
-      <span class="text-slate-300 text-xs font-sans font-bold tracking-[0.3em] uppercase">或</span>
-      <div class="flex-1 h-px bg-slate-100"></div>
-    </div>
-    <div class="mb-8">
-      <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">手機號碼</label>
-      <input type="tel" id="phone" placeholder="0912345678" autocomplete="off"
-        class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-base font-bold bg-transparent transition-colors font-sans placeholder:text-slate-200 placeholder:font-normal">
-      <p class="text-[10px] text-slate-300 mt-2 font-sans">※ Email 或手機號碼填寫其中一項即可</p>
+
+    <!-- Mode B: query by full name + phone (exact match) -->
+    <div id="form-bynamephone" class="hidden">
+      <div class="mb-6">
+        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">姓名（全名）<span class="text-pink-400">*</span></label>
+        <input type="text" id="qNamePhoneName" placeholder="例：王小明" autocomplete="off"
+          class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-base font-bold bg-transparent transition-colors font-sans placeholder:text-slate-200 placeholder:font-normal">
+      </div>
+      <div class="mb-6">
+        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-sans">手機號碼 <span class="text-pink-400">*</span></label>
+        <input type="tel" id="qNamePhonePhone" placeholder="0912345678" autocomplete="off"
+          class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-base font-bold bg-transparent transition-colors font-sans placeholder:text-slate-200 placeholder:font-normal">
+        <p class="text-[10px] text-slate-300 mt-2 font-sans">※ 姓名與手機需與下單時完全一致；找不到時請改用訂單編號查詢</p>
+      </div>
     </div>
     <button onclick="doQuery()" class="w-full py-4 bg-[#1A365D] text-white font-bold tracking-[0.2em] rounded-sm hover:bg-blue-900 active:scale-[0.99] transition-all shadow-xl uppercase text-xs font-sans">查　詢　訂　單</button>
     <div id="errorMsg" class="hidden mt-4 p-4 bg-red-50 border-l-4 border-red-400 text-red-600 text-sm font-sans leading-relaxed rounded-r-sm"></div>
@@ -389,24 +413,43 @@ function fmtDate(val) {
 }
 function fmtJPY(n) { const num=Number(n); return isNaN(num)?'—':num.toLocaleString('ja-JP'); }
 
-async function doQuery() {
-  const orderId = document.getElementById('orderId').value.trim().toUpperCase();
-  const email   = document.getElementById('email').value.trim();
-  const phone   = document.getElementById('phone').value.trim();
+let queryMode = 'byid';
+function switchQueryMode(mode){
+  queryMode = mode;
+  document.getElementById('tab-byid').className = 'flex-1 py-2 text-sm font-bold tracking-wider rounded transition-all ' + (mode==='byid'?'bg-[#1A365D] text-white':'text-slate-500');
+  document.getElementById('tab-bynamephone').className = 'flex-1 py-2 text-sm font-bold tracking-wider rounded transition-all ' + (mode==='bynamephone'?'bg-[#1A365D] text-white':'text-slate-500');
+  document.getElementById('form-byid').classList.toggle('hidden', mode !== 'byid');
+  document.getElementById('form-bynamephone').classList.toggle('hidden', mode !== 'bynamephone');
   hideError();
-  if (!orderId)         return showError('請輸入訂單編號');
-  if (!email && !phone) return showError('請填寫 Email 或手機號碼其中一項');
+}
+
+async function doQuery() {
+  hideError();
+  let payload;
+  if (queryMode === 'bynamephone') {
+    const qName  = document.getElementById('qNamePhoneName').value.trim();
+    const qPhone = document.getElementById('qNamePhonePhone').value.trim();
+    if (!qName || !qPhone) return showError('請輸入姓名與手機號碼');
+    payload = { action:'queryByNamePhone', name: qName, phone: qPhone };
+  } else {
+    const orderId = document.getElementById('orderId').value.trim().toUpperCase();
+    const email   = document.getElementById('email').value.trim();
+    const phone   = document.getElementById('phone').value.trim();
+    if (!orderId)         return showError('請輸入訂單編號');
+    if (!email && !phone) return showError('請填寫 Email 或手機號碼其中一項');
+    payload = { action:'query', orderId, contact: email || phone };
+  }
   showLoading();
   try {
     const res  = await fetch(GAS_URL, {
       method:'POST',
-      body:JSON.stringify({ action:'query', orderId, contact: email || phone }),
+      body:JSON.stringify(payload),
       headers:{ 'Content-Type':'text/plain;charset=utf-8' }
     });
     const data = await res.json();
     hideLoading();
     if (data.status !== 'success') { showForm(); return showError(data.message || '查無此訂單，請確認資料是否正確'); }
-    currentOrder = { orderId, email, phone };
+    currentOrder = { orderId: data.orderId, email: data.email||'', phone: data.phone||'' };
     renderResult(data);
   } catch(err) {
     console.error(err); hideLoading(); showForm();
