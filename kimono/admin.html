@@ -1,70 +1,129 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>客服後台 — 旅乘 x 和服</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./config.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    * { font-family: 'Noto Serif TC', serif; }
-    body { background: #FDFCF8; color: #1A365D; }
-    .admin-nav { background: #1A365D; }
-    .btn-navy { background: #1A365D; color: white; transition: background 0.2s; }
-    .btn-navy:hover { background: #12274A; }
-    .btn-outline { border: 1.5px solid #1A365D; color: #1A365D; background: transparent; transition: all 0.2s; }
-    .btn-outline:hover { background: #1A365D; color: white; }
-    .input-field { border: 1.5px solid #CBD5E0; border-radius: 8px; padding: 8px 12px; width: 100%; transition: border 0.2s; font-family: 'Noto Serif TC', serif; font-size: 14px; }
-    .input-field:focus { outline: none; border-color: #1A365D; box-shadow: 0 0 0 3px rgba(26,54,93,0.08); }
-    select.input-field { background: white; }
-    .order-card { background: white; border-radius: 16px; box-shadow: 0 2px 12px rgba(26,54,93,0.07); border: 1px solid rgba(26,54,93,0.06); margin-bottom: 16px; transition: box-shadow 0.2s; }
-    .order-card:hover { box-shadow: 0 4px 20px rgba(26,54,93,0.12); }
-    .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
-    .badge-pending { background:#FFF3CD; color:#856404; }
-    .badge-confirmed { background:#D1FAE5; color:#065F46; }
-    .badge-refund { background:#FFE4E6; color:#9F1239; }
-    .section-label { font-size:10px; font-weight:700; letter-spacing:0.12em; color:#a0aec0; text-transform:uppercase; margin-bottom:4px; }
-    .edit-panel { background: #F8F7F4; border-radius:12px; padding:20px; border: 1px solid rgba(26,54,93,0.08); }
-    .stat-card { background:white; border-radius:12px; padding:16px 20px; box-shadow:0 2px 8px rgba(26,54,93,0.06); text-align:center; }
-    .tab-btn { padding:8px 18px; border-radius:8px; cursor:pointer; font-weight:600; font-size:13px; transition:all 0.2s; border:none; }
-    .tab-btn.active { background:#1A365D; color:white; }
-    .tab-btn:not(.active) { background:#F1F5F9; color:#64748B; }
-    .tab-btn:not(.active):hover { background:#e2e8f0; }
-    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:50; display:flex; align-items:center; justify-content:center; padding:16px; }
-    .modal-box { background:white; border-radius:20px; padding:28px; max-width:720px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.2); }
-    .edit-tab { }
-    .tag { display:inline-block; background:#EFF6FF; color:#1A365D; border-radius:6px; padding:2px 8px; font-size:11px; margin:2px; border:1px solid rgba(26,54,93,0.12); }
-    .petal { position:fixed; pointer-events:none; border-radius:50% 0 50% 0; opacity:0.10; animation:fall linear infinite; }
-    @keyframes fall { 0%{transform:translateY(-20px) rotate(0deg);opacity:0.10} 100%{transform:translateY(100vh) rotate(360deg);opacity:0} }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>客服後台 — 旅乘 x 和服</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="./config.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { font-family: 'Noto Serif TC', serif; }
+  body { background: #FDFCF8; color: #1A365D; }
+  body.dark { background:#0F172A; color:#E2E8F0 }
+  body.dark .order-card,body.dark .stat-card,body.dark .modal-box,body.dark .panel,body.dark .input-field { background:#1E293B; color:#E2E8F0; border-color:#334155 }
+  body.dark .edit-panel { background:#0F172A }
+  body.dark .text-\[\#1A365D\]{color:#E2E8F0}
+  body.dark .border-slate-100,body.dark .border-slate-200{border-color:#334155}
+  .admin-nav { background:#1A365D }
+  .btn-navy { background:#1A365D;color:white;transition:.2s }
+  .btn-navy:hover { background:#12274A }
+  .btn-navy:disabled{opacity:.5;cursor:not-allowed}
+  .btn-outline { border:1.5px solid #1A365D;color:#1A365D;background:transparent;transition:.2s }
+  .btn-outline:hover { background:#1A365D;color:white }
+  .btn-ghost{background:transparent;color:#64748B;transition:.15s}
+  .btn-ghost:hover{background:#F1F5F9;color:#1A365D}
+  .input-field { border:1.5px solid #CBD5E0;border-radius:8px;padding:8px 12px;width:100%;transition:.2s;font-family:'Noto Serif TC',serif;font-size:14px;background:white }
+  .input-field:focus { outline:none;border-color:#1A365D;box-shadow:0 0 0 3px rgba(26,54,93,.08) }
+  select.input-field { background:white }
+  .order-card { background:white;border-radius:16px;box-shadow:0 2px 12px rgba(26,54,93,.07);border:1px solid rgba(26,54,93,.06);margin-bottom:14px;transition:.2s }
+  .order-card:hover { box-shadow:0 4px 20px rgba(26,54,93,.12) }
+  .order-card.selected{border-color:#C9A961;background:linear-gradient(to right,#FFFBEB,white 30%)}
+  .order-card.urgent{border-left:4px solid #EF4444}
+  .order-card.warning{border-left:4px solid #F59E0B}
+  .badge { display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600 }
+  .badge-pending { background:#FFF3CD;color:#856404 }
+  .badge-confirmed { background:#D1FAE5;color:#065F46 }
+  .badge-refund { background:#FFE4E6;color:#9F1239 }
+  .badge-anomaly{background:#FEE2E2;color:#991B1B}
+  .badge-vip{background:linear-gradient(135deg,#C9A961,#8B7355);color:white}
+  .section-label { font-size:10px;font-weight:700;letter-spacing:.12em;color:#a0aec0;text-transform:uppercase;margin-bottom:4px }
+  .edit-panel { background:#F8F7F4;border-radius:12px;padding:20px;border:1px solid rgba(26,54,93,.08) }
+  .stat-card { background:white;border-radius:14px;padding:16px 18px;box-shadow:0 2px 8px rgba(26,54,93,.06);position:relative;overflow:hidden;transition:.2s }
+  .stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 16px rgba(26,54,93,.1)}
+  .stat-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:#1A365D}
+  .stat-card.gold::before{background:#C9A961}
+  .stat-card.green::before{background:#10B981}
+  .stat-card.red::before{background:#EF4444}
+  .stat-card.blue::before{background:#3B82F6}
+  .stat-card.purple::before{background:#8B5CF6}
+  .tab-btn { padding:7px 16px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;transition:.2s;border:none }
+  .tab-btn.active { background:#1A365D;color:white }
+  .tab-btn:not(.active) { background:#F1F5F9;color:#64748B }
+  .tab-btn:not(.active):hover { background:#e2e8f0 }
+  .nav-tab{padding:12px 16px;font-size:13px;font-weight:600;cursor:pointer;color:rgba(255,255,255,.6);border-bottom:3px solid transparent;transition:.15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  .nav-tab.active{color:white;border-color:#C9A961}
+  .nav-tab:hover:not(.active){color:rgba(255,255,255,.85)}
+  .modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(2px) }
+  .modal-box { background:white;border-radius:20px;padding:28px;max-width:760px;width:100%;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2) }
+  .tag { display:inline-block;background:#EFF6FF;color:#1A365D;border-radius:6px;padding:2px 8px;font-size:11px;margin:2px;border:1px solid rgba(26,54,93,.12) }
+  .pill{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600}
+  .panel{background:white;border-radius:14px;padding:20px;border:1px solid rgba(26,54,93,.06);box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .section{display:none}
+  .section.active{display:block;animation:fadeIn .3s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  .calendar-day{min-height:78px;border:1px solid #e5e7eb;padding:5px;font-size:11px;background:white;cursor:pointer;transition:.15s;display:flex;flex-direction:column;border-radius:6px}
+  .calendar-day:hover{background:#F8FAFC;transform:scale(1.02);z-index:5;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+  .calendar-day.today{background:#FEF3C7;border-color:#C9A961;border-width:2px}
+  .calendar-day.has-orders{background:linear-gradient(135deg,white,#EFF6FF)}
+  .calendar-day.busy{background:linear-gradient(135deg,white,#FEE2E2);border-color:#FCA5A5}
+  .calendar-day.full{background:linear-gradient(135deg,#FEE2E2,#FCA5A5);border-color:#DC2626;color:#991B1B}
+  .calendar-day.other-month{color:#CBD5E1;background:#F8FAFC}
+  .heat-bar{height:22px;border-radius:6px;display:flex;align-items:center;padding:0 8px;color:white;font-size:11px;font-weight:600;transition:.3s;min-width:30px}
+  .toast{position:fixed;top:80px;right:24px;background:white;border-left:4px solid #10B981;padding:12px 18px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:60;animation:slideIn .3s ease;display:flex;align-items:center;gap:10px;max-width:360px}
+  .toast.error{border-left-color:#EF4444}
+  .toast.warning{border-left-color:#F59E0B}
+  @keyframes slideIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+  details summary{cursor:pointer;list-style:none}
+  details summary::-webkit-details-marker{display:none}
+  .petal { position:fixed;pointer-events:none;border-radius:50% 0 50% 0;opacity:.10;animation:fall linear infinite;z-index:0 }
+  @keyframes fall { 0%{transform:translateY(-20px) rotate(0deg);opacity:.10} 100%{transform:translateY(100vh) rotate(360deg);opacity:0} }
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:4px}
+  ::-webkit-scrollbar-thumb:hover{background:#94A3B8}
+  .checkbox-lg{width:18px;height:18px;cursor:pointer;accent-color:#1A365D}
+</style>
 </head>
 <body class="min-h-screen">
 
-<!-- Petals decoration -->
-<div class="petal" style="width:10px;height:10px;background:#f9a8d4;left:8%;animation-duration:18s;animation-delay:0s;top:-20px"></div>
+<div class="petal" style="width:10px;height:10px;background:#f9a8d4;left:8%;animation-duration:18s;top:-20px"></div>
 <div class="petal" style="width:8px;height:8px;background:#fbcfe8;left:30%;animation-duration:22s;animation-delay:4s;top:-20px"></div>
 <div class="petal" style="width:12px;height:12px;background:#f9a8d4;left:65%;animation-duration:16s;animation-delay:8s;top:-20px"></div>
 <div class="petal" style="width:7px;height:7px;background:#fce7f3;left:85%;animation-duration:20s;animation-delay:2s;top:-20px"></div>
 
-<!-- NAV -->
 <nav class="admin-nav shadow-lg sticky top-0 z-40">
-  <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <div class="w-8 h-8 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold text-sm border border-white/20">旅</div>
+  <div class="max-w-[1500px] mx-auto px-4 py-3 flex items-center justify-between gap-4">
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20">旅</div>
       <div>
         <div class="text-white font-bold text-sm tracking-wide">旅乘 x 和服</div>
-        <div class="text-white/50 text-xs tracking-widest">ADMIN PORTAL</div>
+        <div class="text-white/50 text-[10px] tracking-[0.25em]">ADMIN PORTAL · v2.0</div>
       </div>
     </div>
-    <div class="flex items-center gap-3">
-      <span id="nav-agent" class="text-white/70 text-sm hidden md:block"></span>
-      <button onclick="showLogin()" id="logout-btn" class="text-white/80 hover:text-white text-xs border border-white/20 px-3 py-1.5 rounded-lg transition hidden">登出</button>
+    <div id="global-search-wrap" class="hidden md:flex flex-1 max-w-md">
+      <div class="relative w-full">
+        <input id="global-search" class="w-full bg-white/10 border border-white/20 text-white placeholder-white/50 rounded-lg px-9 py-1.5 text-sm focus:bg-white/20 focus:outline-none" placeholder="🔍 全站搜尋訂單號 / 姓名 / 電話">
+        <kbd class="absolute right-2 top-1.5 text-[10px] text-white/50 border border-white/20 px-1 rounded">Ctrl+K</kbd>
+      </div>
+    </div>
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <button onclick="toggleDark()" class="text-white/70 hover:text-white text-sm" title="深色模式">🌓</button>
+      <button onclick="loadOrders()" class="text-white/70 hover:text-white text-sm hidden md:block" title="重新載入">↻</button>
+      <span id="nav-agent" class="text-white/80 text-sm hidden md:block"></span>
+      <button onclick="showLogin()" id="logout-btn" class="text-white/80 hover:text-white text-xs border border-white/20 px-3 py-1.5 rounded-lg hidden">登出</button>
+    </div>
+  </div>
+  <div id="section-tabs" class="max-w-[1500px] mx-auto px-4 hidden overflow-x-auto">
+    <div class="flex gap-1">
+      <div class="nav-tab active" data-sec="dashboard" onclick="switchSection('dashboard',this)">📊 儀表板</div>
+      <div class="nav-tab" data-sec="orders" onclick="switchSection('orders',this)">📋 訂單管理 <span id="tab-count-orders" class="bg-white/20 px-1.5 rounded text-[10px]">0</span></div>
+      <div class="nav-tab" data-sec="calendar" onclick="switchSection('calendar',this)">📅 行事曆</div>
+      <div class="nav-tab" data-sec="customers" onclick="switchSection('customers',this)">👥 客戶名單</div>
+      <div class="nav-tab" data-sec="finance" onclick="switchSection('finance',this)">💰 財務報表</div>
     </div>
   </div>
 </nav>
 
-<!-- LOGIN SCREEN -->
 <div id="login-screen" class="flex items-center justify-center min-h-[calc(100vh-56px)] px-4">
   <div class="bg-white rounded-2xl shadow-xl p-10 w-full max-w-sm border border-slate-100">
     <div class="text-center mb-8">
@@ -75,71 +134,191 @@
       <p class="text-slate-400 text-sm mt-1">請輸入您的姓名與密碼</p>
     </div>
     <div class="space-y-4">
-      <div>
-        <div class="section-label">客服姓名</div>
-        <input id="login-name" class="input-field" placeholder="例：Jun、Ren、Amy" autocomplete="off">
-      </div>
-      <div>
-        <div class="section-label">密碼</div>
-        <input id="login-pass" type="password" class="input-field" placeholder="請輸入密碼" onkeydown="if(event.key==='Enter')doLogin()">
-      </div>
+      <div><div class="section-label">客服姓名</div><input id="login-name" class="input-field" placeholder="例：Jun、Ren、Amy" autocomplete="off"></div>
+      <div><div class="section-label">密碼</div><input id="login-pass" type="password" class="input-field" placeholder="請輸入密碼" onkeydown="if(event.key==='Enter')doLogin()"></div>
       <div id="login-err" class="text-red-500 text-sm hidden text-center py-1"></div>
       <button onclick="doLogin()" class="btn-navy w-full py-3 rounded-xl font-bold text-sm">登入後台</button>
     </div>
   </div>
 </div>
 
-<!-- MAIN DASHBOARD -->
-<div id="dashboard" class="hidden max-w-7xl mx-auto px-4 py-6">
+<div id="dashboard" class="hidden max-w-[1500px] mx-auto px-4 py-6">
 
-  <!-- Stats -->
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-    <div class="stat-card">
-      <div class="section-label">總訂單</div>
-      <div id="stat-total" class="text-2xl font-bold text-[#1A365D]">—</div>
-    </div>
-    <div class="stat-card">
-      <div class="section-label">待確認</div>
-      <div id="stat-pending" class="text-2xl font-bold text-amber-500">—</div>
-    </div>
-    <div class="stat-card">
-      <div class="section-label">已確認</div>
-      <div id="stat-confirmed" class="text-2xl font-bold text-emerald-600">—</div>
-    </div>
-    <div class="stat-card">
-      <div class="section-label">本月訂金(JPY)</div>
-      <div id="stat-revenue" class="text-xl font-bold text-[#1A365D]">—</div>
-    </div>
-  </div>
-
-  <!-- Search & Filter -->
-  <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 mb-5">
-    <div class="flex flex-wrap gap-3 items-end">
-      <div class="flex-1 min-w-48">
-        <div class="section-label">搜尋訂單</div>
-        <input id="search-input" class="input-field" placeholder="姓名、電話、訂單號..." oninput="filterOrders()">
-      </div>
+  <section id="sec-dashboard" class="section active">
+    <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
       <div>
-        <div class="section-label">狀態篩選</div>
+        <h2 class="text-2xl font-bold text-[#1A365D]">營運概覽</h2>
+        <p id="dash-date" class="text-sm text-slate-500 mt-1"></p>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <select id="dash-range" class="input-field !w-auto" onchange="renderDashboard()">
+          <option value="today">今日</option>
+          <option value="week">本週</option>
+          <option value="month" selected>本月</option>
+          <option value="quarter">本季</option>
+          <option value="year">本年</option>
+          <option value="all">全部</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
+      <div class="stat-card blue"><div class="section-label">總訂單</div><div id="kpi-total" class="text-2xl font-bold text-[#1A365D]">—</div><div id="kpi-total-trend" class="text-[11px] text-slate-400 mt-1">—</div></div>
+      <div class="stat-card gold"><div class="section-label">待確認</div><div id="kpi-pending" class="text-2xl font-bold text-amber-500">—</div><div id="kpi-pending-trend" class="text-[11px] text-slate-400 mt-1">—</div></div>
+      <div class="stat-card green"><div class="section-label">已確認</div><div id="kpi-confirmed" class="text-2xl font-bold text-emerald-600">—</div><div id="kpi-confirmed-trend" class="text-[11px] text-slate-400 mt-1">—</div></div>
+      <div class="stat-card"><div class="section-label">期間訂金(¥)</div><div id="kpi-deposit" class="text-xl font-bold text-[#1A365D]">—</div><div id="kpi-deposit-trend" class="text-[11px] text-slate-400 mt-1">—</div></div>
+      <div class="stat-card purple"><div class="section-label">待收尾款(¥)</div><div id="kpi-due" class="text-xl font-bold text-[#1A365D]">—</div><div id="kpi-due-trend" class="text-[11px] text-slate-400 mt-1">—</div></div>
+      <div class="stat-card red"><div class="section-label">退款(¥)</div><div id="kpi-refund" class="text-xl font-bold text-red-500">—</div><div id="kpi-refund-trend" class="text-[11px] text-slate-400 mt-1">—</div></div>
+    </div>
+
+    <div class="panel mb-4">
+      <h3 class="font-bold text-[#1A365D] mb-3 flex justify-between items-center">🔔 待辦提醒 <span id="todo-count" class="text-xs text-slate-400 font-normal">0 項</span></h3>
+      <div id="todo-list" class="space-y-2 text-sm"></div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+      <div class="panel lg:col-span-2">
+        <h3 class="font-bold text-[#1A365D] mb-3">⏰ 未來 14 天預約熱度</h3>
+        <div id="heat-list" class="space-y-2 text-sm"></div>
+      </div>
+      <div class="panel">
+        <h3 class="font-bold text-[#1A365D] mb-3">👘 款式佔比</h3>
+        <div id="plan-ratio" class="space-y-2 text-sm"></div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div class="panel">
+        <h3 class="font-bold text-[#1A365D] mb-3">📱 預約來源</h3>
+        <div id="platform-ratio" class="space-y-2 text-sm"></div>
+      </div>
+      <div class="panel">
+        <h3 class="font-bold text-[#1A365D] mb-3 flex justify-between"><span>🔥 即將到店（最近 6 筆）</span><button onclick="switchSection('orders',document.querySelector('[data-sec=orders]'))" class="text-xs text-slate-400 hover:text-[#1A365D]">查看全部 →</button></h3>
+        <div id="upcoming-list" class="space-y-2 text-sm"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="sec-orders" class="section">
+    <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
+      <h2 class="text-2xl font-bold text-[#1A365D]">訂單管理</h2>
+      <div class="flex gap-2 flex-wrap">
+        <button onclick="exportCSV()" class="btn-outline px-4 py-2 rounded-xl text-sm font-bold">📥 匯出 CSV</button>
+        <button onclick="loadOrders()" class="btn-navy px-4 py-2 rounded-xl text-sm font-bold">↻ 重新載入</button>
+      </div>
+    </div>
+
+    <div class="panel mb-4">
+      <details open>
+        <summary class="flex justify-between items-center mb-3">
+          <span class="font-bold text-[#1A365D]">🔍 進階搜尋與篩選</span>
+          <span class="text-xs text-slate-400">點擊展開/收合</span>
+        </summary>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div><div class="section-label">關鍵字</div><input id="f-search" class="input-field" placeholder="姓名/電話/訂單號/Email" oninput="filterOrders()"></div>
+          <div><div class="section-label">日期區間（從）</div><input id="f-date-from" class="input-field" type="date" onchange="filterOrders()"></div>
+          <div><div class="section-label">日期區間（到）</div><input id="f-date-to" class="input-field" type="date" onchange="filterOrders()"></div>
+          <div><div class="section-label">和服款式</div><select id="f-plan" class="input-field" onchange="filterOrders()"><option value="">全部款式</option></select></div>
+          <div><div class="section-label">聯繫來源</div><select id="f-platform" class="input-field" onchange="filterOrders()"><option value="">全部來源</option></select></div>
+          <div><div class="section-label">妝髮</div><select id="f-hair" class="input-field" onchange="filterOrders()"><option value="">全部</option><option value="true">有妝髮</option><option value="false">無妝髮</option></select></div>
+          <div><div class="section-label">攝影</div><select id="f-photo" class="input-field" onchange="filterOrders()"><option value="">全部</option><option value="true">有攝影</option><option value="false">無攝影</option></select></div>
+          <div><div class="section-label">排序</div><select id="f-sort" class="input-field" onchange="filterOrders()"><option value="booking-asc">體驗日期 ↑</option><option value="booking-desc" selected>體驗日期 ↓</option><option value="amount-desc">金額 ↓</option></select></div>
+        </div>
+      </details>
+
+      <div class="flex justify-between items-center mt-4 pt-3 border-t border-slate-100 flex-wrap gap-2">
+        <div class="flex flex-wrap gap-2">
+          <button class="tab-btn active" onclick="setFilter('all',this)">全部 <span id="cnt-all" class="ml-1 opacity-70">0</span></button>
+          <button class="tab-btn" onclick="setFilter('pending',this)">待確認 <span id="cnt-pending" class="ml-1 opacity-70">0</span></button>
+          <button class="tab-btn" onclick="setFilter('confirmed',this)">已確認 <span id="cnt-confirmed" class="ml-1 opacity-70">0</span></button>
+          <button class="tab-btn" onclick="setFilter('refund',this)">有退款 <span id="cnt-refund" class="ml-1 opacity-70">0</span></button>
+          <button class="tab-btn" onclick="setFilter('anomaly',this)">⚠ 異常 <span id="cnt-anomaly" class="ml-1 opacity-70">0</span></button>
+        </div>
+        <div class="text-sm text-slate-500">顯示 <b id="showing-count" class="text-[#1A365D]">0</b> / <span id="total-count">0</span> 筆</div>
+      </div>
+    </div>
+
+    <div id="batch-bar" class="panel mb-4 bg-amber-50 border-amber-200 hidden">
+      <div class="flex items-center justify-between flex-wrap gap-2">
+        <div class="text-sm">已選取 <b id="batch-count">0</b> 筆</div>
         <div class="flex gap-2 flex-wrap">
-          <button class="tab-btn active" onclick="setFilter('all',this)">全部</button>
-          <button class="tab-btn" onclick="setFilter('pending',this)">待確認</button>
-          <button class="tab-btn" onclick="setFilter('confirmed',this)">已確認</button>
-          <button class="tab-btn" onclick="setFilter('refund',this)">有退款</button>
+          <button onclick="batchConfirm()" class="px-3 py-1.5 bg-white border rounded-lg text-sm hover:bg-emerald-50">✅ 批次確認</button>
+          <button onclick="batchExportCSV()" class="px-3 py-1.5 bg-white border rounded-lg text-sm hover:bg-slate-50">📥 匯出選取</button>
+          <button onclick="clearSelection()" class="px-3 py-1.5 bg-white border rounded-lg text-sm hover:bg-slate-50">取消選取</button>
         </div>
       </div>
-      <button onclick="loadOrders()" class="btn-outline px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">↻ 重新載入</button>
     </div>
-  </div>
 
-  <!-- List -->
-  <div id="orders-loading" class="text-center py-12 text-slate-400 hidden"><div class="text-3xl mb-2 animate-pulse">⏳</div>載入中…</div>
-  <div id="orders-empty" class="text-center py-12 text-slate-400 hidden"><div class="text-3xl mb-2">🔍</div>查無符合訂單</div>
-  <div id="orders-list"></div>
+    <div id="orders-loading" class="text-center py-12 text-slate-400 hidden"><div class="text-3xl mb-2 animate-pulse">⏳</div>載入中…</div>
+    <div id="orders-empty" class="text-center py-12 text-slate-400 hidden"><div class="text-3xl mb-2">🔍</div>查無符合訂單</div>
+    <div id="orders-list"></div>
+  </section>
+
+  <section id="sec-calendar" class="section">
+    <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
+      <h2 class="text-2xl font-bold text-[#1A365D]">行事曆檢視</h2>
+      <div class="flex gap-2 items-center">
+        <button onclick="changeMonth(-1)" class="btn-outline px-3 py-2 rounded-lg text-sm">‹ 上月</button>
+        <span id="cal-title" class="font-bold text-[#1A365D] min-w-[120px] text-center">—</span>
+        <button onclick="changeMonth(1)" class="btn-outline px-3 py-2 rounded-lg text-sm">下月 ›</button>
+        <button onclick="goToday()" class="btn-navy px-3 py-2 rounded-lg text-sm">今天</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="grid grid-cols-7 gap-1 text-center text-xs font-bold text-slate-500 mb-1">
+        <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+      </div>
+      <div id="calendar-grid" class="grid grid-cols-7 gap-1"></div>
+      <div class="mt-4 pt-3 border-t flex gap-3 text-xs flex-wrap">
+        <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:#FEF3C7;border:1px solid #C9A961"></span>今天</span>
+        <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:linear-gradient(135deg,white,#EFF6FF)"></span>有預約</span>
+        <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:#FEE2E2"></span>較忙</span>
+        <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:#FCA5A5"></span>滿載 (≥5 組)</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="sec-customers" class="section">
+    <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
+      <h2 class="text-2xl font-bold text-[#1A365D]">客戶名單</h2>
+      <input id="cust-search" class="input-field !w-64" placeholder="🔍 搜尋客戶姓名/電話" oninput="renderCustomers()">
+    </div>
+    <div class="panel">
+      <div id="customers-list" class="overflow-x-auto"></div>
+    </div>
+  </section>
+
+  <section id="sec-finance" class="section">
+    <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
+      <h2 class="text-2xl font-bold text-[#1A365D]">財務報表</h2>
+      <select id="fin-range" class="input-field !w-auto" onchange="renderFinance()">
+        <option value="month" selected>本月</option>
+        <option value="quarter">本季</option>
+        <option value="year">本年</option>
+        <option value="all">全部</option>
+      </select>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+      <div class="stat-card green"><div class="section-label">已收訂金</div><div id="fin-deposit" class="text-xl font-bold text-emerald-600">—</div></div>
+      <div class="stat-card blue"><div class="section-label">應收尾款</div><div id="fin-due" class="text-xl font-bold text-[#1A365D]">—</div></div>
+      <div class="stat-card gold"><div class="section-label">總營收(預估)</div><div id="fin-total" class="text-xl font-bold text-[#C9A961]">—</div></div>
+      <div class="stat-card red"><div class="section-label">退款</div><div id="fin-refund" class="text-xl font-bold text-red-500">—</div></div>
+    </div>
+
+    <div class="panel mb-4">
+      <h3 class="font-bold text-[#1A365D] mb-3">月度趨勢</h3>
+      <div id="month-trend" class="overflow-x-auto"></div>
+    </div>
+
+    <div class="panel">
+      <h3 class="font-bold text-[#1A365D] mb-3">退款明細</h3>
+      <div id="refund-detail" class="overflow-x-auto"></div>
+    </div>
+  </section>
 
 </div>
 
-<!-- EDIT MODAL -->
 <div id="edit-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeModal()">
   <div class="modal-box">
     <div class="flex items-start justify-between mb-5">
@@ -149,7 +328,6 @@
       </div>
       <button onclick="closeModal()" class="text-slate-300 hover:text-slate-500 text-3xl leading-none ml-4">×</button>
     </div>
-
     <div class="flex gap-2 mb-5 flex-wrap border-b border-slate-100 pb-4">
       <button class="tab-btn active" onclick="switchTab('basic',this)">基本資訊</button>
       <button class="tab-btn" onclick="switchTab('payment',this)">款項費用</button>
@@ -157,7 +335,6 @@
       <button class="tab-btn" onclick="switchTab('note',this)">備註</button>
     </div>
 
-    <!-- Basic -->
     <div id="tab-basic" class="edit-tab">
       <div class="edit-panel grid grid-cols-1 md:grid-cols-2 gap-4">
         <div><div class="section-label">姓名</div><input id="e-name" class="input-field"></div>
@@ -167,31 +344,12 @@
         <div><div class="section-label">人數說明</div><input id="e-pax" class="input-field" placeholder="例：2大1小"></div>
         <div><div class="section-label">和服款式 / 方案</div><input id="e-plan" class="input-field" placeholder="例：精緻和服、素雅和服"></div>
         <div><div class="section-label">聯繫來源</div><input id="e-platform" class="input-field" placeholder="LINE、Instagram…"></div>
-        <div>
-          <div class="section-label">妝髮造型</div>
-          <select id="e-hair" class="input-field">
-            <option value="true">✅ 有妝髮</option>
-            <option value="false">❌ 無妝髮</option>
-          </select>
-        </div>
-        <div>
-          <div class="section-label">攝影服務</div>
-          <select id="e-photo" class="input-field">
-            <option value="true">✅ 有攝影</option>
-            <option value="false">❌ 無攝影</option>
-          </select>
-        </div>
-        <div>
-          <div class="section-label">確認狀態</div>
-          <select id="e-confirmed" class="input-field">
-            <option value="true">✅ 已確認</option>
-            <option value="false">⏳ 待確認</option>
-          </select>
-        </div>
+        <div><div class="section-label">妝髮造型</div><select id="e-hair" class="input-field"><option value="true">✅ 有妝髮</option><option value="false">❌ 無妝髮</option></select></div>
+        <div><div class="section-label">攝影服務</div><select id="e-photo" class="input-field"><option value="true">✅ 有攝影</option><option value="false">❌ 無攝影</option></select></div>
+        <div><div class="section-label">確認狀態</div><select id="e-confirmed" class="input-field"><option value="true">✅ 已確認</option><option value="false">⏳ 待確認</option></select></div>
       </div>
     </div>
 
-    <!-- Payment -->
     <div id="tab-payment" class="edit-tab hidden">
       <div class="edit-panel grid grid-cols-1 md:grid-cols-2 gap-4">
         <div><div class="section-label">預付訂金 JPY</div><input id="e-deposit" class="input-field" type="number" placeholder="0" oninput="updateCalc()"></div>
@@ -210,7 +368,6 @@
       </div>
     </div>
 
-    <!-- Refund -->
     <div id="tab-refund" class="edit-tab hidden">
       <div class="edit-panel grid grid-cols-1 md:grid-cols-2 gap-4">
         <div><div class="section-label">退款金額 JPY</div><input id="e-refund-amt" class="input-field" type="number" placeholder="0"></div>
@@ -219,7 +376,6 @@
       </div>
     </div>
 
-    <!-- Note -->
     <div id="tab-note" class="edit-tab hidden">
       <div class="edit-panel">
         <div class="section-label">客服備註</div>
@@ -235,22 +391,42 @@
   </div>
 </div>
 
+<div id="toast-container"></div>
+
 <script>
 const GAS_URL = typeof KIMONO_CONFIG !== 'undefined' ? KIMONO_CONFIG.APPS_SCRIPT_URL : '';
 let currentAgent = '';
-let adminToken  = '';
+let adminToken = '';
 let allOrders = [];
 let currentFilter = 'all';
 let editingOrder = null;
+let selectedIds = new Set();
+let currentSection = 'dashboard';
+let calCursor = new Date();
 
-// ── AUTH ────────────────────────────────────────────────────
+// ── DARK MODE ──
+function toggleDark(){document.body.classList.toggle('dark');localStorage.setItem('admin_dark', document.body.classList.contains('dark')?'1':'0')}
+if(localStorage.getItem('admin_dark')==='1') document.body.classList.add('dark');
+
+// ── TOAST ──
+function toast(msg, type){
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast ' + (type||'');
+  t.innerHTML = (type==='error'?'❌':type==='warning'?'⚠️':'✅') + ' <span>' + msg + '</span>';
+  c.appendChild(t);
+  setTimeout(()=>{t.style.animation='slideIn .3s ease reverse';setTimeout(()=>t.remove(),300)}, 2800);
+}
+
+// ── AUTH ──
 function showLogin() {
   document.getElementById('login-screen').classList.remove('hidden');
   document.getElementById('dashboard').classList.add('hidden');
   document.getElementById('logout-btn').classList.add('hidden');
+  document.getElementById('section-tabs').classList.add('hidden');
+  document.getElementById('global-search-wrap').classList.add('hidden');
   document.getElementById('nav-agent').textContent = '';
-  currentAgent = '';
-  adminToken = '';
+  currentAgent = ''; adminToken = '';
   localStorage.removeItem('admin_agent');
   localStorage.removeItem('admin_token');
 }
@@ -258,18 +434,11 @@ function showLogin() {
 async function doLogin() {
   const name = document.getElementById('login-name').value.trim();
   const pass = document.getElementById('login-pass').value;
-  const err  = document.getElementById('login-err');
-  const btn  = document.querySelector('#login-screen button[onclick="doLogin()"]');
+  const err = document.getElementById('login-err');
   if (!name || !pass) { err.textContent='請填入姓名與密碼'; err.classList.remove('hidden'); return; }
-
   err.classList.add('hidden');
-  if (btn) { btn.disabled = true; btn.textContent = '驗證中…'; }
-
   try {
-    const res  = await fetch(GAS_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'adminLogin', name: name, password: pass })
-    });
+    const res = await fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'adminLogin', name:name, password:pass }) });
     const data = await res.json();
     if (data && data.status === 'success' && data.token) {
       enterDashboard(data.agent || name, data.token);
@@ -280,155 +449,624 @@ async function doLogin() {
   } catch (e) {
     err.textContent = '無法連線到伺服器，請稍後再試';
     err.classList.remove('hidden');
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = '登入'; }
   }
 }
 
 function enterDashboard(name, token) {
   currentAgent = name;
-  adminToken  = token || '';
+  adminToken = token || '';
   localStorage.setItem('admin_agent', name);
   if (adminToken) localStorage.setItem('admin_token', adminToken);
   document.getElementById('login-err').classList.add('hidden');
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('dashboard').classList.remove('hidden');
   document.getElementById('logout-btn').classList.remove('hidden');
+  document.getElementById('section-tabs').classList.remove('hidden');
+  document.getElementById('global-search-wrap').classList.remove('hidden');
   document.getElementById('nav-agent').textContent = '👤 ' + name;
   loadOrders();
 }
 
-// Auto-login (only if both agent name and token are present)
 (function() {
-  const savedName  = localStorage.getItem('admin_agent');
+  const savedName = localStorage.getItem('admin_agent');
   const savedToken = localStorage.getItem('admin_token');
   if (savedName && savedToken) enterDashboard(savedName, savedToken);
 })();
 
-// ── LOAD ORDERS ──────────────────────────────────────────────
+// ── SECTION SWITCH ──
+function switchSection(sec, el){
+  currentSection = sec;
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-'+sec).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  if(sec==='dashboard') renderDashboard();
+  else if(sec==='calendar') renderCalendar();
+  else if(sec==='customers') renderCustomers();
+  else if(sec==='finance') renderFinance();
+}
+
+// ── LOAD ORDERS ──
 function loadOrders() {
   document.getElementById('orders-loading').classList.remove('hidden');
   document.getElementById('orders-list').innerHTML = '';
   document.getElementById('orders-empty').classList.add('hidden');
-
-  fetch(GAS_URL, {
-    method: 'POST',
-    body: JSON.stringify({ action: 'adminGetOrders', filter: 'all', search: '', token: adminToken, agent: currentAgent })
-  })
-  .then(r => r.json())
-  .then(data => {
-    document.getElementById('orders-loading').classList.add('hidden');
-    if (data.status === 'unauthorized') { showLogin(); return; }
-    if (data.status === 'success' || data.status === 'ok') {
-      allOrders = data.orders || [];
-      updateStats();
-      filterOrders();
-    } else {
-      showErr(data.message || '載入失敗');
-    }
-  })
-  .catch(e => { document.getElementById('orders-loading').classList.add('hidden'); showErr('連線失敗: ' + e.message); });
+  fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'adminGetOrders', filter:'all', search:'', token:adminToken, agent:currentAgent }) })
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('orders-loading').classList.add('hidden');
+      if (data.status === 'unauthorized') { showLogin(); return; }
+      if (data.status === 'success' || data.status === 'ok') {
+        allOrders = data.orders || [];
+        populateFilters();
+        renderDashboard();
+        filterOrders();
+      } else {
+        showErr(data.message || '載入失敗');
+      }
+    })
+    .catch(e => {
+      document.getElementById('orders-loading').classList.add('hidden');
+      showErr('連線失敗: ' + e.message);
+    });
 }
 
 function showErr(msg) {
   document.getElementById('orders-list').innerHTML = '<div class="text-center py-10 text-red-400"><div class="text-2xl mb-2">⚠️</div>' + msg + '</div>';
 }
 
-// ── STATS ────────────────────────────────────────────────────
-function updateStats() {
-  document.getElementById('stat-total').textContent = allOrders.length;
-  document.getElementById('stat-pending').textContent = allOrders.filter(o => !o.confirmed).length;
-  document.getElementById('stat-confirmed').textContent = allOrders.filter(o => o.confirmed).length;
-  const thisMonth = new Date().toISOString().slice(0,7);
-  const rev = allOrders.filter(o => (o.bookingDate||'').startsWith(thisMonth)).reduce((s,o) => s + (Number(o.deposit)||0), 0);
-  document.getElementById('stat-revenue').textContent = rev ? '¥' + rev.toLocaleString() : '—';
+// ── HELPERS ──
+function fmtY(n){ n = Number(n)||0; return n ? '¥'+n.toLocaleString() : '—'; }
+function fmtDate(s){ if(!s) return '—'; const d = new Date(s); if(isNaN(d)) return s; return d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0'); }
+function fmtDateShort(s){ if(!s) return '—'; const d = new Date(s); if(isNaN(d)) return s; return (d.getMonth()+1)+'/'+d.getDate(); }
+function isAnomaly(o){ return !o.name || !o.phone || !o.bookingDate; }
+function totalAmount(o){ return (Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0); }
+function isInRange(o, range){
+  if(range==='all') return true;
+  const d = o.bookingDate ? new Date(o.bookingDate) : null;
+  if(!d || isNaN(d)) return false;
+  const now = new Date();
+  if(range==='today'){ return d.toDateString()===now.toDateString(); }
+  if(range==='week'){ const start=new Date(now); start.setDate(now.getDate()-now.getDay()); start.setHours(0,0,0,0); const end=new Date(start); end.setDate(start.getDate()+7); return d>=start&&d<end; }
+  if(range==='month'){ return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth(); }
+  if(range==='quarter'){ const q=Math.floor(now.getMonth()/3); const dq=Math.floor(d.getMonth()/3); return d.getFullYear()===now.getFullYear() && dq===q; }
+  if(range==='year'){ return d.getFullYear()===now.getFullYear(); }
+  return true;
 }
 
-// ── FILTER ───────────────────────────────────────────────────
-function setFilter(f, btn) {
-  currentFilter = f;
-  document.querySelectorAll('#dashboard > div:nth-child(2) .tab-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  filterOrders();
+
+
+// ── DASHBOARD ──
+function renderDashboard(){
+  const range = document.getElementById('dash-range').value;
+  const filtered = allOrders.filter(o => isInRange(o, range));
+  const now = new Date();
+  document.getElementById('dash-date').textContent = now.toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'long'}) + ' · ' + (currentAgent||'');
+
+  const total = filtered.length;
+  const pending = filtered.filter(o=>!o.confirmed).length;
+  const confirmed = filtered.filter(o=>o.confirmed).length;
+  const deposit = filtered.reduce((s,o)=>s+(Number(o.deposit)||0),0);
+  const due = filtered.filter(o=>o.confirmed).reduce((s,o)=>{const t=(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0); return s+Math.max(0,t-(Number(o.deposit)||0));},0);
+  const refund = filtered.reduce((s,o)=>s+(Number(o.refundAmount)||0),0);
+
+  document.getElementById('kpi-total').textContent = total;
+  document.getElementById('kpi-pending').textContent = pending;
+  document.getElementById('kpi-confirmed').textContent = confirmed;
+  document.getElementById('kpi-deposit').textContent = fmtY(deposit);
+  document.getElementById('kpi-due').textContent = fmtY(due);
+  document.getElementById('kpi-refund').textContent = fmtY(refund);
+
+  const confirmRate = total ? Math.round(confirmed/total*100) : 0;
+  document.getElementById('kpi-total-trend').textContent = '範圍內全部訂單';
+  document.getElementById('kpi-pending-trend').textContent = pending? pending+' 筆需處理' : '已全部處理';
+  document.getElementById('kpi-confirmed-trend').textContent = '確認率 ' + confirmRate + '%';
+  document.getElementById('kpi-deposit-trend').textContent = total? '平均 ¥'+Math.round(deposit/total||0).toLocaleString() : '—';
+  document.getElementById('kpi-due-trend').textContent = '已確認訂單之尾款';
+  const refundCount = filtered.filter(o=>Number(o.refundAmount)>0).length;
+  document.getElementById('kpi-refund-trend').textContent = refundCount? refundCount+' 筆' : '無退款';
+
+  renderTodos();
+  renderHeat();
+  renderPlanRatio(filtered);
+  renderPlatformRatio(filtered);
+  renderUpcoming();
+  document.getElementById('tab-count-orders').textContent = allOrders.length;
 }
 
-function filterOrders() {
-  const q = (document.getElementById('search-input').value || '').toLowerCase();
-  let list = allOrders;
-  if (currentFilter === 'pending')  list = list.filter(o => !o.confirmed && !(Number(o.refundAmount) > 0));
-  if (currentFilter === 'confirmed') list = list.filter(o => o.confirmed);
-  if (currentFilter === 'refund')   list = list.filter(o => Number(o.refundAmount) > 0);
-  if (q) list = list.filter(o =>
-    (o.name||'').toLowerCase().includes(q) ||
-    (o.phone||'').includes(q) ||
-    (o.orderId||'').toLowerCase().includes(q) ||
-    (o.email||'').toLowerCase().includes(q)
-  );
-  renderOrders(list);
+function renderTodos(){
+  const list = document.getElementById('todo-list');
+  const items = [];
+  const now = new Date();
+
+  const overdue = allOrders.filter(o=>{
+    if(o.confirmed) return false;
+    const c = o.createdAt || o.submitDate;
+    if(!c) return false;
+    const cd = new Date(c);
+    return !isNaN(cd) && (now - cd) > 24*3600*1000;
+  });
+  if(overdue.length) items.push({type:'urgent',icon:'🚨',text:overdue.length+' 筆訂單待確認超過 24 小時',action:()=>{switchSection('orders',document.querySelector('[data-sec=orders]'));setFilter('pending',document.querySelectorAll('#sec-orders .tab-btn')[1])}});
+
+  const tomorrow = new Date(now); tomorrow.setDate(now.getDate()+1);
+  const tomorrowOrders = allOrders.filter(o=>{
+    const d = new Date(o.bookingDate); return !isNaN(d) && d.toDateString()===tomorrow.toDateString();
+  });
+  if(tomorrowOrders.length) items.push({type:'warn',icon:'📅',text:'明日有 '+tomorrowOrders.length+' 組客人預約，建議提前發送提醒',action:null});
+
+  const anomalies = allOrders.filter(isAnomaly);
+  if(anomalies.length) items.push({type:'info',icon:'⚠️',text:anomalies.length+' 筆訂單資料不完整（缺姓名/電話/日期）',action:()=>{switchSection('orders',document.querySelector('[data-sec=orders]'));setFilter('anomaly',document.querySelectorAll('#sec-orders .tab-btn')[4])}});
+
+  const refunding = allOrders.filter(o=>Number(o.refundAmount)>0 && !o.refundTime);
+  if(refunding.length) items.push({type:'warn',icon:'↩',text:refunding.length+' 筆退款處理中（尚未填退款時間）',action:()=>{switchSection('orders',document.querySelector('[data-sec=orders]'));setFilter('refund',document.querySelectorAll('#sec-orders .tab-btn')[3])}});
+
+  document.getElementById('todo-count').textContent = items.length+' 項';
+
+  if(!items.length){ list.innerHTML='<div class="text-center text-slate-400 py-4">🎉 太棒了！目前沒有待辦事項</div>'; return; }
+
+  const colorMap = {urgent:'red',warn:'amber',info:'blue'};
+  list.innerHTML = items.map((it,i)=>{
+    const c = colorMap[it.type];
+    return '<div class="flex items-center gap-3 p-3 bg-'+c+'-50 rounded-lg border border-'+c+'-100">'+
+      '<span class="text-xl">'+it.icon+'</span>'+
+      '<span class="flex-1">'+it.text+'</span>'+
+      (it.action? '<button onclick="window.__todoActions['+i+']()" class="text-[#1A365D] font-bold text-xs hover:underline">處理 →</button>' : '')+
+      '</div>';
+  }).join('');
+  window.__todoActions = items.map(it=>it.action || (()=>{}));
 }
 
-// ── RENDER ───────────────────────────────────────────────────
-function renderOrders(orders) {
-  const el = document.getElementById('orders-list');
-  const empty = document.getElementById('orders-empty');
-  if (!orders.length) { el.innerHTML = ''; empty.classList.remove('hidden'); return; }
-  empty.classList.add('hidden');
-  el.innerHTML = orders.map(o => {
-    const hasRefund = Number(o.refundAmount) > 0;
-    const badge = hasRefund
-      ? '<span class="badge badge-refund">退款</span>'
-      : o.confirmed ? '<span class="badge badge-confirmed">已確認</span>'
-      : '<span class="badge badge-pending">待確認</span>';
-    const hairTag = (o.hair === true || o.hair === 'true') ? '<span class="tag">💆 妝髮</span>' : '';
-    const photoTag = (o.photo === true || o.photo === 'true') ? '<span class="tag">📷 攝影</span>' : '';
-    return `<div class="order-card p-5">
-      <div class="flex flex-wrap items-start justify-between gap-3">
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2 mb-1.5 flex-wrap">
-            ${badge}
-            <span class="font-bold text-[#1A365D]">${o.name || '—'}</span>
-            <span class="text-slate-400 text-xs font-mono">${o.orderId || ''}</span>
-          </div>
-          <div class="text-sm text-slate-500 flex flex-wrap gap-x-4 gap-y-1 mb-2">
-            <span>📅 ${o.bookingDate || '—'}</span>
-            <span>📞 ${o.phone || '—'}</span>
-            <span>👥 ${o.adults || '—'} 人</span>
-            ${o.plan ? '<span>👘 ' + o.plan + '</span>' : ''}
-          </div>
-          <div class="flex flex-wrap gap-1">
-            ${o.deposit ? '<span class="tag">訂金 ¥' + Number(o.deposit).toLocaleString() + '</span>' : ''}
-            ${o.price ? '<span class="tag">和服 ¥' + Number(o.price).toLocaleString() + '</span>' : ''}
-            ${o.hairFee && Number(o.hairFee) ? '<span class="tag">妝髮 ¥' + Number(o.hairFee).toLocaleString() + '</span>' : ''}
-            ${o.photoFee && Number(o.photoFee) ? '<span class="tag">攝影 ¥' + Number(o.photoFee).toLocaleString() + '</span>' : ''}
-            ${o.coupon ? '<span class="tag bg-pink-50 text-pink-600 border-pink-200">🎟 ' + o.coupon + '</span>' : ''}
-            ${hairTag}${photoTag}
-            ${o.remark ? '<span class="tag bg-amber-50 text-amber-700 border-amber-200">📝 備註</span>' : ''}
-          </div>
-        </div>
-        <button onclick="openEdit('${o.orderId}')" class="btn-navy px-4 py-2 rounded-xl text-sm font-bold flex-shrink-0">✏️ 編輯</button>
-      </div>
-    </div>`;
+function renderHeat(){
+  const list = document.getElementById('heat-list');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const days = [];
+  for(let i=0;i<14;i++){
+    const d = new Date(today); d.setDate(today.getDate()+i);
+    const cnt = allOrders.filter(o=>{const od=new Date(o.bookingDate); return !isNaN(od) && od.toDateString()===d.toDateString();}).length;
+    days.push({d:d,cnt:cnt});
+  }
+  const maxCnt = Math.max(1, ...days.map(x=>x.cnt));
+  const wd = ['日','一','二','三','四','五','六'];
+  list.innerHTML = days.map(x=>{
+    const pct = Math.max(8, x.cnt/maxCnt*100);
+    let color = '#93C5FD';
+    if(x.cnt===0) color='#E5E7EB';
+    else if(x.cnt>=5) color='#DC2626';
+    else if(x.cnt>=3) color='#3B82F6';
+    const isToday = x.d.toDateString()===new Date().toDateString();
+    return '<div class="flex items-center gap-3"><span class="w-20 text-slate-500 text-xs">'+(x.d.getMonth()+1)+'/'+x.d.getDate()+' ('+wd[x.d.getDay()]+')'+(isToday?' 今':'')+'</span>'+
+      '<div class="flex-1 bg-slate-100 rounded-md h-6 relative overflow-hidden"><div class="heat-bar" style="width:'+pct+'%;background:'+color+'">'+(x.cnt? x.cnt+' 組' : '')+'</div></div></div>';
   }).join('');
 }
 
-// ── EDIT MODAL ────────────────────────────────────────────────
+function renderPlanRatio(filtered){
+  const counter = {};
+  filtered.forEach(o=>{ const p = (o.plan||'未指定').split(/[;,；]/)[0].trim(); counter[p] = (counter[p]||0)+1; });
+  const arr = Object.entries(counter).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const total = arr.reduce((s,x)=>s+x[1],0)||1;
+  const colors = ['#1A365D','#C9A961','#10B981','#F59E0B','#8B5CF6','#EC4899'];
+  const list = document.getElementById('plan-ratio');
+  if(!arr.length){ list.innerHTML='<div class="text-center text-slate-400 py-4">無資料</div>'; return; }
+  list.innerHTML = arr.map((x,i)=>{
+    const pct = Math.round(x[1]/total*100);
+    return '<div><div class="flex justify-between mb-1 text-xs"><span>'+x[0]+'</span><span class="font-bold">'+pct+'% ('+x[1]+')</span></div>'+
+      '<div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full" style="width:'+pct+'%;background:'+colors[i%colors.length]+'"></div></div></div>';
+  }).join('');
+}
+
+function renderPlatformRatio(filtered){
+  const counter = {};
+  filtered.forEach(o=>{ const p = (o.platform||'未填').trim() || '未填'; counter[p] = (counter[p]||0)+1; });
+  const arr = Object.entries(counter).sort((a,b)=>b[1]-a[1]);
+  const total = arr.reduce((s,x)=>s+x[1],0)||1;
+  const list = document.getElementById('platform-ratio');
+  if(!arr.length){ list.innerHTML='<div class="text-center text-slate-400 py-4">無資料</div>'; return; }
+  const colors = ['#1A365D','#10B981','#F59E0B','#EC4899','#8B5CF6','#06B6D4'];
+  list.innerHTML = arr.map((x,i)=>{
+    const pct = Math.round(x[1]/total*100);
+    return '<div><div class="flex justify-between mb-1 text-xs"><span>'+x[0]+'</span><span class="font-bold">'+pct+'% ('+x[1]+')</span></div>'+
+      '<div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full" style="width:'+pct+'%;background:'+colors[i%colors.length]+'"></div></div></div>';
+  }).join('');
+}
+
+function renderUpcoming(){
+  const list = document.getElementById('upcoming-list');
+  const now = new Date(); now.setHours(0,0,0,0);
+  const upcoming = allOrders.filter(o=>{const d=new Date(o.bookingDate); return !isNaN(d) && d>=now;}).sort((a,b)=>new Date(a.bookingDate)-new Date(b.bookingDate)).slice(0,6);
+  if(!upcoming.length){ list.innerHTML='<div class="text-center text-slate-400 py-4">近期無預約</div>'; return; }
+  list.innerHTML = upcoming.map(o=>{
+    const d = new Date(o.bookingDate);
+    const days = Math.ceil((d-now)/(86400000));
+    const dayLabel = days===0?'今天':days===1?'明天':'剩 '+days+' 天';
+    const badge = o.confirmed? '<span class="badge badge-confirmed">已確認</span>' : '<span class="badge badge-pending">待確認</span>';
+    return '<div class="flex items-center justify-between p-2 hover:bg-slate-50 rounded cursor-pointer" onclick="openEdit(\''+(o.orderId||'')+'\')">'+
+      '<div class="flex-1"><div class="font-bold text-sm">'+(o.name||'—')+' <span class="text-xs text-slate-400 font-normal">'+(o.orderId||'')+'</span></div>'+
+      '<div class="text-xs text-slate-500">'+fmtDate(o.bookingDate)+' · '+(o.plan||'')+' · '+(o.adults||o.pax||'—')+'</div></div>'+
+      '<div class="flex items-center gap-2">'+badge+'<span class="text-xs font-bold text-[#C9A961]">'+dayLabel+'</span></div></div>';
+  }).join('');
+}
+
+
+
+// ── FILTER OPTIONS POPULATE ──
+function populateFilters(){
+  const plans = new Set(); const platforms = new Set();
+  allOrders.forEach(o=>{
+    if(o.plan) (o.plan+'').split(/[;,；]/).forEach(p=>{ if(p.trim()) plans.add(p.trim()); });
+    if(o.platform && (o.platform+'').trim()) platforms.add((o.platform+'').trim());
+  });
+  const fp = document.getElementById('f-plan'); const fl = document.getElementById('f-platform');
+  fp.innerHTML = '<option value="">全部款式</option>' + [...plans].map(p=>'<option>'+p+'</option>').join('');
+  fl.innerHTML = '<option value="">全部來源</option>' + [...platforms].map(p=>'<option>'+p+'</option>').join('');
+}
+
+function setFilter(f, btn){
+  currentFilter = f;
+  document.querySelectorAll('#sec-orders .tab-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  filterOrders();
+}
+
+function filterOrders(){
+  const q = (document.getElementById('f-search').value||'').toLowerCase();
+  const dFrom = document.getElementById('f-date-from').value;
+  const dTo = document.getElementById('f-date-to').value;
+  const fPlan = document.getElementById('f-plan').value;
+  const fPlatform = document.getElementById('f-platform').value;
+  const fHair = document.getElementById('f-hair').value;
+  const fPhoto = document.getElementById('f-photo').value;
+  const fSort = document.getElementById('f-sort').value;
+
+  let list = allOrders.slice();
+
+  // counts
+  const cAll = list.length;
+  const cPending = list.filter(o=>!o.confirmed && !(Number(o.refundAmount)>0)).length;
+  const cConfirmed = list.filter(o=>o.confirmed).length;
+  const cRefund = list.filter(o=>Number(o.refundAmount)>0).length;
+  const cAnomaly = list.filter(isAnomaly).length;
+  document.getElementById('cnt-all').textContent = cAll;
+  document.getElementById('cnt-pending').textContent = cPending;
+  document.getElementById('cnt-confirmed').textContent = cConfirmed;
+  document.getElementById('cnt-refund').textContent = cRefund;
+  document.getElementById('cnt-anomaly').textContent = cAnomaly;
+
+  if(currentFilter==='pending') list = list.filter(o=>!o.confirmed && !(Number(o.refundAmount)>0));
+  if(currentFilter==='confirmed') list = list.filter(o=>o.confirmed);
+  if(currentFilter==='refund') list = list.filter(o=>Number(o.refundAmount)>0);
+  if(currentFilter==='anomaly') list = list.filter(isAnomaly);
+
+  if(q) list = list.filter(o=>(o.name||'').toLowerCase().includes(q)||(o.phone||'').includes(q)||(o.orderId||'').toLowerCase().includes(q)||(o.email||'').toLowerCase().includes(q));
+  if(dFrom) list = list.filter(o=>{const d=new Date(o.bookingDate); return !isNaN(d) && d>=new Date(dFrom);});
+  if(dTo) list = list.filter(o=>{const d=new Date(o.bookingDate); const dt=new Date(dTo); dt.setHours(23,59,59); return !isNaN(d) && d<=dt;});
+  if(fPlan) list = list.filter(o=>(o.plan||'').includes(fPlan));
+  if(fPlatform) list = list.filter(o=>(o.platform||'')===fPlatform);
+  if(fHair!=='') list = list.filter(o=>String(o.hair===true||o.hair==='true')===fHair);
+  if(fPhoto!=='') list = list.filter(o=>String(o.photo===true||o.photo==='true')===fPhoto);
+
+  if(fSort==='booking-asc') list.sort((a,b)=>new Date(a.bookingDate||0)-new Date(b.bookingDate||0));
+  if(fSort==='booking-desc') list.sort((a,b)=>new Date(b.bookingDate||0)-new Date(a.bookingDate||0));
+  if(fSort==='amount-desc') list.sort((a,b)=>totalAmount(b)-totalAmount(a));
+
+  document.getElementById('showing-count').textContent = list.length;
+  document.getElementById('total-count').textContent = allOrders.length;
+  renderOrders(list);
+}
+
+function renderOrders(orders){
+  const el = document.getElementById('orders-list');
+  const empty = document.getElementById('orders-empty');
+  if(!orders.length){ el.innerHTML=''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+
+  const now = new Date();
+  el.innerHTML = orders.map(o=>{
+    const hasRefund = Number(o.refundAmount)>0;
+    const anomaly = isAnomaly(o);
+    const overdueClass = (!o.confirmed && o.createdAt && (now-new Date(o.createdAt))>24*3600*1000) ? 'urgent' : '';
+    const cls = anomaly ? 'urgent' : (overdueClass || '');
+    const sel = selectedIds.has(o.orderId) ? 'selected' : '';
+
+    const badge = anomaly ? '<span class="badge badge-anomaly">⚠ 異常</span>' :
+                  hasRefund ? '<span class="badge badge-refund">退款</span>' :
+                  o.confirmed ? '<span class="badge badge-confirmed">已確認</span>' :
+                  '<span class="badge badge-pending">待確認</span>';
+
+    const hairTag = (o.hair === true || o.hair === 'true') ? '<span class="tag">💆 妝髮</span>' : '';
+    const photoTag = (o.photo === true || o.photo === 'true') ? '<span class="tag">📷 攝影</span>' : '';
+
+    const total = totalAmount(o);
+    const due = total - (Number(o.deposit)||0);
+    const days = o.bookingDate ? Math.ceil((new Date(o.bookingDate)-now)/(86400000)) : null;
+    const daysTag = days!==null && !isNaN(days) ? (days<0? '<span class="pill bg-slate-100 text-slate-500">已過 '+Math.abs(days)+' 天</span>' : days===0? '<span class="pill bg-amber-100 text-amber-700">📍 今天到店</span>' : days<=3? '<span class="pill bg-amber-100 text-amber-700">⏰ 剩 '+days+' 天</span>' : '<span class="pill bg-blue-100 text-blue-700">剩 '+days+' 天</span>') : '';
+
+    return '<div class="order-card '+cls+' '+sel+' p-5">'+
+      '<div class="flex items-start gap-3">'+
+        '<input type="checkbox" class="checkbox-lg mt-1" '+(selectedIds.has(o.orderId)?'checked':'')+' onclick="event.stopPropagation();toggleSelect(\''+(o.orderId||'')+'\')">'+
+        '<div class="flex-1 min-w-0">'+
+          '<div class="flex items-center gap-2 mb-2 flex-wrap">'+
+            badge+
+            '<span class="font-bold text-[#1A365D] text-base">'+(o.name||'—')+'</span>'+
+            '<span class="text-slate-400 text-xs font-mono">'+(o.orderId||'')+'</span>'+
+            (o.platform? '<span class="pill bg-blue-100 text-blue-700">📱 '+o.platform+'</span>':'')+
+            daysTag+
+          '</div>'+
+          '<div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm bg-slate-50 p-3 rounded-lg mb-2">'+
+            '<div><div class="text-xs text-slate-400">📅 體驗日期</div><div class="font-medium">'+fmtDate(o.bookingDate)+'</div></div>'+
+            '<div><div class="text-xs text-slate-400">📞 電話</div><div class="font-medium">'+(o.phone||'—')+'</div></div>'+
+            '<div><div class="text-xs text-slate-400">👥 人數</div><div class="font-medium">'+(o.adults||o.pax||'—')+'</div></div>'+
+            '<div><div class="text-xs text-slate-400">👘 款式</div><div class="font-medium truncate" title="'+(o.plan||'')+'">'+(o.plan||'—')+'</div></div>'+
+            '<div><div class="text-xs text-slate-400">💰 訂金</div><div class="font-medium">'+fmtY(o.deposit)+'</div></div>'+
+            '<div><div class="text-xs text-slate-400">💳 總價</div><div class="font-medium">'+fmtY(total)+'</div></div>'+
+            '<div><div class="text-xs text-slate-400">📥 待收尾款</div><div class="font-medium '+(due>0?'text-amber-600':'text-emerald-600')+'">'+fmtY(due)+'</div></div>'+
+            '<div><div class="text-xs text-slate-400">📧 Email</div><div class="font-medium truncate" title="'+(o.email||'')+'">'+(o.email||'—')+'</div></div>'+
+          '</div>'+
+          '<div class="flex flex-wrap gap-1">'+
+            (o.coupon? '<span class="tag bg-pink-50 text-pink-600 border-pink-200">🎟 '+o.coupon+'</span>':'')+
+            hairTag+photoTag+
+            (o.hairFee && Number(o.hairFee) ? '<span class="tag">妝髮 '+fmtY(o.hairFee)+'</span>' : '')+
+            (o.photoFee && Number(o.photoFee) ? '<span class="tag">攝影 '+fmtY(o.photoFee)+'</span>' : '')+
+            (o.remark ? '<span class="tag bg-amber-50 text-amber-700 border-amber-200" title="'+(o.remark||'').replace(/"/g,"&quot;")+'">📝 備註</span>' : '')+
+            (o.agent? '<span class="tag bg-indigo-50 text-indigo-700 border-indigo-200">👤 '+o.agent+'</span>':'')+
+          '</div>'+
+        '</div>'+
+        '<div class="flex flex-col gap-1 flex-shrink-0">'+
+          '<button onclick="openEdit(\''+(o.orderId||'')+'\')" class="btn-navy px-3 py-1.5 rounded-lg text-xs font-bold">✏️ 編輯</button>'+
+          (!o.confirmed && !anomaly ? '<button onclick="quickConfirm(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border border-emerald-300 text-emerald-600 rounded-lg text-xs hover:bg-emerald-50">✅ 快速確認</button>' : '')+
+          '<button onclick="copyOrderId(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border rounded-lg text-xs hover:bg-slate-50">📋 複製編號</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function toggleSelect(id){
+  if(selectedIds.has(id)) selectedIds.delete(id); else selectedIds.add(id);
+  updateBatchBar();
+  filterOrders();
+}
+function clearSelection(){ selectedIds.clear(); updateBatchBar(); filterOrders(); }
+function updateBatchBar(){
+  const bar = document.getElementById('batch-bar');
+  if(selectedIds.size>0){ bar.classList.remove('hidden'); document.getElementById('batch-count').textContent=selectedIds.size; }
+  else bar.classList.add('hidden');
+}
+
+async function quickConfirm(id){
+  const o = allOrders.find(x=>x.orderId===id);
+  if(!o) return;
+  if(!confirm('確定要將「'+(o.name||id)+'」標記為已確認嗎？')) return;
+  await saveOrderQuick(o, {confirmed:'true'});
+}
+
+async function batchConfirm(){
+  if(!selectedIds.size) return;
+  if(!confirm('確定批次確認 '+selectedIds.size+' 筆訂單嗎？')) return;
+  let ok=0, fail=0;
+  for(const id of selectedIds){
+    const o = allOrders.find(x=>x.orderId===id);
+    if(!o) continue;
+    try{ await saveOrderQuick(o, {confirmed:'true'}); ok++; }catch(e){ fail++; }
+  }
+  toast('完成：成功 '+ok+' 筆，失敗 '+fail+' 筆', fail?'warning':'');
+  clearSelection();
+}
+
+async function saveOrderQuick(o, patch){
+  const payload = Object.assign({
+    action:'adminUpdate', agent:currentAgent, token:adminToken, orderId:o.orderId,
+    name:o.name||'', phone:o.phone||'', email:o.email||'',
+    bookingDate:(o.bookingDate||'').slice(0,10), pax:o.adults||o.pax||'',
+    plan:o.plan||'', platform:o.platform||'',
+    hair: (o.hair===true||o.hair==='true')?'true':'false',
+    photo: (o.photo===true||o.photo==='true')?'true':'false',
+    confirmed: o.confirmed?'true':'false',
+    deposit:o.deposit||'', kimonoPrice:o.price||o.kimonoPrice||'',
+    hairFee:o.hairFee||'', photoFee:o.photoFee||'',
+    coupon:o.coupon||'', rate:o.rate||'',
+    refundAmt:o.refundAmount||'', refundDate:(o.refundTime||'').slice(0,16),
+    refundReason:o.refundReason||'', note:o.remark||''
+  }, patch);
+  const res = await fetch(GAS_URL, {method:'POST', body:JSON.stringify(payload)});
+  const data = await res.json();
+  if(data.status==='unauthorized'){ showLogin(); throw new Error('unauthorized'); }
+  if(data.status==='ok'||data.status==='success'){
+    Object.assign(o, payload);
+    o.confirmed = patch.confirmed==='true';
+    filterOrders(); renderDashboard();
+    toast('已更新：'+(o.name||o.orderId));
+    return data;
+  }
+  throw new Error(data.message||'儲存失敗');
+}
+
+function copyOrderId(id){
+  navigator.clipboard.writeText(id).then(()=>toast('已複製：'+id));
+}
+
+
+
+// ── CALENDAR ──
+function changeMonth(d){ calCursor.setMonth(calCursor.getMonth()+d); renderCalendar(); }
+function goToday(){ calCursor = new Date(); renderCalendar(); }
+function renderCalendar(){
+  const y = calCursor.getFullYear(); const m = calCursor.getMonth();
+  document.getElementById('cal-title').textContent = y+' 年 '+(m+1)+' 月';
+  const first = new Date(y,m,1); const startDay = first.getDay();
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  const prevDays = new Date(y,m,0).getDate();
+  const grid = document.getElementById('calendar-grid');
+  const today = new Date(); today.setHours(0,0,0,0);
+  let html = '';
+  for(let i=startDay-1;i>=0;i--){ html += '<div class="calendar-day other-month"><div>'+(prevDays-i)+'</div></div>'; }
+  for(let d=1; d<=daysInMonth; d++){
+    const dt = new Date(y,m,d);
+    const dayOrders = allOrders.filter(o=>{const od=new Date(o.bookingDate); return !isNaN(od) && od.toDateString()===dt.toDateString();});
+    const cnt = dayOrders.length;
+    let cls = '';
+    if(dt.toDateString()===today.toDateString()) cls += ' today';
+    if(cnt>=5) cls += ' full';
+    else if(cnt>=3) cls += ' busy';
+    else if(cnt>0) cls += ' has-orders';
+    const peek = dayOrders.slice(0,2).map(o=>'<div class="text-[10px] truncate" title="'+(o.name||'')+'">'+(o.name||'').slice(0,5)+'</div>').join('');
+    html += '<div class="calendar-day'+cls+'" onclick="showDayOrders(\''+y+'-'+(m+1)+'-'+d+'\')"><div class="font-bold">'+d+'</div>'+(cnt? '<div class="text-[10px] font-bold mt-0.5" style="color:'+(cnt>=5?'#991B1B':cnt>=3?'#B91C1C':'#1E40AF')+'">'+cnt+' 組</div>'+peek : '')+'</div>';
+  }
+  const remaining = (7 - (startDay+daysInMonth)%7) % 7;
+  for(let i=1;i<=remaining;i++) html += '<div class="calendar-day other-month"><div>'+i+'</div></div>';
+  grid.innerHTML = html;
+}
+function showDayOrders(dateStr){
+  const dt = new Date(dateStr);
+  const dayOrders = allOrders.filter(o=>{const od=new Date(o.bookingDate); return !isNaN(od) && od.toDateString()===dt.toDateString();});
+  if(!dayOrders.length){ toast('該日無預約','warning'); return; }
+  switchSection('orders', document.querySelector('[data-sec=orders]'));
+  document.getElementById('f-date-from').value = dateStr;
+  document.getElementById('f-date-to').value = dateStr;
+  filterOrders();
+}
+
+// ── CUSTOMERS ──
+function renderCustomers(){
+  const q = (document.getElementById('cust-search').value||'').toLowerCase();
+  const map = {};
+  allOrders.forEach(o=>{
+    const key = (o.phone||o.email||o.name||'').trim();
+    if(!key) return;
+    if(!map[key]) map[key] = {name:o.name||'—', phone:o.phone||'', email:o.email||'', orders:[]};
+    map[key].orders.push(o);
+  });
+  let arr = Object.entries(map).map(([k,v])=>{
+    const totalSpent = v.orders.reduce((s,o)=>s+totalAmount(o),0);
+    const lastDate = v.orders.map(o=>new Date(o.bookingDate)).filter(d=>!isNaN(d)).sort((a,b)=>b-a)[0];
+    return {key:k, ...v, count:v.orders.length, totalSpent, lastDate, isVip: v.orders.length>=3 || totalSpent>=30000};
+  }).sort((a,b)=>b.count-a.count);
+  if(q) arr = arr.filter(c=>(c.name||'').toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.email||'').toLowerCase().includes(q));
+  const el = document.getElementById('customers-list');
+  if(!arr.length){ el.innerHTML='<div class="text-center text-slate-400 py-8">無客戶資料</div>'; return; }
+  el.innerHTML = '<table class="w-full text-sm"><thead class="border-b text-left text-xs text-slate-500"><tr>'+
+    '<th class="py-2 px-2">客戶</th><th class="py-2 px-2">電話</th><th class="py-2 px-2">Email</th>'+
+    '<th class="py-2 px-2 text-right">訂單數</th><th class="py-2 px-2 text-right">累積消費</th><th class="py-2 px-2">最後預約</th></tr></thead>'+
+    '<tbody>'+arr.map(c=>'<tr class="border-b border-slate-50 hover:bg-slate-50">'+
+      '<td class="py-2 px-2 font-bold">'+c.name+(c.isVip?' <span class="badge badge-vip">VIP</span>':'')+'</td>'+
+      '<td class="py-2 px-2 text-slate-600">'+c.phone+'</td>'+
+      '<td class="py-2 px-2 text-slate-600 text-xs">'+c.email+'</td>'+
+      '<td class="py-2 px-2 text-right font-bold">'+c.count+'</td>'+
+      '<td class="py-2 px-2 text-right">'+fmtY(c.totalSpent)+'</td>'+
+      '<td class="py-2 px-2 text-slate-600">'+(c.lastDate? fmtDate(c.lastDate): '—')+'</td>'+
+    '</tr>').join('')+'</tbody></table>';
+}
+
+// ── FINANCE ──
+function renderFinance(){
+  const range = document.getElementById('fin-range').value;
+  const filtered = allOrders.filter(o=>isInRange(o,range));
+  const deposit = filtered.reduce((s,o)=>s+(Number(o.deposit)||0),0);
+  const total = filtered.reduce((s,o)=>s+totalAmount(o),0);
+  const due = total - deposit;
+  const refund = filtered.reduce((s,o)=>s+(Number(o.refundAmount)||0),0);
+  document.getElementById('fin-deposit').textContent = fmtY(deposit);
+  document.getElementById('fin-due').textContent = fmtY(due);
+  document.getElementById('fin-total').textContent = fmtY(total);
+  document.getElementById('fin-refund').textContent = fmtY(refund);
+
+  // 月度趨勢
+  const months = {};
+  allOrders.forEach(o=>{
+    if(!o.bookingDate) return;
+    const k = (o.bookingDate+'').slice(0,7);
+    if(!months[k]) months[k] = {count:0, deposit:0, total:0, refund:0};
+    months[k].count++;
+    months[k].deposit += Number(o.deposit)||0;
+    months[k].total += totalAmount(o);
+    months[k].refund += Number(o.refundAmount)||0;
+  });
+  const keys = Object.keys(months).sort();
+  const trend = document.getElementById('month-trend');
+  if(!keys.length){ trend.innerHTML='<div class="text-center text-slate-400 py-4">無資料</div>'; }
+  else {
+    trend.innerHTML = '<table class="w-full text-sm"><thead class="border-b text-left text-xs text-slate-500"><tr>'+
+      '<th class="py-2 px-2">月份</th><th class="py-2 px-2 text-right">訂單數</th>'+
+      '<th class="py-2 px-2 text-right">訂金</th><th class="py-2 px-2 text-right">營收</th>'+
+      '<th class="py-2 px-2 text-right">退款</th></tr></thead><tbody>'+
+      keys.map(k=>'<tr class="border-b border-slate-50"><td class="py-2 px-2 font-bold">'+k+'</td>'+
+      '<td class="py-2 px-2 text-right">'+months[k].count+'</td>'+
+      '<td class="py-2 px-2 text-right">'+fmtY(months[k].deposit)+'</td>'+
+      '<td class="py-2 px-2 text-right">'+fmtY(months[k].total)+'</td>'+
+      '<td class="py-2 px-2 text-right text-red-500">'+(months[k].refund? fmtY(months[k].refund) : '—')+'</td>'+
+      '</tr>').join('')+'</tbody></table>';
+  }
+
+  // 退款明細
+  const refunds = allOrders.filter(o=>Number(o.refundAmount)>0);
+  const rd = document.getElementById('refund-detail');
+  if(!refunds.length){ rd.innerHTML='<div class="text-center text-slate-400 py-4">本期無退款記錄</div>'; }
+  else {
+    rd.innerHTML = '<table class="w-full text-sm"><thead class="border-b text-left text-xs text-slate-500"><tr>'+
+      '<th class="py-2 px-2">訂單號</th><th class="py-2 px-2">客戶</th>'+
+      '<th class="py-2 px-2 text-right">退款金額</th><th class="py-2 px-2">退款時間</th>'+
+      '<th class="py-2 px-2">原因</th></tr></thead><tbody>'+
+      refunds.map(o=>'<tr class="border-b border-slate-50 hover:bg-slate-50 cursor-pointer" onclick="openEdit(\''+o.orderId+'\')">'+
+      '<td class="py-2 px-2 font-mono text-xs">'+o.orderId+'</td>'+
+      '<td class="py-2 px-2">'+(o.name||'—')+'</td>'+
+      '<td class="py-2 px-2 text-right text-red-500 font-bold">'+fmtY(o.refundAmount)+'</td>'+
+      '<td class="py-2 px-2 text-slate-600">'+(o.refundTime? fmtDate(o.refundTime):'處理中')+'</td>'+
+      '<td class="py-2 px-2 text-slate-600 text-xs">'+(o.refundReason||'—')+'</td>'+
+      '</tr>').join('')+'</tbody></table>';
+  }
+}
+
+// ── CSV EXPORT ──
+function ordersToCSV(list){
+  const headers = ['訂單號','姓名','電話','Email','體驗日期','人數','款式','來源','訂金','和服','妝髮費','攝影費','總計','確認','退款金額','備註'];
+  const rows = list.map(o=>[
+    o.orderId, o.name, o.phone, o.email,
+    o.bookingDate? fmtDate(o.bookingDate):'',
+    o.adults||o.pax||'', o.plan||'', o.platform||'',
+    o.deposit||0, o.price||o.kimonoPrice||0, o.hairFee||0, o.photoFee||0,
+    totalAmount(o), o.confirmed?'已確認':'待確認',
+    o.refundAmount||0, (o.remark||'').replace(/[\r\n]+/g,' ')
+  ]);
+  const csv = [headers, ...rows].map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'kimono-orders-'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function exportCSV(){
+  const visible = document.querySelectorAll('#orders-list .order-card');
+  if(!visible.length){ toast('無資料可匯出','warning'); return; }
+  // 用目前篩選後的列表
+  const ids = Array.from(visible).map(c=>c.querySelector('.text-slate-400.font-mono')?.textContent.trim()).filter(Boolean);
+  const list = allOrders.filter(o=>ids.includes(o.orderId));
+  ordersToCSV(list.length? list : allOrders);
+  toast('已匯出 CSV');
+}
+function batchExportCSV(){
+  if(!selectedIds.size){ toast('請先選取訂單','warning'); return; }
+  ordersToCSV(allOrders.filter(o=>selectedIds.has(o.orderId)));
+  toast('已匯出 '+selectedIds.size+' 筆');
+}
+
+// ── EDIT MODAL ──
 function openEdit(orderId) {
   const o = allOrders.find(x => x.orderId === orderId);
   if (!o) return;
   editingOrder = o;
-  document.getElementById('modal-order-id').textContent = orderId + (o.submitDate ? '  ·  填單: ' + o.submitDate : '');
+  document.getElementById('modal-order-id').textContent = orderId + (o.submitDate ? ' · 填單: ' + o.submitDate : '');
   document.getElementById('e-name').value = o.name || '';
   document.getElementById('e-phone').value = o.phone || '';
   document.getElementById('e-email').value = o.email || '';
   document.getElementById('e-booking-date').value = (o.bookingDate || '').slice(0,10);
-  document.getElementById('e-pax').value = o.adults || '';
+  document.getElementById('e-pax').value = o.adults || o.pax || '';
   document.getElementById('e-plan').value = o.plan || '';
   document.getElementById('e-platform').value = o.platform || '';
   document.getElementById('e-hair').value = (o.hair === true || o.hair === 'true') ? 'true' : 'false';
   document.getElementById('e-photo').value = (o.photo === true || o.photo === 'true') ? 'true' : 'false';
   document.getElementById('e-confirmed').value = o.confirmed ? 'true' : 'false';
   document.getElementById('e-deposit').value = o.deposit || '';
-  document.getElementById('e-price').value = o.price || '';
+  document.getElementById('e-price').value = o.price || o.kimonoPrice || '';
   document.getElementById('e-hair-fee').value = o.hairFee || '';
   document.getElementById('e-photo-fee').value = o.photoFee || '';
   document.getElementById('e-coupon').value = o.coupon || '';
@@ -443,86 +1081,101 @@ function openEdit(orderId) {
   document.getElementById('edit-modal').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
 }
-
 function closeModal() {
   document.getElementById('edit-modal').classList.add('hidden');
   document.body.style.overflow = '';
 }
-
 function switchTab(name, btn) {
   document.querySelectorAll('.edit-tab').forEach(t => t.classList.add('hidden'));
   document.querySelectorAll('#edit-modal .tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-' + name).classList.remove('hidden');
   if (btn) btn.classList.add('active');
 }
-
-// ── CALC ──────────────────────────────────────────────────────
 function updateCalc() {
-  const price   = Number(document.getElementById('e-price').value)    || 0;
-  const hair    = Number(document.getElementById('e-hair-fee').value)  || 0;
-  const photo   = Number(document.getElementById('e-photo-fee').value) || 0;
-  const deposit = Number(document.getElementById('e-deposit').value)   || 0;
-  const onsite  = price + hair + photo;
+  const price = Number(document.getElementById('e-price').value) || 0;
+  const hair = Number(document.getElementById('e-hair-fee').value) || 0;
+  const photo = Number(document.getElementById('e-photo-fee').value) || 0;
+  const deposit = Number(document.getElementById('e-deposit').value) || 0;
+  const onsite = price + hair + photo;
   const afterDep = Math.max(0, onsite - deposit);
-  document.getElementById('calc-due').textContent = onsite ? '¥' + onsite.toLocaleString() : '—';
-  document.getElementById('calc-net').textContent = onsite ? '¥' + afterDep.toLocaleString() : '—';
+  document.getElementById('calc-due').textContent = onsite ? fmtY(onsite) : '—';
+  document.getElementById('calc-net').textContent = onsite ? fmtY(afterDep) : '—';
 }
 
-// ── SAVE ──────────────────────────────────────────────────────
 function saveOrder() {
   const btn = document.getElementById('save-btn');
   const msg = document.getElementById('save-msg');
   if (!editingOrder) return;
   btn.textContent = '儲存中…'; btn.disabled = true;
-
   const payload = {
-    action: 'adminUpdate',
-    agent: currentAgent,
-    token: adminToken,
-    orderId: editingOrder.orderId,
-    name:         document.getElementById('e-name').value,
-    phone:        document.getElementById('e-phone').value,
-    email:        document.getElementById('e-email').value,
-    bookingDate:  document.getElementById('e-booking-date').value,
-    pax:          document.getElementById('e-pax').value,
-    plan:         document.getElementById('e-plan').value,
-    platform:     document.getElementById('e-platform').value,
-    hair:         document.getElementById('e-hair').value,
-    photo:        document.getElementById('e-photo').value,
-    confirmed:    document.getElementById('e-confirmed').value,
-    deposit:      document.getElementById('e-deposit').value,
-    kimonoPrice:  document.getElementById('e-price').value,
-    hairFee:      document.getElementById('e-hair-fee').value,
-    photoFee:     document.getElementById('e-photo-fee').value,
-    coupon:       document.getElementById('e-coupon').value,
-    rate:         document.getElementById('e-rate').value,
-    refundAmt:    document.getElementById('e-refund-amt').value,
-    refundDate:   document.getElementById('e-refund-date').value,
+    action: 'adminUpdate', agent: currentAgent, token: adminToken, orderId: editingOrder.orderId,
+    name: document.getElementById('e-name').value,
+    phone: document.getElementById('e-phone').value,
+    email: document.getElementById('e-email').value,
+    bookingDate: document.getElementById('e-booking-date').value,
+    pax: document.getElementById('e-pax').value,
+    plan: document.getElementById('e-plan').value,
+    platform: document.getElementById('e-platform').value,
+    hair: document.getElementById('e-hair').value,
+    photo: document.getElementById('e-photo').value,
+    confirmed: document.getElementById('e-confirmed').value,
+    deposit: document.getElementById('e-deposit').value,
+    kimonoPrice: document.getElementById('e-price').value,
+    hairFee: document.getElementById('e-hair-fee').value,
+    photoFee: document.getElementById('e-photo-fee').value,
+    coupon: document.getElementById('e-coupon').value,
+    rate: document.getElementById('e-rate').value,
+    refundAmt: document.getElementById('e-refund-amt').value,
+    refundDate: document.getElementById('e-refund-date').value,
     refundReason: document.getElementById('e-refund-reason').value,
-    note:         document.getElementById('e-remark').value,
+    note: document.getElementById('e-remark').value,
   };
-
-  fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
+  fetch(GAS_URL, { method:'POST', body: JSON.stringify(payload) })
     .then(r => r.json())
     .then(data => {
       btn.textContent = '💾 儲存變更'; btn.disabled = false;
       if (data.status === 'unauthorized') { showLogin(); return; }
       if (data.status === 'ok' || data.status === 'success') {
-        msg.textContent = '✅ 儲存成功！'; msg.className = 'text-center text-sm mt-3 text-emerald-600'; msg.classList.remove('hidden');
-        // Update local cache
+        msg.textContent = '✅ 儲存成功！'; msg.className = 'text-center text-sm mt-3 text-emerald-600';
+        msg.classList.remove('hidden');
         const idx = allOrders.findIndex(o => o.orderId === editingOrder.orderId);
-        if (idx >= 0) Object.assign(allOrders[idx], payload);
-        filterOrders(); updateStats();
-        setTimeout(closeModal, 1500);
+        if (idx >= 0) {
+          Object.assign(allOrders[idx], payload);
+          allOrders[idx].confirmed = payload.confirmed === 'true';
+          allOrders[idx].hair = payload.hair === 'true';
+          allOrders[idx].photo = payload.photo === 'true';
+          allOrders[idx].price = payload.kimonoPrice;
+          allOrders[idx].refundAmount = payload.refundAmt;
+          allOrders[idx].refundTime = payload.refundDate;
+          allOrders[idx].remark = payload.note;
+        }
+        filterOrders(); renderDashboard();
+        setTimeout(closeModal, 1200);
       } else {
-        msg.textContent = '❌ ' + (data.message || '儲存失敗'); msg.className = 'text-center text-sm mt-3 text-red-500'; msg.classList.remove('hidden');
+        msg.textContent = '❌ ' + (data.message || '儲存失敗'); msg.className = 'text-center text-sm mt-3 text-red-500';
+        msg.classList.remove('hidden');
       }
     })
     .catch(e => {
       btn.textContent = '💾 儲存變更'; btn.disabled = false;
-      msg.textContent = '❌ 連線失敗: ' + e.message; msg.className = 'text-center text-sm mt-3 text-red-500'; msg.classList.remove('hidden');
+      msg.textContent = '❌ 連線失敗: ' + e.message; msg.className = 'text-center text-sm mt-3 text-red-500';
+      msg.classList.remove('hidden');
     });
 }
+
+// ── GLOBAL SEARCH ──
+document.addEventListener('keydown', (e)=>{
+  if((e.ctrlKey||e.metaKey) && e.key==='k'){ e.preventDefault(); document.getElementById('global-search')?.focus(); }
+  if(e.key==='Escape'){ closeModal(); }
+});
+document.getElementById('global-search')?.addEventListener('input', (e)=>{
+  const q = e.target.value;
+  if(!q) return;
+  switchSection('orders', document.querySelector('[data-sec=orders]'));
+  document.getElementById('f-search').value = q;
+  filterOrders();
+});
+
 </script>
 </body>
 </html>
