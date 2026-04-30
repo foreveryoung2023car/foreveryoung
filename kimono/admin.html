@@ -1561,13 +1561,13 @@ console.log('%c[v2.2.1] global search ready','color:#1A365D;font-weight:bold');
 /* === v2.2.1 假訂單過濾（月份標題列等不完整資料） === */
 window.__isFakeOrder = function(o){
   if (!o) return true;
-  // 訂單必須至少有：訂單編號、姓名、電話、Email 其中一個有值
-  // 月份標題列的特徵：所有這些欄位都空，可能 A 欄或 B 欄填了「2026年X月」字串
-  var hasOrderId = !!String(o.orderId||'').trim();
+  // 真訂單必要條件：「姓名」「電話」「Email」三者至少有一個有值
+  // 月份標題列特徵：A 欄打「2026年4月」這種字串 → GAS 可能解讀成 ISO 日期塞進 orderId
+  // 所以不管 orderId 是什麼，只要姓名/電話/Email 三者都空，就視為假訂單
   var hasName = !!String(o.name||'').trim();
   var hasPhone = !!String(o.phone||'').trim();
   var hasEmail = !!String(o.email||'').trim();
-  return !(hasOrderId || hasName || hasPhone || hasEmail);
+  return !(hasName || hasPhone || hasEmail);
 };
 /* 攔截每次 allOrders 變更後的 render，清掉假訂單 */
 (function(){
