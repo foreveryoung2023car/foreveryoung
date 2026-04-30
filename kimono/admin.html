@@ -6,82 +6,134 @@
 <title>客服後台 — 旅乘 x 和服</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="./config.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  * { font-family: 'Noto Serif TC', serif; }
-  body { background: #FDFCF8; color: #1A365D; }
+  /* === 字體分工：標題用宋體、內文用黑體 === */
+  body, input, select, textarea, button, table { font-family:'Noto Sans TC', system-ui, -apple-system, sans-serif; font-size:15px; color:#1A365D; }
+  h1, h2, h3, h4, .font-serif, .title-serif { font-family:'Noto Serif TC', serif; }
+  body { background:#FDFCF8; }
   body.dark { background:#0F172A; color:#E2E8F0 }
   body.dark .order-card,body.dark .stat-card,body.dark .modal-box,body.dark .panel,body.dark .input-field { background:#1E293B; color:#E2E8F0; border-color:#334155 }
   body.dark .edit-panel { background:#0F172A }
   body.dark .text-\[\#1A365D\]{color:#E2E8F0}
   body.dark .border-slate-100,body.dark .border-slate-200{border-color:#334155}
+
   .admin-nav { background:#1A365D }
-  .btn-navy { background:#1A365D;color:white;transition:.2s }
+  .btn-navy { background:#1A365D;color:white;transition:.2s;font-weight:600 }
   .btn-navy:hover { background:#12274A }
   .btn-navy:disabled{opacity:.5;cursor:not-allowed}
-  .btn-outline { border:1.5px solid #1A365D;color:#1A365D;background:transparent;transition:.2s }
+  .btn-outline { border:1.5px solid #1A365D;color:#1A365D;background:white;transition:.2s;font-weight:600 }
   .btn-outline:hover { background:#1A365D;color:white }
-  .btn-ghost{background:transparent;color:#64748B;transition:.15s}
-  .btn-ghost:hover{background:#F1F5F9;color:#1A365D}
-  .input-field { border:1.5px solid #CBD5E0;border-radius:8px;padding:8px 12px;width:100%;transition:.2s;font-family:'Noto Serif TC',serif;font-size:14px;background:white }
-  .input-field:focus { outline:none;border-color:#1A365D;box-shadow:0 0 0 3px rgba(26,54,93,.08) }
+
+  .input-field { border:1.5px solid #94A3B8;border-radius:8px;padding:9px 12px;width:100%;transition:.2s;font-size:15px;background:white;color:#1A365D }
+  .input-field:focus { outline:none;border-color:#1A365D;box-shadow:0 0 0 3px rgba(26,54,93,.12) }
+  .input-field::placeholder{color:#94A3B8}
   select.input-field { background:white }
-  .order-card { background:white;border-radius:16px;box-shadow:0 2px 12px rgba(26,54,93,.07);border:1px solid rgba(26,54,93,.06);margin-bottom:14px;transition:.2s }
-  .order-card:hover { box-shadow:0 4px 20px rgba(26,54,93,.12) }
+
+  .order-card { background:white;border-radius:14px;box-shadow:0 2px 10px rgba(26,54,93,.08);border:1px solid rgba(26,54,93,.1);margin-bottom:14px;transition:.2s }
+  .order-card:hover { box-shadow:0 4px 18px rgba(26,54,93,.14) }
   .order-card.selected{border-color:#C9A961;background:linear-gradient(to right,#FFFBEB,white 30%)}
   .order-card.urgent{border-left:4px solid #EF4444}
   .order-card.warning{border-left:4px solid #F59E0B}
-  .badge { display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600 }
-  .badge-pending { background:#FFF3CD;color:#856404 }
-  .badge-confirmed { background:#D1FAE5;color:#065F46 }
-  .badge-refund { background:#FFE4E6;color:#9F1239 }
-  .badge-anomaly{background:#FEE2E2;color:#991B1B}
+
+  /* 字體加深 + 變大 */
+  .badge { display:inline-block;padding:4px 11px;border-radius:20px;font-size:12px;font-weight:700 }
+  .badge-pending { background:#FEF3C7;color:#78350F }
+  .badge-confirmed { background:#A7F3D0;color:#064E3B }
+  .badge-refund { background:#FECACA;color:#7F1D1D }
+  .badge-anomaly{background:#FECACA;color:#7F1D1D}
   .badge-vip{background:linear-gradient(135deg,#C9A961,#8B7355);color:white}
-  .section-label { font-size:10px;font-weight:700;letter-spacing:.12em;color:#a0aec0;text-transform:uppercase;margin-bottom:4px }
+  .badge-paid{background:#A7F3D0;color:#064E3B}
+  .badge-unpaid{background:#FED7AA;color:#7C2D12}
+
+  /* section-label 加大、加粗、加深 */
+  .section-label { font-size:11px;font-weight:700;letter-spacing:.1em;color:#475569;text-transform:uppercase;margin-bottom:5px }
+  body.dark .section-label{color:#94A3B8}
+
   .edit-panel { background:#F8F7F4;border-radius:12px;padding:20px;border:1px solid rgba(26,54,93,.08) }
-  .stat-card { background:white;border-radius:14px;padding:16px 18px;box-shadow:0 2px 8px rgba(26,54,93,.06);position:relative;overflow:hidden;transition:.2s }
-  .stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 16px rgba(26,54,93,.1)}
+
+  .stat-card { background:white;border-radius:14px;padding:16px 20px;box-shadow:0 2px 8px rgba(26,54,93,.08);position:relative;overflow:hidden;transition:.2s }
+  .stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 16px rgba(26,54,93,.12)}
   .stat-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:#1A365D}
   .stat-card.gold::before{background:#C9A961}
   .stat-card.green::before{background:#10B981}
   .stat-card.red::before{background:#EF4444}
   .stat-card.blue::before{background:#3B82F6}
   .stat-card.purple::before{background:#8B5CF6}
-  .tab-btn { padding:7px 16px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;transition:.2s;border:none }
+
+  .tab-btn { padding:8px 18px;border-radius:8px;cursor:pointer;font-weight:700;font-size:14px;transition:.2s;border:none }
   .tab-btn.active { background:#1A365D;color:white }
-  .tab-btn:not(.active) { background:#F1F5F9;color:#64748B }
-  .tab-btn:not(.active):hover { background:#e2e8f0 }
-  .nav-tab{padding:12px 16px;font-size:13px;font-weight:600;cursor:pointer;color:rgba(255,255,255,.6);border-bottom:3px solid transparent;transition:.15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  .tab-btn:not(.active) { background:#E2E8F0;color:#334155 }
+  .tab-btn:not(.active):hover { background:#CBD5E1 }
+
+  .nav-tab{padding:13px 18px;font-size:14px;font-weight:700;cursor:pointer;color:rgba(255,255,255,.7);border-bottom:3px solid transparent;transition:.15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-family:'Noto Sans TC',sans-serif}
   .nav-tab.active{color:white;border-color:#C9A961}
-  .nav-tab:hover:not(.active){color:rgba(255,255,255,.85)}
-  .modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(2px) }
-  .modal-box { background:white;border-radius:20px;padding:28px;max-width:760px;width:100%;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2) }
-  .tag { display:inline-block;background:#EFF6FF;color:#1A365D;border-radius:6px;padding:2px 8px;font-size:11px;margin:2px;border:1px solid rgba(26,54,93,.12) }
-  .pill{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600}
-  .panel{background:white;border-radius:14px;padding:20px;border:1px solid rgba(26,54,93,.06);box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .nav-tab:hover:not(.active){color:white}
+
+  .modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(2px) }
+  .modal-box { background:white;border-radius:20px;padding:28px;max-width:780px;width:100%;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25) }
+
+  .tag { display:inline-block;background:#DBEAFE;color:#1E40AF;border-radius:6px;padding:3px 9px;font-size:12px;margin:2px;border:1px solid #93C5FD;font-weight:600 }
+  .pill{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:600}
+
+  .panel{background:white;border-radius:14px;padding:22px;border:1px solid rgba(26,54,93,.08);box-shadow:0 1px 4px rgba(0,0,0,.04) }
+  .panel h3{font-size:17px;font-weight:700}
+
   .section{display:none}
   .section.active{display:block;animation:fadeIn .3s ease}
   @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-  .calendar-day{min-height:78px;border:1px solid #e5e7eb;padding:5px;font-size:11px;background:white;cursor:pointer;transition:.15s;display:flex;flex-direction:column;border-radius:6px}
-  .calendar-day:hover{background:#F8FAFC;transform:scale(1.02);z-index:5;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+
+  .calendar-day{min-height:84px;border:1px solid #CBD5E1;padding:6px;font-size:12px;background:white;cursor:pointer;transition:.15s;display:flex;flex-direction:column;border-radius:6px;color:#1A365D}
+  .calendar-day:hover{background:#F1F5F9;transform:scale(1.02);z-index:5;box-shadow:0 4px 12px rgba(0,0,0,.12)}
   .calendar-day.today{background:#FEF3C7;border-color:#C9A961;border-width:2px}
-  .calendar-day.has-orders{background:linear-gradient(135deg,white,#EFF6FF)}
-  .calendar-day.busy{background:linear-gradient(135deg,white,#FEE2E2);border-color:#FCA5A5}
-  .calendar-day.full{background:linear-gradient(135deg,#FEE2E2,#FCA5A5);border-color:#DC2626;color:#991B1B}
-  .calendar-day.other-month{color:#CBD5E1;background:#F8FAFC}
-  .heat-bar{height:22px;border-radius:6px;display:flex;align-items:center;padding:0 8px;color:white;font-size:11px;font-weight:600;transition:.3s;min-width:30px}
-  .toast{position:fixed;top:80px;right:24px;background:white;border-left:4px solid #10B981;padding:12px 18px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:60;animation:slideIn .3s ease;display:flex;align-items:center;gap:10px;max-width:360px}
+  .calendar-day.has-orders{background:linear-gradient(135deg,white,#DBEAFE)}
+  .calendar-day.busy{background:linear-gradient(135deg,white,#FECACA);border-color:#FCA5A5}
+  .calendar-day.full{background:linear-gradient(135deg,#FECACA,#FCA5A5);border-color:#DC2626;color:#7F1D1D}
+  .calendar-day.other-month{color:#94A3B8;background:#F8FAFC}
+
+  .heat-bar{height:24px;border-radius:6px;display:flex;align-items:center;padding:0 10px;color:white;font-size:13px;font-weight:700;transition:.3s;min-width:30px}
+
+  .toast{position:fixed;top:80px;right:24px;background:white;border-left:4px solid #10B981;padding:14px 20px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:60;animation:slideIn .3s ease;display:flex;align-items:center;gap:10px;max-width:380px;font-weight:600}
   .toast.error{border-left-color:#EF4444}
   .toast.warning{border-left-color:#F59E0B}
   @keyframes slideIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+
   details summary{cursor:pointer;list-style:none}
   details summary::-webkit-details-marker{display:none}
+
   .petal { position:fixed;pointer-events:none;border-radius:50% 0 50% 0;opacity:.10;animation:fall linear infinite;z-index:0 }
   @keyframes fall { 0%{transform:translateY(-20px) rotate(0deg);opacity:.10} 100%{transform:translateY(100vh) rotate(360deg);opacity:0} }
+
   ::-webkit-scrollbar{width:8px;height:8px}
-  ::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:4px}
-  ::-webkit-scrollbar-thumb:hover{background:#94A3B8}
-  .checkbox-lg{width:18px;height:18px;cursor:pointer;accent-color:#1A365D}
+  ::-webkit-scrollbar-thumb{background:#94A3B8;border-radius:4px}
+  ::-webkit-scrollbar-thumb:hover{background:#64748B}
+
+  .checkbox-lg{width:20px;height:20px;cursor:pointer;accent-color:#1A365D}
+
+  /* 表格樣式（用於客戶名單、財務對帳） */
+  .data-table{width:100%;border-collapse:collapse;font-size:14px}
+  .data-table thead{background:#F1F5F9}
+  .data-table th{padding:11px 12px;text-align:left;font-weight:700;color:#1A365D;border-bottom:2px solid #CBD5E1;font-size:13px;letter-spacing:.02em}
+  .data-table td{padding:11px 12px;border-bottom:1px solid #E2E8F0;color:#1A365D}
+  .data-table tbody tr:hover{background:#F8FAFC;cursor:pointer}
+  .data-table .num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+
+  /* 加深所有原本太淺的灰色 */
+  .text-slate-400{color:#475569 !important}
+  .text-slate-500{color:#334155 !important}
+  body.dark .text-slate-400{color:#94A3B8 !important}
+  body.dark .text-slate-500{color:#CBD5E1 !important}
+
+  .stat-num { font-size:28px; font-weight:700; color:#1A365D; }
+  .stat-num.amber{color:#B45309}
+  .stat-num.green{color:#047857}
+  .stat-num.red{color:#B91C1C}
+  body.dark .stat-num{color:#E2E8F0}
+
+  /* 對帳 row 狀態 */
+  .recon-row.match{background:#ECFDF5}
+  .recon-row.mismatch{background:#FEF2F2}
+  .recon-row.pending{background:#FFFBEB}
 </style>
 </head>
 <body class="min-h-screen">
@@ -94,50 +146,51 @@
 <nav class="admin-nav shadow-lg sticky top-0 z-40">
   <div class="max-w-[1500px] mx-auto px-4 py-3 flex items-center justify-between gap-4">
     <div class="flex items-center gap-3 flex-shrink-0">
-      <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20">旅</div>
+      <div class="w-10 h-10 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-lg">旅</div>
       <div>
-        <div class="text-white font-bold text-sm tracking-wide">旅乘 x 和服</div>
-        <div class="text-white/50 text-[10px] tracking-[0.25em]">ADMIN PORTAL · v2.0</div>
+        <div class="text-white font-bold text-base tracking-wide title-serif">旅乘 x 和服</div>
+        <div class="text-white/60 text-[11px] tracking-[0.25em]">ADMIN PORTAL · v2.1</div>
       </div>
     </div>
     <div id="global-search-wrap" class="hidden md:flex flex-1 max-w-md">
       <div class="relative w-full">
-        <input id="global-search" class="w-full bg-white/10 border border-white/20 text-white placeholder-white/50 rounded-lg px-9 py-1.5 text-sm focus:bg-white/20 focus:outline-none" placeholder="🔍 全站搜尋訂單號 / 姓名 / 電話">
-        <kbd class="absolute right-2 top-1.5 text-[10px] text-white/50 border border-white/20 px-1 rounded">Ctrl+K</kbd>
+        <input id="global-search" class="w-full bg-white/15 border border-white/30 text-white placeholder-white/70 rounded-lg px-9 py-2 text-sm focus:bg-white/25 focus:outline-none" placeholder="🔍 全站搜尋訂單號 / 姓名 / 電話">
+        <kbd class="absolute right-2 top-2 text-[11px] text-white/60 border border-white/30 px-1.5 rounded">Ctrl+K</kbd>
       </div>
     </div>
     <div class="flex items-center gap-3 flex-shrink-0">
-      <button onclick="toggleDark()" class="text-white/70 hover:text-white text-sm" title="深色模式">🌓</button>
-      <button onclick="loadOrders()" class="text-white/70 hover:text-white text-sm hidden md:block" title="重新載入">↻</button>
-      <span id="nav-agent" class="text-white/80 text-sm hidden md:block"></span>
-      <button onclick="showLogin()" id="logout-btn" class="text-white/80 hover:text-white text-xs border border-white/20 px-3 py-1.5 rounded-lg hidden">登出</button>
+      <button onclick="toggleDark()" class="text-white/80 hover:text-white text-base" title="深色模式">🌓</button>
+      <button onclick="loadOrders()" class="text-white/80 hover:text-white text-base hidden md:block" title="重新載入">↻</button>
+      <span id="nav-agent" class="text-white text-sm hidden md:block font-semibold"></span>
+      <button onclick="showLogin()" id="logout-btn" class="text-white hover:bg-white/10 text-sm border border-white/30 px-3 py-1.5 rounded-lg hidden font-semibold">登出</button>
     </div>
   </div>
   <div id="section-tabs" class="max-w-[1500px] mx-auto px-4 hidden overflow-x-auto">
     <div class="flex gap-1">
       <div class="nav-tab active" data-sec="dashboard" onclick="switchSection('dashboard',this)">📊 儀表板</div>
-      <div class="nav-tab" data-sec="orders" onclick="switchSection('orders',this)">📋 訂單管理 <span id="tab-count-orders" class="bg-white/20 px-1.5 rounded text-[10px]">0</span></div>
+      <div class="nav-tab" data-sec="orders" onclick="switchSection('orders',this)">📋 訂單管理 <span id="tab-count-orders" class="bg-white/25 px-1.5 rounded text-[11px]">0</span></div>
       <div class="nav-tab" data-sec="calendar" onclick="switchSection('calendar',this)">📅 行事曆</div>
-      <div class="nav-tab" data-sec="customers" onclick="switchSection('customers',this)">👥 客戶名單</div>
+      <div class="nav-tab" data-sec="customers" onclick="switchSection('customers',this)">👥 客戶名單 <span id="tab-count-customers" class="bg-white/25 px-1.5 rounded text-[11px]">0</span></div>
       <div class="nav-tab" data-sec="finance" onclick="switchSection('finance',this)">💰 財務報表</div>
+      <div class="nav-tab" data-sec="reconcile" onclick="switchSection('reconcile',this)">🧾 對帳</div>
     </div>
   </div>
 </nav>
 
 <div id="login-screen" class="flex items-center justify-center min-h-[calc(100vh-56px)] px-4">
-  <div class="bg-white rounded-2xl shadow-xl p-10 w-full max-w-sm border border-slate-100">
+  <div class="bg-white rounded-2xl shadow-xl p-10 w-full max-w-sm border border-slate-200">
     <div class="text-center mb-8">
-      <div class="w-14 h-14 bg-[#1A365D] rounded-2xl mx-auto mb-4 flex items-center justify-center">
-        <span class="text-white text-2xl font-bold">旅</span>
+      <div class="w-16 h-16 bg-[#1A365D] rounded-2xl mx-auto mb-4 flex items-center justify-center">
+        <span class="text-white text-2xl font-bold title-serif">旅</span>
       </div>
-      <h1 class="text-xl font-bold text-[#1A365D]">客服後台登入</h1>
-      <p class="text-slate-400 text-sm mt-1">請輸入您的姓名與密碼</p>
+      <h1 class="text-xl font-bold text-[#1A365D] title-serif">客服後台登入</h1>
+      <p class="text-slate-500 text-sm mt-2">請輸入您的姓名與密碼</p>
     </div>
     <div class="space-y-4">
       <div><div class="section-label">客服姓名</div><input id="login-name" class="input-field" placeholder="例：Jun、Ren、Amy" autocomplete="off"></div>
       <div><div class="section-label">密碼</div><input id="login-pass" type="password" class="input-field" placeholder="請輸入密碼" onkeydown="if(event.key==='Enter')doLogin()"></div>
-      <div id="login-err" class="text-red-500 text-sm hidden text-center py-1"></div>
-      <button onclick="doLogin()" class="btn-navy w-full py-3 rounded-xl font-bold text-sm">登入後台</button>
+      <div id="login-err" class="text-red-600 text-sm hidden text-center py-1 font-semibold"></div>
+      <button onclick="doLogin()" class="btn-navy w-full py-3 rounded-xl text-base">登入後台</button>
     </div>
   </div>
 </div>
@@ -145,12 +198,13 @@
 <div id="dashboard" class="hidden max-w-[1500px] mx-auto px-4 py-6">
 
   <section id="sec-dashboard" class="section active">
-    <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
+    <div class="flex justify-between items-end mb-5 flex-wrap gap-2">
       <div>
-        <h2 class="text-2xl font-bold text-[#1A365D]">營運概覽</h2>
-        <p id="dash-date" class="text-sm text-slate-500 mt-1"></p>
+        <h2 class="text-2xl font-bold text-[#1A365D] title-serif">營運概覽</h2>
+        <p id="dash-date" class="text-sm text-slate-600 mt-1 font-semibold"></p>
       </div>
-      <div class="flex gap-2 flex-wrap">
+      <div class="flex gap-2 flex-wrap items-center">
+        <label class="text-sm font-semibold text-slate-600">範圍：</label>
         <select id="dash-range" class="input-field !w-auto" onchange="renderDashboard()">
           <option value="today">今日</option>
           <option value="week">本週</option>
@@ -163,37 +217,37 @@
     </div>
 
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
-      <div class="stat-card blue"><div class="section-label">總訂單</div><div id="kpi-total" class="text-2xl font-bold text-[#1A365D]">—</div><div id="kpi-total-trend" class="text-[11px] text-slate-400 mt-1">—</div></div>
-      <div class="stat-card gold"><div class="section-label">待確認</div><div id="kpi-pending" class="text-2xl font-bold text-amber-500">—</div><div id="kpi-pending-trend" class="text-[11px] text-slate-400 mt-1">—</div></div>
-      <div class="stat-card green"><div class="section-label">已確認</div><div id="kpi-confirmed" class="text-2xl font-bold text-emerald-600">—</div><div id="kpi-confirmed-trend" class="text-[11px] text-slate-400 mt-1">—</div></div>
-      <div class="stat-card"><div class="section-label">期間訂金(¥)</div><div id="kpi-deposit" class="text-xl font-bold text-[#1A365D]">—</div><div id="kpi-deposit-trend" class="text-[11px] text-slate-400 mt-1">—</div></div>
-      <div class="stat-card purple"><div class="section-label">待收尾款(¥)</div><div id="kpi-due" class="text-xl font-bold text-[#1A365D]">—</div><div id="kpi-due-trend" class="text-[11px] text-slate-400 mt-1">—</div></div>
-      <div class="stat-card red"><div class="section-label">退款(¥)</div><div id="kpi-refund" class="text-xl font-bold text-red-500">—</div><div id="kpi-refund-trend" class="text-[11px] text-slate-400 mt-1">—</div></div>
+      <div class="stat-card blue"><div class="section-label">總訂單</div><div id="kpi-total" class="stat-num">—</div><div id="kpi-total-trend" class="text-xs text-slate-600 mt-1 font-semibold">—</div></div>
+      <div class="stat-card gold"><div class="section-label">待確認</div><div id="kpi-pending" class="stat-num amber">—</div><div id="kpi-pending-trend" class="text-xs text-slate-600 mt-1 font-semibold">—</div></div>
+      <div class="stat-card green"><div class="section-label">已確認</div><div id="kpi-confirmed" class="stat-num green">—</div><div id="kpi-confirmed-trend" class="text-xs text-slate-600 mt-1 font-semibold">—</div></div>
+      <div class="stat-card"><div class="section-label">期間訂金 (¥)</div><div id="kpi-deposit" class="stat-num" style="font-size:22px">—</div><div id="kpi-deposit-trend" class="text-xs text-slate-600 mt-1 font-semibold">—</div></div>
+      <div class="stat-card purple"><div class="section-label">待收尾款 (¥)</div><div id="kpi-due" class="stat-num" style="font-size:22px">—</div><div id="kpi-due-trend" class="text-xs text-slate-600 mt-1 font-semibold">—</div></div>
+      <div class="stat-card red"><div class="section-label">退款 (¥)</div><div id="kpi-refund" class="stat-num red" style="font-size:22px">—</div><div id="kpi-refund-trend" class="text-xs text-slate-600 mt-1 font-semibold">—</div></div>
     </div>
 
     <div class="panel mb-4">
-      <h3 class="font-bold text-[#1A365D] mb-3 flex justify-between items-center">🔔 待辦提醒 <span id="todo-count" class="text-xs text-slate-400 font-normal">0 項</span></h3>
+      <h3 class="text-[#1A365D] mb-3 flex justify-between items-center title-serif">🔔 待辦提醒 <span id="todo-count" class="text-sm text-slate-600 font-semibold">0 項</span></h3>
       <div id="todo-list" class="space-y-2 text-sm"></div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
       <div class="panel lg:col-span-2">
-        <h3 class="font-bold text-[#1A365D] mb-3">⏰ 未來 14 天預約熱度</h3>
+        <h3 class="text-[#1A365D] mb-3 title-serif">⏰ 未來 14 天預約熱度</h3>
         <div id="heat-list" class="space-y-2 text-sm"></div>
       </div>
       <div class="panel">
-        <h3 class="font-bold text-[#1A365D] mb-3">👘 款式佔比</h3>
-        <div id="plan-ratio" class="space-y-2 text-sm"></div>
+        <h3 class="text-[#1A365D] mb-3 title-serif">👘 款式佔比</h3>
+        <div id="plan-ratio" class="space-y-3 text-sm"></div>
       </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <div class="panel">
-        <h3 class="font-bold text-[#1A365D] mb-3">📱 預約來源</h3>
-        <div id="platform-ratio" class="space-y-2 text-sm"></div>
+        <h3 class="text-[#1A365D] mb-3 title-serif">📱 預約來源</h3>
+        <div id="platform-ratio" class="space-y-3 text-sm"></div>
       </div>
       <div class="panel">
-        <h3 class="font-bold text-[#1A365D] mb-3 flex justify-between"><span>🔥 即將到店（最近 6 筆）</span><button onclick="switchSection('orders',document.querySelector('[data-sec=orders]'))" class="text-xs text-slate-400 hover:text-[#1A365D]">查看全部 →</button></h3>
+        <h3 class="text-[#1A365D] mb-3 flex justify-between title-serif"><span>🔥 即將到店（最近 6 筆）</span><button onclick="switchSection('orders',document.querySelector('[data-sec=orders]'))" class="text-xs text-slate-600 hover:text-[#1A365D] font-semibold">查看全部 →</button></h3>
         <div id="upcoming-list" class="space-y-2 text-sm"></div>
       </div>
     </div>
@@ -201,18 +255,18 @@
 
   <section id="sec-orders" class="section">
     <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
-      <h2 class="text-2xl font-bold text-[#1A365D]">訂單管理</h2>
+      <h2 class="text-2xl font-bold text-[#1A365D] title-serif">訂單管理</h2>
       <div class="flex gap-2 flex-wrap">
-        <button onclick="exportCSV()" class="btn-outline px-4 py-2 rounded-xl text-sm font-bold">📥 匯出 CSV</button>
-        <button onclick="loadOrders()" class="btn-navy px-4 py-2 rounded-xl text-sm font-bold">↻ 重新載入</button>
+        <button onclick="exportCSV()" class="btn-outline px-4 py-2 rounded-xl text-sm">📥 匯出 CSV</button>
+        <button onclick="loadOrders()" class="btn-navy px-4 py-2 rounded-xl text-sm">↻ 重新載入</button>
       </div>
     </div>
 
     <div class="panel mb-4">
       <details open>
         <summary class="flex justify-between items-center mb-3">
-          <span class="font-bold text-[#1A365D]">🔍 進階搜尋與篩選</span>
-          <span class="text-xs text-slate-400">點擊展開/收合</span>
+          <span class="font-bold text-[#1A365D] text-base">🔍 進階搜尋與篩選</span>
+          <span class="text-xs text-slate-500 font-semibold">點擊展開/收合</span>
         </summary>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           <div><div class="section-label">關鍵字</div><input id="f-search" class="input-field" placeholder="姓名/電話/訂單號/Email" oninput="filterOrders()"></div>
@@ -226,53 +280,53 @@
         </div>
       </details>
 
-      <div class="flex justify-between items-center mt-4 pt-3 border-t border-slate-100 flex-wrap gap-2">
+      <div class="flex justify-between items-center mt-4 pt-3 border-t border-slate-200 flex-wrap gap-2">
         <div class="flex flex-wrap gap-2">
-          <button class="tab-btn active" onclick="setFilter('all',this)">全部 <span id="cnt-all" class="ml-1 opacity-70">0</span></button>
-          <button class="tab-btn" onclick="setFilter('pending',this)">待確認 <span id="cnt-pending" class="ml-1 opacity-70">0</span></button>
-          <button class="tab-btn" onclick="setFilter('confirmed',this)">已確認 <span id="cnt-confirmed" class="ml-1 opacity-70">0</span></button>
-          <button class="tab-btn" onclick="setFilter('refund',this)">有退款 <span id="cnt-refund" class="ml-1 opacity-70">0</span></button>
-          <button class="tab-btn" onclick="setFilter('anomaly',this)">⚠ 異常 <span id="cnt-anomaly" class="ml-1 opacity-70">0</span></button>
+          <button class="tab-btn active" onclick="setFilter('all',this)">全部 <span id="cnt-all" class="ml-1 opacity-80">0</span></button>
+          <button class="tab-btn" onclick="setFilter('pending',this)">待確認 <span id="cnt-pending" class="ml-1 opacity-80">0</span></button>
+          <button class="tab-btn" onclick="setFilter('confirmed',this)">已確認 <span id="cnt-confirmed" class="ml-1 opacity-80">0</span></button>
+          <button class="tab-btn" onclick="setFilter('refund',this)">有退款 <span id="cnt-refund" class="ml-1 opacity-80">0</span></button>
+          <button class="tab-btn" onclick="setFilter('anomaly',this)">⚠ 異常 <span id="cnt-anomaly" class="ml-1 opacity-80">0</span></button>
         </div>
-        <div class="text-sm text-slate-500">顯示 <b id="showing-count" class="text-[#1A365D]">0</b> / <span id="total-count">0</span> 筆</div>
+        <div class="text-sm text-slate-700 font-semibold">顯示 <b id="showing-count" class="text-[#1A365D] text-base">0</b> / <span id="total-count">0</span> 筆</div>
       </div>
     </div>
 
-    <div id="batch-bar" class="panel mb-4 bg-amber-50 border-amber-200 hidden">
+    <div id="batch-bar" class="panel mb-4 bg-amber-50 border-amber-300 hidden">
       <div class="flex items-center justify-between flex-wrap gap-2">
-        <div class="text-sm">已選取 <b id="batch-count">0</b> 筆</div>
+        <div class="text-sm font-semibold">已選取 <b id="batch-count" class="text-base">0</b> 筆</div>
         <div class="flex gap-2 flex-wrap">
-          <button onclick="batchConfirm()" class="px-3 py-1.5 bg-white border rounded-lg text-sm hover:bg-emerald-50">✅ 批次確認</button>
-          <button onclick="batchExportCSV()" class="px-3 py-1.5 bg-white border rounded-lg text-sm hover:bg-slate-50">📥 匯出選取</button>
-          <button onclick="clearSelection()" class="px-3 py-1.5 bg-white border rounded-lg text-sm hover:bg-slate-50">取消選取</button>
+          <button onclick="batchConfirm()" class="px-3 py-1.5 bg-white border-2 border-emerald-400 text-emerald-700 rounded-lg text-sm hover:bg-emerald-50 font-semibold">✅ 批次確認</button>
+          <button onclick="batchExportCSV()" class="px-3 py-1.5 bg-white border-2 border-slate-300 rounded-lg text-sm hover:bg-slate-50 font-semibold">📥 匯出選取</button>
+          <button onclick="clearSelection()" class="px-3 py-1.5 bg-white border-2 border-slate-300 rounded-lg text-sm hover:bg-slate-50 font-semibold">取消選取</button>
         </div>
       </div>
     </div>
 
-    <div id="orders-loading" class="text-center py-12 text-slate-400 hidden"><div class="text-3xl mb-2 animate-pulse">⏳</div>載入中…</div>
-    <div id="orders-empty" class="text-center py-12 text-slate-400 hidden"><div class="text-3xl mb-2">🔍</div>查無符合訂單</div>
+    <div id="orders-loading" class="text-center py-12 text-slate-500 hidden font-semibold"><div class="text-3xl mb-2 animate-pulse">⏳</div>載入中…</div>
+    <div id="orders-empty" class="text-center py-12 text-slate-500 hidden font-semibold"><div class="text-3xl mb-2">🔍</div>查無符合訂單</div>
     <div id="orders-list"></div>
   </section>
 
   <section id="sec-calendar" class="section">
     <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
-      <h2 class="text-2xl font-bold text-[#1A365D]">行事曆檢視</h2>
+      <h2 class="text-2xl font-bold text-[#1A365D] title-serif">行事曆檢視</h2>
       <div class="flex gap-2 items-center">
         <button onclick="changeMonth(-1)" class="btn-outline px-3 py-2 rounded-lg text-sm">‹ 上月</button>
-        <span id="cal-title" class="font-bold text-[#1A365D] min-w-[120px] text-center">—</span>
+        <span id="cal-title" class="font-bold text-[#1A365D] min-w-[140px] text-center text-base title-serif">—</span>
         <button onclick="changeMonth(1)" class="btn-outline px-3 py-2 rounded-lg text-sm">下月 ›</button>
         <button onclick="goToday()" class="btn-navy px-3 py-2 rounded-lg text-sm">今天</button>
       </div>
     </div>
     <div class="panel">
-      <div class="grid grid-cols-7 gap-1 text-center text-xs font-bold text-slate-500 mb-1">
+      <div class="grid grid-cols-7 gap-1 text-center text-sm font-bold text-slate-700 mb-2">
         <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
       </div>
       <div id="calendar-grid" class="grid grid-cols-7 gap-1"></div>
-      <div class="mt-4 pt-3 border-t flex gap-3 text-xs flex-wrap">
+      <div class="mt-4 pt-3 border-t border-slate-200 flex gap-3 text-xs flex-wrap font-semibold text-slate-700">
         <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:#FEF3C7;border:1px solid #C9A961"></span>今天</span>
-        <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:linear-gradient(135deg,white,#EFF6FF)"></span>有預約</span>
-        <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:#FEE2E2"></span>較忙</span>
+        <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:linear-gradient(135deg,white,#DBEAFE)"></span>有預約</span>
+        <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:#FECACA"></span>較忙 (3+ 組)</span>
         <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:#FCA5A5"></span>滿載 (≥5 組)</span>
       </div>
     </div>
@@ -280,9 +334,28 @@
 
   <section id="sec-customers" class="section">
     <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
-      <h2 class="text-2xl font-bold text-[#1A365D]">客戶名單</h2>
-      <input id="cust-search" class="input-field !w-64" placeholder="🔍 搜尋客戶姓名/電話" oninput="renderCustomers()">
+      <div>
+        <h2 class="text-2xl font-bold text-[#1A365D] title-serif">客戶名單</h2>
+        <p class="text-sm text-slate-600 mt-1 font-semibold">自動從訂單聚合，依電話 / Email 識別客戶</p>
+      </div>
+      <div class="flex gap-2 items-center">
+        <input id="cust-search" class="input-field !w-64" placeholder="🔍 搜尋姓名 / 電話 / Email" oninput="renderCustomers()">
+        <select id="cust-sort" class="input-field !w-auto" onchange="renderCustomers()">
+          <option value="orders-desc">訂單數 ↓</option>
+          <option value="spent-desc">消費 ↓</option>
+          <option value="recent-desc">最近預約 ↓</option>
+          <option value="name-asc">姓名 A-Z</option>
+        </select>
+      </div>
     </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+      <div class="stat-card blue"><div class="section-label">總客戶數</div><div id="cust-stat-total" class="stat-num">—</div></div>
+      <div class="stat-card gold"><div class="section-label">VIP 客戶</div><div id="cust-stat-vip" class="stat-num" style="color:#C9A961">—</div></div>
+      <div class="stat-card green"><div class="section-label">回訪客戶 (≥2 次)</div><div id="cust-stat-repeat" class="stat-num green">—</div></div>
+      <div class="stat-card"><div class="section-label">平均客單價</div><div id="cust-stat-avg" class="stat-num" style="font-size:22px">—</div></div>
+    </div>
+
     <div class="panel">
       <div id="customers-list" class="overflow-x-auto"></div>
     </div>
@@ -290,30 +363,75 @@
 
   <section id="sec-finance" class="section">
     <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
-      <h2 class="text-2xl font-bold text-[#1A365D]">財務報表</h2>
-      <select id="fin-range" class="input-field !w-auto" onchange="renderFinance()">
-        <option value="month" selected>本月</option>
-        <option value="quarter">本季</option>
-        <option value="year">本年</option>
-        <option value="all">全部</option>
-      </select>
+      <h2 class="text-2xl font-bold text-[#1A365D] title-serif">財務報表</h2>
+      <div class="flex gap-2 items-center">
+        <label class="text-sm font-semibold text-slate-600">範圍：</label>
+        <select id="fin-range" class="input-field !w-auto" onchange="renderFinance()">
+          <option value="month" selected>本月</option>
+          <option value="quarter">本季</option>
+          <option value="year">本年</option>
+          <option value="all">全部</option>
+        </select>
+      </div>
     </div>
 
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-      <div class="stat-card green"><div class="section-label">已收訂金</div><div id="fin-deposit" class="text-xl font-bold text-emerald-600">—</div></div>
-      <div class="stat-card blue"><div class="section-label">應收尾款</div><div id="fin-due" class="text-xl font-bold text-[#1A365D]">—</div></div>
-      <div class="stat-card gold"><div class="section-label">總營收(預估)</div><div id="fin-total" class="text-xl font-bold text-[#C9A961]">—</div></div>
-      <div class="stat-card red"><div class="section-label">退款</div><div id="fin-refund" class="text-xl font-bold text-red-500">—</div></div>
+      <div class="stat-card green"><div class="section-label">已收訂金 (¥)</div><div id="fin-deposit" class="stat-num green" style="font-size:22px">—</div></div>
+      <div class="stat-card blue"><div class="section-label">應收尾款 (¥)</div><div id="fin-due" class="stat-num" style="font-size:22px">—</div></div>
+      <div class="stat-card gold"><div class="section-label">總營收 (預估)</div><div id="fin-total" class="stat-num" style="color:#C9A961;font-size:22px">—</div></div>
+      <div class="stat-card red"><div class="section-label">退款 (¥)</div><div id="fin-refund" class="stat-num red" style="font-size:22px">—</div></div>
     </div>
 
     <div class="panel mb-4">
-      <h3 class="font-bold text-[#1A365D] mb-3">月度趨勢</h3>
+      <h3 class="text-[#1A365D] mb-3 title-serif">📊 月度趨勢</h3>
       <div id="month-trend" class="overflow-x-auto"></div>
     </div>
 
     <div class="panel">
-      <h3 class="font-bold text-[#1A365D] mb-3">退款明細</h3>
+      <h3 class="text-[#1A365D] mb-3 title-serif">↩ 退款明細</h3>
       <div id="refund-detail" class="overflow-x-auto"></div>
+    </div>
+  </section>
+
+  <section id="sec-reconcile" class="section">
+    <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
+      <div>
+        <h2 class="text-2xl font-bold text-[#1A365D] title-serif">🧾 對帳作業</h2>
+        <p class="text-sm text-slate-600 mt-1 font-semibold">逐筆核對訂金匯款，標記異常並追蹤入帳狀態</p>
+      </div>
+      <div class="flex gap-2 items-center flex-wrap">
+        <select id="recon-month" class="input-field !w-auto" onchange="renderReconcile()"></select>
+        <select id="recon-status" class="input-field !w-auto" onchange="renderReconcile()">
+          <option value="all">全部訂單</option>
+          <option value="unmatched">未對帳</option>
+          <option value="matched">已對帳</option>
+          <option value="mismatch">金額異常</option>
+        </select>
+        <button onclick="exportReconCSV()" class="btn-outline px-4 py-2 rounded-xl text-sm">📥 匯出對帳</button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+      <div class="stat-card blue"><div class="section-label">本期訂單</div><div id="recon-stat-total" class="stat-num">—</div></div>
+      <div class="stat-card gold"><div class="section-label">應收訂金</div><div id="recon-stat-expect" class="stat-num" style="font-size:22px">—</div></div>
+      <div class="stat-card green"><div class="section-label">已收訂金</div><div id="recon-stat-received" class="stat-num green" style="font-size:22px">—</div></div>
+      <div class="stat-card red"><div class="section-label">差異金額</div><div id="recon-stat-diff" class="stat-num red" style="font-size:22px">—</div></div>
+      <div class="stat-card purple"><div class="section-label">對帳完成率</div><div id="recon-stat-rate" class="stat-num" style="color:#7C3AED">—</div></div>
+    </div>
+
+    <div class="panel mb-4">
+      <h3 class="text-[#1A365D] mb-3 title-serif">📌 對帳說明</h3>
+      <div class="text-sm text-slate-700 space-y-1.5 font-medium">
+        <div>• <b>應收訂金</b> = 每人 ¥1,000 × 預約人數（依 config.js 之 DEPOSIT_JPY 設定）</div>
+        <div>• <b>已收訂金</b> = 訂單表 deposit 欄位（客人匯款後客服填入）</div>
+        <div>• <span style="background:#ECFDF5;padding:2px 8px;border-radius:4px;font-weight:600;color:#047857">已對帳</span> = 已確認且訂金金額符合應收</div>
+        <div>• <span style="background:#FEF2F2;padding:2px 8px;border-radius:4px;font-weight:600;color:#B91C1C">金額異常</span> = 訂金 ≠ 應收金額（多收 / 少收）</div>
+        <div>• <span style="background:#FFFBEB;padding:2px 8px;border-radius:4px;font-weight:600;color:#92400E">未對帳</span> = 待確認狀態的訂單</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div id="recon-table" class="overflow-x-auto"></div>
     </div>
   </section>
 
@@ -323,12 +441,12 @@
   <div class="modal-box">
     <div class="flex items-start justify-between mb-5">
       <div>
-        <h2 class="text-lg font-bold text-[#1A365D]">✏️ 編輯訂單</h2>
-        <p id="modal-order-id" class="text-sm text-slate-400 mt-0.5"></p>
+        <h2 class="text-xl font-bold text-[#1A365D] title-serif">✏️ 編輯訂單</h2>
+        <p id="modal-order-id" class="text-sm text-slate-600 mt-1 font-semibold"></p>
       </div>
-      <button onclick="closeModal()" class="text-slate-300 hover:text-slate-500 text-3xl leading-none ml-4">×</button>
+      <button onclick="closeModal()" class="text-slate-400 hover:text-slate-700 text-3xl leading-none ml-4">×</button>
     </div>
-    <div class="flex gap-2 mb-5 flex-wrap border-b border-slate-100 pb-4">
+    <div class="flex gap-2 mb-5 flex-wrap border-b border-slate-200 pb-4">
       <button class="tab-btn active" onclick="switchTab('basic',this)">基本資訊</button>
       <button class="tab-btn" onclick="switchTab('payment',this)">款項費用</button>
       <button class="tab-btn" onclick="switchTab('refund',this)">退款記錄</button>
@@ -358,11 +476,11 @@
         <div><div class="section-label">攝影費 JPY</div><input id="e-photo-fee" class="input-field" type="number" placeholder="0" oninput="updateCalc()"></div>
         <div><div class="section-label">折扣碼</div><input id="e-coupon" class="input-field" placeholder="留空=無折扣"></div>
         <div><div class="section-label">匯率 (JPY→TWD)</div><input id="e-rate" class="input-field" type="number" step="0.001" placeholder="0.22" oninput="updateCalc()"></div>
-        <div class="md:col-span-2 bg-white rounded-xl p-4 border border-slate-100">
+        <div class="md:col-span-2 bg-white rounded-xl p-4 border-2 border-slate-200">
           <div class="section-label mb-3">自動試算</div>
           <div class="grid grid-cols-2 gap-4 text-center">
-            <div><div class="text-slate-400 text-xs mb-1">現場應收(JPY)</div><div id="calc-due" class="font-bold text-[#1A365D] text-lg">—</div></div>
-            <div><div class="text-slate-400 text-xs mb-1">訂金後應收(JPY)（實際現場收款）</div><div id="calc-net" class="font-bold text-emerald-600 text-lg">—</div></div>
+            <div><div class="text-slate-600 text-xs mb-1 font-semibold">現場應收(JPY)</div><div id="calc-due" class="font-bold text-[#1A365D] text-xl">—</div></div>
+            <div><div class="text-slate-600 text-xs mb-1 font-semibold">訂金後應收(JPY)</div><div id="calc-net" class="font-bold text-emerald-700 text-xl">—</div></div>
           </div>
         </div>
       </div>
@@ -383,11 +501,24 @@
       </div>
     </div>
 
-    <div class="flex gap-3 mt-6 pt-4 border-t border-slate-100">
-      <button onclick="saveOrder()" id="save-btn" class="btn-navy flex-1 py-3 rounded-xl font-bold text-sm">💾 儲存變更</button>
-      <button onclick="closeModal()" class="btn-outline px-6 py-3 rounded-xl font-bold text-sm">取消</button>
+    <div class="flex gap-3 mt-6 pt-4 border-t border-slate-200">
+      <button onclick="saveOrder()" id="save-btn" class="btn-navy flex-1 py-3 rounded-xl text-base">💾 儲存變更</button>
+      <button onclick="closeModal()" class="btn-outline px-6 py-3 rounded-xl text-base">取消</button>
     </div>
-    <div id="save-msg" class="text-center text-sm mt-3 hidden"></div>
+    <div id="save-msg" class="text-center text-sm mt-3 hidden font-semibold"></div>
+  </div>
+</div>
+
+<div id="customer-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeCustomerModal()">
+  <div class="modal-box">
+    <div class="flex items-start justify-between mb-5">
+      <div>
+        <h2 id="cust-modal-name" class="text-xl font-bold text-[#1A365D] title-serif">客戶詳情</h2>
+        <p id="cust-modal-sub" class="text-sm text-slate-600 mt-1 font-semibold"></p>
+      </div>
+      <button onclick="closeCustomerModal()" class="text-slate-400 hover:text-slate-700 text-3xl leading-none">×</button>
+    </div>
+    <div id="cust-modal-body"></div>
   </div>
 </div>
 
@@ -395,6 +526,7 @@
 
 <script>
 const GAS_URL = typeof KIMONO_CONFIG !== 'undefined' ? KIMONO_CONFIG.APPS_SCRIPT_URL : '';
+const DEPOSIT_JPY = (typeof KIMONO_CONFIG !== 'undefined' && KIMONO_CONFIG.DEPOSIT_JPY) ? Number(KIMONO_CONFIG.DEPOSIT_JPY) : 1000;
 let currentAgent = '';
 let adminToken = '';
 let allOrders = [];
@@ -404,11 +536,9 @@ let selectedIds = new Set();
 let currentSection = 'dashboard';
 let calCursor = new Date();
 
-// ── DARK MODE ──
 function toggleDark(){document.body.classList.toggle('dark');localStorage.setItem('admin_dark', document.body.classList.contains('dark')?'1':'0')}
 if(localStorage.getItem('admin_dark')==='1') document.body.classList.add('dark');
 
-// ── TOAST ──
 function toast(msg, type){
   const c = document.getElementById('toast-container');
   const t = document.createElement('div');
@@ -418,7 +548,6 @@ function toast(msg, type){
   setTimeout(()=>{t.style.animation='slideIn .3s ease reverse';setTimeout(()=>t.remove(),300)}, 2800);
 }
 
-// ── AUTH ──
 function showLogin() {
   document.getElementById('login-screen').classList.remove('hidden');
   document.getElementById('dashboard').classList.add('hidden');
@@ -473,7 +602,6 @@ function enterDashboard(name, token) {
   if (savedName && savedToken) enterDashboard(savedName, savedToken);
 })();
 
-// ── SECTION SWITCH ──
 function switchSection(sec, el){
   currentSection = sec;
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
@@ -484,9 +612,9 @@ function switchSection(sec, el){
   else if(sec==='calendar') renderCalendar();
   else if(sec==='customers') renderCustomers();
   else if(sec==='finance') renderFinance();
+  else if(sec==='reconcile') { initReconMonths(); renderReconcile(); }
 }
 
-// ── LOAD ORDERS ──
 function loadOrders() {
   document.getElementById('orders-loading').classList.remove('hidden');
   document.getElementById('orders-list').innerHTML = '';
@@ -512,15 +640,30 @@ function loadOrders() {
 }
 
 function showErr(msg) {
-  document.getElementById('orders-list').innerHTML = '<div class="text-center py-10 text-red-400"><div class="text-2xl mb-2">⚠️</div>' + msg + '</div>';
+  document.getElementById('orders-list').innerHTML = '<div class="text-center py-10 text-red-600 font-semibold"><div class="text-2xl mb-2">⚠️</div>' + msg + '</div>';
 }
 
-// ── HELPERS ──
 function fmtY(n){ n = Number(n)||0; return n ? '¥'+n.toLocaleString() : '—'; }
+function fmtY0(n){ n = Number(n)||0; return '¥'+n.toLocaleString(); }
 function fmtDate(s){ if(!s) return '—'; const d = new Date(s); if(isNaN(d)) return s; return d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0'); }
-function fmtDateShort(s){ if(!s) return '—'; const d = new Date(s); if(isNaN(d)) return s; return (d.getMonth()+1)+'/'+d.getDate(); }
 function isAnomaly(o){ return !o.name || !o.phone || !o.bookingDate; }
 function totalAmount(o){ return (Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0); }
+// 解析人數字串，例如「2大1小」「3」「2 adults 1 kid」
+function parsePax(s){
+  if(!s) return 0;
+  s = String(s);
+  const m = s.match(/(\d+)\s*[大成人]/);
+  const k = s.match(/(\d+)\s*[小孩童]/);
+  const just = s.match(/^\s*(\d+)\s*$/);
+  let total = 0;
+  if(m) total += Number(m[1]);
+  if(k) total += Number(k[1]);
+  if(!total && just) total = Number(just[1]);
+  if(!total){ const all = s.match(/\d+/g); if(all) total = all.reduce((a,b)=>a+Number(b),0); }
+  return total;
+}
+function expectedDeposit(o){ return parsePax(o.adults || o.pax) * DEPOSIT_JPY; }
+
 function isInRange(o, range){
   if(range==='all') return true;
   const d = o.bookingDate ? new Date(o.bookingDate) : null;
@@ -533,8 +676,6 @@ function isInRange(o, range){
   if(range==='year'){ return d.getFullYear()===now.getFullYear(); }
   return true;
 }
-
-
 
 // ── DASHBOARD ──
 function renderDashboard(){
@@ -553,15 +694,15 @@ function renderDashboard(){
   document.getElementById('kpi-total').textContent = total;
   document.getElementById('kpi-pending').textContent = pending;
   document.getElementById('kpi-confirmed').textContent = confirmed;
-  document.getElementById('kpi-deposit').textContent = fmtY(deposit);
-  document.getElementById('kpi-due').textContent = fmtY(due);
-  document.getElementById('kpi-refund').textContent = fmtY(refund);
+  document.getElementById('kpi-deposit').textContent = fmtY0(deposit);
+  document.getElementById('kpi-due').textContent = fmtY0(due);
+  document.getElementById('kpi-refund').textContent = fmtY0(refund);
 
   const confirmRate = total ? Math.round(confirmed/total*100) : 0;
   document.getElementById('kpi-total-trend').textContent = '範圍內全部訂單';
   document.getElementById('kpi-pending-trend').textContent = pending? pending+' 筆需處理' : '已全部處理';
   document.getElementById('kpi-confirmed-trend').textContent = '確認率 ' + confirmRate + '%';
-  document.getElementById('kpi-deposit-trend').textContent = total? '平均 ¥'+Math.round(deposit/total||0).toLocaleString() : '—';
+  document.getElementById('kpi-deposit-trend').textContent = total? '平均每筆 ¥'+Math.round(deposit/total||0).toLocaleString() : '—';
   document.getElementById('kpi-due-trend').textContent = '已確認訂單之尾款';
   const refundCount = filtered.filter(o=>Number(o.refundAmount)>0).length;
   document.getElementById('kpi-refund-trend').textContent = refundCount? refundCount+' 筆' : '無退款';
@@ -589,9 +730,7 @@ function renderTodos(){
   if(overdue.length) items.push({type:'urgent',icon:'🚨',text:overdue.length+' 筆訂單待確認超過 24 小時',action:()=>{switchSection('orders',document.querySelector('[data-sec=orders]'));setFilter('pending',document.querySelectorAll('#sec-orders .tab-btn')[1])}});
 
   const tomorrow = new Date(now); tomorrow.setDate(now.getDate()+1);
-  const tomorrowOrders = allOrders.filter(o=>{
-    const d = new Date(o.bookingDate); return !isNaN(d) && d.toDateString()===tomorrow.toDateString();
-  });
+  const tomorrowOrders = allOrders.filter(o=>{ const d = new Date(o.bookingDate); return !isNaN(d) && d.toDateString()===tomorrow.toDateString(); });
   if(tomorrowOrders.length) items.push({type:'warn',icon:'📅',text:'明日有 '+tomorrowOrders.length+' 組客人預約，建議提前發送提醒',action:null});
 
   const anomalies = allOrders.filter(isAnomaly);
@@ -600,17 +739,21 @@ function renderTodos(){
   const refunding = allOrders.filter(o=>Number(o.refundAmount)>0 && !o.refundTime);
   if(refunding.length) items.push({type:'warn',icon:'↩',text:refunding.length+' 筆退款處理中（尚未填退款時間）',action:()=>{switchSection('orders',document.querySelector('[data-sec=orders]'));setFilter('refund',document.querySelectorAll('#sec-orders .tab-btn')[3])}});
 
+  // 對帳異常
+  const reconMismatch = allOrders.filter(o=>{ const exp = expectedDeposit(o); const got = Number(o.deposit)||0; return o.bookingDate && exp>0 && got>0 && got!==exp; });
+  if(reconMismatch.length) items.push({type:'urgent',icon:'🧾',text:reconMismatch.length+' 筆訂單訂金金額異常（不符應收）',action:()=>{switchSection('reconcile',document.querySelector('[data-sec=reconcile]'));document.getElementById('recon-status').value='mismatch';renderReconcile();}});
+
   document.getElementById('todo-count').textContent = items.length+' 項';
 
-  if(!items.length){ list.innerHTML='<div class="text-center text-slate-400 py-4">🎉 太棒了！目前沒有待辦事項</div>'; return; }
+  if(!items.length){ list.innerHTML='<div class="text-center text-slate-600 py-6 font-semibold">🎉 太棒了！目前沒有待辦事項</div>'; return; }
 
   const colorMap = {urgent:'red',warn:'amber',info:'blue'};
   list.innerHTML = items.map((it,i)=>{
     const c = colorMap[it.type];
-    return '<div class="flex items-center gap-3 p-3 bg-'+c+'-50 rounded-lg border border-'+c+'-100">'+
+    return '<div class="flex items-center gap-3 p-3 bg-'+c+'-50 rounded-lg border border-'+c+'-200">'+
       '<span class="text-xl">'+it.icon+'</span>'+
-      '<span class="flex-1">'+it.text+'</span>'+
-      (it.action? '<button onclick="window.__todoActions['+i+']()" class="text-[#1A365D] font-bold text-xs hover:underline">處理 →</button>' : '')+
+      '<span class="flex-1 font-semibold text-[#1A365D]">'+it.text+'</span>'+
+      (it.action? '<button onclick="window.__todoActions['+i+']()" class="text-[#1A365D] text-sm hover:underline font-bold">處理 →</button>' : '')+
       '</div>';
   }).join('');
   window.__todoActions = items.map(it=>it.action || (()=>{}));
@@ -630,12 +773,12 @@ function renderHeat(){
   list.innerHTML = days.map(x=>{
     const pct = Math.max(8, x.cnt/maxCnt*100);
     let color = '#93C5FD';
-    if(x.cnt===0) color='#E5E7EB';
+    if(x.cnt===0) color='#CBD5E1';
     else if(x.cnt>=5) color='#DC2626';
     else if(x.cnt>=3) color='#3B82F6';
     const isToday = x.d.toDateString()===new Date().toDateString();
-    return '<div class="flex items-center gap-3"><span class="w-20 text-slate-500 text-xs">'+(x.d.getMonth()+1)+'/'+x.d.getDate()+' ('+wd[x.d.getDay()]+')'+(isToday?' 今':'')+'</span>'+
-      '<div class="flex-1 bg-slate-100 rounded-md h-6 relative overflow-hidden"><div class="heat-bar" style="width:'+pct+'%;background:'+color+'">'+(x.cnt? x.cnt+' 組' : '')+'</div></div></div>';
+    return '<div class="flex items-center gap-3"><span class="w-24 text-slate-700 text-sm font-semibold">'+(x.d.getMonth()+1)+'/'+x.d.getDate()+' ('+wd[x.d.getDay()]+')'+(isToday?' 今':'')+'</span>'+
+      '<div class="flex-1 bg-slate-100 rounded-md h-7 relative overflow-hidden"><div class="heat-bar" style="width:'+pct+'%;background:'+color+'">'+(x.cnt? x.cnt+' 組' : '')+'</div></div></div>';
   }).join('');
 }
 
@@ -646,11 +789,11 @@ function renderPlanRatio(filtered){
   const total = arr.reduce((s,x)=>s+x[1],0)||1;
   const colors = ['#1A365D','#C9A961','#10B981','#F59E0B','#8B5CF6','#EC4899'];
   const list = document.getElementById('plan-ratio');
-  if(!arr.length){ list.innerHTML='<div class="text-center text-slate-400 py-4">無資料</div>'; return; }
+  if(!arr.length){ list.innerHTML='<div class="text-center text-slate-600 py-4 font-semibold">無資料</div>'; return; }
   list.innerHTML = arr.map((x,i)=>{
     const pct = Math.round(x[1]/total*100);
-    return '<div><div class="flex justify-between mb-1 text-xs"><span>'+x[0]+'</span><span class="font-bold">'+pct+'% ('+x[1]+')</span></div>'+
-      '<div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full" style="width:'+pct+'%;background:'+colors[i%colors.length]+'"></div></div></div>';
+    return '<div><div class="flex justify-between mb-1 text-sm font-semibold"><span>'+x[0]+'</span><span class="text-[#1A365D]">'+pct+'% ('+x[1]+')</span></div>'+
+      '<div class="h-3 bg-slate-100 rounded-full overflow-hidden"><div class="h-full" style="width:'+pct+'%;background:'+colors[i%colors.length]+'"></div></div></div>';
   }).join('');
 }
 
@@ -660,12 +803,12 @@ function renderPlatformRatio(filtered){
   const arr = Object.entries(counter).sort((a,b)=>b[1]-a[1]);
   const total = arr.reduce((s,x)=>s+x[1],0)||1;
   const list = document.getElementById('platform-ratio');
-  if(!arr.length){ list.innerHTML='<div class="text-center text-slate-400 py-4">無資料</div>'; return; }
+  if(!arr.length){ list.innerHTML='<div class="text-center text-slate-600 py-4 font-semibold">無資料</div>'; return; }
   const colors = ['#1A365D','#10B981','#F59E0B','#EC4899','#8B5CF6','#06B6D4'];
   list.innerHTML = arr.map((x,i)=>{
     const pct = Math.round(x[1]/total*100);
-    return '<div><div class="flex justify-between mb-1 text-xs"><span>'+x[0]+'</span><span class="font-bold">'+pct+'% ('+x[1]+')</span></div>'+
-      '<div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full" style="width:'+pct+'%;background:'+colors[i%colors.length]+'"></div></div></div>';
+    return '<div><div class="flex justify-between mb-1 text-sm font-semibold"><span>'+x[0]+'</span><span class="text-[#1A365D]">'+pct+'% ('+x[1]+')</span></div>'+
+      '<div class="h-3 bg-slate-100 rounded-full overflow-hidden"><div class="h-full" style="width:'+pct+'%;background:'+colors[i%colors.length]+'"></div></div></div>';
   }).join('');
 }
 
@@ -673,22 +816,21 @@ function renderUpcoming(){
   const list = document.getElementById('upcoming-list');
   const now = new Date(); now.setHours(0,0,0,0);
   const upcoming = allOrders.filter(o=>{const d=new Date(o.bookingDate); return !isNaN(d) && d>=now;}).sort((a,b)=>new Date(a.bookingDate)-new Date(b.bookingDate)).slice(0,6);
-  if(!upcoming.length){ list.innerHTML='<div class="text-center text-slate-400 py-4">近期無預約</div>'; return; }
+  if(!upcoming.length){ list.innerHTML='<div class="text-center text-slate-600 py-4 font-semibold">近期無預約</div>'; return; }
   list.innerHTML = upcoming.map(o=>{
     const d = new Date(o.bookingDate);
     const days = Math.ceil((d-now)/(86400000));
     const dayLabel = days===0?'今天':days===1?'明天':'剩 '+days+' 天';
     const badge = o.confirmed? '<span class="badge badge-confirmed">已確認</span>' : '<span class="badge badge-pending">待確認</span>';
-    return '<div class="flex items-center justify-between p-2 hover:bg-slate-50 rounded cursor-pointer" onclick="openEdit(\''+(o.orderId||'')+'\')">'+
-      '<div class="flex-1"><div class="font-bold text-sm">'+(o.name||'—')+' <span class="text-xs text-slate-400 font-normal">'+(o.orderId||'')+'</span></div>'+
-      '<div class="text-xs text-slate-500">'+fmtDate(o.bookingDate)+' · '+(o.plan||'')+' · '+(o.adults||o.pax||'—')+'</div></div>'+
-      '<div class="flex items-center gap-2">'+badge+'<span class="text-xs font-bold text-[#C9A961]">'+dayLabel+'</span></div></div>';
+    return '<div class="flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg cursor-pointer border border-slate-100" onclick="openEdit(\''+(o.orderId||'')+'\')">'+
+      '<div class="flex-1"><div class="font-bold text-base">'+(o.name||'—')+' <span class="text-xs text-slate-600 font-mono font-normal">'+(o.orderId||'')+'</span></div>'+
+      '<div class="text-sm text-slate-700 mt-0.5">'+fmtDate(o.bookingDate)+' · '+(o.plan||'')+' · '+(o.adults||o.pax||'—')+'</div></div>'+
+      '<div class="flex items-center gap-2">'+badge+'<span class="text-sm font-bold text-[#C9A961]">'+dayLabel+'</span></div></div>';
   }).join('');
 }
 
 
 
-// ── FILTER OPTIONS POPULATE ──
 function populateFilters(){
   const plans = new Set(); const platforms = new Set();
   allOrders.forEach(o=>{
@@ -719,17 +861,11 @@ function filterOrders(){
 
   let list = allOrders.slice();
 
-  // counts
-  const cAll = list.length;
-  const cPending = list.filter(o=>!o.confirmed && !(Number(o.refundAmount)>0)).length;
-  const cConfirmed = list.filter(o=>o.confirmed).length;
-  const cRefund = list.filter(o=>Number(o.refundAmount)>0).length;
-  const cAnomaly = list.filter(isAnomaly).length;
-  document.getElementById('cnt-all').textContent = cAll;
-  document.getElementById('cnt-pending').textContent = cPending;
-  document.getElementById('cnt-confirmed').textContent = cConfirmed;
-  document.getElementById('cnt-refund').textContent = cRefund;
-  document.getElementById('cnt-anomaly').textContent = cAnomaly;
+  document.getElementById('cnt-all').textContent = list.length;
+  document.getElementById('cnt-pending').textContent = list.filter(o=>!o.confirmed && !(Number(o.refundAmount)>0)).length;
+  document.getElementById('cnt-confirmed').textContent = list.filter(o=>o.confirmed).length;
+  document.getElementById('cnt-refund').textContent = list.filter(o=>Number(o.refundAmount)>0).length;
+  document.getElementById('cnt-anomaly').textContent = list.filter(isAnomaly).length;
 
   if(currentFilter==='pending') list = list.filter(o=>!o.confirmed && !(Number(o.refundAmount)>0));
   if(currentFilter==='confirmed') list = list.filter(o=>o.confirmed);
@@ -778,7 +914,7 @@ function renderOrders(orders){
     const total = totalAmount(o);
     const due = total - (Number(o.deposit)||0);
     const days = o.bookingDate ? Math.ceil((new Date(o.bookingDate)-now)/(86400000)) : null;
-    const daysTag = days!==null && !isNaN(days) ? (days<0? '<span class="pill bg-slate-100 text-slate-500">已過 '+Math.abs(days)+' 天</span>' : days===0? '<span class="pill bg-amber-100 text-amber-700">📍 今天到店</span>' : days<=3? '<span class="pill bg-amber-100 text-amber-700">⏰ 剩 '+days+' 天</span>' : '<span class="pill bg-blue-100 text-blue-700">剩 '+days+' 天</span>') : '';
+    const daysTag = days!==null && !isNaN(days) ? (days<0? '<span class="pill bg-slate-200 text-slate-700">已過 '+Math.abs(days)+' 天</span>' : days===0? '<span class="pill bg-amber-100 text-amber-800">📍 今天到店</span>' : days<=3? '<span class="pill bg-amber-100 text-amber-800">⏰ 剩 '+days+' 天</span>' : '<span class="pill bg-blue-100 text-blue-800">剩 '+days+' 天</span>') : '';
 
     return '<div class="order-card '+cls+' '+sel+' p-5">'+
       '<div class="flex items-start gap-3">'+
@@ -786,34 +922,34 @@ function renderOrders(orders){
         '<div class="flex-1 min-w-0">'+
           '<div class="flex items-center gap-2 mb-2 flex-wrap">'+
             badge+
-            '<span class="font-bold text-[#1A365D] text-base">'+(o.name||'—')+'</span>'+
-            '<span class="text-slate-400 text-xs font-mono">'+(o.orderId||'')+'</span>'+
-            (o.platform? '<span class="pill bg-blue-100 text-blue-700">📱 '+o.platform+'</span>':'')+
+            '<span class="font-bold text-[#1A365D] text-lg">'+(o.name||'—')+'</span>'+
+            '<span class="text-slate-600 text-sm font-mono">'+(o.orderId||'')+'</span>'+
+            (o.platform? '<span class="pill bg-blue-100 text-blue-800">📱 '+o.platform+'</span>':'')+
             daysTag+
           '</div>'+
           '<div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm bg-slate-50 p-3 rounded-lg mb-2">'+
-            '<div><div class="text-xs text-slate-400">📅 體驗日期</div><div class="font-medium">'+fmtDate(o.bookingDate)+'</div></div>'+
-            '<div><div class="text-xs text-slate-400">📞 電話</div><div class="font-medium">'+(o.phone||'—')+'</div></div>'+
-            '<div><div class="text-xs text-slate-400">👥 人數</div><div class="font-medium">'+(o.adults||o.pax||'—')+'</div></div>'+
-            '<div><div class="text-xs text-slate-400">👘 款式</div><div class="font-medium truncate" title="'+(o.plan||'')+'">'+(o.plan||'—')+'</div></div>'+
-            '<div><div class="text-xs text-slate-400">💰 訂金</div><div class="font-medium">'+fmtY(o.deposit)+'</div></div>'+
-            '<div><div class="text-xs text-slate-400">💳 總價</div><div class="font-medium">'+fmtY(total)+'</div></div>'+
-            '<div><div class="text-xs text-slate-400">📥 待收尾款</div><div class="font-medium '+(due>0?'text-amber-600':'text-emerald-600')+'">'+fmtY(due)+'</div></div>'+
-            '<div><div class="text-xs text-slate-400">📧 Email</div><div class="font-medium truncate" title="'+(o.email||'')+'">'+(o.email||'—')+'</div></div>'+
+            '<div><div class="text-xs text-slate-600 font-semibold">📅 體驗日期</div><div class="font-bold text-[#1A365D]">'+fmtDate(o.bookingDate)+'</div></div>'+
+            '<div><div class="text-xs text-slate-600 font-semibold">📞 電話</div><div class="font-bold">'+(o.phone||'—')+'</div></div>'+
+            '<div><div class="text-xs text-slate-600 font-semibold">👥 人數</div><div class="font-bold">'+(o.adults||o.pax||'—')+'</div></div>'+
+            '<div><div class="text-xs text-slate-600 font-semibold">👘 款式</div><div class="font-bold truncate" title="'+(o.plan||'')+'">'+(o.plan||'—')+'</div></div>'+
+            '<div><div class="text-xs text-slate-600 font-semibold">💰 訂金</div><div class="font-bold">'+fmtY(o.deposit)+'</div></div>'+
+            '<div><div class="text-xs text-slate-600 font-semibold">💳 總價</div><div class="font-bold">'+fmtY(total)+'</div></div>'+
+            '<div><div class="text-xs text-slate-600 font-semibold">📥 待收尾款</div><div class="font-bold '+(due>0?'text-amber-700':'text-emerald-700')+'">'+fmtY(due)+'</div></div>'+
+            '<div><div class="text-xs text-slate-600 font-semibold">📧 Email</div><div class="font-bold truncate text-xs" title="'+(o.email||'')+'">'+(o.email||'—')+'</div></div>'+
           '</div>'+
           '<div class="flex flex-wrap gap-1">'+
-            (o.coupon? '<span class="tag bg-pink-50 text-pink-600 border-pink-200">🎟 '+o.coupon+'</span>':'')+
+            (o.coupon? '<span class="tag" style="background:#FCE7F3;color:#9F1239;border-color:#F9A8D4">🎟 '+o.coupon+'</span>':'')+
             hairTag+photoTag+
             (o.hairFee && Number(o.hairFee) ? '<span class="tag">妝髮 '+fmtY(o.hairFee)+'</span>' : '')+
             (o.photoFee && Number(o.photoFee) ? '<span class="tag">攝影 '+fmtY(o.photoFee)+'</span>' : '')+
-            (o.remark ? '<span class="tag bg-amber-50 text-amber-700 border-amber-200" title="'+(o.remark||'').replace(/"/g,"&quot;")+'">📝 備註</span>' : '')+
-            (o.agent? '<span class="tag bg-indigo-50 text-indigo-700 border-indigo-200">👤 '+o.agent+'</span>':'')+
+            (o.remark ? '<span class="tag" style="background:#FEF3C7;color:#78350F;border-color:#FCD34D" title="'+(o.remark||'').replace(/"/g,"&quot;")+'">📝 備註</span>' : '')+
+            (o.agent? '<span class="tag" style="background:#E0E7FF;color:#3730A3;border-color:#A5B4FC">👤 '+o.agent+'</span>':'')+
           '</div>'+
         '</div>'+
-        '<div class="flex flex-col gap-1 flex-shrink-0">'+
-          '<button onclick="openEdit(\''+(o.orderId||'')+'\')" class="btn-navy px-3 py-1.5 rounded-lg text-xs font-bold">✏️ 編輯</button>'+
-          (!o.confirmed && !anomaly ? '<button onclick="quickConfirm(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border border-emerald-300 text-emerald-600 rounded-lg text-xs hover:bg-emerald-50">✅ 快速確認</button>' : '')+
-          '<button onclick="copyOrderId(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border rounded-lg text-xs hover:bg-slate-50">📋 複製編號</button>'+
+        '<div class="flex flex-col gap-1.5 flex-shrink-0">'+
+          '<button onclick="openEdit(\''+(o.orderId||'')+'\')" class="btn-navy px-3 py-1.5 rounded-lg text-sm">✏️ 編輯</button>'+
+          (!o.confirmed && !anomaly ? '<button onclick="quickConfirm(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-emerald-400 text-emerald-700 rounded-lg text-sm hover:bg-emerald-50 font-semibold">✅ 快速確認</button>' : '')+
+          '<button onclick="copyOrderId(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-slate-300 rounded-lg text-sm hover:bg-slate-50 font-semibold">📋 複製編號</button>'+
         '</div>'+
       '</div>'+
     '</div>';
@@ -885,7 +1021,6 @@ function copyOrderId(id){
 }
 
 
-
 // ── CALENDAR ──
 function changeMonth(d){ calCursor.setMonth(calCursor.getMonth()+d); renderCalendar(); }
 function goToday(){ calCursor = new Date(); renderCalendar(); }
@@ -908,8 +1043,8 @@ function renderCalendar(){
     if(cnt>=5) cls += ' full';
     else if(cnt>=3) cls += ' busy';
     else if(cnt>0) cls += ' has-orders';
-    const peek = dayOrders.slice(0,2).map(o=>'<div class="text-[10px] truncate" title="'+(o.name||'')+'">'+(o.name||'').slice(0,5)+'</div>').join('');
-    html += '<div class="calendar-day'+cls+'" onclick="showDayOrders(\''+y+'-'+(m+1)+'-'+d+'\')"><div class="font-bold">'+d+'</div>'+(cnt? '<div class="text-[10px] font-bold mt-0.5" style="color:'+(cnt>=5?'#991B1B':cnt>=3?'#B91C1C':'#1E40AF')+'">'+cnt+' 組</div>'+peek : '')+'</div>';
+    const peek = dayOrders.slice(0,2).map(o=>'<div class="text-[11px] truncate font-semibold" title="'+(o.name||'')+'">'+(o.name||'').slice(0,5)+'</div>').join('');
+    html += '<div class="calendar-day'+cls+'" onclick="showDayOrders(\''+y+'-'+(m+1)+'-'+d+'\')"><div class="font-bold text-sm">'+d+'</div>'+(cnt? '<div class="text-xs font-bold mt-0.5" style="color:'+(cnt>=5?'#7F1D1D':cnt>=3?'#B91C1C':'#1E40AF')+'">'+cnt+' 組</div>'+peek : '')+'</div>';
   }
   const remaining = (7 - (startDay+daysInMonth)%7) % 7;
   for(let i=1;i<=remaining;i++) html += '<div class="calendar-day other-month"><div>'+i+'</div></div>';
@@ -920,41 +1055,124 @@ function showDayOrders(dateStr){
   const dayOrders = allOrders.filter(o=>{const od=new Date(o.bookingDate); return !isNaN(od) && od.toDateString()===dt.toDateString();});
   if(!dayOrders.length){ toast('該日無預約','warning'); return; }
   switchSection('orders', document.querySelector('[data-sec=orders]'));
-  document.getElementById('f-date-from').value = dateStr;
-  document.getElementById('f-date-to').value = dateStr;
+  const yyyy = dt.getFullYear(); const mm = String(dt.getMonth()+1).padStart(2,'0'); const dd = String(dt.getDate()).padStart(2,'0');
+  const iso = yyyy+'-'+mm+'-'+dd;
+  document.getElementById('f-date-from').value = iso;
+  document.getElementById('f-date-to').value = iso;
   filterOrders();
 }
 
-// ── CUSTOMERS ──
-function renderCustomers(){
-  const q = (document.getElementById('cust-search').value||'').toLowerCase();
+// ── CUSTOMERS（從訂單聚合） ──
+function buildCustomers(){
   const map = {};
   allOrders.forEach(o=>{
-    const key = (o.phone||o.email||o.name||'').trim();
+    const key = (o.phone || o.email || o.name || '').trim();
     if(!key) return;
-    if(!map[key]) map[key] = {name:o.name||'—', phone:o.phone||'', email:o.email||'', orders:[]};
+    if(!map[key]){
+      map[key] = {
+        key, name:o.name||'未知', phone:o.phone||'', email:o.email||'',
+        platform:o.platform||'', orders:[]
+      };
+    }
+    if(o.name && map[key].name==='未知') map[key].name = o.name;
+    if(o.phone && !map[key].phone) map[key].phone = o.phone;
+    if(o.email && !map[key].email) map[key].email = o.email;
     map[key].orders.push(o);
   });
-  let arr = Object.entries(map).map(([k,v])=>{
-    const totalSpent = v.orders.reduce((s,o)=>s+totalAmount(o),0);
-    const lastDate = v.orders.map(o=>new Date(o.bookingDate)).filter(d=>!isNaN(d)).sort((a,b)=>b-a)[0];
-    return {key:k, ...v, count:v.orders.length, totalSpent, lastDate, isVip: v.orders.length>=3 || totalSpent>=30000};
-  }).sort((a,b)=>b.count-a.count);
-  if(q) arr = arr.filter(c=>(c.name||'').toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.email||'').toLowerCase().includes(q));
-  const el = document.getElementById('customers-list');
-  if(!arr.length){ el.innerHTML='<div class="text-center text-slate-400 py-8">無客戶資料</div>'; return; }
-  el.innerHTML = '<table class="w-full text-sm"><thead class="border-b text-left text-xs text-slate-500"><tr>'+
-    '<th class="py-2 px-2">客戶</th><th class="py-2 px-2">電話</th><th class="py-2 px-2">Email</th>'+
-    '<th class="py-2 px-2 text-right">訂單數</th><th class="py-2 px-2 text-right">累積消費</th><th class="py-2 px-2">最後預約</th></tr></thead>'+
-    '<tbody>'+arr.map(c=>'<tr class="border-b border-slate-50 hover:bg-slate-50">'+
-      '<td class="py-2 px-2 font-bold">'+c.name+(c.isVip?' <span class="badge badge-vip">VIP</span>':'')+'</td>'+
-      '<td class="py-2 px-2 text-slate-600">'+c.phone+'</td>'+
-      '<td class="py-2 px-2 text-slate-600 text-xs">'+c.email+'</td>'+
-      '<td class="py-2 px-2 text-right font-bold">'+c.count+'</td>'+
-      '<td class="py-2 px-2 text-right">'+fmtY(c.totalSpent)+'</td>'+
-      '<td class="py-2 px-2 text-slate-600">'+(c.lastDate? fmtDate(c.lastDate): '—')+'</td>'+
-    '</tr>').join('')+'</tbody></table>';
+  return Object.values(map).map(c=>{
+    const orders = c.orders;
+    const totalSpent = orders.reduce((s,o)=>s+totalAmount(o),0);
+    const totalDeposit = orders.reduce((s,o)=>s+(Number(o.deposit)||0),0);
+    const dates = orders.map(o=>new Date(o.bookingDate)).filter(d=>!isNaN(d)).sort((a,b)=>b-a);
+    const lastDate = dates[0] || null;
+    const firstDate = dates[dates.length-1] || null;
+    const refundCount = orders.filter(o=>Number(o.refundAmount)>0).length;
+    const isVip = orders.length>=3 || totalSpent>=30000;
+    return {...c, count:orders.length, totalSpent, totalDeposit, lastDate, firstDate, refundCount, isVip};
+  });
 }
+
+function renderCustomers(){
+  const q = (document.getElementById('cust-search').value||'').toLowerCase();
+  const sort = document.getElementById('cust-sort').value;
+  let arr = buildCustomers();
+
+  // 統計卡
+  const totalCust = arr.length;
+  const vipCust = arr.filter(c=>c.isVip).length;
+  const repeatCust = arr.filter(c=>c.count>=2).length;
+  const allSpent = arr.reduce((s,c)=>s+c.totalSpent,0);
+  const allCount = arr.reduce((s,c)=>s+c.count,0);
+  const avgPrice = allCount? Math.round(allSpent/allCount) : 0;
+  document.getElementById('cust-stat-total').textContent = totalCust;
+  document.getElementById('cust-stat-vip').textContent = vipCust;
+  document.getElementById('cust-stat-repeat').textContent = repeatCust;
+  document.getElementById('cust-stat-avg').textContent = fmtY0(avgPrice);
+  document.getElementById('tab-count-customers').textContent = totalCust;
+
+  if(q) arr = arr.filter(c=>(c.name||'').toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.email||'').toLowerCase().includes(q));
+
+  if(sort==='orders-desc') arr.sort((a,b)=>b.count-a.count);
+  else if(sort==='spent-desc') arr.sort((a,b)=>b.totalSpent-a.totalSpent);
+  else if(sort==='recent-desc') arr.sort((a,b)=>(b.lastDate||0)-(a.lastDate||0));
+  else if(sort==='name-asc') arr.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+
+  const el = document.getElementById('customers-list');
+  if(!arr.length){ el.innerHTML='<div class="text-center text-slate-600 py-8 font-semibold">無客戶資料</div>'; return; }
+  el.innerHTML = '<table class="data-table"><thead><tr>'+
+    '<th>客戶</th><th>電話</th><th>Email</th>'+
+    '<th class="num">訂單數</th><th class="num">累積消費</th>'+
+    '<th class="num">已收訂金</th>'+
+    '<th>首次預約</th><th>最後預約</th><th>動作</th></tr></thead>'+
+    '<tbody>'+arr.map(c=>{
+      const safeKey = (c.key||'').replace(/'/g,"\\\\'");
+      return '<tr onclick="openCustomerDetail(\''+safeKey+'\')">'+
+      '<td><div class="font-bold text-base">'+c.name+(c.isVip?' <span class="badge badge-vip">VIP</span>':'')+'</div></td>'+
+      '<td class="font-semibold">'+c.phone+'</td>'+
+      '<td class="text-sm">'+c.email+'</td>'+
+      '<td class="num">'+c.count+'</td>'+
+      '<td class="num">'+fmtY0(c.totalSpent)+'</td>'+
+      '<td class="num">'+fmtY0(c.totalDeposit)+'</td>'+
+      '<td>'+(c.firstDate? fmtDate(c.firstDate):'—')+'</td>'+
+      '<td>'+(c.lastDate? fmtDate(c.lastDate):'—')+'</td>'+
+      '<td><button onclick="event.stopPropagation();openCustomerDetail(\''+safeKey+'\')" class="btn-navy px-3 py-1 rounded text-xs">詳情</button></td>'+
+    '</tr>';}).join('')+'</tbody></table>';
+}
+
+function openCustomerDetail(key){
+  const list = buildCustomers();
+  const c = list.find(x=>x.key===key);
+  if(!c) return;
+  document.getElementById('cust-modal-name').innerHTML = c.name + (c.isVip?' <span class="badge badge-vip">VIP</span>':'');
+  document.getElementById('cust-modal-sub').textContent = c.phone + (c.email? ' · '+c.email:'') + ' · 共 '+c.count+' 筆訂單';
+  const body = document.getElementById('cust-modal-body');
+  body.innerHTML =
+    '<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">'+
+      '<div class="stat-card blue"><div class="section-label">訂單數</div><div class="stat-num">'+c.count+'</div></div>'+
+      '<div class="stat-card green"><div class="section-label">累積消費</div><div class="stat-num green" style="font-size:20px">'+fmtY0(c.totalSpent)+'</div></div>'+
+      '<div class="stat-card gold"><div class="section-label">已收訂金</div><div class="stat-num" style="font-size:20px;color:#C9A961">'+fmtY0(c.totalDeposit)+'</div></div>'+
+      '<div class="stat-card red"><div class="section-label">退款次數</div><div class="stat-num red">'+c.refundCount+'</div></div>'+
+    '</div>'+
+    '<h3 class="text-[#1A365D] mb-2 title-serif font-bold">📋 訂單記錄</h3>'+
+    '<div class="overflow-x-auto"><table class="data-table">'+
+      '<thead><tr><th>訂單號</th><th>體驗日期</th><th>款式</th><th>人數</th><th class="num">訂金</th><th class="num">總價</th><th>狀態</th></tr></thead>'+
+      '<tbody>'+c.orders.sort((a,b)=>new Date(b.bookingDate||0)-new Date(a.bookingDate||0)).map(o=>{
+        const status = Number(o.refundAmount)>0? '<span class="badge badge-refund">退款</span>' : o.confirmed? '<span class="badge badge-confirmed">已確認</span>' : '<span class="badge badge-pending">待確認</span>';
+        return '<tr onclick="closeCustomerModal();openEdit(\''+(o.orderId||'')+'\')">'+
+          '<td class="font-mono text-sm">'+(o.orderId||'')+'</td>'+
+          '<td>'+fmtDate(o.bookingDate)+'</td>'+
+          '<td>'+(o.plan||'—')+'</td>'+
+          '<td>'+(o.adults||o.pax||'—')+'</td>'+
+          '<td class="num">'+fmtY(o.deposit)+'</td>'+
+          '<td class="num">'+fmtY(totalAmount(o))+'</td>'+
+          '<td>'+status+'</td>'+
+        '</tr>';
+      }).join('')+'</tbody></table></div>';
+  document.getElementById('customer-modal').classList.remove('hidden');
+  document.body.style.overflow='hidden';
+}
+function closeCustomerModal(){ document.getElementById('customer-modal').classList.add('hidden'); document.body.style.overflow=''; }
+
 
 // ── FINANCE ──
 function renderFinance(){
@@ -964,68 +1182,172 @@ function renderFinance(){
   const total = filtered.reduce((s,o)=>s+totalAmount(o),0);
   const due = total - deposit;
   const refund = filtered.reduce((s,o)=>s+(Number(o.refundAmount)||0),0);
-  document.getElementById('fin-deposit').textContent = fmtY(deposit);
-  document.getElementById('fin-due').textContent = fmtY(due);
-  document.getElementById('fin-total').textContent = fmtY(total);
-  document.getElementById('fin-refund').textContent = fmtY(refund);
+  document.getElementById('fin-deposit').textContent = fmtY0(deposit);
+  document.getElementById('fin-due').textContent = fmtY0(due);
+  document.getElementById('fin-total').textContent = fmtY0(total);
+  document.getElementById('fin-refund').textContent = fmtY0(refund);
 
-  // 月度趨勢
   const months = {};
   allOrders.forEach(o=>{
     if(!o.bookingDate) return;
     const k = (o.bookingDate+'').slice(0,7);
-    if(!months[k]) months[k] = {count:0, deposit:0, total:0, refund:0};
+    if(!months[k]) months[k] = {count:0, deposit:0, total:0, refund:0, confirmed:0};
     months[k].count++;
     months[k].deposit += Number(o.deposit)||0;
     months[k].total += totalAmount(o);
     months[k].refund += Number(o.refundAmount)||0;
+    if(o.confirmed) months[k].confirmed++;
   });
-  const keys = Object.keys(months).sort();
+  const keys = Object.keys(months).sort().reverse();
   const trend = document.getElementById('month-trend');
-  if(!keys.length){ trend.innerHTML='<div class="text-center text-slate-400 py-4">無資料</div>'; }
+  if(!keys.length){ trend.innerHTML='<div class="text-center text-slate-600 py-4 font-semibold">無資料</div>'; }
   else {
-    trend.innerHTML = '<table class="w-full text-sm"><thead class="border-b text-left text-xs text-slate-500"><tr>'+
-      '<th class="py-2 px-2">月份</th><th class="py-2 px-2 text-right">訂單數</th>'+
-      '<th class="py-2 px-2 text-right">訂金</th><th class="py-2 px-2 text-right">營收</th>'+
-      '<th class="py-2 px-2 text-right">退款</th></tr></thead><tbody>'+
-      keys.map(k=>'<tr class="border-b border-slate-50"><td class="py-2 px-2 font-bold">'+k+'</td>'+
-      '<td class="py-2 px-2 text-right">'+months[k].count+'</td>'+
-      '<td class="py-2 px-2 text-right">'+fmtY(months[k].deposit)+'</td>'+
-      '<td class="py-2 px-2 text-right">'+fmtY(months[k].total)+'</td>'+
-      '<td class="py-2 px-2 text-right text-red-500">'+(months[k].refund? fmtY(months[k].refund) : '—')+'</td>'+
-      '</tr>').join('')+'</tbody></table>';
+    trend.innerHTML = '<table class="data-table"><thead><tr>'+
+      '<th>月份</th><th class="num">訂單數</th><th class="num">已確認</th>'+
+      '<th class="num">訂金</th><th class="num">總營收</th>'+
+      '<th class="num">退款</th><th class="num">淨營收</th></tr></thead><tbody>'+
+      keys.map(k=>{
+        const m = months[k]; const net = m.total - m.refund;
+        return '<tr><td class="font-bold">'+k+'</td>'+
+        '<td class="num">'+m.count+'</td>'+
+        '<td class="num text-emerald-700">'+m.confirmed+'</td>'+
+        '<td class="num">'+fmtY0(m.deposit)+'</td>'+
+        '<td class="num font-bold">'+fmtY0(m.total)+'</td>'+
+        '<td class="num text-red-600">'+(m.refund? fmtY0(m.refund) : '—')+'</td>'+
+        '<td class="num font-bold text-[#C9A961]">'+fmtY0(net)+'</td>'+
+        '</tr>';
+      }).join('')+'</tbody></table>';
   }
 
-  // 退款明細
   const refunds = allOrders.filter(o=>Number(o.refundAmount)>0);
   const rd = document.getElementById('refund-detail');
-  if(!refunds.length){ rd.innerHTML='<div class="text-center text-slate-400 py-4">本期無退款記錄</div>'; }
+  if(!refunds.length){ rd.innerHTML='<div class="text-center text-slate-600 py-4 font-semibold">本期無退款記錄</div>'; }
   else {
-    rd.innerHTML = '<table class="w-full text-sm"><thead class="border-b text-left text-xs text-slate-500"><tr>'+
-      '<th class="py-2 px-2">訂單號</th><th class="py-2 px-2">客戶</th>'+
-      '<th class="py-2 px-2 text-right">退款金額</th><th class="py-2 px-2">退款時間</th>'+
-      '<th class="py-2 px-2">原因</th></tr></thead><tbody>'+
-      refunds.map(o=>'<tr class="border-b border-slate-50 hover:bg-slate-50 cursor-pointer" onclick="openEdit(\''+o.orderId+'\')">'+
-      '<td class="py-2 px-2 font-mono text-xs">'+o.orderId+'</td>'+
-      '<td class="py-2 px-2">'+(o.name||'—')+'</td>'+
-      '<td class="py-2 px-2 text-right text-red-500 font-bold">'+fmtY(o.refundAmount)+'</td>'+
-      '<td class="py-2 px-2 text-slate-600">'+(o.refundTime? fmtDate(o.refundTime):'處理中')+'</td>'+
-      '<td class="py-2 px-2 text-slate-600 text-xs">'+(o.refundReason||'—')+'</td>'+
+    rd.innerHTML = '<table class="data-table"><thead><tr>'+
+      '<th>訂單號</th><th>客戶</th><th>體驗日期</th>'+
+      '<th class="num">退款金額</th><th>退款時間</th>'+
+      '<th>原因</th></tr></thead><tbody>'+
+      refunds.map(o=>'<tr onclick="openEdit(\''+o.orderId+'\')">'+
+      '<td class="font-mono text-sm">'+o.orderId+'</td>'+
+      '<td class="font-bold">'+(o.name||'—')+'</td>'+
+      '<td>'+fmtDate(o.bookingDate)+'</td>'+
+      '<td class="num text-red-600 font-bold">'+fmtY0(o.refundAmount)+'</td>'+
+      '<td>'+(o.refundTime? fmtDate(o.refundTime):'<span class="badge badge-pending">處理中</span>')+'</td>'+
+      '<td class="text-sm">'+(o.refundReason||'—')+'</td>'+
       '</tr>').join('')+'</tbody></table>';
   }
+}
+
+// ── RECONCILE 對帳 ──
+function initReconMonths(){
+  const sel = document.getElementById('recon-month');
+  if(sel.options.length>0) return;
+  const months = new Set();
+  allOrders.forEach(o=>{ if(o.bookingDate) months.add((o.bookingDate+'').slice(0,7)); });
+  const sorted = [...months].sort().reverse();
+  const now = new Date();
+  const cur = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  if(!sorted.includes(cur)) sorted.unshift(cur);
+  sel.innerHTML = '<option value="all">全部期間</option>' + sorted.map(m=>'<option value="'+m+'"'+(m===cur?' selected':'')+'>'+m+'</option>').join('');
+}
+
+function renderReconcile(){
+  const month = document.getElementById('recon-month').value;
+  const status = document.getElementById('recon-status').value;
+  let list = allOrders.slice();
+  if(month && month!=='all') list = list.filter(o=>(o.bookingDate||'').startsWith(month));
+
+  // 計算對帳狀態
+  list = list.map(o=>{
+    const expect = expectedDeposit(o);
+    const got = Number(o.deposit)||0;
+    let recState = 'unmatched'; // 未對帳
+    if(o.confirmed && expect>0 && got===expect) recState = 'matched';
+    else if(expect>0 && got>0 && got!==expect) recState = 'mismatch';
+    else if(o.confirmed && got>0) recState = 'matched';
+    return {...o, _expect:expect, _got:got, _recState:recState, _diff:got-expect};
+  });
+
+  if(status!=='all') list = list.filter(o=>o._recState===status);
+
+  // 統計
+  const total = list.length;
+  const expectSum = list.reduce((s,o)=>s+o._expect,0);
+  const gotSum = list.reduce((s,o)=>s+o._got,0);
+  const diff = gotSum - expectSum;
+  const matched = list.filter(o=>o._recState==='matched').length;
+  const rate = total? Math.round(matched/total*100) : 0;
+  document.getElementById('recon-stat-total').textContent = total;
+  document.getElementById('recon-stat-expect').textContent = fmtY0(expectSum);
+  document.getElementById('recon-stat-received').textContent = fmtY0(gotSum);
+  document.getElementById('recon-stat-diff').textContent = (diff>=0?'+':'') + fmtY0(diff);
+  document.getElementById('recon-stat-rate').textContent = rate+'%';
+
+  const tbl = document.getElementById('recon-table');
+  if(!list.length){ tbl.innerHTML='<div class="text-center text-slate-600 py-8 font-semibold">本期無資料</div>'; return; }
+
+  list.sort((a,b)=>{
+    const order = {mismatch:0, unmatched:1, matched:2};
+    if(order[a._recState]!==order[b._recState]) return order[a._recState]-order[b._recState];
+    return new Date(b.bookingDate||0)-new Date(a.bookingDate||0);
+  });
+
+  tbl.innerHTML = '<table class="data-table"><thead><tr>'+
+    '<th>狀態</th><th>訂單號</th><th>客戶</th><th>體驗日期</th>'+
+    '<th class="num">人數</th><th class="num">應收訂金</th>'+
+    '<th class="num">已收訂金</th><th class="num">差異</th>'+
+    '<th>對帳結果</th><th>動作</th></tr></thead><tbody>'+
+    list.map(o=>{
+      let stBadge, rowCls;
+      if(o._recState==='matched'){ stBadge='<span class="badge badge-confirmed">✓ 已對帳</span>'; rowCls='match'; }
+      else if(o._recState==='mismatch'){ stBadge='<span class="badge badge-anomaly">⚠ 金額異常</span>'; rowCls='mismatch'; }
+      else { stBadge='<span class="badge badge-pending">○ 未對帳</span>'; rowCls='pending'; }
+
+      const diffStr = o._diff===0? '—' : (o._diff>0? '<span class="text-amber-700 font-bold">+'+fmtY0(o._diff)+' 多收</span>' : '<span class="text-red-600 font-bold">'+fmtY0(o._diff)+' 少收</span>');
+      const result = o._recState==='matched'? '<span class="text-emerald-700 font-bold">✓ 金額正確</span>' :
+                     o._recState==='mismatch'? '<span class="text-red-600 font-bold">需查核</span>' :
+                     '<span class="text-amber-700 font-bold">待確認入帳</span>';
+
+      return '<tr class="recon-row '+rowCls+'" onclick="openEdit(\''+(o.orderId||'')+'\')">'+
+        '<td>'+stBadge+'</td>'+
+        '<td class="font-mono text-sm">'+(o.orderId||'')+'</td>'+
+        '<td class="font-bold">'+(o.name||'—')+'</td>'+
+        '<td>'+fmtDate(o.bookingDate)+'</td>'+
+        '<td class="num">'+(o.adults||o.pax||'—')+'</td>'+
+        '<td class="num">'+fmtY0(o._expect)+'</td>'+
+        '<td class="num">'+fmtY0(o._got)+'</td>'+
+        '<td class="num">'+diffStr+'</td>'+
+        '<td>'+result+'</td>'+
+        '<td><button onclick="event.stopPropagation();openEdit(\''+(o.orderId||'')+'\')" class="btn-navy px-3 py-1 rounded text-xs">編輯</button></td>'+
+      '</tr>';
+    }).join('')+'</tbody></table>';
+}
+
+function exportReconCSV(){
+  const month = document.getElementById('recon-month').value;
+  let list = allOrders.slice();
+  if(month && month!=='all') list = list.filter(o=>(o.bookingDate||'').startsWith(month));
+  const headers = ['訂單號','客戶','體驗日期','人數','應收訂金','已收訂金','差異','對帳狀態'];
+  const rows = list.map(o=>{
+    const expect = expectedDeposit(o); const got = Number(o.deposit)||0;
+    let st = '未對帳';
+    if(o.confirmed && (expect===0 || got===expect)) st='已對帳';
+    else if(expect>0 && got>0 && got!==expect) st='金額異常';
+    return [o.orderId, o.name, fmtDate(o.bookingDate), o.adults||o.pax, expect, got, got-expect, st];
+  });
+  const csv = [headers, ...rows].map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='kimono-reconcile-'+(month||'all')+'.csv'; a.click();
+  URL.revokeObjectURL(url);
+  toast('已匯出對帳資料');
 }
 
 // ── CSV EXPORT ──
 function ordersToCSV(list){
   const headers = ['訂單號','姓名','電話','Email','體驗日期','人數','款式','來源','訂金','和服','妝髮費','攝影費','總計','確認','退款金額','備註'];
-  const rows = list.map(o=>[
-    o.orderId, o.name, o.phone, o.email,
-    o.bookingDate? fmtDate(o.bookingDate):'',
-    o.adults||o.pax||'', o.plan||'', o.platform||'',
-    o.deposit||0, o.price||o.kimonoPrice||0, o.hairFee||0, o.photoFee||0,
-    totalAmount(o), o.confirmed?'已確認':'待確認',
-    o.refundAmount||0, (o.remark||'').replace(/[\r\n]+/g,' ')
-  ]);
+  const rows = list.map(o=>[o.orderId, o.name, o.phone, o.email, o.bookingDate? fmtDate(o.bookingDate):'', o.adults||o.pax||'', o.plan||'', o.platform||'', o.deposit||0, o.price||o.kimonoPrice||0, o.hairFee||0, o.photoFee||0, totalAmount(o), o.confirmed?'已確認':'待確認', o.refundAmount||0, (o.remark||'').replace(/[\r\n]+/g,' ')]);
   const csv = [headers, ...rows].map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\n');
   const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
   const url = URL.createObjectURL(blob);
@@ -1037,8 +1359,7 @@ function ordersToCSV(list){
 function exportCSV(){
   const visible = document.querySelectorAll('#orders-list .order-card');
   if(!visible.length){ toast('無資料可匯出','warning'); return; }
-  // 用目前篩選後的列表
-  const ids = Array.from(visible).map(c=>c.querySelector('.text-slate-400.font-mono')?.textContent.trim()).filter(Boolean);
+  const ids = Array.from(visible).map(c=>c.querySelector('.font-mono')?.textContent.trim()).filter(Boolean);
   const list = allOrders.filter(o=>ids.includes(o.orderId));
   ordersToCSV(list.length? list : allOrders);
   toast('已匯出 CSV');
@@ -1081,10 +1402,7 @@ function openEdit(orderId) {
   document.getElementById('edit-modal').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
 }
-function closeModal() {
-  document.getElementById('edit-modal').classList.add('hidden');
-  document.body.style.overflow = '';
-}
+function closeModal() { document.getElementById('edit-modal').classList.add('hidden'); document.body.style.overflow = ''; }
 function switchTab(name, btn) {
   document.querySelectorAll('.edit-tab').forEach(t => t.classList.add('hidden'));
   document.querySelectorAll('#edit-modal .tab-btn').forEach(b => b.classList.remove('active'));
@@ -1098,8 +1416,8 @@ function updateCalc() {
   const deposit = Number(document.getElementById('e-deposit').value) || 0;
   const onsite = price + hair + photo;
   const afterDep = Math.max(0, onsite - deposit);
-  document.getElementById('calc-due').textContent = onsite ? fmtY(onsite) : '—';
-  document.getElementById('calc-net').textContent = onsite ? fmtY(afterDep) : '—';
+  document.getElementById('calc-due').textContent = onsite ? fmtY0(onsite) : '—';
+  document.getElementById('calc-net').textContent = onsite ? fmtY0(afterDep) : '—';
 }
 
 function saveOrder() {
@@ -1109,34 +1427,21 @@ function saveOrder() {
   btn.textContent = '儲存中…'; btn.disabled = true;
   const payload = {
     action: 'adminUpdate', agent: currentAgent, token: adminToken, orderId: editingOrder.orderId,
-    name: document.getElementById('e-name').value,
-    phone: document.getElementById('e-phone').value,
-    email: document.getElementById('e-email').value,
-    bookingDate: document.getElementById('e-booking-date').value,
-    pax: document.getElementById('e-pax').value,
-    plan: document.getElementById('e-plan').value,
-    platform: document.getElementById('e-platform').value,
-    hair: document.getElementById('e-hair').value,
-    photo: document.getElementById('e-photo').value,
-    confirmed: document.getElementById('e-confirmed').value,
-    deposit: document.getElementById('e-deposit').value,
-    kimonoPrice: document.getElementById('e-price').value,
-    hairFee: document.getElementById('e-hair-fee').value,
-    photoFee: document.getElementById('e-photo-fee').value,
-    coupon: document.getElementById('e-coupon').value,
-    rate: document.getElementById('e-rate').value,
-    refundAmt: document.getElementById('e-refund-amt').value,
-    refundDate: document.getElementById('e-refund-date').value,
-    refundReason: document.getElementById('e-refund-reason').value,
-    note: document.getElementById('e-remark').value,
+    name: document.getElementById('e-name').value, phone: document.getElementById('e-phone').value, email: document.getElementById('e-email').value,
+    bookingDate: document.getElementById('e-booking-date').value, pax: document.getElementById('e-pax').value,
+    plan: document.getElementById('e-plan').value, platform: document.getElementById('e-platform').value,
+    hair: document.getElementById('e-hair').value, photo: document.getElementById('e-photo').value, confirmed: document.getElementById('e-confirmed').value,
+    deposit: document.getElementById('e-deposit').value, kimonoPrice: document.getElementById('e-price').value,
+    hairFee: document.getElementById('e-hair-fee').value, photoFee: document.getElementById('e-photo-fee').value,
+    coupon: document.getElementById('e-coupon').value, rate: document.getElementById('e-rate').value,
+    refundAmt: document.getElementById('e-refund-amt').value, refundDate: document.getElementById('e-refund-date').value,
+    refundReason: document.getElementById('e-refund-reason').value, note: document.getElementById('e-remark').value,
   };
-  fetch(GAS_URL, { method:'POST', body: JSON.stringify(payload) })
-    .then(r => r.json())
-    .then(data => {
+  fetch(GAS_URL, { method:'POST', body: JSON.stringify(payload) }).then(r => r.json()).then(data => {
       btn.textContent = '💾 儲存變更'; btn.disabled = false;
       if (data.status === 'unauthorized') { showLogin(); return; }
       if (data.status === 'ok' || data.status === 'success') {
-        msg.textContent = '✅ 儲存成功！'; msg.className = 'text-center text-sm mt-3 text-emerald-600';
+        msg.textContent = '✅ 儲存成功！'; msg.className = 'text-center text-sm mt-3 text-emerald-700 font-bold';
         msg.classList.remove('hidden');
         const idx = allOrders.findIndex(o => o.orderId === editingOrder.orderId);
         if (idx >= 0) {
@@ -1150,23 +1455,24 @@ function saveOrder() {
           allOrders[idx].remark = payload.note;
         }
         filterOrders(); renderDashboard();
+        if(currentSection==='reconcile') renderReconcile();
+        if(currentSection==='customers') renderCustomers();
+        if(currentSection==='finance') renderFinance();
         setTimeout(closeModal, 1200);
       } else {
-        msg.textContent = '❌ ' + (data.message || '儲存失敗'); msg.className = 'text-center text-sm mt-3 text-red-500';
+        msg.textContent = '❌ ' + (data.message || '儲存失敗'); msg.className = 'text-center text-sm mt-3 text-red-600 font-bold';
         msg.classList.remove('hidden');
       }
-    })
-    .catch(e => {
+    }).catch(e => {
       btn.textContent = '💾 儲存變更'; btn.disabled = false;
-      msg.textContent = '❌ 連線失敗: ' + e.message; msg.className = 'text-center text-sm mt-3 text-red-500';
+      msg.textContent = '❌ 連線失敗: ' + e.message; msg.className = 'text-center text-sm mt-3 text-red-600 font-bold';
       msg.classList.remove('hidden');
     });
 }
 
-// ── GLOBAL SEARCH ──
 document.addEventListener('keydown', (e)=>{
   if((e.ctrlKey||e.metaKey) && e.key==='k'){ e.preventDefault(); document.getElementById('global-search')?.focus(); }
-  if(e.key==='Escape'){ closeModal(); }
+  if(e.key==='Escape'){ closeModal(); closeCustomerModal(); }
 });
 document.getElementById('global-search')?.addEventListener('input', (e)=>{
   const q = e.target.value;
