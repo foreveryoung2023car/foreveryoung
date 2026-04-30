@@ -149,7 +149,7 @@
       <div class="w-10 h-10 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-lg">旅</div>
       <div>
         <div class="text-white font-bold text-base tracking-wide title-serif">旅乘 x 和服</div>
-        <div class="text-white/60 text-[11px] tracking-[0.25em]">ADMIN PORTAL · v2.1</div>
+        <div class="text-white/60 text-[11px] tracking-[0.25em]">ADMIN PORTAL · v2.2</div>
       </div>
     </div>
     <div id="global-search-wrap" class="hidden md:flex flex-1 max-w-md">
@@ -1066,17 +1066,17 @@ function showDayOrders(dateStr){
 function buildCustomers(){
   const map = {};
   allOrders.forEach(o=>{
-    const key = (o.phone || o.email || o.name || '').trim();
+    const key = String(o.phone || o.email || o.name || '').trim();
     if(!key) return;
     if(!map[key]){
       map[key] = {
-        key, name:o.name||'未知', phone:o.phone||'', email:o.email||'',
+        key, name:String(o.name||'未知'), phone:String(o.phone||''), email:String(o.email||''),
         platform:o.platform||'', orders:[]
       };
     }
-    if(o.name && map[key].name==='未知') map[key].name = o.name;
-    if(o.phone && !map[key].phone) map[key].phone = o.phone;
-    if(o.email && !map[key].email) map[key].email = o.email;
+    if(o.name && map[key].name==='未知') map[key].name = String(o.name);
+    if(o.phone && !map[key].phone) map[key].phone = String(o.phone);
+    if(o.email && !map[key].email) map[key].email = String(o.email);
     map[key].orders.push(o);
   });
   return Object.values(map).map(c=>{
@@ -1482,6 +1482,81 @@ document.getElementById('global-search')?.addEventListener('input', (e)=>{
   filterOrders();
 });
 
+
+/* === v2.2 全站搜尋 + 快速操作擴充 === */
+(function(){
+  var input = document.getElementById('global-search');
+  if (!input) return;
+  var dropdown;
+  function ensureDropdown(){
+    if (dropdown) return dropdown;
+    dropdown = document.createElement('div');
+    dropdown.id = 'gs-dropdown';
+    dropdown.style.cssText = 'position:fixed;top:64px;left:50%;transform:translateX(-50%);width:680px;max-width:90vw;max-height:60vh;overflow-y:auto;background:white;border:1px solid #cbd5e1;border-radius:12px;box-shadow:0 20px 50px rgba(0,0,0,.25);z-index:9999;display:none;';
+    document.body.appendChild(dropdown);
+    return dropdown;
+  }
+  function getOrders(){
+    try { return (typeof allOrders !== 'undefined' && Array.isArray(allOrders)) ? allOrders : []; }
+    catch(e){ return []; }
+  }
+  function renderResults(q){
+    var dd = ensureDropdown();
+    q = (q||'').trim().toLowerCase();
+    if (!q){ dd.style.display='none'; return; }
+    var orders = getOrders();
+    var match = orders.filter(function(o){
+      var s = ((o.orderId||'')+' '+(o.name||'')+' '+(o.phone||'')+' '+(o.email||'')+' '+(o.plan||'')).toLowerCase();
+      return s.indexOf(q) !== -1;
+    }).slice(0, 30);
+    if (!match.length){
+      dd.innerHTML = '<div style="padding:24px;text-align:center;color:#64748b;font-size:14px;">沒有符合的結果</div>';
+      dd.style.display='block';
+      return;
+    }
+    var html = '<div style="padding:8px 12px;background:#F1F5F9;font-size:11px;color:#475569;border-bottom:1px solid #E2E8F0;">找到 '+match.length+' 筆</div>';
+    html += match.map(function(o, i){
+      var status = o.confirmed==='true'||o.confirmed===true ? '<span style="background:#D1FAE5;color:#065F46;padding:2px 8px;border-radius:6px;font-size:11px;">已確認</span>' : '<span style="background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:6px;font-size:11px;">待確認</span>';
+      var date = (o.bookingDate||'').slice(0,10) || '—';
+      return '<div class="gs-row" data-id="'+(o.orderId||'')+'" data-idx="'+i+'" style="padding:12px 16px;border-bottom:1px solid #F1F5F9;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;">' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="font-weight:600;color:#1A365D;font-size:14px;">'+(o.name||'(未命名)')+' <span style="color:#94A3B8;font-size:11px;font-weight:400;">'+(o.orderId||'')+'</span></div>' +
+          '<div style="color:#475569;font-size:12px;margin-top:2px;">📅 '+date+' · 📞 '+(o.phone||'—')+' · 👥 '+((o.adults||o.pax)||'—')+'人 · 👘 '+(o.plan||'—')+'</div>' +
+        '</div>' +
+        '<div>'+status+'</div>' +
+      '</div>';
+    }).join('');
+    dd.innerHTML = html;
+    dd.style.display = 'block';
+    [].forEach.call(dd.querySelectorAll('.gs-row'), function(row){
+      row.addEventListener('mouseenter', function(){ row.style.background='#F8FAFC'; });
+      row.addEventListener('mouseleave', function(){ row.style.background='white'; });
+      row.addEventListener('click', function(){
+        var id = row.getAttribute('data-id');
+        if (id && typeof openEdit === 'function'){
+          dd.style.display='none'; input.value=''; openEdit(id);
+        }
+      });
+    });
+  }
+  input.addEventListener('input', function(){ renderResults(input.value); });
+  input.addEventListener('focus', function(){ if (input.value) renderResults(input.value); });
+  document.addEventListener('click', function(e){
+    if (!dropdown) return;
+    if (e.target===input || dropdown.contains(e.target)) return;
+    dropdown.style.display='none';
+  });
+  /* Ctrl+K / Cmd+K */
+  document.addEventListener('keydown', function(e){
+    if ((e.ctrlKey||e.metaKey) && (e.key==='k'||e.key==='K')){
+      e.preventDefault(); input.focus(); input.select();
+    }
+    if (e.key==='Escape' && dropdown && dropdown.style.display==='block'){
+      dropdown.style.display='none'; input.blur();
+    }
+  });
+})();
+console.log('%c[v2.2] global search ready','color:#1A365D;font-weight:bold');
 </script>
 </body>
 </html>
