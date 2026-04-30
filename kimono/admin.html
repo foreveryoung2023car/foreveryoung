@@ -149,7 +149,7 @@
       <div class="w-10 h-10 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-lg">旅</div>
       <div>
         <div class="text-white font-bold text-base tracking-wide title-serif">旅乘 x 和服</div>
-        <div class="text-white/60 text-[11px] tracking-[0.25em]">ADMIN PORTAL · v2.2</div>
+        <div class="text-white/60 text-[11px] tracking-[0.25em]">ADMIN PORTAL · v2.2.1</div>
       </div>
     </div>
     <div id="global-search-wrap" class="hidden md:flex flex-1 max-w-md">
@@ -1483,7 +1483,7 @@ document.getElementById('global-search')?.addEventListener('input', (e)=>{
 });
 
 
-/* === v2.2 全站搜尋 + 快速操作擴充 === */
+/* === v2.2.1 全站搜尋 + 快速操作擴充 === */
 (function(){
   var input = document.getElementById('global-search');
   if (!input) return;
@@ -1556,7 +1556,54 @@ document.getElementById('global-search')?.addEventListener('input', (e)=>{
     }
   });
 })();
-console.log('%c[v2.2] global search ready','color:#1A365D;font-weight:bold');
+console.log('%c[v2.2.1] global search ready','color:#1A365D;
+
+/* === v2.2.1 假訂單過濾（月份標題列等不完整資料） === */
+window.__isFakeOrder = function(o){
+  if (!o) return true;
+  // 訂單必須至少有：訂單編號、姓名、電話、Email 其中一個有值
+  // 月份標題列的特徵：所有這些欄位都空，可能 A 欄或 B 欄填了「2026年X月」字串
+  var hasOrderId = !!String(o.orderId||'').trim();
+  var hasName = !!String(o.name||'').trim();
+  var hasPhone = !!String(o.phone||'').trim();
+  var hasEmail = !!String(o.email||'').trim();
+  return !(hasOrderId || hasName || hasPhone || hasEmail);
+};
+/* 攔截每次 allOrders 變更後的 render，清掉假訂單 */
+(function(){
+  var sweepRunning = false;
+  function sweep(){
+    if (sweepRunning) return;
+    if (typeof allOrders === 'undefined' || !Array.isArray(allOrders)) return;
+    var before = allOrders.length;
+    var clean = allOrders.filter(function(o){ return !window.__isFakeOrder(o); });
+    if (clean.length !== before){
+      sweepRunning = true;
+      allOrders.length = 0;
+      clean.forEach(function(o){ allOrders.push(o); });
+      sweepRunning = false;
+      console.log('%c[v2.2.1] 排除假訂單（月份標題列）：','color:#1A365D', before - clean.length, '筆');
+    }
+  }
+  /* 每隔 500ms 掃一次（資料載入完才會生效） */
+  var attempts = 0;
+  var interval = setInterval(function(){
+    attempts++;
+    if (attempts > 60) { clearInterval(interval); return; } /* 30 秒後停止 */
+    sweep();
+    /* 載入完後讓 render 重畫 */
+    if (typeof allOrders !== 'undefined' && Array.isArray(allOrders) && allOrders.length){
+      try {
+        if (typeof renderOrders === 'function') renderOrders();
+        if (typeof renderDashboard === 'function') renderDashboard();
+        if (typeof renderCustomers === 'function' && document.getElementById('cust-stat-total')) renderCustomers();
+      } catch(e){}
+      clearInterval(interval);
+    }
+  }, 500);
+})();
+console.log('%c[v2.2.1] fake order filter ready','color:#1A365D;font-weight:bold');
+font-weight:bold');
 </script>
 </body>
 </html>
