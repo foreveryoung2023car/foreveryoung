@@ -193,6 +193,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="nav-tab" data-sec="customers" onclick="switchSection('customers',this)">👥 客戶名單 <span id="tab-count-customers" class="bg-white/25 px-1.5 rounded text-[11px]">0</span></div>
       <div class="nav-tab" data-sec="finance" onclick="switchSection('finance',this)">💰 財務報表</div>
       <div class="nav-tab" data-sec="reconcile" onclick="switchSection('reconcile',this)">🧾 對帳</div>
+      <div class="nav-tab" data-sec="walkin" onclick="switchSection('walkin',this)">💴 店家月結</div>
     </div>
   </div>
 </nav>
@@ -461,6 +462,34 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 
     <div class="panel">
       <div id="recon-table" class="overflow-x-auto"></div>
+    </div>
+  </section>
+
+  <!-- v2.4 Walk-in 月結 -->
+  <section id="sec-walkin" class="section">
+    <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
+      <div>
+        <h2 class="text-2xl font-bold text-[#1A365D] title-serif">💴 店家月結對帳</h2>
+        <p class="text-sm text-slate-600 mt-1 font-semibold">現場 walk-in 訂單，月底向各店家請款（旅乘 = 和服原價 × 40%）</p>
+      </div>
+      <div class="flex gap-2 items-center flex-wrap">
+        <select id="walkin-month" class="input-field !w-auto" onchange="renderWalkinMonth()"></select>
+        <button onclick="renderWalkinMonth()" class="btn-outline px-4 py-2 rounded-xl text-sm">↻ 重新載入</button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+      <div class="stat-card blue"><div class="section-label">當月 walk-in 筆數</div><div id="walkin-stat-count" class="stat-num">—</div></div>
+      <div class="stat-card gold"><div class="section-label">當月總營業額 (¥)</div><div id="walkin-stat-revenue" class="stat-num" style="font-size:22px">—</div></div>
+      <div class="stat-card green"><div class="section-label">店家保留 (¥)</div><div id="walkin-stat-shop" class="stat-num" style="font-size:22px">—</div></div>
+      <div class="stat-card purple"><div class="section-label">應向店家收 (¥)</div><div id="walkin-stat-ours" class="stat-num" style="font-size:22px;color:#7C3AED">—</div></div>
+    </div>
+
+    <div id="walkin-stores-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"></div>
+
+    <div class="panel">
+      <h3 class="text-[#1A365D] mb-3 title-serif">📋 當月 walk-in 訂單明細</h3>
+      <div id="walkin-table" class="overflow-x-auto"></div>
     </div>
   </section>
 
@@ -1789,6 +1818,204 @@ document.addEventListener('DOMContentLoaded', () => {
   // Delay so dashboard is mounted
   setTimeout(loadWeather, 300);
 });
+
+
+
+// ============================================================
+// v2.4 Walk-in 月結對帳
+// ============================================================
+function buildWalkinMonthSelect() {
+  const sel = document.getElementById('walkin-month');
+  if (!sel) return;
+  // Build month options from this year + last year
+  const today = new Date();
+  sel.innerHTML = '';
+  for (let y = today.getFullYear(); y >= today.getFullYear() - 1; y--) {
+    for (let m = 12; m >= 1; m--) {
+      if (y === today.getFullYear() && m > today.getMonth() + 1) continue;
+      const v = y + '-' + String(m).padStart(2, '0');
+      const opt = document.createElement('option');
+      opt.value = v;
+      opt.textContent = y + '年' + m + '月';
+      sel.appendChild(opt);
+    }
+  }
+  const cur = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
+  sel.value = cur;
+}
+
+function renderWalkinMonth() {
+  const sel = document.getElementById('walkin-month');
+  if (!sel || !sel.value) return;
+  const [y, m] = sel.value.split('-').map(Number);
+  const start = new Date(y, m - 1, 1, 0, 0, 0);
+  const end = new Date(y, m, 1, 0, 0, 0);
+  const monthOrders = (allOrders || []).filter(o => {
+    if (o.platform !== 'WALK_IN') return false;
+    const d = new Date(o.bookingDate || o.submitDate);
+    return !isNaN(d) && d >= start && d < end;
+  });
+
+  // Aggregate
+  const totalRevenue = monthOrders.reduce((s, o) => s + (Number(o.price) || Number(o.kimonoPrice) || 0) * 0.9 + (Number(o.hairFee)||0) + (Number(o.photoFee)||0), 0);
+  const shopKeep    = monthOrders.reduce((s, o) => s + Math.round((Number(o.price)||Number(o.kimonoPrice)||0) * 0.5) + (Number(o.hairFee)||0) + (Number(o.photoFee)||0), 0);
+  const oursOwed    = monthOrders.reduce((s, o) => s + Math.round((Number(o.price)||Number(o.kimonoPrice)||0) * 0.4), 0);
+
+  document.getElementById('walkin-stat-count').textContent = monthOrders.length;
+  document.getElementById('walkin-stat-revenue').textContent = '¥' + Math.round(totalRevenue).toLocaleString();
+  document.getElementById('walkin-stat-shop').textContent = '¥' + shopKeep.toLocaleString();
+  document.getElementById('walkin-stat-ours').textContent = '¥' + oursOwed.toLocaleString();
+
+  // Group by store (introducer/source extracts store name)
+  const byStore = {};
+  monthOrders.forEach(o => {
+    const src = String(o.source || o.introducer || '').toLowerCase();
+    let store = 'unknown';
+    if (src.indexOf('kyoto1') >= 0 || src.indexOf('清水寺') >= 0) store = '京都清水寺店';
+    else if (src.indexOf('osaka') >= 0 || src.indexOf('日本橋') >= 0) store = '大阪日本橋店';
+    else if (src.indexOf('kyoto2') >= 0 || src.indexOf('祇園') >= 0) store = '京都祇園店';
+    else if (src.indexOf('tokyo') >= 0 || src.indexOf('淺草') >= 0) store = '東京淺草寺店';
+    else store = '未分類';
+    if (!byStore[store]) byStore[store] = { orders: [], pp: 0, due: 0, ours: 0 };
+    const pp = Number(o.price) || Number(o.kimonoPrice) || 0;
+    byStore[store].orders.push(o);
+    byStore[store].pp += pp;
+    byStore[store].due += Math.round(pp * 0.9) + (Number(o.hairFee)||0) + (Number(o.photoFee)||0);
+    byStore[store].ours += Math.round(pp * 0.4);
+  });
+
+  const storeGrid = document.getElementById('walkin-stores-grid');
+  if (Object.keys(byStore).length === 0) {
+    storeGrid.innerHTML = '<div class="panel text-center text-slate-500 py-8 col-span-2">本月無 walk-in 訂單</div>';
+  } else {
+    storeGrid.innerHTML = Object.entries(byStore).map(([store, info]) => 
+      '<div class="panel">' +
+      '<div class="flex justify-between items-center mb-3">' +
+        '<h3 class="font-bold text-[#1A365D] text-base">📍 ' + store + '</h3>' +
+        '<span class="text-sm text-slate-500">' + info.orders.length + ' 筆</span>' +
+      '</div>' +
+      '<div class="grid grid-cols-3 gap-2 text-center mb-3">' +
+        '<div class="bg-slate-50 rounded p-2"><div class="text-[11px] text-slate-500">和服總額</div><div class="font-bold text-[#1A365D]">¥' + info.pp.toLocaleString() + '</div></div>' +
+        '<div class="bg-emerald-50 rounded p-2"><div class="text-[11px] text-emerald-700">客付總額</div><div class="font-bold text-emerald-700">¥' + info.due.toLocaleString() + '</div></div>' +
+        '<div class="bg-pink-50 rounded p-2"><div class="text-[11px] text-pink-700">應收店家</div><div class="font-bold text-pink-700">¥' + info.ours.toLocaleString() + '</div></div>' +
+      '</div>' +
+      '<button onclick="generateInvoice(\'' + store + '\',\'' + sel.value + '\')" class="btn-outline w-full py-2 rounded-lg text-sm font-semibold">📄 列印請款單</button>' +
+      '</div>'
+    ).join('');
+  }
+
+  // Detail table
+  document.getElementById('walkin-table').innerHTML = monthOrders.length === 0 ? '<div class="text-center text-slate-500 py-6">本月無 walk-in 訂單</div>' :
+    '<table class="w-full text-sm"><thead><tr class="bg-slate-100 text-slate-600"><th class="p-2 text-left">日期</th><th class="p-2 text-left">編號</th><th class="p-2 text-left">姓名</th><th class="p-2 text-left">門市</th><th class="p-2 text-right">和服</th><th class="p-2 text-right">妝髮</th><th class="p-2 text-right">攝影</th><th class="p-2 text-right">客付</th><th class="p-2 text-right text-pink-600">旅乘</th></tr></thead><tbody>' +
+    monthOrders.sort((a,b)=>new Date(b.bookingDate||0)-new Date(a.bookingDate||0)).map(o => {
+      const pp = Number(o.price) || Number(o.kimonoPrice) || 0;
+      const hf = Number(o.hairFee) || 0;
+      const pf = Number(o.photoFee) || 0;
+      const due = Math.round(pp * 0.9) + hf + pf;
+      const ours = Math.round(pp * 0.4);
+      const d = new Date(o.bookingDate);
+      return '<tr class="border-b border-slate-100 hover:bg-slate-50"><td class="p-2">' + (d.getMonth()+1) + '/' + d.getDate() + '</td>' +
+             '<td class="p-2 font-mono text-xs">' + (o.orderId||'') + '</td>' +
+             '<td class="p-2 font-bold">' + (o.name||'') + '</td>' +
+             '<td class="p-2 text-xs">' + String(o.source||'').replace('walk-in@','') + '</td>' +
+             '<td class="p-2 text-right">¥' + pp.toLocaleString() + '</td>' +
+             '<td class="p-2 text-right">¥' + hf.toLocaleString() + '</td>' +
+             '<td class="p-2 text-right">¥' + pf.toLocaleString() + '</td>' +
+             '<td class="p-2 text-right font-bold">¥' + due.toLocaleString() + '</td>' +
+             '<td class="p-2 text-right font-bold text-pink-600">¥' + ours.toLocaleString() + '</td></tr>';
+    }).join('') + '</tbody></table>';
+}
+
+function generateInvoice(storeName, monthYM) {
+  const [y, m] = monthYM.split('-').map(Number);
+  const monthOrders = (allOrders || []).filter(o => {
+    if (o.platform !== 'WALK_IN') return false;
+    const src = String(o.source || '').toLowerCase();
+    let s = '';
+    if (src.indexOf('kyoto1') >= 0 || src.indexOf('清水寺') >= 0) s = '京都清水寺店';
+    else if (src.indexOf('osaka') >= 0 || src.indexOf('日本橋') >= 0) s = '大阪日本橋店';
+    else if (src.indexOf('kyoto2') >= 0 || src.indexOf('祇園') >= 0) s = '京都祇園店';
+    else if (src.indexOf('tokyo') >= 0 || src.indexOf('淺草') >= 0) s = '東京淺草寺店';
+    else s = '未分類';
+    if (s !== storeName) return false;
+    const d = new Date(o.bookingDate || o.submitDate);
+    return !isNaN(d) && d.getFullYear() === y && d.getMonth() === m - 1;
+  });
+
+  const totalPP = monthOrders.reduce((s, o) => s + (Number(o.price)||Number(o.kimonoPrice)||0), 0);
+  const totalOurs = monthOrders.reduce((s, o) => s + Math.round((Number(o.price)||Number(o.kimonoPrice)||0) * 0.4), 0);
+
+  const today = new Date();
+  const invHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>請款單 ${storeName} ${y}年${m}月</title>
+    <style>
+      body{font-family:'Noto Serif TC',serif;padding:40px;color:#1A365D;max-width:800px;margin:0 auto;background:white}
+      .header{border-bottom:3px double #1A365D;padding-bottom:16px;margin-bottom:24px}
+      .title{font-size:28px;font-weight:bold;letter-spacing:0.2em}
+      .subtitle{color:#94a3b8;letter-spacing:0.3em;text-transform:uppercase;font-size:11px;margin-top:6px}
+      .meta{display:grid;grid-template-columns:auto 1fr;gap:8px 20px;margin-bottom:24px;font-size:14px}
+      .meta b{color:#475569}
+      table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:24px}
+      th{background:#1A365D;color:white;padding:10px;text-align:left;letter-spacing:0.1em}
+      td{padding:8px 10px;border-bottom:1px solid #e2e8f0}
+      .num{text-align:right;font-family:monospace}
+      .total{font-size:20px;font-weight:bold;background:#FFF8DC;padding:16px;border-left:4px solid #C9A961;margin:20px 0;display:flex;justify-content:space-between;align-items:center}
+      .footer{font-size:12px;color:#64748b;line-height:1.7;margin-top:40px;border-top:1px solid #e2e8f0;padding-top:16px}
+      .stamp{margin-top:60px;display:grid;grid-template-columns:1fr 1fr;gap:40px}
+      .stamp .box{border:1px dashed #94a3b8;height:80px;text-align:center;padding-top:30px;color:#94a3b8;font-size:11px}
+      @media print { body{padding:20px} button{display:none} }
+    </style></head><body>
+    <div class="header">
+      <div class="title">請款單 INVOICE</div>
+      <div class="subtitle">FOREVERYOUNG × Kimono Walk-in Settlement</div>
+    </div>
+    <div class="meta">
+      <b>請款對象</b><span>${storeName}</span>
+      <b>請款月份</b><span>${y}年${m}月</span>
+      <b>開立日期</b><span>${today.getFullYear()}/${today.getMonth()+1}/${today.getDate()}</span>
+      <b>本期筆數</b><span>${monthOrders.length} 筆</span>
+    </div>
+    <table>
+      <thead><tr><th>日期</th><th>訂單編號</th><th>姓名</th><th class="num">和服原價</th><th class="num">應付旅乘 (40%)</th></tr></thead>
+      <tbody>
+      ${monthOrders.map(o => {
+        const d = new Date(o.bookingDate);
+        const pp = Number(o.price)||Number(o.kimonoPrice)||0;
+        const ours = Math.round(pp * 0.4);
+        return '<tr><td>' + (d.getMonth()+1) + '/' + d.getDate() + '</td><td>' + (o.orderId||'') + '</td><td>' + (o.name||'') + '</td><td class="num">¥' + pp.toLocaleString() + '</td><td class="num">¥' + ours.toLocaleString() + '</td></tr>';
+      }).join('')}
+      </tbody>
+    </table>
+    <div class="total">
+      <span>合計應付旅乘</span>
+      <span style="font-size:28px;color:#C9A961">¥${totalOurs.toLocaleString()} JPY</span>
+    </div>
+    <div class="footer">
+      <p>※ 拆帳規則：和服原價 × 40% 為旅乘應收，店家保留 50% + 妝髮費 + 攝影費</p>
+      <p>※ 請於每月 5 日前匯款至下方旅乘指定帳戶</p>
+    </div>
+    <div class="stamp">
+      <div><b>店家負責人簽章</b><div class="box">店家用印</div></div>
+      <div><b>旅乘確認</b><div class="box">旅乘用印</div></div>
+    </div>
+    <div style="text-align:center;margin-top:30px"><button onclick="window.print()" style="padding:10px 30px;background:#1A365D;color:white;border:none;font-size:14px;cursor:pointer;border-radius:6px;letter-spacing:0.2em">列印 / Save PDF</button></div>
+    </body></html>`;
+
+  const w = window.open('', '_blank');
+  w.document.write(invHtml);
+  w.document.close();
+}
+
+// Hook into switchSection to render when entering walkin tab
+const __origSwitchSection = typeof switchSection === 'function' ? switchSection : null;
+if (__origSwitchSection) {
+  window.switchSection = function(sec, el) {
+    __origSwitchSection(sec, el);
+    if (sec === 'walkin') {
+      buildWalkinMonthSelect();
+      renderWalkinMonth();
+    }
+  };
+}
 
 </script>
 </body>
