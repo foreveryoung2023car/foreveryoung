@@ -8,7 +8,7 @@ const KIMONO_CONFIG = {
 
     // ★ Google Apps Script Web App URL
     // 重新部署後只需要改這裡
-    APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbx8ZSkhqOHII7__krBMruqqq6Z9352CzJbvygxOX0tos-so41rma73KRv519m3C5I3c/exec',
+    APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwL7t-_3V5rdM_1hpjpYGaRzXCI9gR3LPKJqKVYuhg5ZsqSpCD-F6-xf0Wnrg1A59LP/exec',
 
     // ★ 聯繫連結
     LINE_URL:       'https://lin.ee/TgFCvYQ',
