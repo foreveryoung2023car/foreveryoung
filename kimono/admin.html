@@ -491,7 +491,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
     <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
       <div>
         <h2 class="text-2xl font-bold text-[#1A365D] title-serif">💴 店家月結對帳</h2>
-        <p class="text-sm text-slate-600 mt-1 font-semibold">現場 walk-in 訂單，月底向各店家請款。<br><span class="text-[12px] text-slate-500">無折活動 → 5:5 平分（旅乘 = 和服原價 × 50%）；有折扣活動 → 店家固定 50%、折扣由旅乘吸收</span></p>
+        <p class="text-sm text-slate-600 mt-1 font-semibold">現場 walk-in 訂單，月底向各店家請款。<br><span class="text-[12px] text-slate-500">⚠️ 旅乘只與店家分配「和服費」收益（無折 5:5；有折扣由旅乘吸收）。<b>妝髮費、攝影費 100% 由店家保留</b>，旅乘不抽取任何金額。</span></p>
       </div>
       <div class="flex gap-2 items-center flex-wrap">
         <select id="walkin-month" class="input-field !w-auto" onchange="renderWalkinMonth()"></select>
@@ -502,8 +502,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
       <div class="stat-card blue"><div class="section-label">當月 walk-in 筆數</div><div id="walkin-stat-count" class="stat-num">—</div></div>
       <div class="stat-card gold"><div class="section-label">當月總營業額 (¥)</div><div id="walkin-stat-revenue" class="stat-num" style="font-size:22px">—</div></div>
-      <div class="stat-card green"><div class="section-label">店家保留 (¥)</div><div id="walkin-stat-shop" class="stat-num" style="font-size:22px">—</div></div>
-      <div class="stat-card purple"><div class="section-label">應向店家收 (¥)</div><div id="walkin-stat-ours" class="stat-num" style="font-size:22px;color:#7C3AED">—</div></div>
+      <div class="stat-card green"><div class="section-label">店家保留 (¥)<br><span class="text-[10px] text-slate-400 font-normal">和服 50% + 妝髮/攝影全額</span></div><div id="walkin-stat-shop" class="stat-num" style="font-size:22px">—</div></div>
+      <div class="stat-card purple"><div class="section-label">應向店家收 (¥)<br><span class="text-[10px] text-slate-400 font-normal">僅和服費抽成</span></div><div id="walkin-stat-ours" class="stat-num" style="font-size:22px;color:#7C3AED">—</div></div>
     </div>
 
     <div id="walkin-stores-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"></div>
@@ -2081,7 +2081,7 @@ function generateInvoice(storeName, monthYM) {
       <b>本期筆數</b><span>${monthOrders.length} 筆</span>
     </div>
     <table>
-      <thead><tr><th>日期</th><th>訂單編號</th><th>姓名</th><th>折扣</th><th class="num">和服原價</th><th class="num">應付旅乘</th></tr></thead>
+      <thead><tr><th>日期</th><th>訂單編號</th><th>姓名</th><th>折扣</th><th class="num">和服原價</th><th class="num">應付旅乘<br><span style="font-size:10px;font-weight:normal;color:#94a3b8">(僅和服抽成)</span></th></tr></thead>
       <tbody>
       ${monthOrders.map(o => {
         const dt = new Date(o.bookingDate);
@@ -2096,7 +2096,8 @@ function generateInvoice(storeName, monthYM) {
       <span style="font-size:28px;color:#C9A961">¥${totalOurs.toLocaleString()} JPY</span>
     </div>
     <div class="footer">
-      <p>※ 拆帳規則：店家固定保留和服原價 50% + 妝髮費 + 攝影費；旅乘應收 = 客人付的和服費 − 店家 50%（折扣由旅乘吸收）</p>
+      <p>※ <b>拆帳項目僅限「和服費」</b>，妝髮費與攝影費 100% 由店家保留，旅乘不抽取。</p>
+      <p>※ 和服費拆帳：無折活動店家 50%／旅乘 50%；有折扣活動店家固定 50%、折扣由旅乘吸收（旅乘實拿 = 和服原價 × 折數/10 − 和服原價 × 50%）。</p>
       <p>※ 請於每月 5 日前匯款至下方旅乘指定帳戶</p>
     </div>
     <div class="stamp">
