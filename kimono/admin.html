@@ -799,6 +799,22 @@ function fmtBookingDateTime(s){
   }
   return str.slice(0,16);
 }
+
+// v2.5: 格式化日期成 JST 顯示（Asia/Tokyo, GMT+9）
+function fmtJST(s) {
+  if (!s) return '';
+  const d = new Date(s);
+  if (isNaN(d)) return String(s).slice(0, 16);
+  // Convert to JST: UTC + 9 hours
+  const jstMs = d.getTime() + (9 * 60 + d.getTimezoneOffset()) * 60 * 1000;
+  const jst = new Date(jstMs);
+  const m = String(jst.getMonth() + 1).padStart(2, '0');
+  const dd = String(jst.getDate()).padStart(2, '0');
+  const hh = String(jst.getHours()).padStart(2, '0');
+  const mm = String(jst.getMinutes()).padStart(2, '0');
+  return jst.getFullYear() + '/' + m + '/' + dd + ' ' + hh + ':' + mm + ' (JST)';
+}
+
 function fmtDateTime(s){ if(!s) return ''; const d=new Date(s); if(isNaN(d)) return String(s).slice(0,16); const m=String(d.getMonth()+1).padStart(2,'0'); const dd=String(d.getDate()).padStart(2,'0'); const hh=String(d.getHours()).padStart(2,'0'); const mm=String(d.getMinutes()).padStart(2,'0'); return m+'/'+dd+' '+hh+':'+mm; }
 function fmtY(n){ n = Number(n)||0; return n ? '¥'+n.toLocaleString() : '—'; }
 function fmtY0(n){ n = Number(n)||0; return '¥'+n.toLocaleString(); }
@@ -1102,19 +1118,19 @@ function renderOrders(orders){
           '<div class="flex items-center gap-2 mb-2 flex-wrap">'+
             badge+
             '<span class="font-bold text-[#1A365D] text-lg">'+(o.name||'—')+'</span>'+
-            '<span class="text-slate-600 text-sm font-mono">'+(o.orderId||'')+'</span>'+(o.submitDate? '<span class="text-[11px] text-slate-500 ml-1">下單 '+fmtDateTime(o.submitDate)+'</span>':'')+
+            '<span class="text-slate-600 text-sm font-mono">'+(o.orderId||'')+'</span>'+(o.submitDate? '<span class="text-[11px] text-slate-500 ml-1">下單 '+fmtJST(o.submitDate)+'</span>':'')+
             (o.platform? '<span class="pill bg-blue-100 text-blue-800">📱 '+o.platform+'</span>':'')+
             daysTag+
           '</div>'+
           '<div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm bg-slate-50 p-3 rounded-lg mb-2">'+
-            '<div><div class="text-xs text-slate-600 font-semibold">📅 體驗日期</div><div class="font-bold text-[#1A365D]">'+fmtBookingDateTime(o.bookingDate)+'</div></div>'+
-            '<div><div class="text-xs text-slate-600 font-semibold">📞 電話</div><div class="font-bold">'+(o.phone||'—')+'</div></div>'+
-            '<div><div class="text-xs text-slate-600 font-semibold">👥 人數</div><div class="font-bold">'+(o.adults||o.pax||'—')+'</div></div>'+
-            '<div><div class="text-xs text-slate-600 font-semibold">👘 款式</div><div class="font-bold truncate" title="'+(o.plan||'')+'">'+(o.plan||'—')+'</div></div>'+
-            '<div><div class="text-xs text-slate-600 font-semibold">💰 訂金</div><div class="font-bold">'+fmtY(o.deposit)+'</div></div>'+
-            '<div><div class="text-xs text-slate-600 font-semibold">💳 總價</div><div class="font-bold">'+fmtY(total)+'</div></div>'+
-            '<div><div class="text-xs text-slate-600 font-semibold">📥 待收尾款</div><div class="font-bold '+(due>0?'text-amber-700':'text-emerald-700')+'">'+fmtY(due)+'</div></div>'+
-            '<div><div class="text-xs text-slate-600 font-semibold">📧 Email</div><div class="font-bold truncate text-xs" title="'+(o.email||'')+'">'+(o.email||'—')+'</div></div>'+
+            '<div><div class="text-xs text-slate-600 font-semibold">體驗日期</div><div class="font-bold text-[#1A365D]">'+fmtBookingDateTime(o.bookingDate)+'</div></div>'+
+            '<div><div class="text-xs text-slate-600 font-semibold">電話</div><div class="font-bold">'+(o.phone||'—')+'</div></div>'+
+            '<div><div class="text-xs text-slate-600 font-semibold">人數</div><div class="font-bold">'+(o.adults||o.pax||'—')+'</div></div>'+
+            '<div><div class="text-xs text-slate-600 font-semibold">和服款式</div><div class="font-bold truncate" title="'+(o.plan||'')+'">'+(o.plan||'—')+'</div></div>'+
+            '<div><div class="text-xs text-slate-600 font-semibold">訂金</div><div class="font-bold">'+fmtY(o.deposit)+'</div></div>'+
+            '<div><div class="text-xs text-slate-600 font-semibold">總價</div><div class="font-bold">'+fmtY(total)+'</div></div>'+
+            '<div><div class="text-xs text-slate-600 font-semibold">待收尾款</div><div class="font-bold '+(due>0?'text-amber-700':'text-emerald-700')+'">'+fmtY(due)+'</div></div>'+
+            '<div><div class="text-xs text-slate-600 font-semibold">Email</div><div class="font-bold truncate text-xs" title="'+(o.email||'')+'">'+(o.email||'—')+'</div></div>'+
           '</div>'+
           '<div class="flex flex-wrap gap-1">'+
             (o.coupon? '<span class="tag" style="background:#FCE7F3;color:#9F1239;border-color:#F9A8D4">🎟 '+o.coupon+'</span>':'')+
@@ -1936,7 +1952,11 @@ function renderWalkinMonth() {
   const start = new Date(y, m - 1, 1, 0, 0, 0);
   const end = new Date(y, m, 1, 0, 0, 0);
   let monthOrders = (allOrders || []).filter(o => {
-    if (o.platform !== 'WALK_IN') return false;
+    // v2.5: detect walk-in by platform OR source field (handles legacy column variants)
+    const isWalkIn = (o.platform === 'WALK_IN') ||
+                     (String(o.source || '').toLowerCase().indexOf('walk-in@') === 0) ||
+                     (String(o.introducer || '').toLowerCase().indexOf('walk-in@') === 0);
+    if (!isWalkIn) return false;
     const d = new Date(o.bookingDate || o.submitDate);
     return !isNaN(d) && d >= start && d < end;
   });
