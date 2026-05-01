@@ -3,48 +3,80 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1,user-scalable=0">
-<title>門市後台 — 旅乘 x 和服</title>
+<title>門市登入 — 旅乘 x 和服</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="./config.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   body{font-family:'Noto Serif TC',serif;background:#FDFCF8;color:#1A365D;margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
-  .card{background:white;border-radius:14px;box-shadow:0 8px 32px rgba(26,54,93,.12);max-width:480px;padding:48px 32px;text-align:center}
-  .logo{width:72px;height:72px;background:#1A365D;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:28px;margin-bottom:24px}
-  .title{font-size:22px;font-weight:700;letter-spacing:.1em;margin-bottom:12px}
-  .subtitle{font-size:14px;color:#64748B;line-height:1.7;margin-bottom:28px;font-family:'Noto Sans TC',sans-serif}
-  .btn{display:inline-block;background:#1A365D;color:white;padding:14px 28px;border-radius:10px;text-decoration:none;font-weight:700;letter-spacing:.1em;font-family:'Noto Sans TC',sans-serif;transition:.2s}
-  .btn:hover{background:#0f2240;transform:translateY(-2px);box-shadow:0 6px 18px rgba(26,54,93,.25)}
-  .note{margin-top:24px;font-size:12px;color:#94A3B8;font-family:'Noto Sans TC',sans-serif;line-height:1.7}
-  .countdown{font-size:13px;color:#1A365D;font-family:'Noto Sans TC',sans-serif;margin-top:16px}
+  .card{background:white;border-radius:14px;box-shadow:0 8px 32px rgba(26,54,93,.12);max-width:380px;width:100%;padding:36px 28px}
+  .logo{width:64px;height:64px;background:#1A365D;border-radius:14px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:24px;margin:0 auto 18px}
+  .title{font-size:20px;font-weight:700;letter-spacing:.1em;margin-bottom:6px;text-align:center}
+  .subtitle{font-size:12px;color:#64748B;letter-spacing:.2em;font-family:'Noto Sans TC',sans-serif;text-align:center;text-transform:uppercase;margin-bottom:24px}
+  .input{width:100%;padding:12px 14px;border:1.5px solid #CBD5E1;border-radius:8px;font-size:15px;font-family:'Noto Sans TC',sans-serif;outline:none;transition:.2s;margin-bottom:14px}
+  .input:focus{border-color:#1A365D;box-shadow:0 0 0 3px rgba(26,54,93,.08)}
+  .btn{width:100%;padding:13px;background:#1A365D;color:white;border:none;border-radius:8px;font-weight:700;letter-spacing:.15em;font-family:'Noto Sans TC',sans-serif;font-size:14px;cursor:pointer;transition:.2s}
+  .btn:hover{background:#0f2240}
+  .btn:disabled{opacity:.5;cursor:wait}
+  .err{font-size:13px;color:#dc2626;text-align:center;margin-top:10px;font-family:'Noto Sans TC',sans-serif}
+  .note{font-size:11px;color:#94A3B8;text-align:center;margin-top:18px;line-height:1.7;font-family:'Noto Sans TC',sans-serif}
+  .note a{color:#1A365D;text-decoration:underline}
 </style>
-<meta http-equiv="refresh" content="5;url=./admin.html">
 </head>
 <body>
 
 <div class="card">
   <div class="logo">旅</div>
-  <div class="title">門市後台已搬家</div>
-  <div class="subtitle">
-    從 v2.5 開始，門市後台已併入統一登入頁。<br>
-    請改用同一組門市帳號到「客服／門市後台」登入。
-  </div>
-  <a href="./admin.html" class="btn">前往新登入頁 →</a>
-  <div class="countdown" id="countdown">5 秒後自動跳轉…</div>
+  <div class="title">門市登入</div>
+  <div class="subtitle">STORE PORTAL</div>
+
+  <input id="login-name" class="input" placeholder="門市代號（例：kyoto1）" autocomplete="username">
+  <input id="login-pass" type="password" class="input" placeholder="密碼" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+  <button id="login-btn" class="btn" onclick="doLogin()">登 入</button>
+  <div id="err" class="err" style="display:none"></div>
+
   <div class="note">
-    👉 登入帳號 = 您的門市代號（例：kyoto1 / osaka1）<br>
-    👉 密碼 = 與原本門市登入相同<br>
-    👉 登入後可看到完整訂單資訊與「＋ 現場新增」功能
+    登入後將自動跳轉至完整後台<br>
+    <a href="./admin.html">客服請改點此處 →</a>
   </div>
 </div>
 
 <script>
-  let n = 5;
-  const cd = document.getElementById('countdown');
-  const t = setInterval(() => {
-    n--;
-    if (n > 0) cd.textContent = n + ' 秒後自動跳轉…';
-    else { clearInterval(t); location.href = './admin.html'; }
-  }, 1000);
+const GAS_URL = (typeof KIMONO_CONFIG !== 'undefined') ? KIMONO_CONFIG.APPS_SCRIPT_URL : '';
+
+async function doLogin() {
+  const name = document.getElementById('login-name').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('err');
+  const btn = document.getElementById('login-btn');
+  errEl.style.display = 'none';
+  if (!name || !pass) { errEl.textContent = '請填入門市代號與密碼'; errEl.style.display = 'block'; return; }
+  btn.disabled = true; btn.textContent = '驗證中…';
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'adminLogin', name, password: pass })
+    });
+    const data = await res.json();
+    if (data && data.status === 'success' && data.token) {
+      // Persist to localStorage so admin.html auto-login picks it up
+      localStorage.setItem('admin_agent', data.storeName || data.agent || name);
+      localStorage.setItem('admin_token', data.token);
+      localStorage.setItem('admin_role', data.role || 'agent');
+      if (data.storeKey) localStorage.setItem('admin_storeKey', data.storeKey);
+      // Redirect
+      location.href = './admin.html';
+    } else {
+      errEl.textContent = (data && data.message) || '密碼錯誤，請再試一次';
+      errEl.style.display = 'block';
+      btn.disabled = false; btn.textContent = '登 入';
+    }
+  } catch (e) {
+    errEl.textContent = '無法連線到伺服器';
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = '登 入';
+  }
+}
 </script>
 
 </body>
