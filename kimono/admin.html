@@ -71,7 +71,9 @@
   .nav-tab:hover:not(.active){color:white}
 
   .modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(2px) }
-  .modal-box { background:white;border-radius:20px;padding:28px;max-width:780px;width:100%;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25) }
+  .modal-box { background:white;border-radius:20px;padding:28px;max-width:780px;width:100%;height:80vh;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column }
+  .modal-box > .edit-tab,.modal-box > div:not(:first-child):not(:last-child) { flex-shrink:0 }
+  .modal-box .edit-tab { min-height:340px }
 
   .tag { display:inline-block;background:#DBEAFE;color:#1E40AF;border-radius:6px;padding:3px 9px;font-size:12px;margin:2px;border:1px solid #93C5FD;font-weight:600 }
   .pill{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:600}
@@ -183,7 +185,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
       <div class="min-w-0 hidden xs:block sm:block">
         <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
-        <div class="text-white/60 text-[10px] tracking-[0.2em] hidden md:block">ADMIN PORTAL · v2.2.1</div>
+        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.2.2</div>
       </div>
     </div>
     <div id="global-search-wrap" class="hidden md:flex flex-1 max-w-md">
@@ -233,6 +235,11 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 <div id="dashboard" class="hidden max-w-[1500px] mx-auto px-4 py-6">
 
   <section id="sec-dashboard" class="section active">
+    <!-- v2.2.2 部署驗證橫幅（確認新版有上線） -->
+    <div class="mb-3 px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between text-sm">
+      <span class="font-bold text-emerald-800">✅ 目前版本：v2.2.2</span>
+      <span class="text-emerald-700 text-xs">部署時間：2026-05-01 · 修 6 項 UI bug + 拔誤觸按鈕</span>
+    </div>
     <div class="flex justify-between items-end mb-5 flex-wrap gap-2">
       <div>
         <h2 class="text-2xl font-bold text-[#1A365D] title-serif">營運概覽</h2>
@@ -282,7 +289,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
         <div id="platform-ratio" class="space-y-3 text-sm"></div>
       </div>
       <div class="panel">
-        <h3 class="text-[#1A365D] mb-3 flex justify-between title-serif"><span>🔥 即將到店（最近 6 筆）</span><button onclick="switchSection('orders',document.querySelector('[data-sec=orders]'))" class="text-xs text-slate-600 hover:text-[#1A365D] font-semibold">查看全部 →</button></h3>
+        <h3 class="text-[#1A365D] mb-3 title-serif">🔥 即將到店（最近 6 筆）</h3>
         <div id="upcoming-list" class="space-y-2 text-sm"></div>
       </div>
     </div>
@@ -389,7 +396,13 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
         <h2 class="text-2xl font-bold text-[#1A365D] title-serif">客戶名單</h2>
         <p class="text-sm text-slate-600 mt-1 font-semibold">自動從訂單聚合，依電話 / Email 識別客戶</p>
       </div>
-      <div class="flex gap-2 items-center">
+      <div class="flex gap-2 items-center flex-wrap">
+        <!-- v2.6: 客戶分類快速切換 -->
+        <div class="flex gap-1">
+          <button class="tab-btn active" data-cust-filter="all" onclick="setCustFilter('all',this)">全部 <span id="cust-cnt-all" class="ml-1 opacity-80">0</span></button>
+          <button class="tab-btn" data-cust-filter="vip" onclick="setCustFilter('vip',this)">⭐ VIP <span id="cust-cnt-vip" class="ml-1 opacity-80">0</span></button>
+          <button class="tab-btn" data-cust-filter="repeat" onclick="setCustFilter('repeat',this)">🔁 回頭客 <span id="cust-cnt-repeat" class="ml-1 opacity-80">0</span></button>
+        </div>
         <input id="cust-search" class="input-field !w-64" placeholder="🔍 搜尋姓名 / 電話 / Email" oninput="renderCustomers()">
         <select id="cust-sort" class="input-field !w-auto" onchange="renderCustomers()">
           <option value="orders-desc">訂單數 ↓</option>
@@ -1028,6 +1041,16 @@ function setFilter(f, btn){
   filterOrders();
 }
 
+// v2.6: 一鍵清除所有篩選條件，回到「全部」
+function resetAllFilters(){
+  ['f-search','f-date-from','f-date-to','f-plan','f-platform','f-hair','f-photo'].forEach(id=>{
+    const el = document.getElementById(id); if(el) el.value = '';
+  });
+  const fSort = document.getElementById('f-sort'); if(fSort) fSort.value = 'booking-desc';
+  const allBtn = document.querySelectorAll('#sec-orders .tab-btn')[0];
+  setFilter('all', allBtn);
+}
+
 function filterOrders(){
   const q = (document.getElementById('f-search').value||'').toLowerCase();
   const dFrom = document.getElementById('f-date-from').value;
@@ -1087,7 +1110,37 @@ function filterOrders(){
 function renderOrders(orders){
   const el = document.getElementById('orders-list');
   const empty = document.getElementById('orders-empty');
-  if(!orders.length){ el.innerHTML=''; empty.classList.remove('hidden'); return; }
+  if(!orders.length){
+    el.innerHTML='';
+    // v2.6: 列出目前生效中的篩選條件，並提供一鍵清除按鈕
+    const reasons = [];
+    if(currentFilter && currentFilter !== 'all') {
+      const labelMap = {today:'📍 今天',pending:'待確認',confirmed:'已確認',refund:'有退款',anomaly:'⚠ 異常'};
+      reasons.push('狀態：' + (labelMap[currentFilter] || currentFilter));
+    }
+    const fs = document.getElementById('f-search'); if(fs && fs.value) reasons.push('關鍵字：「' + fs.value + '」');
+    const fdf = document.getElementById('f-date-from'); if(fdf && fdf.value) reasons.push('起日：' + fdf.value);
+    const fdt = document.getElementById('f-date-to'); if(fdt && fdt.value) reasons.push('迄日：' + fdt.value);
+    const fp = document.getElementById('f-plan'); if(fp && fp.value) reasons.push('款式：' + fp.value);
+    const fpl = document.getElementById('f-platform'); if(fpl && fpl.value) reasons.push('來源：' + fpl.value);
+    const fh = document.getElementById('f-hair'); if(fh && fh.value!=='') reasons.push('妝髮：' + (fh.value==='true'?'有':'無'));
+    const fph = document.getElementById('f-photo'); if(fph && fph.value!=='') reasons.push('攝影：' + (fph.value==='true'?'有':'無'));
+    if(reasons.length) {
+      empty.innerHTML = '<div class="text-center py-10">'+
+        '<div class="text-5xl mb-3">🔍</div>'+
+        '<div class="font-bold text-[#1A365D] text-lg mb-2">沒有符合條件的訂單</div>'+
+        '<div class="text-sm text-slate-600 mb-4">目前篩選條件：'+
+          '<div class="flex flex-wrap gap-2 justify-center mt-2">'+
+          reasons.map(r=>'<span class="bg-slate-100 px-3 py-1 rounded-full text-xs font-semibold text-slate-700">'+r+'</span>').join('')+
+          '</div></div>'+
+        '<button onclick="resetAllFilters()" class="btn-navy px-5 py-2 rounded-xl text-sm">↻ 清除所有篩選</button>'+
+        '</div>';
+    } else {
+      empty.innerHTML = '<div class="text-center py-10 text-slate-600 font-semibold">目前沒有訂單資料</div>';
+    }
+    empty.classList.remove('hidden');
+    return;
+  }
   empty.classList.add('hidden');
 
   const now = new Date();
@@ -1300,6 +1353,14 @@ function buildCustomers(){
   });
 }
 
+let currentCustFilter = 'all';
+function setCustFilter(f, btn){
+  currentCustFilter = f;
+  document.querySelectorAll('[data-cust-filter]').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderCustomers();
+}
+
 function renderCustomers(){
   const q = (document.getElementById('cust-search').value||'').toLowerCase();
   const sort = document.getElementById('cust-sort').value;
@@ -1309,6 +1370,13 @@ function renderCustomers(){
   const totalCust = arr.length;
   const vipCust = arr.filter(c=>c.isVip).length;
   const repeatCust = arr.filter(c=>c.count>=2).length;
+  // v2.6: 寫進 tab-btn 的計數
+  const cAll = document.getElementById('cust-cnt-all'); if(cAll) cAll.textContent = totalCust;
+  const cVip = document.getElementById('cust-cnt-vip'); if(cVip) cVip.textContent = vipCust;
+  const cRep = document.getElementById('cust-cnt-repeat'); if(cRep) cRep.textContent = repeatCust;
+  // v2.6: 套用分類過濾
+  if(currentCustFilter === 'vip') arr = arr.filter(c=>c.isVip);
+  else if(currentCustFilter === 'repeat') arr = arr.filter(c=>c.count>=2);
   const allSpent = arr.reduce((s,c)=>s+c.totalSpent,0);
   const allCount = arr.reduce((s,c)=>s+c.count,0);
   const avgPrice = allCount? Math.round(allSpent/allCount) : 0;
@@ -1607,8 +1675,57 @@ function openEdit(orderId) {
   document.getElementById('save-msg').classList.add('hidden');
   switchTab('basic', document.querySelector('#edit-modal .tab-btn'));
   updateCalc();
+  injectAnomalyWarning(o); // v2.6
   document.getElementById('edit-modal').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
+}
+
+// v2.6: 在編輯 modal 上方注入「為什麼這筆是異常」說明橫幅
+function injectAnomalyWarning(o){
+  const modalBox = document.querySelector('#edit-modal .modal-box');
+  if(!modalBox) return;
+  // 移掉舊的
+  const old = document.getElementById('anomaly-banner'); if(old) old.remove();
+
+  const reasons = [];
+  if(!o.name) reasons.push('缺姓名');
+  if(!o.phone) reasons.push('缺電話');
+  if(!o.bookingDate) reasons.push('缺預約日');
+
+  const exp = (typeof expectedDeposit === 'function') ? expectedDeposit(o) : 0;
+  const got = Number(o.deposit) || 0;
+  if(o.bookingDate && exp > 0 && got > 0 && got !== exp) {
+    if(got < exp) reasons.push('訂金少收 ¥' + (exp-got).toLocaleString() + '（應收 ¥' + exp.toLocaleString() + '，實收 ¥' + got.toLocaleString() + '）');
+    else reasons.push('訂金多收 ¥' + (got-exp).toLocaleString() + '（應收 ¥' + exp.toLocaleString() + '，實收 ¥' + got.toLocaleString() + '）');
+  }
+
+  if(Number(o.refundAmount) > 0 && !o.refundTime) reasons.push('退款金額已填但未填退款時間');
+
+  const c = o.createdAt || o.submitDate;
+  if(!o.confirmed && c) {
+    const cd = new Date(c);
+    if(!isNaN(cd) && (Date.now() - cd) > 24*3600*1000) reasons.push('待確認超過 24 小時');
+  }
+
+  if(!reasons.length) return; // 沒異常就不顯示
+
+  const banner = document.createElement('div');
+  banner.id = 'anomaly-banner';
+  banner.className = 'mb-4 p-3 bg-red-50 border-2 border-red-300 rounded-xl';
+  banner.innerHTML = '<div class="flex items-start gap-2">'+
+    '<span class="text-xl">⚠️</span>'+
+    '<div class="flex-1">'+
+      '<div class="font-bold text-red-700 text-sm mb-1">這筆訂單被標為「異常」，原因：</div>'+
+      '<ul class="text-sm text-red-700 list-disc list-inside space-y-0.5">'+
+        reasons.map(r=>'<li>'+r+'</li>').join('')+
+      '</ul>'+
+      '<div class="text-xs text-red-600 mt-2">建議處理方式：依上方 tab「款項費用 / 退款記錄」修正後按「儲存變更」。</div>'+
+    '</div></div>';
+
+  // 插在 header 後、tab bar 前
+  const tabBar = modalBox.querySelector('.flex.gap-2.mb-5.flex-wrap');
+  if(tabBar) modalBox.insertBefore(banner, tabBar);
+  else modalBox.insertBefore(banner, modalBox.children[1]);
 }
 function closeModal() { document.getElementById('edit-modal').classList.add('hidden'); document.body.style.overflow = ''; }
 function switchTab(name, btn) {
@@ -1764,7 +1881,7 @@ document.getElementById('global-search')?.addEventListener('input', (e)=>{
     }
   });
 })();
-console.log('%c[v2.2.1] global search ready','color:#1A365D;font-weight:bold');
+console.log('%c[v2.2.2] global search ready','color:#1A365D;font-weight:bold');
 
 /* === v2.2.1 假訂單過濾（月份標題列等不完整資料） === */
 window.__isFakeOrder = function(o){
@@ -2006,15 +2123,17 @@ function renderWalkinMonth() {
     byStore[store].ours += calc.ours;
   });
 
+  // v2.6: 即使該店家本月無資料，也要顯示空白卡片
+  const ALL_STORES = ['京都清水寺店', '大阪日本橋店', '京都祇園店', '東京淺草寺店'];
+  ALL_STORES.forEach(s => { if (!byStore[s]) byStore[s] = { orders: [], pp: 0, due: 0, ours: 0 }; });
+
   const storeGrid = document.getElementById('walkin-stores-grid');
-  if (Object.keys(byStore).length === 0) {
-    storeGrid.innerHTML = '<div class="panel text-center text-slate-500 py-8 col-span-2">本月無 walk-in 訂單</div>';
-  } else {
+  {
     storeGrid.innerHTML = Object.entries(byStore).map(([store, info]) => 
       '<div class="panel">' +
       '<div class="flex justify-between items-center mb-3">' +
         '<h3 class="font-bold text-[#1A365D] text-base">📍 ' + store + '</h3>' +
-        '<span class="text-sm text-slate-500">' + info.orders.length + ' 筆</span>' +
+        '<span class="text-sm " style="color:'+(info.orders.length===0?'#94A3B8':'#1A365D')+'">' + info.orders.length + ' 筆' + (info.orders.length===0?'（本月無 walk-in）':'') + '</span>' +
       '</div>' +
       '<div class="grid grid-cols-3 gap-2 text-center mb-3">' +
         '<div class="bg-slate-50 rounded p-2"><div class="text-[11px] text-slate-500">和服總額</div><div class="font-bold text-[#1A365D]">¥' + info.pp.toLocaleString() + '</div></div>' +
