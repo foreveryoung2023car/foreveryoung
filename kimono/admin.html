@@ -185,7 +185,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
       <div class="min-w-0 hidden xs:block sm:block">
         <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
-        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.2.6</div>
+        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.2.7</div>
       </div>
     </div>
     <div id="global-search-wrap" class="hidden md:flex flex-1 max-w-md">
@@ -235,10 +235,10 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 <div id="dashboard" class="hidden max-w-[1500px] mx-auto px-4 py-6">
 
   <section id="sec-dashboard" class="section active">
-    <!-- v2.2.6 部署驗證橫幅（確認新版有上線） -->
+    <!-- v2.2.7 部署驗證橫幅（確認新版有上線） -->
     <div class="mb-3 px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between text-sm">
-      <span class="font-bold text-emerald-800">✅ 目前版本：v2.2.6</span>
-      <span class="text-emerald-700 text-xs">部署時間：2026-05-03 · 重整保留分頁、儲存後正確 re-render 當前 section</span>
+      <span class="font-bold text-emerald-800">✅ 目前版本：v2.2.7</span>
+      <span class="text-emerald-700 text-xs">部署時間：2026-05-03 · 對帳邏輯重寫：少收=待收尾款 / 超收=異常</span>
     </div>
     <div class="flex justify-between items-end mb-5 flex-wrap gap-2">
       <div>
@@ -467,9 +467,10 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
         <select id="recon-month" class="input-field !w-auto" onchange="renderReconcile()"></select>
         <select id="recon-status" class="input-field !w-auto" onchange="renderReconcile()">
           <option value="all">全部訂單</option>
-          <option value="unmatched">未對帳</option>
           <option value="matched">已對帳</option>
-          <option value="mismatch">金額異常</option>
+          <option value="partial">待收尾款</option>
+          <option value="overpaid">超收異常</option>
+          <option value="unmatched">未對帳</option>
         </select>
         <button onclick="exportReconCSV()" class="btn-outline px-4 py-2 rounded-xl text-sm">📥 匯出對帳</button>
       </div>
@@ -489,7 +490,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
         <div>• <b>應收訂金</b> = 每人 ¥1,000 × 預約人數（依 config.js 之 DEPOSIT_JPY 設定）</div>
         <div>• <b>已收訂金</b> = 訂單表 deposit 欄位（客人匯款後客服填入）</div>
         <div>• <span style="background:#ECFDF5;padding:2px 8px;border-radius:4px;font-weight:600;color:#047857">已對帳</span> = 已確認且訂金金額符合應收</div>
-        <div>• <span style="background:#FEF2F2;padding:2px 8px;border-radius:4px;font-weight:600;color:#B91C1C">金額異常</span> = 訂金 ≠ 應收金額（多收 / 少收）</div>
+        <div>• <span style="background:#FEF2F2;padding:2px 8px;border-radius:4px;font-weight:600;color:#B91C1C">超收異常</span> = 已收訂金 > 體驗總額（必須退款）<br>• <span style="background:#EFF6FF;padding:2px 8px;border-radius:4px;font-weight:600;color:#1E40AF">待收尾款</span> = 已收 < 應收訂金（店家現場補齊即可）</div>
         <div>• <span style="background:#FFFBEB;padding:2px 8px;border-radius:4px;font-weight:600;color:#92400E">未對帳</span> = 待確認狀態的訂單</div>
       </div>
     </div>
@@ -746,7 +747,7 @@ function applyRolePermissions() {
   if (savedName && savedToken) enterDashboard(savedName, savedToken, savedRole, savedStoreKey);
 })();
 
-// v2.2.6: 防瀏覽器 autofill 把登入名稱「Jun」帶到上方搜尋框
+// v2.2.7: 防瀏覽器 autofill 把登入名稱「Jun」帶到上方搜尋框
 window.addEventListener('load', () => {
   setTimeout(() => {
     ['global-search','f-search','cust-search'].forEach(id => {
@@ -758,7 +759,7 @@ window.addEventListener('load', () => {
 
 function switchSection(sec, el){
   currentSection = sec;
-  // v2.2.6: 記住當前分頁，重整後恢復
+  // v2.2.7: 記住當前分頁，重整後恢復
   try { localStorage.setItem('admin_lastSection', sec); } catch(e){}
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.getElementById('sec-'+sec).classList.add('active');
@@ -792,7 +793,7 @@ function loadOrders() {
         populateFilters();
         renderDashboard();
         filterOrders();
-        // v2.2.6: 首次 load 後恢復上次 section（不是 dashboard 才切）
+        // v2.2.7: 首次 load 後恢復上次 section（不是 dashboard 才切）
         if (!window.__sectionRestored) {
           window.__sectionRestored = true;
           const last = localStorage.getItem('admin_lastSection');
@@ -869,6 +870,8 @@ function fmtY0(n){ n = Number(n)||0; return '¥'+n.toLocaleString(); }
 function fmtDate(s){ if(!s) return '—'; const d = new Date(s); if(isNaN(d)) return s; return d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0'); }
 function isAnomaly(o){ return !o.name || !o.phone || !o.bookingDate; }
 function totalAmount(o){ return (Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0); }
+// v2.2.7: 客人本次體驗應付總額（不含訂金重複計入）
+function totalCharge(o){ return (Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0); }
 // 解析人數字串，例如「2大1小」「3」「2 adults 1 kid」
 function parsePax(s){
   if(!s) return 0;
@@ -961,8 +964,9 @@ function renderTodos(){
   if(refunding.length) items.push({type:'warn',icon:'↩',text:refunding.length+' 筆退款處理中（尚未填退款時間）',action:()=>{switchSection('orders',document.querySelector('[data-sec=orders]'));setFilter('refund',document.querySelectorAll('#sec-orders .tab-btn')[3])}});
 
   // 對帳異常
-  const reconMismatch = allOrders.filter(o=>{ const exp = expectedDeposit(o); const got = Number(o.deposit)||0; return o.bookingDate && exp>0 && got>0 && got!==exp; });
-  if(reconMismatch.length) items.push({type:'urgent',icon:'🧾',text:reconMismatch.length+' 筆訂單訂金金額異常（不符應收）',action:()=>{switchSection('reconcile',document.querySelector('[data-sec=reconcile]'));document.getElementById('recon-status').value='mismatch';renderReconcile();}});
+  // v2.2.7: 只把「真的超收 (got > 體驗總費用)」當成異常，少收 = 正常待店家收尾款
+  const reconOverpaid = allOrders.filter(o=>{ const tc = totalCharge(o); const got = Number(o.deposit)||0; return o.bookingDate && tc>0 && got>tc; });
+  if(reconOverpaid.length) items.push({type:'urgent',icon:'🧾',text:reconOverpaid.length+' 筆訂單訂金「超收」需退款處理',action:()=>{switchSection('reconcile',document.querySelector('[data-sec=reconcile]'));document.getElementById('recon-status').value='overpaid';renderReconcile();}});
 
   document.getElementById('todo-count').textContent = items.length+' 項';
 
@@ -1572,11 +1576,19 @@ function renderReconcile(){
   list = list.map(o=>{
     const expect = expectedDeposit(o);
     const got = Number(o.deposit)||0;
-    let recState = 'unmatched'; // 未對帳
-    if(o.confirmed && expect>0 && got===expect) recState = 'matched';
-    else if(expect>0 && got>0 && got!==expect) recState = 'mismatch';
+    const tc = totalCharge(o);
+    // v2.2.7 對帳狀態：
+    //   matched   = 已收 ≥ 應收訂金 且 ≤ 體驗總額（合理範圍）
+    //   partial   = 已收 < 應收訂金（少收 → 待店家現場收尾款，不算異常）
+    //   overpaid  = 已收 > 體驗總額（真的超收 → 必須退款 / 處理）
+    //   unmatched = 待確認 / 無訂金資料
+    let recState = 'unmatched';
+    if(tc>0 && got>tc) recState = 'overpaid';
+    else if(o.confirmed && expect>0 && got>=expect) recState = 'matched';
+    else if(o.confirmed && expect>0 && got>0 && got<expect) recState = 'partial';
     else if(o.confirmed && got>0) recState = 'matched';
-    return {...o, _expect:expect, _got:got, _recState:recState, _diff:got-expect};
+    else if(got>0 && got<expect) recState = 'partial';
+    return {...o, _expect:expect, _got:got, _tc:tc, _recState:recState, _diff:got-expect};
   });
 
   if(status!=='all') list = list.filter(o=>o._recState===status);
@@ -1598,7 +1610,7 @@ function renderReconcile(){
   if(!list.length){ tbl.innerHTML='<div class="text-center text-slate-600 py-8 font-semibold">本期無資料</div>'; return; }
 
   list.sort((a,b)=>{
-    const order = {mismatch:0, unmatched:1, matched:2};
+    const order = {overpaid:0, partial:1, unmatched:2, matched:3};
     if(order[a._recState]!==order[b._recState]) return order[a._recState]-order[b._recState];
     return new Date(b.bookingDate||0)-new Date(a.bookingDate||0);
   });
@@ -1611,12 +1623,14 @@ function renderReconcile(){
     list.map(o=>{
       let stBadge, rowCls;
       if(o._recState==='matched'){ stBadge='<span class="badge badge-confirmed">✓ 已對帳</span>'; rowCls='match'; }
-      else if(o._recState==='mismatch'){ stBadge='<span class="badge badge-anomaly">⚠ 金額異常</span>'; rowCls='mismatch'; }
+      else if(o._recState==='overpaid'){ stBadge='<span class="badge badge-anomaly">⚠ 超收異常</span>'; rowCls='mismatch'; }
+      else if(o._recState==='partial'){ stBadge='<span class="badge" style="background:#DBEAFE;color:#1E40AF">△ 待收尾款</span>'; rowCls=''; }
       else { stBadge='<span class="badge badge-pending">○ 未對帳</span>'; rowCls='pending'; }
 
       const diffStr = o._diff===0? '—' : (o._diff>0? '<span class="text-amber-700 font-bold">+'+fmtY0(o._diff)+' 多收</span>' : '<span class="text-red-600 font-bold">'+fmtY0(o._diff)+' 少收</span>');
       const result = o._recState==='matched'? '<span class="text-emerald-700 font-bold">✓ 金額正確</span>' :
-                     o._recState==='mismatch'? '<span class="text-red-600 font-bold">需查核</span>' :
+                     o._recState==='overpaid'? '<span class="text-red-600 font-bold">需退款</span>' :
+                     o._recState==='partial'? '<span class="text-blue-700 font-bold">尾款 ¥' + Math.abs(o._diff).toLocaleString() + '</span>' :
                      '<span class="text-amber-700 font-bold">待確認入帳</span>';
 
       return '<tr class="recon-row '+rowCls+'" onclick="openEdit(\''+(o.orderId||'')+'\')">'+
@@ -1641,9 +1655,12 @@ function exportReconCSV(){
   const headers = ['訂單號','客戶','體驗日期','人數','應收訂金','已收訂金','差異','對帳狀態'];
   const rows = list.map(o=>{
     const expect = expectedDeposit(o); const got = Number(o.deposit)||0;
+    const tc = totalCharge(o);
     let st = '未對帳';
-    if(o.confirmed && (expect===0 || got===expect)) st='已對帳';
-    else if(expect>0 && got>0 && got!==expect) st='金額異常';
+    if(tc>0 && got>tc) st='超收異常';
+    else if(o.confirmed && expect>0 && got>=expect) st='已對帳';
+    else if(o.confirmed && got>0) st='已對帳';
+    else if(got>0 && got<expect) st='待收尾款';
     return [o.orderId, o.name, fmtDate(o.bookingDate), o.adults||o.pax, expect, got, got-expect, st];
   });
   const csv = [headers, ...rows].map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\n');
@@ -1729,9 +1746,10 @@ function injectAnomalyWarning(o){
 
   const exp = (typeof expectedDeposit === 'function') ? expectedDeposit(o) : 0;
   const got = Number(o.deposit) || 0;
-  if(o.bookingDate && exp > 0 && got > 0 && got !== exp) {
-    if(got < exp) reasons.push('訂金少收 ¥' + (exp-got).toLocaleString() + '（應收 ¥' + exp.toLocaleString() + '，實收 ¥' + got.toLocaleString() + '）');
-    else reasons.push('訂金多收 ¥' + (got-exp).toLocaleString() + '（應收 ¥' + exp.toLocaleString() + '，實收 ¥' + got.toLocaleString() + '）');
+  // v2.2.7 只把「超收 (got > 體驗總額)」當異常
+  const tc = (typeof totalCharge==='function') ? totalCharge(o) : 0;
+  if(o.bookingDate && tc > 0 && got > tc) {
+    reasons.push('⚠ 訂金「超收」¥' + (got-tc).toLocaleString() + '（體驗總額 ¥' + tc.toLocaleString() + '，實收 ¥' + got.toLocaleString() + '）→ 必須退款');
   }
 
   if(Number(o.refundAmount) > 0 && !o.refundTime) reasons.push('退款金額已填但未填退款時間');
@@ -1801,7 +1819,7 @@ function saveOrder() {
       btn.textContent = '💾 儲存變更'; btn.disabled = false;
       if (data.status === 'unauthorized') { showLogin(); return; }
       if (data.status === 'ok' || data.status === 'success') {
-        // v2.2.6: 先關 modal、再強制從伺服器重撈（拿到最新公式計算結果）
+        // v2.2.7: 先關 modal、再強制從伺服器重撈（拿到最新公式計算結果）
         msg.textContent = '✅ 已儲存，正在重新載入…';
         msg.className = 'text-center text-sm mt-3 text-emerald-700 font-bold';
         msg.classList.remove('hidden');
@@ -1810,7 +1828,7 @@ function saveOrder() {
           closeModal();
           // 重撈 allOrders 從 Google Sheets — 公式欄/異常判定都會用最新值
           if (typeof loadOrders === 'function') {
-            loadOrders(); // v2.2.6: loadOrders 內已會自動 re-render 當前 section
+            loadOrders(); // v2.2.7: loadOrders 內已會自動 re-render 當前 section
           }
         }, 600);
       } else {
@@ -1910,7 +1928,7 @@ document.getElementById('global-search')?.addEventListener('input', (e)=>{
     }
   });
 })();
-console.log('%c[v2.2.6] global search ready','color:#1A365D;font-weight:bold');
+console.log('%c[v2.2.7] global search ready','color:#1A365D;font-weight:bold');
 
 /* === v2.2.1 假訂單過濾（月份標題列等不完整資料） === */
 window.__isFakeOrder = function(o){
