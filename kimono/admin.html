@@ -185,12 +185,12 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
       <div class="min-w-0 hidden xs:block sm:block">
         <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
-        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.2.3</div>
+        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.2.4</div>
       </div>
     </div>
     <div id="global-search-wrap" class="hidden md:flex flex-1 max-w-md">
       <div class="relative w-full">
-        <input id="global-search" class="w-full bg-white/15 border border-white/30 text-white placeholder-white/70 rounded-lg px-9 py-2 text-sm focus:bg-white/25 focus:outline-none" placeholder="🔍 全站搜尋訂單號 / 姓名 / 電話">
+        <input id="global-search" name="global_search_kimono" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="w-full bg-white/15 border border-white/30 text-white placeholder-white/70 rounded-lg px-9 py-2 text-sm focus:bg-white/25 focus:outline-none" placeholder="🔍 全站搜尋訂單號 / 姓名 / 電話">
         <kbd class="absolute right-2 top-2 text-[11px] text-white/60 border border-white/30 px-1.5 rounded">Ctrl+K</kbd>
       </div>
     </div>
@@ -235,10 +235,10 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 <div id="dashboard" class="hidden max-w-[1500px] mx-auto px-4 py-6">
 
   <section id="sec-dashboard" class="section active">
-    <!-- v2.2.3 部署驗證橫幅（確認新版有上線） -->
+    <!-- v2.2.4 部署驗證橫幅（確認新版有上線） -->
     <div class="mb-3 px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between text-sm">
-      <span class="font-bold text-emerald-800">✅ 目前版本：v2.2.3</span>
-      <span class="text-emerald-700 text-xs">部署時間：2026-05-01 · 修日曆→訂單篩選 bug</span>
+      <span class="font-bold text-emerald-800">✅ 目前版本：v2.2.4</span>
+      <span class="text-emerald-700 text-xs">部署時間：2026-05-03 · 修搜尋框被 autofill 成 Jun</span>
     </div>
     <div class="flex justify-between items-end mb-5 flex-wrap gap-2">
       <div>
@@ -326,7 +326,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
           <span class="text-xs text-slate-500 font-semibold">點擊展開/收合</span>
         </summary>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          <div><div class="section-label">關鍵字</div><input id="f-search" class="input-field" placeholder="姓名/電話/訂單號/Email" oninput="filterOrders()"></div>
+          <div><div class="section-label">關鍵字</div><input id="f-search" name="orders_search_kimono" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="input-field" placeholder="姓名/電話/訂單號/Email" oninput="filterOrders()"></div>
           <div><div class="section-label">日期區間（從）</div><input id="f-date-from" class="input-field" type="date" onchange="filterOrders()"></div>
           <div><div class="section-label">日期區間（到）</div><input id="f-date-to" class="input-field" type="date" onchange="filterOrders()"></div>
           <div><div class="section-label">和服款式</div><select id="f-plan" class="input-field" onchange="filterOrders()"><option value="">全部款式</option></select></div>
@@ -403,7 +403,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
           <button class="tab-btn" data-cust-filter="vip" onclick="setCustFilter('vip',this)">⭐ VIP <span id="cust-cnt-vip" class="ml-1 opacity-80">0</span></button>
           <button class="tab-btn" data-cust-filter="repeat" onclick="setCustFilter('repeat',this)">🔁 回頭客 <span id="cust-cnt-repeat" class="ml-1 opacity-80">0</span></button>
         </div>
-        <input id="cust-search" class="input-field !w-64" placeholder="🔍 搜尋姓名 / 電話 / Email" oninput="renderCustomers()">
+        <input id="cust-search" name="cust_search_kimono" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="input-field !w-64" placeholder="🔍 搜尋姓名 / 電話 / Email" oninput="renderCustomers()">
         <select id="cust-sort" class="input-field !w-auto" onchange="renderCustomers()">
           <option value="orders-desc">訂單數 ↓</option>
           <option value="spent-desc">消費 ↓</option>
@@ -745,6 +745,16 @@ function applyRolePermissions() {
   const savedStoreKey = localStorage.getItem('admin_storeKey') || '';
   if (savedName && savedToken) enterDashboard(savedName, savedToken, savedRole, savedStoreKey);
 })();
+
+// v2.2.4: 防瀏覽器 autofill 把登入名稱「Jun」帶到上方搜尋框
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    ['global-search','f-search','cust-search'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.value && el.value === currentAgent) el.value = '';
+    });
+  }, 250);
+});
 
 function switchSection(sec, el){
   currentSection = sec;
@@ -1881,7 +1891,7 @@ document.getElementById('global-search')?.addEventListener('input', (e)=>{
     }
   });
 })();
-console.log('%c[v2.2.3] global search ready','color:#1A365D;font-weight:bold');
+console.log('%c[v2.2.4] global search ready','color:#1A365D;font-weight:bold');
 
 /* === v2.2.1 假訂單過濾（月份標題列等不完整資料） === */
 window.__isFakeOrder = function(o){
