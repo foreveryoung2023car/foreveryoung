@@ -185,7 +185,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
       <div class="min-w-0 hidden xs:block sm:block">
         <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
-        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.2.2</div>
+        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.2.3</div>
       </div>
     </div>
     <div id="global-search-wrap" class="hidden md:flex flex-1 max-w-md">
@@ -235,10 +235,10 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 <div id="dashboard" class="hidden max-w-[1500px] mx-auto px-4 py-6">
 
   <section id="sec-dashboard" class="section active">
-    <!-- v2.2.2 部署驗證橫幅（確認新版有上線） -->
+    <!-- v2.2.3 部署驗證橫幅（確認新版有上線） -->
     <div class="mb-3 px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between text-sm">
-      <span class="font-bold text-emerald-800">✅ 目前版本：v2.2.2</span>
-      <span class="text-emerald-700 text-xs">部署時間：2026-05-01 · 修 6 項 UI bug + 拔誤觸按鈕</span>
+      <span class="font-bold text-emerald-800">✅ 目前版本：v2.2.3</span>
+      <span class="text-emerald-700 text-xs">部署時間：2026-05-01 · 修日曆→訂單篩選 bug</span>
     </div>
     <div class="flex justify-between items-end mb-5 flex-wrap gap-2">
       <div>
@@ -1320,7 +1320,7 @@ function showDayOrders(dateStr){
       '<div class="text-xs text-slate-600 mt-1">📞 '+(o.phone||'—')+(o.platform?' ｜ 📱 '+o.platform:'')+'</div></div>'+
       '<div class="flex flex-col gap-1 flex-shrink-0">'+(o.confirmed?'<span class="badge badge-confirmed">已確認</span>':'<span class="badge badge-pending">待確認</span>')+'</div></div></div>'
     ).join('')+
-    '<div class="text-center mt-3"><button onclick="document.getElementById(\'day-orders-popup\').remove();switchSection(\'orders\',document.querySelector(\'[data-sec=orders]\'));document.getElementById(\'f-date-from\').value=\''+yyyy+'-'+mm+'-'+dd+'\';document.getElementById(\'f-date-to\').value=\''+yyyy+'-'+mm+'-'+dd+'\';filterOrders();" class="text-sm text-[#1A365D] underline">在訂單管理中以日期 filter 開啟 →</button></div></div>';
+    '<div class="text-center mt-3"><button onclick="document.getElementById(\'day-orders-popup\').remove();switchSection(\'orders\',document.querySelector(\'[data-sec=orders]\'));currentFilter=\'all\';document.querySelectorAll(\'#sec-orders .tab-btn\').forEach(function(b){b.classList.remove(\'active\');});var ab=document.querySelectorAll(\'#sec-orders .tab-btn\')[0];if(ab)ab.classList.add(\'active\');document.getElementById(\'f-search\').value=\'\';document.getElementById(\'f-plan\').value=\'\';document.getElementById(\'f-platform\').value=\'\';document.getElementById(\'f-hair\').value=\'\';document.getElementById(\'f-photo\').value=\'\';document.getElementById(\'f-date-from\').value=\''+yyyy+'-'+mm+'-'+dd+'\';document.getElementById(\'f-date-to\').value=\''+yyyy+'-'+mm+'-'+dd+'\';filterOrders();" class="text-sm text-[#1A365D] underline">在訂單管理中以日期 filter 開啟 →</button></div></div>';
 }
 
 // ── CUSTOMERS（從訂單聚合） ──
@@ -1881,7 +1881,7 @@ document.getElementById('global-search')?.addEventListener('input', (e)=>{
     }
   });
 })();
-console.log('%c[v2.2.2] global search ready','color:#1A365D;font-weight:bold');
+console.log('%c[v2.2.3] global search ready','color:#1A365D;font-weight:bold');
 
 /* === v2.2.1 假訂單過濾（月份標題列等不完整資料） === */
 window.__isFakeOrder = function(o){
