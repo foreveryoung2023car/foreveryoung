@@ -185,7 +185,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
       <div class="min-w-0 hidden xs:block sm:block">
         <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
-        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.2.5</div>
+        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.2.6</div>
       </div>
     </div>
     <div id="global-search-wrap" class="hidden md:flex flex-1 max-w-md">
@@ -235,10 +235,10 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 <div id="dashboard" class="hidden max-w-[1500px] mx-auto px-4 py-6">
 
   <section id="sec-dashboard" class="section active">
-    <!-- v2.2.5 部署驗證橫幅（確認新版有上線） -->
+    <!-- v2.2.6 部署驗證橫幅（確認新版有上線） -->
     <div class="mb-3 px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between text-sm">
-      <span class="font-bold text-emerald-800">✅ 目前版本：v2.2.5</span>
-      <span class="text-emerald-700 text-xs">部署時間：2026-05-03 · 編輯儲存後從 Sheets 重撈、加 toast 通知</span>
+      <span class="font-bold text-emerald-800">✅ 目前版本：v2.2.6</span>
+      <span class="text-emerald-700 text-xs">部署時間：2026-05-03 · 重整保留分頁、儲存後正確 re-render 當前 section</span>
     </div>
     <div class="flex justify-between items-end mb-5 flex-wrap gap-2">
       <div>
@@ -746,7 +746,7 @@ function applyRolePermissions() {
   if (savedName && savedToken) enterDashboard(savedName, savedToken, savedRole, savedStoreKey);
 })();
 
-// v2.2.5: 防瀏覽器 autofill 把登入名稱「Jun」帶到上方搜尋框
+// v2.2.6: 防瀏覽器 autofill 把登入名稱「Jun」帶到上方搜尋框
 window.addEventListener('load', () => {
   setTimeout(() => {
     ['global-search','f-search','cust-search'].forEach(id => {
@@ -758,15 +758,24 @@ window.addEventListener('load', () => {
 
 function switchSection(sec, el){
   currentSection = sec;
+  // v2.2.6: 記住當前分頁，重整後恢復
+  try { localStorage.setItem('admin_lastSection', sec); } catch(e){}
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.getElementById('sec-'+sec).classList.add('active');
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   if(el) el.classList.add('active');
+  // 沒提供 el 時，自動 active 對應 nav-tab
+  if(!el) {
+    const tab = document.querySelector('.nav-tab[data-sec="'+sec+'"]');
+    if(tab) tab.classList.add('active');
+  }
   if(sec==='dashboard') renderDashboard();
   else if(sec==='calendar') renderCalendar();
   else if(sec==='customers') renderCustomers();
   else if(sec==='finance') renderFinance();
   else if(sec==='reconcile') { initReconMonths(); renderReconcile(); }
+  else if(sec==='walkin' && typeof renderWalkinMonth==='function') { if(typeof buildWalkinMonthSelect==='function') buildWalkinMonthSelect(); renderWalkinMonth(); }
+  else if(sec==='orders' && typeof filterOrders==='function') filterOrders();
 }
 
 function loadOrders() {
@@ -783,6 +792,22 @@ function loadOrders() {
         populateFilters();
         renderDashboard();
         filterOrders();
+        // v2.2.6: 首次 load 後恢復上次 section（不是 dashboard 才切）
+        if (!window.__sectionRestored) {
+          window.__sectionRestored = true;
+          const last = localStorage.getItem('admin_lastSection');
+          if (last && last !== 'dashboard' && document.getElementById('sec-'+last)) {
+            const tab = document.querySelector('.nav-tab[data-sec="'+last+'"]');
+            switchSection(last, tab);
+          }
+        } else {
+          // 後續 reload 後重 render 當前 section（保證資料最新）
+          if(currentSection==='reconcile' && typeof renderReconcile==='function') renderReconcile();
+          else if(currentSection==='customers' && typeof renderCustomers==='function') renderCustomers();
+          else if(currentSection==='finance' && typeof renderFinance==='function') renderFinance();
+          else if(currentSection==='walkin' && typeof renderWalkinMonth==='function') renderWalkinMonth();
+          else if(currentSection==='calendar' && typeof renderCalendar==='function') renderCalendar();
+        }
       } else {
         showErr(data.message || '載入失敗');
       }
@@ -1776,7 +1801,7 @@ function saveOrder() {
       btn.textContent = '💾 儲存變更'; btn.disabled = false;
       if (data.status === 'unauthorized') { showLogin(); return; }
       if (data.status === 'ok' || data.status === 'success') {
-        // v2.2.5: 先關 modal、再強制從伺服器重撈（拿到最新公式計算結果）
+        // v2.2.6: 先關 modal、再強制從伺服器重撈（拿到最新公式計算結果）
         msg.textContent = '✅ 已儲存，正在重新載入…';
         msg.className = 'text-center text-sm mt-3 text-emerald-700 font-bold';
         msg.classList.remove('hidden');
@@ -1785,15 +1810,7 @@ function saveOrder() {
           closeModal();
           // 重撈 allOrders 從 Google Sheets — 公式欄/異常判定都會用最新值
           if (typeof loadOrders === 'function') {
-            loadOrders();
-            // loadOrders 內部只 re-render dashboard + orders，補當前 section
-            setTimeout(() => {
-              if(currentSection==='reconcile' && typeof renderReconcile==='function') renderReconcile();
-              else if(currentSection==='customers' && typeof renderCustomers==='function') renderCustomers();
-              else if(currentSection==='finance' && typeof renderFinance==='function') renderFinance();
-              else if(currentSection==='walkin' && typeof renderWalkinMonth==='function') renderWalkinMonth();
-              else if(currentSection==='calendar' && typeof renderCalendar==='function') renderCalendar();
-            }, 800);
+            loadOrders(); // v2.2.6: loadOrders 內已會自動 re-render 當前 section
           }
         }, 600);
       } else {
@@ -1893,7 +1910,7 @@ document.getElementById('global-search')?.addEventListener('input', (e)=>{
     }
   });
 })();
-console.log('%c[v2.2.5] global search ready','color:#1A365D;font-weight:bold');
+console.log('%c[v2.2.6] global search ready','color:#1A365D;font-weight:bold');
 
 /* === v2.2.1 假訂單過濾（月份標題列等不完整資料） === */
 window.__isFakeOrder = function(o){
