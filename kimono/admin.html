@@ -185,7 +185,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
       <div class="min-w-0 hidden xs:block sm:block">
         <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
-        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.6</div>
+        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.7</div>
       </div>
     </div>
     <div id="global-search-wrap" class="hidden md:flex flex-1 max-w-md">
@@ -196,7 +196,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
     </div>
     <div class="flex items-center gap-3 flex-shrink-0">
       
-      <button onclick="loadOrders()" class="text-white/80 hover:text-white text-base hidden md:block" title="重新載入訂單資料 (從 Google Sheets)">↻</button><button onclick="if(confirm('整個頁面重整？會清掉未存的編輯。'))location.reload()" class="text-white/60 hover:text-white text-base hidden md:block ml-1" title="強制整頁重整 (清快取)">⟳</button>
+      <button onclick="loadOrders()" class="text-white/80 hover:text-white text-base hidden md:block" title="重新載入訂單資料">↻</button><button onclick="if(confirm('整個頁面重整？會清掉未存的編輯。'))location.reload()" class="text-white/60 hover:text-white text-base hidden md:block ml-1" title="強制整頁重整 (清快取)">⟳</button>
       <span id="nav-agent" class="text-white text-sm hidden md:block font-semibold cursor-pointer hover:underline" onclick="showMyPermissions()" title="點看我的權限"></span>
       <button onclick="showLogin()" id="logout-btn" class="text-white hover:bg-white/10 text-xs border border-white/30 px-2 py-1 md:px-3 md:py-1.5 md:text-sm rounded-lg hidden font-semibold whitespace-nowrap shrink-0">登出</button>
     </div>
@@ -236,7 +236,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 <div id="loading-overlay" class="hidden fixed inset-0 bg-white/85 backdrop-blur-sm z-50 flex items-center justify-center">
   <div class="text-center">
     <div class="inline-block w-16 h-16 border-4 border-[#1A365D] border-t-transparent rounded-full animate-spin"></div>
-    <div class="mt-4 text-[#1A365D] font-bold text-lg" id="loading-msg">正在從 Google Sheets 載入資料…</div>
+    <div class="mt-4 text-[#1A365D] font-bold text-lg" id="loading-msg">正在載入資料…</div>
     <div class="mt-2 text-slate-500 text-sm" id="loading-detail">請稍等 1-3 秒</div>
   </div>
 </div>
@@ -244,10 +244,10 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 <div id="dashboard" class="hidden max-w-[1500px] mx-auto px-4 py-6">
 
   <section id="sec-dashboard" class="section active">
-    <!-- v2.4.6 部署驗證橫幅（確認新版有上線） -->
+    <!-- v2.4.7 部署驗證橫幅（確認新版有上線） -->
     <div class="mb-3 px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between text-sm">
-      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.6</span>
-      <span class="text-emerald-700 text-xs">部署時間：2026-05-04 · 修關帳按鈕對 Jun 不顯示 (v2.4.6)</span>
+      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.7</span>
+      <span class="text-emerald-700 text-xs">部署時間：2026-05-04 · 修關帳按鈕對 Jun 不顯示 (v2.4.7)</span>
     </div>
     <div class="flex justify-between items-end mb-5 flex-wrap gap-2">
       <div>
@@ -281,7 +281,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div id="todo-list" class="space-y-2 text-sm"></div>
     </div>
 
-    <!-- v2.4.6: 14 天熱度 + 即將到店 平行（主要看板） -->
+    <!-- v2.4.7: 14 天熱度 + 即將到店 平行（主要看板） -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
       <div class="panel">
         <h3 class="text-[#1A365D] mb-3 title-serif">⏰ 未來 14 天預約熱度</h3>
@@ -475,7 +475,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
         <p class="text-sm text-slate-600 mt-1 font-semibold">逐筆核對訂金匯款，標記異常並追蹤入帳狀態</p>
       </div>
       <div class="flex gap-2 items-center flex-wrap">
-        <select id="recon-month" class="input-field !w-auto" onchange="renderReconcile()"></select>
+        <select id="recon-month" class="input-field !w-auto" onchange="renderReconcile()" title="體驗月份"></select>
         <select id="recon-sort" class="input-field !w-auto" onchange="renderReconcile()" title="排序"><option value="status-asc">按狀態 + 日期 ↑</option><option value="status-desc">按狀態 + 日期 ↓</option><option value="date-asc">日期 ↑</option><option value="date-desc">日期 ↓</option></select>
         <select id="recon-status" class="input-field !w-auto" onchange="renderReconcile()">
           <option value="all">全部訂單</option>
@@ -616,7 +616,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
     </div>
 
     <div id="tab-refund" class="edit-tab hidden">
-      <!-- v2.4.6: 客人提供的退款匯款資訊（從退款原因解析顯示） -->
+      <!-- v2.4.7: 客人提供的退款匯款資訊（從退款原因解析顯示） -->
       <div id="refund-customer-info" class="hidden mb-3 p-3 bg-amber-50 border border-amber-300 rounded-xl text-sm">
         <div class="font-bold text-amber-800 mb-1">📋 客人提供的退款匯款資訊</div>
         <div id="refund-customer-info-body" class="font-mono text-amber-900"></div>
@@ -779,7 +779,7 @@ function filterOrdersForRole(list) {
 
 // v2.5: 依角色控制 UI 顯示
 function applyRolePermissions() {
-  // v2.4.6: 只有 Jun 看得到關帳按鈕（用 classList 切，不是 style.display）
+  // v2.4.7: 只有 Jun 看得到關帳按鈕（用 classList 切，不是 style.display）
   const closeBtn = document.getElementById('close-month-btn');
   if (closeBtn) {
     if (currentAgent === 'Jun') closeBtn.classList.remove('hidden');
@@ -814,7 +814,7 @@ function applyRolePermissions() {
   if (savedName && savedToken) enterDashboard(savedName, savedToken, savedRole, savedStoreKey);
 })();
 
-// v2.4.6: 防 Chrome autofill 終極招 — readonly + onfocus 解除 + 多次清空
+// v2.4.7: 防 Chrome autofill 終極招 — readonly + onfocus 解除 + 多次清空
 window.addEventListener('load', () => {
   ['global-search','f-search','cust-search'].forEach(id => {
     const el = document.getElementById(id);
@@ -838,7 +838,7 @@ window.addEventListener('load', () => {
 
 function switchSection(sec, el){
   currentSection = sec;
-  // v2.4.6: 記住當前分頁，重整後恢復
+  // v2.4.7: 記住當前分頁，重整後恢復
   try { localStorage.setItem('admin_lastSection', sec); } catch(e){}
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.getElementById('sec-'+sec).classList.add('active');
@@ -860,7 +860,7 @@ function switchSection(sec, el){
 }
 
 function loadOrders() {
-  // v2.4.6: 首次載入時顯示全頁 loading overlay
+  // v2.4.7: 首次載入時顯示全頁 loading overlay
   if (!window.__firstLoadDone) {
     const ov = document.getElementById('loading-overlay');
     if (ov) ov.classList.remove('hidden');
@@ -878,13 +878,13 @@ function loadOrders() {
         populateFilters();
         renderDashboard();
         filterOrders();
-        // v2.4.6: 關閉首次載入 overlay
+        // v2.4.7: 關閉首次載入 overlay
         const ov = document.getElementById('loading-overlay');
         if (ov && !window.__firstLoadDone) {
           ov.classList.add('hidden');
           window.__firstLoadDone = true;
         }
-        // v2.4.6: 若是儲存後重撈，捲到該訂單 + 閃綠
+        // v2.4.7: 若是儲存後重撈，捲到該訂單 + 閃綠
         if (window.__highlightAfterLoad) {
           const targetId = window.__highlightAfterLoad;
           window.__highlightAfterLoad = null;
@@ -896,7 +896,7 @@ function loadOrders() {
               const did = el.getAttribute('data-order-id') || '';
               if ((oc && oc.indexOf(targetId) >= 0) || did === targetId) { target = el; break; }
             }
-            // v2.4.6: 從重撈的 allOrders 找出該筆，比對訂金真的有變才報「成功」
+            // v2.4.7: 從重撈的 allOrders 找出該筆，比對訂金真的有變才報「成功」
             const updated = allOrders.find(o => (o.orderId||'').trim() === targetId);
             const newDeposit = updated ? Number(updated.deposit||0) : null;
             if (target) {
@@ -989,8 +989,8 @@ function fmtY0(n){ n = Number(n)||0; return '¥'+n.toLocaleString(); }
 function fmtDate(s){ if(!s) return '—'; const d = new Date(s); if(isNaN(d)) return s; return d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0'); }
 function isAnomaly(o){ return !o.name || !o.phone || !o.bookingDate; }
 function totalAmount(o){ return (Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0); }
-// v2.4.6: 客人本次體驗應付總額（不含訂金重複計入）
-// v2.4.6: 顯示 boolean 為「是/否」
+// v2.4.7: 客人本次體驗應付總額（不含訂金重複計入）
+// v2.4.7: 顯示 boolean 為「是/否」
 function fmtYesNo(v) {
   if (v === true || v === 'true' || v === 1 || v === '1' || v === 'TRUE' || v === '是') return '是';
   if (v === false || v === 'false' || v === 0 || v === '0' || v === 'FALSE' || v === '否' || v === '' || v == null) return '否';
@@ -998,9 +998,9 @@ function fmtYesNo(v) {
 }
 
 function totalCharge(o){ return (Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0); }
-// v2.4.6: bookingDate → JST 月份字串 (跟 GAS 後端 archMonthOf_ 一致)
-// v2.4.6: 月份字串顯示成「YYYY年M月」(處理 Sheets 自動轉成 Date 的 ISO 字串)
-// v2.4.6: 把任何月份輸入正規化成 YYYY-MM
+// v2.4.7: bookingDate → JST 月份字串 (跟 GAS 後端 archMonthOf_ 一致)
+// v2.4.7: 月份字串顯示成「YYYY年M月」(處理 Sheets 自動轉成 Date 的 ISO 字串)
+// v2.4.7: 把任何月份輸入正規化成 YYYY-MM
 function normMonth(m) {
   if (!m) return '';
   if (m instanceof Date) return m.getFullYear()+'-'+String(m.getMonth()+1).padStart(2,'0');
@@ -1129,7 +1129,7 @@ function renderTodos(){
   if(refunding.length) items.push({type:'warn',icon:'↩',text:refunding.length+' 筆退款處理中（尚未填退款時間）',action:()=>{switchSection('orders',document.querySelector('[data-sec=orders]'));setFilter('refund',document.querySelectorAll('#sec-orders .tab-btn')[3])}});
 
   // 對帳異常
-  // v2.4.6: 只把「真的超收 (got > 體驗總費用)」當成異常，少收 = 正常待店家收尾款
+  // v2.4.7: 只把「真的超收 (got > 體驗總費用)」當成異常，少收 = 正常待店家收尾款
   const reconOverpaid = allOrders.filter(o=>{ const tc = totalCharge(o); const got = Number(o.deposit)||0; return o.bookingDate && tc>0 && got>tc; });
   if(reconOverpaid.length) items.push({type:'urgent',icon:'🧾',text:reconOverpaid.length+' 筆訂單訂金「超收」需退款處理',action:()=>{switchSection('reconcile',document.querySelector('[data-sec=reconcile]'));document.getElementById('recon-status').value='overpaid';renderReconcile();}});
 
@@ -1137,19 +1137,41 @@ function renderTodos(){
 
   if(!items.length){ list.innerHTML='<div class="text-center text-slate-600 py-6 font-semibold">🎉 太棒了！目前沒有待辦事項</div>'; return; }
 
-  const colorMap = {urgent:'red',warn:'amber',info:'blue'};
-  list.innerHTML = items.map((it,i)=>{
-    const c = colorMap[it.type];
-    return '<div class="flex items-center gap-3 p-3 bg-'+c+'-50 rounded-lg border border-'+c+'-200">'+
-      '<span class="text-xl">'+it.icon+'</span>'+
-      '<span class="flex-1 font-semibold text-[#1A365D]">'+it.text+'</span>'+
-      (it.action? '<button onclick="window.__todoActions['+i+']()" class="text-[#1A365D] text-sm hover:underline font-bold">處理 →</button>' : '')+
+  // v2.4.7: 待辦分類成 3 個卡片（緊急 / 注意 / 資訊）
+  const groups = {
+    urgent: { label: '🚨 緊急處理', items: [], color: 'red' },
+    warn:   { label: '⚠️ 提醒注意', items: [], color: 'amber' },
+    info:   { label: 'ℹ️ 一般資訊', items: [], color: 'blue' }
+  };
+  items.forEach((it, i) => {
+    if (groups[it.type]) {
+      groups[it.type].items.push({ ...it, idx: i });
+    }
+  });
+  list.innerHTML = '<div class="grid grid-cols-1 md:grid-cols-3 gap-3">' +
+    Object.values(groups).map(g => {
+      if (!g.items.length) {
+        return '<div class="p-3 bg-slate-50 rounded-lg border border-slate-200 opacity-50">' +
+          '<div class="font-bold text-sm mb-1">' + g.label + '</div>' +
+          '<div class="text-xs text-slate-500">無</div></div>';
+      }
+      return '<div class="p-3 bg-' + g.color + '-50 rounded-lg border border-' + g.color + '-200">' +
+        '<div class="font-bold text-sm mb-2 text-' + g.color + '-700">' + g.label + ' <span class="text-xs">(' + g.items.length + ')</span></div>' +
+        g.items.map(it =>
+          '<div class="flex items-start gap-2 mb-2 last:mb-0 text-xs">' +
+          '<span>' + it.icon + '</span>' +
+          '<div class="flex-1">' +
+            '<div class="text-[#1A365D] font-semibold">' + it.text + '</div>' +
+            (it.action ? '<button onclick="window.__todoActions[' + it.idx + ']()" class="mt-1 text-[#1A365D] text-[11px] hover:underline font-bold">處理 →</button>' : '') +
+          '</div></div>'
+        ).join('') +
       '</div>';
-  }).join('');
+    }).join('') + '</div>';
   window.__todoActions = items.map(it=>it.action || (()=>{}));
 }
 
 function renderHeat(){
+  // v2.4.7: 緊湊版 14 日熱圖 — 2 列 x 7 格小方塊（節省空間 4 倍）
   const list = document.getElementById('heat-list');
   const today = new Date(); today.setHours(0,0,0,0);
   const days = [];
@@ -1158,18 +1180,34 @@ function renderHeat(){
     const cnt = allOrders.filter(o=>{const od=new Date(o.bookingDate); return !isNaN(od) && od.toDateString()===d.toDateString();}).length;
     days.push({d:d,cnt:cnt});
   }
-  const maxCnt = Math.max(1, ...days.map(x=>x.cnt));
   const wd = ['日','一','二','三','四','五','六'];
-  list.innerHTML = days.map(x=>{
-    const pct = Math.max(8, x.cnt/maxCnt*100);
-    let color = '#93C5FD';
-    if(x.cnt===0) color='#CBD5E1';
-    else if(x.cnt>=5) color='#DC2626';
-    else if(x.cnt>=3) color='#3B82F6';
+  // 顏色階梯
+  const colorOf = (c) => {
+    if(c===0) return '#F1F5F9';
+    if(c===1) return '#BFDBFE';
+    if(c===2) return '#60A5FA';
+    if(c===3) return '#3B82F6';
+    if(c===4) return '#1E40AF';
+    return '#7C2D12'; // 5+
+  };
+  const cells = days.map(x=>{
     const isToday = x.d.toDateString()===new Date().toDateString();
-    return '<div class="flex items-center gap-3"><span class="w-24 text-slate-700 text-sm font-semibold">'+(x.d.getMonth()+1)+'/'+x.d.getDate()+' ('+wd[x.d.getDay()]+')'+(isToday?' 今':'')+'</span>'+
-      '<div class="flex-1 bg-slate-100 rounded-md h-7 relative overflow-hidden"><div class="heat-bar" style="width:'+pct+'%;background:'+color+'">'+(x.cnt? x.cnt+' 組' : '')+'</div></div></div>';
+    const bg = colorOf(x.cnt);
+    const textColor = x.cnt>=2 ? '#fff' : '#1A365D';
+    const title = (x.d.getMonth()+1)+'/'+x.d.getDate()+' '+wd[x.d.getDay()]+' · '+x.cnt+' 組';
+    return '<div title="'+title+'" style="background:'+bg+';color:'+textColor+';padding:6px 4px;border-radius:6px;text-align:center;font-size:11px;'+(isToday?'box-shadow:0 0 0 2px #C9A961':'')+'">' +
+      '<div class="font-bold">'+(x.d.getMonth()+1)+'/'+x.d.getDate()+'</div>' +
+      '<div class="text-[10px] opacity-80">'+wd[x.d.getDay()]+(isToday?' 今':'')+'</div>' +
+      '<div class="font-bold mt-0.5" style="font-size:13px">'+(x.cnt||'·')+'</div>' +
+      '</div>';
   }).join('');
+  list.innerHTML = '<div class="grid grid-cols-7 gap-1">' + cells + '</div>' +
+    '<div class="flex justify-center gap-2 mt-2 text-[10px] text-slate-500">' +
+    '<span><span style="display:inline-block;width:10px;height:10px;background:#F1F5F9;border-radius:2px;vertical-align:middle"></span> 0</span>' +
+    '<span><span style="display:inline-block;width:10px;height:10px;background:#BFDBFE;border-radius:2px;vertical-align:middle"></span> 1</span>' +
+    '<span><span style="display:inline-block;width:10px;height:10px;background:#3B82F6;border-radius:2px;vertical-align:middle"></span> 3+</span>' +
+    '<span><span style="display:inline-block;width:10px;height:10px;background:#7C2D12;border-radius:2px;vertical-align:middle"></span> 5+</span>' +
+    '</div>';
 }
 
 function renderPlanRatio(filtered){
@@ -1728,11 +1766,12 @@ function initReconMonths(){
   const now = new Date();
   const cur = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
   if(!sorted.includes(cur)) sorted.unshift(cur);
-  // v2.4.6: 找最新「已過去」月份做為預設
+  // v2.4.7: 找最新「已過去」月份做為預設
   const lastClosable = sorted.find(m => m < cur) || cur;
-  sel.innerHTML = '<option value="all">全部期間</option>' + sorted.map(m=>{
+  // v2.4.7: 拿掉「全部期間」(資料多會慢)，只列有訂單的月份
+  sel.innerHTML = sorted.map(m=>{
     const isFuture = m >= cur;
-    const label = m + (isFuture ? '（未到 / 不可關帳）' : '');
+    const label = fmtMonth(m) + (isFuture ? '（未到）' : '');
     const disabled = isFuture ? ' disabled style="color:#94A3B8"' : '';
     const selected = (m === lastClosable) ? ' selected' : '';
     return '<option value="'+m+'"'+selected+disabled+'>'+label+'</option>';
@@ -1750,12 +1789,12 @@ function renderReconcile(){
     const expect = expectedDeposit(o);
     const got = Number(o.deposit)||0;
     const tc = totalCharge(o);
-    // v2.4.6 對帳狀態：
+    // v2.4.7 對帳狀態：
     //   matched   = 已收 ≥ 應收訂金 且 ≤ 體驗總額（合理範圍）
     //   partial   = 已收 < 應收訂金（少收 → 待店家現場收尾款，不算異常）
     //   overpaid  = 已收 > 體驗總額（真的超收 → 必須退款 / 處理）
     //   unmatched = 待確認 / 無訂金資料
-    // v2.4.6: 加 walk-in 偵測 — walk-in 訂單 deposit=0 但已確認也算對帳完成
+    // v2.4.7: 加 walk-in 偵測 — walk-in 訂單 deposit=0 但已確認也算對帳完成
     const isWalkIn = (o.platform === 'WALK_IN') ||
                      (String(o.source||'').toLowerCase().indexOf('walk-in@') === 0) ||
                      (String(o.introducer||'').toLowerCase().indexOf('walk-in@') === 0);
@@ -1788,7 +1827,7 @@ function renderReconcile(){
   if(!list.length){ tbl.innerHTML='<div class="text-center text-slate-600 py-8 font-semibold">本期無資料</div>'; return; }
 
   list.sort((a,b)=>{
-    // v2.4.6: 依使用者選擇排序
+    // v2.4.7: 依使用者選擇排序
     const sortMode = (document.getElementById('recon-sort')||{}).value || 'status-asc';
     const order = {overpaid:0, partial:1, unmatched:2, matched:3};
     const dateA = new Date(a.bookingDate||0).getTime() || 0;
@@ -1910,7 +1949,7 @@ function openEdit(orderId) {
   document.getElementById('e-refund-amt').value = o.refundAmount || '';
   document.getElementById('e-refund-date').value = (o.refundTime || '').slice(0,16);
   document.getElementById('e-refund-reason').value = o.refundReason || '';
-  // v2.4.6: 解析客人原始退款申請資料（如有「銀行:」「帳號:」「戶名:」字樣）
+  // v2.4.7: 解析客人原始退款申請資料（如有「銀行:」「帳號:」「戶名:」字樣）
   const reason = o.refundReason || '';
   const infoBox = document.getElementById('refund-customer-info');
   const infoBody = document.getElementById('refund-customer-info-body');
@@ -1946,7 +1985,7 @@ function injectAnomalyWarning(o){
 
   const exp = (typeof expectedDeposit === 'function') ? expectedDeposit(o) : 0;
   const got = Number(o.deposit) || 0;
-  // v2.4.6 只把「超收 (got > 體驗總額)」當異常
+  // v2.4.7 只把「超收 (got > 體驗總額)」當異常
   const tc = (typeof totalCharge==='function') ? totalCharge(o) : 0;
   if(o.bookingDate && tc > 0 && got > tc) {
     reasons.push('⚠ 訂金「超收」¥' + (got-tc).toLocaleString() + '（體驗總額 ¥' + tc.toLocaleString() + '，實收 ¥' + got.toLocaleString() + '）→ 必須退款');
@@ -2001,7 +2040,7 @@ function updateCalc() {
 // ============================================================
 // v2.4 月度關帳歸檔
 // ============================================================
-// v2.4.6: 一鍵填入退款時間
+// v2.4.7: 一鍵填入退款時間
 function markRefundDone(){
   const el = document.getElementById('e-refund-date');
   if (!el) return;
@@ -2012,9 +2051,9 @@ function markRefundDone(){
   toast('已填入退款時間：' + local.replace('T', ' '), 'success');
 }
 
-// v2.4.6: 對帳說明燈箱
+// v2.4.7: 對帳說明燈箱
 function showMyPermissions(){
-  // v2.4.6: 顯示當前用戶的角色與權限
+  // v2.4.7: 顯示當前用戶的角色與權限
   const isJun = currentAgent === 'Jun';
   const isAgent = currentRole === 'agent';
   const isStore = currentRole === 'store';
@@ -2041,7 +2080,7 @@ function showMyPermissions(){
       '<div class="text-xs text-slate-500">' + p.who + '</div></div></div>').join('') +
     '</div>' +
     '<div class="mt-4 p-3 bg-slate-50 rounded text-xs text-slate-600">' +
-    '🔒 想改密碼或新增帳號？請聯繫 Jun（管理員會去 Google Sheets「系統設定」分頁修改）' +
+    '🔒 想改密碼或新增帳號？請聯繫 Jun（管理員會去 資料庫「客服 / 店家 帳號」設定修改）' +
     '</div></div></div>';
   const div = document.createElement('div');
   div.innerHTML = html;
@@ -2071,7 +2110,7 @@ async function openCloseMonthDialog() {
   if (currentAgent !== 'Jun') { toast('只有 Jun 可以執行關帳', 'error'); return; }
   const month = document.getElementById('recon-month').value;
   if (!month || month === 'all') { toast('請先選擇一個月份', 'warning'); return; }
-  // v2.4.6: 防呆（理論上下拉已 disable，這裡僅 safety net）
+  // v2.4.7: 防呆（理論上下拉已 disable，這裡僅 safety net）
   const now = new Date();
   const currentMonth = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
   if (month >= currentMonth) { toast('未到月份不能關帳', 'error'); return; }
@@ -2131,7 +2170,7 @@ async function loadArchivedList() {
 
 let currentArchiveMonth = null;
 async function showArchivedMonth(month) {
-  // v2.4.6: month 從 Sheets 撈出可能是 ISO 字串，正規化成 YYYY-MM
+  // v2.4.7: month 從 Sheets 撈出可能是 ISO 字串，正規化成 YYYY-MM
   month = normMonth(month);
   currentArchiveMonth = month;
   const detail = document.getElementById('archive-detail');
@@ -2209,7 +2248,7 @@ function saveOrder() {
       btn.textContent = '💾 儲存變更'; btn.disabled = false;
       if (data.status === 'unauthorized') { showLogin(); return; }
       if (data.status === 'ok' || data.status === 'success') {
-        // v2.4.6: 統一只用 toast、不在 modal 顯示 ✅（避免雙重提示）
+        // v2.4.7: 統一只用 toast、不在 modal 顯示 ✅（避免雙重提示）
         const savedId = editingOrder.orderId;
         msg.textContent = '正在重新載入…';
         msg.className = 'text-center text-sm mt-3 text-slate-600';
@@ -2319,7 +2358,7 @@ document.getElementById('global-search')?.addEventListener('input', (e)=>{
     }
   });
 })();
-console.log('%c[v2.4.6] global search ready','color:#1A365D;font-weight:bold');
+console.log('%c[v2.4.7] global search ready','color:#1A365D;font-weight:bold');
 
 /* === v2.2.1 假訂單過濾（月份標題列等不完整資料） === */
 window.__isFakeOrder = function(o){
@@ -2481,23 +2520,25 @@ document.addEventListener('DOMContentLoaded', () => {
 // v2.4 Walk-in 月結對帳
 // ============================================================
 function buildWalkinMonthSelect() {
+  // v2.4.7: 只列「實際有 walk-in 訂單」的月份
   const sel = document.getElementById('walkin-month');
   if (!sel) return;
-  // Build month options from this year + last year
-  const today = new Date();
-  sel.innerHTML = '';
-  for (let y = today.getFullYear(); y >= today.getFullYear() - 1; y--) {
-    for (let m = 12; m >= 1; m--) {
-      if (y === today.getFullYear() && m > today.getMonth() + 1) continue;
-      const v = y + '-' + String(m).padStart(2, '0');
-      const opt = document.createElement('option');
-      opt.value = v;
-      opt.textContent = y + '年' + m + '月';
-      sel.appendChild(opt);
-    }
+  const months = new Set();
+  (allOrders || []).forEach(o => {
+    const isWalkIn = (o.platform === 'WALK_IN') ||
+                     (String(o.source||'').toLowerCase().indexOf('walk-in@') === 0) ||
+                     (String(o.introducer||'').toLowerCase().indexOf('walk-in@') === 0);
+    if (!isWalkIn) return;
+    const m = bookingMonth(o);
+    if (m) months.add(m);
+  });
+  const sorted = [...months].sort().reverse();
+  if (sorted.length === 0) {
+    sel.innerHTML = '<option value="">尚無 walk-in 訂單</option>';
+    return;
   }
-  const cur = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
-  sel.value = cur;
+  sel.innerHTML = sorted.map(m => '<option value="'+m+'">'+fmtMonth(m)+'</option>').join('');
+  sel.value = sorted[0]; // 預設最近月份
 }
 
 function renderWalkinMonth() {
@@ -3004,7 +3045,7 @@ window.applyRolePermissions = function() {
         </label>
       </div>
 
-      <!-- v2.4.6: 活動折扣（預設無折，5:5 拆帳） -->
+      <!-- v2.4.7: 活動折扣（預設無折，5:5 拆帳） -->
       <div>
         <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">活動折扣</label>
         <div class="grid grid-cols-4 gap-2">
