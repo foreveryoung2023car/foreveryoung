@@ -812,14 +812,26 @@ function applyRolePermissions() {
   if (savedName && savedToken) enterDashboard(savedName, savedToken, savedRole, savedStoreKey);
 })();
 
-// v2.4.5: 防瀏覽器 autofill 把登入名稱「Jun」帶到上方搜尋框
+// v2.4.5: 防 Chrome autofill 終極招 — readonly + onfocus 解除 + 多次清空
 window.addEventListener('load', () => {
-  setTimeout(() => {
-    ['global-search','f-search','cust-search'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el && el.value && el.value === currentAgent) el.value = '';
+  ['global-search','f-search','cust-search'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    // 1) readonly trick — Chrome 不會 autofill readonly 欄位
+    el.setAttribute('readonly', 'readonly');
+    el.addEventListener('focus', () => el.removeAttribute('readonly'));
+    el.addEventListener('blur', () => {
+      if (!el.value) el.setAttribute('readonly', 'readonly');
     });
-  }, 250);
+    // 2) 多次 setTimeout 清空 (攻防 Chrome 的非同步 autofill)
+    [50, 200, 500, 1000, 2000].forEach(ms => {
+      setTimeout(() => {
+        if (el.value && (el.value.length < 8 || el.value === currentAgent)) {
+          el.value = '';
+        }
+      }, ms);
+    });
+  });
 });
 
 function switchSection(sec, el){
