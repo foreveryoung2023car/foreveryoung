@@ -185,7 +185,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
       <div class="min-w-0 hidden xs:block sm:block">
         <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
-        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.4</div>
+        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.5</div>
       </div>
     </div>
     <div id="global-search-wrap" class="hidden md:flex flex-1 max-w-md">
@@ -197,7 +197,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
     <div class="flex items-center gap-3 flex-shrink-0">
       
       <button onclick="loadOrders()" class="text-white/80 hover:text-white text-base hidden md:block" title="重新載入訂單資料 (從 Google Sheets)">↻</button><button onclick="if(confirm('整個頁面重整？會清掉未存的編輯。'))location.reload()" class="text-white/60 hover:text-white text-base hidden md:block ml-1" title="強制整頁重整 (清快取)">⟳</button>
-      <span id="nav-agent" class="text-white text-sm hidden md:block font-semibold"></span>
+      <span id="nav-agent" class="text-white text-sm hidden md:block font-semibold cursor-pointer hover:underline" onclick="showMyPermissions()" title="點看我的權限"></span>
       <button onclick="showLogin()" id="logout-btn" class="text-white hover:bg-white/10 text-xs border border-white/30 px-2 py-1 md:px-3 md:py-1.5 md:text-sm rounded-lg hidden font-semibold whitespace-nowrap shrink-0">登出</button>
     </div>
   </div>
@@ -233,13 +233,21 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
   </div>
 </div>
 
+<div id="loading-overlay" class="hidden fixed inset-0 bg-white/85 backdrop-blur-sm z-50 flex items-center justify-center">
+  <div class="text-center">
+    <div class="inline-block w-16 h-16 border-4 border-[#1A365D] border-t-transparent rounded-full animate-spin"></div>
+    <div class="mt-4 text-[#1A365D] font-bold text-lg" id="loading-msg">正在從 Google Sheets 載入資料…</div>
+    <div class="mt-2 text-slate-500 text-sm" id="loading-detail">請稍等 1-3 秒</div>
+  </div>
+</div>
+
 <div id="dashboard" class="hidden max-w-[1500px] mx-auto px-4 py-6">
 
   <section id="sec-dashboard" class="section active">
-    <!-- v2.4.4 部署驗證橫幅（確認新版有上線） -->
+    <!-- v2.4.5 部署驗證橫幅（確認新版有上線） -->
     <div class="mb-3 px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between text-sm">
-      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.4</span>
-      <span class="text-emerald-700 text-xs">部署時間：2026-05-04 · 修關帳按鈕對 Jun 不顯示 (v2.4.4)</span>
+      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.5</span>
+      <span class="text-emerald-700 text-xs">部署時間：2026-05-04 · 修關帳按鈕對 Jun 不顯示 (v2.4.5)</span>
     </div>
     <div class="flex justify-between items-end mb-5 flex-wrap gap-2">
       <div>
@@ -606,7 +614,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
     </div>
 
     <div id="tab-refund" class="edit-tab hidden">
-      <!-- v2.4.4: 客人提供的退款匯款資訊（從退款原因解析顯示） -->
+      <!-- v2.4.5: 客人提供的退款匯款資訊（從退款原因解析顯示） -->
       <div id="refund-customer-info" class="hidden mb-3 p-3 bg-amber-50 border border-amber-300 rounded-xl text-sm">
         <div class="font-bold text-amber-800 mb-1">📋 客人提供的退款匯款資訊</div>
         <div id="refund-customer-info-body" class="font-mono text-amber-900"></div>
@@ -769,7 +777,7 @@ function filterOrdersForRole(list) {
 
 // v2.5: 依角色控制 UI 顯示
 function applyRolePermissions() {
-  // v2.4.4: 只有 Jun 看得到關帳按鈕（用 classList 切，不是 style.display）
+  // v2.4.5: 只有 Jun 看得到關帳按鈕（用 classList 切，不是 style.display）
   const closeBtn = document.getElementById('close-month-btn');
   if (closeBtn) {
     if (currentAgent === 'Jun') closeBtn.classList.remove('hidden');
@@ -804,7 +812,7 @@ function applyRolePermissions() {
   if (savedName && savedToken) enterDashboard(savedName, savedToken, savedRole, savedStoreKey);
 })();
 
-// v2.4.4: 防瀏覽器 autofill 把登入名稱「Jun」帶到上方搜尋框
+// v2.4.5: 防瀏覽器 autofill 把登入名稱「Jun」帶到上方搜尋框
 window.addEventListener('load', () => {
   setTimeout(() => {
     ['global-search','f-search','cust-search'].forEach(id => {
@@ -816,7 +824,7 @@ window.addEventListener('load', () => {
 
 function switchSection(sec, el){
   currentSection = sec;
-  // v2.4.4: 記住當前分頁，重整後恢復
+  // v2.4.5: 記住當前分頁，重整後恢復
   try { localStorage.setItem('admin_lastSection', sec); } catch(e){}
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.getElementById('sec-'+sec).classList.add('active');
@@ -838,6 +846,11 @@ function switchSection(sec, el){
 }
 
 function loadOrders() {
+  // v2.4.5: 首次載入時顯示全頁 loading overlay
+  if (!window.__firstLoadDone) {
+    const ov = document.getElementById('loading-overlay');
+    if (ov) ov.classList.remove('hidden');
+  }
   document.getElementById('orders-loading').classList.remove('hidden');
   document.getElementById('orders-list').innerHTML = '';
   document.getElementById('orders-empty').classList.add('hidden');
@@ -851,7 +864,13 @@ function loadOrders() {
         populateFilters();
         renderDashboard();
         filterOrders();
-        // v2.4.4: 若是儲存後重撈，捲到該訂單 + 閃綠
+        // v2.4.5: 關閉首次載入 overlay
+        const ov = document.getElementById('loading-overlay');
+        if (ov && !window.__firstLoadDone) {
+          ov.classList.add('hidden');
+          window.__firstLoadDone = true;
+        }
+        // v2.4.5: 若是儲存後重撈，捲到該訂單 + 閃綠
         if (window.__highlightAfterLoad) {
           const targetId = window.__highlightAfterLoad;
           window.__highlightAfterLoad = null;
@@ -863,7 +882,7 @@ function loadOrders() {
               const did = el.getAttribute('data-order-id') || '';
               if ((oc && oc.indexOf(targetId) >= 0) || did === targetId) { target = el; break; }
             }
-            // v2.4.4: 從重撈的 allOrders 找出該筆，比對訂金真的有變才報「成功」
+            // v2.4.5: 從重撈的 allOrders 找出該筆，比對訂金真的有變才報「成功」
             const updated = allOrders.find(o => (o.orderId||'').trim() === targetId);
             const newDeposit = updated ? Number(updated.deposit||0) : null;
             if (target) {
@@ -956,9 +975,32 @@ function fmtY0(n){ n = Number(n)||0; return '¥'+n.toLocaleString(); }
 function fmtDate(s){ if(!s) return '—'; const d = new Date(s); if(isNaN(d)) return s; return d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0'); }
 function isAnomaly(o){ return !o.name || !o.phone || !o.bookingDate; }
 function totalAmount(o){ return (Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0); }
-// v2.4.4: 客人本次體驗應付總額（不含訂金重複計入）
+// v2.4.5: 客人本次體驗應付總額（不含訂金重複計入）
 function totalCharge(o){ return (Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0); }
-// v2.4.4: bookingDate → JST 月份字串 (跟 GAS 後端 archMonthOf_ 一致)
+// v2.4.5: bookingDate → JST 月份字串 (跟 GAS 後端 archMonthOf_ 一致)
+// v2.4.5: 月份字串顯示成「YYYY年M月」(處理 Sheets 自動轉成 Date 的 ISO 字串)
+function fmtMonth(m) {
+  if (!m) return '—';
+  if (m instanceof Date) m = m.getFullYear()+'-'+String(m.getMonth()+1).padStart(2,'0');
+  const s = String(m);
+  // 如果是 ISO 格式（含 T），取年月
+  let d = s.match(/^(\d{4})-(\d{2})/);
+  if (d) return d[1] + '年' + Number(d[2]) + '月';
+  return s;
+}
+// JST 日期時間格式化 (處理 ISO 字串 / Date 物件)
+function fmtJSTDateTime(t) {
+  if (!t) return '—';
+  const d = (t instanceof Date) ? t : new Date(t);
+  if (isNaN(d)) return String(t);
+  const Y = d.getFullYear();
+  const M = String(d.getMonth()+1).padStart(2,'0');
+  const D = String(d.getDate()).padStart(2,'0');
+  const h = String(d.getHours()).padStart(2,'0');
+  const mn = String(d.getMinutes()).padStart(2,'0');
+  return Y+'/'+M+'/'+D+' '+h+':'+mn;
+}
+
 function bookingMonth(o){
   if(!o || !o.bookingDate) return '';
   const d = (o.bookingDate instanceof Date) ? o.bookingDate : new Date(o.bookingDate);
@@ -1057,7 +1099,7 @@ function renderTodos(){
   if(refunding.length) items.push({type:'warn',icon:'↩',text:refunding.length+' 筆退款處理中（尚未填退款時間）',action:()=>{switchSection('orders',document.querySelector('[data-sec=orders]'));setFilter('refund',document.querySelectorAll('#sec-orders .tab-btn')[3])}});
 
   // 對帳異常
-  // v2.4.4: 只把「真的超收 (got > 體驗總費用)」當成異常，少收 = 正常待店家收尾款
+  // v2.4.5: 只把「真的超收 (got > 體驗總費用)」當成異常，少收 = 正常待店家收尾款
   const reconOverpaid = allOrders.filter(o=>{ const tc = totalCharge(o); const got = Number(o.deposit)||0; return o.bookingDate && tc>0 && got>tc; });
   if(reconOverpaid.length) items.push({type:'urgent',icon:'🧾',text:reconOverpaid.length+' 筆訂單訂金「超收」需退款處理',action:()=>{switchSection('reconcile',document.querySelector('[data-sec=reconcile]'));document.getElementById('recon-status').value='overpaid';renderReconcile();}});
 
@@ -1656,7 +1698,7 @@ function initReconMonths(){
   const now = new Date();
   const cur = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
   if(!sorted.includes(cur)) sorted.unshift(cur);
-  // v2.4.4: 找最新「已過去」月份做為預設
+  // v2.4.5: 找最新「已過去」月份做為預設
   const lastClosable = sorted.find(m => m < cur) || cur;
   sel.innerHTML = '<option value="all">全部期間</option>' + sorted.map(m=>{
     const isFuture = m >= cur;
@@ -1678,12 +1720,12 @@ function renderReconcile(){
     const expect = expectedDeposit(o);
     const got = Number(o.deposit)||0;
     const tc = totalCharge(o);
-    // v2.4.4 對帳狀態：
+    // v2.4.5 對帳狀態：
     //   matched   = 已收 ≥ 應收訂金 且 ≤ 體驗總額（合理範圍）
     //   partial   = 已收 < 應收訂金（少收 → 待店家現場收尾款，不算異常）
     //   overpaid  = 已收 > 體驗總額（真的超收 → 必須退款 / 處理）
     //   unmatched = 待確認 / 無訂金資料
-    // v2.4.4: 加 walk-in 偵測 — walk-in 訂單 deposit=0 但已確認也算對帳完成
+    // v2.4.5: 加 walk-in 偵測 — walk-in 訂單 deposit=0 但已確認也算對帳完成
     const isWalkIn = (o.platform === 'WALK_IN') ||
                      (String(o.source||'').toLowerCase().indexOf('walk-in@') === 0) ||
                      (String(o.introducer||'').toLowerCase().indexOf('walk-in@') === 0);
@@ -1716,7 +1758,7 @@ function renderReconcile(){
   if(!list.length){ tbl.innerHTML='<div class="text-center text-slate-600 py-8 font-semibold">本期無資料</div>'; return; }
 
   list.sort((a,b)=>{
-    // v2.4.4: 依使用者選擇排序
+    // v2.4.5: 依使用者選擇排序
     const sortMode = (document.getElementById('recon-sort')||{}).value || 'status-asc';
     const order = {overpaid:0, partial:1, unmatched:2, matched:3};
     const dateA = new Date(a.bookingDate||0).getTime() || 0;
@@ -1838,7 +1880,7 @@ function openEdit(orderId) {
   document.getElementById('e-refund-amt').value = o.refundAmount || '';
   document.getElementById('e-refund-date').value = (o.refundTime || '').slice(0,16);
   document.getElementById('e-refund-reason').value = o.refundReason || '';
-  // v2.4.4: 解析客人原始退款申請資料（如有「銀行:」「帳號:」「戶名:」字樣）
+  // v2.4.5: 解析客人原始退款申請資料（如有「銀行:」「帳號:」「戶名:」字樣）
   const reason = o.refundReason || '';
   const infoBox = document.getElementById('refund-customer-info');
   const infoBody = document.getElementById('refund-customer-info-body');
@@ -1874,7 +1916,7 @@ function injectAnomalyWarning(o){
 
   const exp = (typeof expectedDeposit === 'function') ? expectedDeposit(o) : 0;
   const got = Number(o.deposit) || 0;
-  // v2.4.4 只把「超收 (got > 體驗總額)」當異常
+  // v2.4.5 只把「超收 (got > 體驗總額)」當異常
   const tc = (typeof totalCharge==='function') ? totalCharge(o) : 0;
   if(o.bookingDate && tc > 0 && got > tc) {
     reasons.push('⚠ 訂金「超收」¥' + (got-tc).toLocaleString() + '（體驗總額 ¥' + tc.toLocaleString() + '，實收 ¥' + got.toLocaleString() + '）→ 必須退款');
@@ -1929,7 +1971,7 @@ function updateCalc() {
 // ============================================================
 // v2.4 月度關帳歸檔
 // ============================================================
-// v2.4.4: 一鍵填入退款時間
+// v2.4.5: 一鍵填入退款時間
 function markRefundDone(){
   const el = document.getElementById('e-refund-date');
   if (!el) return;
@@ -1940,7 +1982,42 @@ function markRefundDone(){
   toast('已填入退款時間：' + local.replace('T', ' '), 'success');
 }
 
-// v2.4.4: 對帳說明燈箱
+// v2.4.5: 對帳說明燈箱
+function showMyPermissions(){
+  // v2.4.5: 顯示當前用戶的角色與權限
+  const isJun = currentAgent === 'Jun';
+  const isAgent = currentRole === 'agent';
+  const isStore = currentRole === 'store';
+  const perms = [
+    { label: '👀 看訂單', who: '客服全部 / 店家僅自己門市 walk-in', can: true },
+    { label: '✏️ 編輯訂單', who: '客服 / 店家', can: true },
+    { label: '🔍 全站搜尋', who: '所有人', can: true },
+    { label: '📊 看儀表板 / 對帳 / 客戶 / 財務', who: '只有客服', can: isAgent },
+    { label: '➕ 現場新增訂單 (walk-in)', who: '只有店家', can: isStore },
+    { label: '📦 月度關帳並歸檔', who: '只有 Jun', can: isJun },
+    { label: '🔓 解凍已關帳月份', who: '只有 Jun', can: isJun },
+  ];
+  const html = '<div class="modal-overlay" onclick="if(event.target===this)this.remove()" style="display:flex">' +
+    '<div class="modal-box" style="max-width:560px;height:auto;max-height:80vh">' +
+    '<div class="flex justify-between items-start mb-4">' +
+    '<div><h3 class="text-xl font-bold text-[#1A365D]">' + (isStore?'🏪':'👤') + ' ' + currentAgent + (isStore?' (店家)':'') + '</h3>' +
+    '<p class="text-sm text-slate-600 mt-1">角色：<b>' + (isStore?'店家':'客服') + '</b>' + (currentStoreKey?'｜門市：'+currentStoreKey:'') + '</p></div>' +
+    '<button onclick="this.closest(\'.modal-overlay\').remove()" class="text-2xl text-slate-400 hover:text-slate-700">×</button></div>' +
+    '<h4 class="text-sm font-bold text-slate-700 mb-2 mt-2">我能做什麼</h4>' +
+    '<div class="space-y-1 text-sm">' +
+    perms.map(p => '<div class="flex items-center gap-2 p-2 rounded ' + (p.can?'bg-emerald-50':'bg-slate-100 opacity-60') + '">' +
+      '<span class="text-lg">' + (p.can?'✅':'❌') + '</span>' +
+      '<div class="flex-1"><div class="font-semibold">' + p.label + '</div>' +
+      '<div class="text-xs text-slate-500">' + p.who + '</div></div></div>').join('') +
+    '</div>' +
+    '<div class="mt-4 p-3 bg-slate-50 rounded text-xs text-slate-600">' +
+    '🔒 想改密碼或新增帳號？請聯繫 Jun（管理員會去 Google Sheets「系統設定」分頁修改）' +
+    '</div></div></div>';
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  document.body.appendChild(div.firstChild);
+}
+
 function openReconHelp(){
   const html = '<div class="modal-overlay" onclick="if(event.target===this)this.remove()" style="display:flex">' +
     '<div class="modal-box" style="max-width:600px;height:auto;max-height:80vh">' +
@@ -1964,7 +2041,7 @@ async function openCloseMonthDialog() {
   if (currentAgent !== 'Jun') { toast('只有 Jun 可以執行關帳', 'error'); return; }
   const month = document.getElementById('recon-month').value;
   if (!month || month === 'all') { toast('請先選擇一個月份', 'warning'); return; }
-  // v2.4.4: 防呆（理論上下拉已 disable，這裡僅 safety net）
+  // v2.4.5: 防呆（理論上下拉已 disable，這裡僅 safety net）
   const now = new Date();
   const currentMonth = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
   if (month >= currentMonth) { toast('未到月份不能關帳', 'error'); return; }
@@ -2011,8 +2088,8 @@ async function loadArchivedList() {
     list.innerHTML = months.map(m =>
       '<div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 cursor-pointer border border-slate-200" onclick="showArchivedMonth(\''+m.month+'\')">' +
       '<div class="flex-1">' +
-        '<div class="font-bold text-base text-[#1A365D]">📦 ' + m.month + '</div>' +
-        '<div class="text-xs text-slate-600 mt-0.5">關帳於 ' + m.lastTime + ' · ' + m.count + ' 筆訂單 · 訂金 ¥' + (m.depositSum||0).toLocaleString() + '</div>' +
+        '<div class="font-bold text-base text-[#1A365D]">📦 ' + fmtMonth(m.month) + '</div>' +
+        '<div class="text-xs text-slate-600 mt-0.5">關帳於 ' + fmtJSTDateTime(m.lastTime) + ' · ' + m.count + ' 筆訂單 · 訂金 ¥' + (m.depositSum||0).toLocaleString() + '</div>' +
       '</div>' +
       '<button class="btn-navy px-3 py-1.5 rounded-lg text-sm">查看 →</button>' +
       '</div>'
@@ -2044,7 +2121,7 @@ async function showArchivedMonth(month) {
     document.getElementById('arch-stat-count').textContent = orders.length;
     document.getElementById('arch-stat-deposit').textContent = '¥' + depositSum.toLocaleString();
     document.getElementById('arch-stat-charge').textContent = '¥' + chargeSum.toLocaleString();
-    document.getElementById('arch-stat-time').textContent = lastArchivedAt || '—';
+    document.getElementById('arch-stat-time').textContent = fmtJSTDateTime(lastArchivedAt);
     document.getElementById('archive-orders-list').innerHTML = orders.map(o =>
       '<div class="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-100 hover:bg-slate-50">' +
       '<div class="flex-1"><div class="font-bold text-base">' + (o.name||'—') + ' <span class="text-xs text-slate-500 font-mono">' + (o.orderId||'') + '</span></div>' +
@@ -2100,7 +2177,7 @@ function saveOrder() {
       btn.textContent = '💾 儲存變更'; btn.disabled = false;
       if (data.status === 'unauthorized') { showLogin(); return; }
       if (data.status === 'ok' || data.status === 'success') {
-        // v2.4.4: 統一只用 toast、不在 modal 顯示 ✅（避免雙重提示）
+        // v2.4.5: 統一只用 toast、不在 modal 顯示 ✅（避免雙重提示）
         const savedId = editingOrder.orderId;
         msg.textContent = '正在重新載入…';
         msg.className = 'text-center text-sm mt-3 text-slate-600';
@@ -2210,7 +2287,7 @@ document.getElementById('global-search')?.addEventListener('input', (e)=>{
     }
   });
 })();
-console.log('%c[v2.4.4] global search ready','color:#1A365D;font-weight:bold');
+console.log('%c[v2.4.5] global search ready','color:#1A365D;font-weight:bold');
 
 /* === v2.2.1 假訂單過濾（月份標題列等不完整資料） === */
 window.__isFakeOrder = function(o){
@@ -2895,7 +2972,7 @@ window.applyRolePermissions = function() {
         </label>
       </div>
 
-      <!-- v2.4.4: 活動折扣（預設無折，5:5 拆帳） -->
+      <!-- v2.4.5: 活動折扣（預設無折，5:5 拆帳） -->
       <div>
         <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">活動折扣</label>
         <div class="grid grid-cols-4 gap-2">
