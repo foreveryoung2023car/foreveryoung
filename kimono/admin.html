@@ -185,7 +185,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
       <div class="min-w-0 hidden xs:block sm:block">
         <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
-        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.3</div>
+        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.4</div>
       </div>
     </div>
     <div id="global-search-wrap" class="hidden md:flex flex-1 max-w-md">
@@ -236,10 +236,10 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 <div id="dashboard" class="hidden max-w-[1500px] mx-auto px-4 py-6">
 
   <section id="sec-dashboard" class="section active">
-    <!-- v2.4.3 部署驗證橫幅（確認新版有上線） -->
+    <!-- v2.4.4 部署驗證橫幅（確認新版有上線） -->
     <div class="mb-3 px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between text-sm">
-      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.3</span>
-      <span class="text-emerald-700 text-xs">部署時間：2026-05-04 · 修關帳按鈕對 Jun 不顯示 (v2.4.3)</span>
+      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.4</span>
+      <span class="text-emerald-700 text-xs">部署時間：2026-05-04 · 修關帳按鈕對 Jun 不顯示 (v2.4.4)</span>
     </div>
     <div class="flex justify-between items-end mb-5 flex-wrap gap-2">
       <div>
@@ -461,11 +461,12 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
   <section id="sec-reconcile" class="section">
     <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
       <div>
-        <h2 class="text-2xl font-bold text-[#1A365D] title-serif">🧾 對帳作業</h2>
+        <h2 class="text-2xl font-bold text-[#1A365D] title-serif inline-flex items-center gap-2">🧾 對帳作業<button onclick="openReconHelp()" class="w-6 h-6 inline-flex items-center justify-center rounded-full bg-slate-200 hover:bg-slate-300 text-slate-600 text-sm font-bold" title="對帳說明">i</button></h2>
         <p class="text-sm text-slate-600 mt-1 font-semibold">逐筆核對訂金匯款，標記異常並追蹤入帳狀態</p>
       </div>
       <div class="flex gap-2 items-center flex-wrap">
         <select id="recon-month" class="input-field !w-auto" onchange="renderReconcile()"></select>
+        <select id="recon-sort" class="input-field !w-auto" onchange="renderReconcile()" title="排序"><option value="status-asc">按狀態 + 日期 ↑</option><option value="status-desc">按狀態 + 日期 ↓</option><option value="date-asc">日期 ↑</option><option value="date-desc">日期 ↓</option></select>
         <select id="recon-status" class="input-field !w-auto" onchange="renderReconcile()">
           <option value="all">全部訂單</option>
           <option value="matched">已對帳</option>
@@ -484,17 +485,6 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="stat-card green"><div class="section-label">已收訂金</div><div id="recon-stat-received" class="stat-num green" style="font-size:22px">—</div></div>
       <div class="stat-card red"><div class="section-label">差異金額</div><div id="recon-stat-diff" class="stat-num red" style="font-size:22px">—</div></div>
       <div class="stat-card purple"><div class="section-label">對帳完成率</div><div id="recon-stat-rate" class="stat-num" style="color:#7C3AED">—</div></div>
-    </div>
-
-    <div class="panel mb-4">
-      <h3 class="text-[#1A365D] mb-3 title-serif">📌 對帳說明</h3>
-      <div class="text-sm text-slate-700 space-y-1.5 font-medium">
-        <div>• <b>應收訂金</b> = 每人 ¥1,000 × 預約人數（依 config.js 之 DEPOSIT_JPY 設定）</div>
-        <div>• <b>已收訂金</b> = 訂單表 deposit 欄位（客人匯款後客服填入）</div>
-        <div>• <span style="background:#ECFDF5;padding:2px 8px;border-radius:4px;font-weight:600;color:#047857">已對帳</span> = 已確認且訂金金額符合應收</div>
-        <div>• <span style="background:#FEF2F2;padding:2px 8px;border-radius:4px;font-weight:600;color:#B91C1C">超收異常</span> = 已收訂金 > 體驗總額（必須退款）<br>• <span style="background:#EFF6FF;padding:2px 8px;border-radius:4px;font-weight:600;color:#1E40AF">待收尾款</span> = 已收 < 應收訂金（店家現場補齊即可）</div>
-        <div>• <span style="background:#FFFBEB;padding:2px 8px;border-radius:4px;font-weight:600;color:#92400E">未對帳</span> = 待確認狀態的訂單</div>
-      </div>
     </div>
 
     <div class="panel">
@@ -616,10 +606,31 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
     </div>
 
     <div id="tab-refund" class="edit-tab hidden">
+      <!-- v2.4.4: 客人提供的退款匯款資訊（從退款原因解析顯示） -->
+      <div id="refund-customer-info" class="hidden mb-3 p-3 bg-amber-50 border border-amber-300 rounded-xl text-sm">
+        <div class="font-bold text-amber-800 mb-1">📋 客人提供的退款匯款資訊</div>
+        <div id="refund-customer-info-body" class="font-mono text-amber-900"></div>
+      </div>
+      <!-- 處理 checklist -->
+      <div class="mb-3 p-3 bg-blue-50 border border-blue-300 rounded-xl text-sm">
+        <div class="font-bold text-blue-800 mb-2">🔍 退款處理 SOP</div>
+        <ol class="list-decimal list-inside space-y-1 text-blue-900">
+          <li>核對退款金額 + 客人提供的匯款帳號（上方橘色框）</li>
+          <li>實際匯款到客人帳戶</li>
+          <li>按下方「✓ 已完成匯款」自動填入退款時間</li>
+          <li>儲存變更</li>
+        </ol>
+      </div>
       <div class="edit-panel grid grid-cols-1 md:grid-cols-2 gap-4">
         <div><div class="section-label">退款金額 JPY</div><input id="e-refund-amt" class="input-field" type="number" placeholder="0"></div>
-        <div><div class="section-label">退款時間</div><input id="e-refund-date" class="input-field" type="datetime-local"></div>
-        <div class="md:col-span-2"><div class="section-label">退款原因</div><textarea id="e-refund-reason" class="input-field" rows="3" placeholder="退款原因說明…"></textarea></div>
+        <div>
+          <div class="section-label flex justify-between items-end">
+            <span>退款時間</span>
+            <button type="button" onclick="markRefundDone()" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded">✓ 已完成匯款</button>
+          </div>
+          <input id="e-refund-date" class="input-field" type="datetime-local">
+        </div>
+        <div class="md:col-span-2"><div class="section-label">退款原因 / 客人提供匯款資訊</div><textarea id="e-refund-reason" class="input-field" rows="5" placeholder="退款原因說明…&#10;若客人有透過 inquiry.html 提交退款申請，銀行/帳號/戶名等資訊會顯示在這裡"></textarea></div>
       </div>
     </div>
 
@@ -758,7 +769,7 @@ function filterOrdersForRole(list) {
 
 // v2.5: 依角色控制 UI 顯示
 function applyRolePermissions() {
-  // v2.4.3: 只有 Jun 看得到關帳按鈕（用 classList 切，不是 style.display）
+  // v2.4.4: 只有 Jun 看得到關帳按鈕（用 classList 切，不是 style.display）
   const closeBtn = document.getElementById('close-month-btn');
   if (closeBtn) {
     if (currentAgent === 'Jun') closeBtn.classList.remove('hidden');
@@ -793,7 +804,7 @@ function applyRolePermissions() {
   if (savedName && savedToken) enterDashboard(savedName, savedToken, savedRole, savedStoreKey);
 })();
 
-// v2.4.3: 防瀏覽器 autofill 把登入名稱「Jun」帶到上方搜尋框
+// v2.4.4: 防瀏覽器 autofill 把登入名稱「Jun」帶到上方搜尋框
 window.addEventListener('load', () => {
   setTimeout(() => {
     ['global-search','f-search','cust-search'].forEach(id => {
@@ -805,7 +816,7 @@ window.addEventListener('load', () => {
 
 function switchSection(sec, el){
   currentSection = sec;
-  // v2.4.3: 記住當前分頁，重整後恢復
+  // v2.4.4: 記住當前分頁，重整後恢復
   try { localStorage.setItem('admin_lastSection', sec); } catch(e){}
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.getElementById('sec-'+sec).classList.add('active');
@@ -840,7 +851,7 @@ function loadOrders() {
         populateFilters();
         renderDashboard();
         filterOrders();
-        // v2.4.3: 若是儲存後重撈，捲到該訂單 + 閃綠
+        // v2.4.4: 若是儲存後重撈，捲到該訂單 + 閃綠
         if (window.__highlightAfterLoad) {
           const targetId = window.__highlightAfterLoad;
           window.__highlightAfterLoad = null;
@@ -852,7 +863,7 @@ function loadOrders() {
               const did = el.getAttribute('data-order-id') || '';
               if ((oc && oc.indexOf(targetId) >= 0) || did === targetId) { target = el; break; }
             }
-            // v2.4.3: 從重撈的 allOrders 找出該筆，比對訂金真的有變才報「成功」
+            // v2.4.4: 從重撈的 allOrders 找出該筆，比對訂金真的有變才報「成功」
             const updated = allOrders.find(o => (o.orderId||'').trim() === targetId);
             const newDeposit = updated ? Number(updated.deposit||0) : null;
             if (target) {
@@ -945,9 +956,9 @@ function fmtY0(n){ n = Number(n)||0; return '¥'+n.toLocaleString(); }
 function fmtDate(s){ if(!s) return '—'; const d = new Date(s); if(isNaN(d)) return s; return d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0'); }
 function isAnomaly(o){ return !o.name || !o.phone || !o.bookingDate; }
 function totalAmount(o){ return (Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0); }
-// v2.4.3: 客人本次體驗應付總額（不含訂金重複計入）
+// v2.4.4: 客人本次體驗應付總額（不含訂金重複計入）
 function totalCharge(o){ return (Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0); }
-// v2.4.3: bookingDate → JST 月份字串 (跟 GAS 後端 archMonthOf_ 一致)
+// v2.4.4: bookingDate → JST 月份字串 (跟 GAS 後端 archMonthOf_ 一致)
 function bookingMonth(o){
   if(!o || !o.bookingDate) return '';
   const d = (o.bookingDate instanceof Date) ? o.bookingDate : new Date(o.bookingDate);
@@ -1046,7 +1057,7 @@ function renderTodos(){
   if(refunding.length) items.push({type:'warn',icon:'↩',text:refunding.length+' 筆退款處理中（尚未填退款時間）',action:()=>{switchSection('orders',document.querySelector('[data-sec=orders]'));setFilter('refund',document.querySelectorAll('#sec-orders .tab-btn')[3])}});
 
   // 對帳異常
-  // v2.4.3: 只把「真的超收 (got > 體驗總費用)」當成異常，少收 = 正常待店家收尾款
+  // v2.4.4: 只把「真的超收 (got > 體驗總費用)」當成異常，少收 = 正常待店家收尾款
   const reconOverpaid = allOrders.filter(o=>{ const tc = totalCharge(o); const got = Number(o.deposit)||0; return o.bookingDate && tc>0 && got>tc; });
   if(reconOverpaid.length) items.push({type:'urgent',icon:'🧾',text:reconOverpaid.length+' 筆訂單訂金「超收」需退款處理',action:()=>{switchSection('reconcile',document.querySelector('[data-sec=reconcile]'));document.getElementById('recon-status').value='overpaid';renderReconcile();}});
 
@@ -1640,12 +1651,20 @@ function initReconMonths(){
   const sel = document.getElementById('recon-month');
   if(sel.options.length>0) return;
   const months = new Set();
-  allOrders.forEach(o=>{ if(o.bookingDate) months.add((o.bookingDate+'').slice(0,7)); });
+  allOrders.forEach(o=>{ const m=bookingMonth(o); if(m) months.add(m); });
   const sorted = [...months].sort().reverse();
   const now = new Date();
   const cur = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
   if(!sorted.includes(cur)) sorted.unshift(cur);
-  sel.innerHTML = '<option value="all">全部期間</option>' + sorted.map(m=>'<option value="'+m+'"'+(m===cur?' selected':'')+'>'+m+'</option>').join('');
+  // v2.4.4: 找最新「已過去」月份做為預設
+  const lastClosable = sorted.find(m => m < cur) || cur;
+  sel.innerHTML = '<option value="all">全部期間</option>' + sorted.map(m=>{
+    const isFuture = m >= cur;
+    const label = m + (isFuture ? '（未到 / 不可關帳）' : '');
+    const disabled = isFuture ? ' disabled style="color:#94A3B8"' : '';
+    const selected = (m === lastClosable) ? ' selected' : '';
+    return '<option value="'+m+'"'+selected+disabled+'>'+label+'</option>';
+  }).join('');
 }
 
 function renderReconcile(){
@@ -1659,12 +1678,12 @@ function renderReconcile(){
     const expect = expectedDeposit(o);
     const got = Number(o.deposit)||0;
     const tc = totalCharge(o);
-    // v2.4.3 對帳狀態：
+    // v2.4.4 對帳狀態：
     //   matched   = 已收 ≥ 應收訂金 且 ≤ 體驗總額（合理範圍）
     //   partial   = 已收 < 應收訂金（少收 → 待店家現場收尾款，不算異常）
     //   overpaid  = 已收 > 體驗總額（真的超收 → 必須退款 / 處理）
     //   unmatched = 待確認 / 無訂金資料
-    // v2.4.3: 加 walk-in 偵測 — walk-in 訂單 deposit=0 但已確認也算對帳完成
+    // v2.4.4: 加 walk-in 偵測 — walk-in 訂單 deposit=0 但已確認也算對帳完成
     const isWalkIn = (o.platform === 'WALK_IN') ||
                      (String(o.source||'').toLowerCase().indexOf('walk-in@') === 0) ||
                      (String(o.introducer||'').toLowerCase().indexOf('walk-in@') === 0);
@@ -1697,8 +1716,16 @@ function renderReconcile(){
   if(!list.length){ tbl.innerHTML='<div class="text-center text-slate-600 py-8 font-semibold">本期無資料</div>'; return; }
 
   list.sort((a,b)=>{
+    // v2.4.4: 依使用者選擇排序
+    const sortMode = (document.getElementById('recon-sort')||{}).value || 'status-asc';
     const order = {overpaid:0, partial:1, unmatched:2, matched:3};
+    const dateA = new Date(a.bookingDate||0).getTime() || 0;
+    const dateB = new Date(b.bookingDate||0).getTime() || 0;
+    if (sortMode === 'date-asc') return dateA - dateB;
+    if (sortMode === 'date-desc') return dateB - dateA;
+    // status-asc / status-desc：先狀態，再日期
     if(order[a._recState]!==order[b._recState]) return order[a._recState]-order[b._recState];
+    return sortMode === 'status-desc' ? dateB - dateA : dateA - dateB;
     return new Date(b.bookingDate||0)-new Date(a.bookingDate||0);
   });
 
@@ -1811,6 +1838,19 @@ function openEdit(orderId) {
   document.getElementById('e-refund-amt').value = o.refundAmount || '';
   document.getElementById('e-refund-date').value = (o.refundTime || '').slice(0,16);
   document.getElementById('e-refund-reason').value = o.refundReason || '';
+  // v2.4.4: 解析客人原始退款申請資料（如有「銀行:」「帳號:」「戶名:」字樣）
+  const reason = o.refundReason || '';
+  const infoBox = document.getElementById('refund-customer-info');
+  const infoBody = document.getElementById('refund-customer-info-body');
+  if (infoBox && infoBody) {
+    const matches = reason.match(/(銀行[:：][^\n]+|帳號[:：][^\n]+|戶名[:：][^\n]+|原因[:：][^\n]+)/g);
+    if (matches && matches.length) {
+      infoBody.innerHTML = matches.map(line => '<div>' + line.replace(/[<>]/g,'') + '</div>').join('');
+      infoBox.classList.remove('hidden');
+    } else {
+      infoBox.classList.add('hidden');
+    }
+  }
   document.getElementById('e-remark').value = o.remark || '';
   document.getElementById('save-msg').classList.add('hidden');
   switchTab('basic', document.querySelector('#edit-modal .tab-btn'));
@@ -1834,7 +1874,7 @@ function injectAnomalyWarning(o){
 
   const exp = (typeof expectedDeposit === 'function') ? expectedDeposit(o) : 0;
   const got = Number(o.deposit) || 0;
-  // v2.4.3 只把「超收 (got > 體驗總額)」當異常
+  // v2.4.4 只把「超收 (got > 體驗總額)」當異常
   const tc = (typeof totalCharge==='function') ? totalCharge(o) : 0;
   if(o.bookingDate && tc > 0 && got > tc) {
     reasons.push('⚠ 訂金「超收」¥' + (got-tc).toLocaleString() + '（體驗總額 ¥' + tc.toLocaleString() + '，實收 ¥' + got.toLocaleString() + '）→ 必須退款');
@@ -1889,21 +1929,45 @@ function updateCalc() {
 // ============================================================
 // v2.4 月度關帳歸檔
 // ============================================================
+// v2.4.4: 一鍵填入退款時間
+function markRefundDone(){
+  const el = document.getElementById('e-refund-date');
+  if (!el) return;
+  const now = new Date();
+  const offset = now.getTimezoneOffset() * 60000;
+  const local = new Date(now.getTime() - offset).toISOString().slice(0, 16);
+  el.value = local;
+  toast('已填入退款時間：' + local.replace('T', ' '), 'success');
+}
+
+// v2.4.4: 對帳說明燈箱
+function openReconHelp(){
+  const html = '<div class="modal-overlay" onclick="if(event.target===this)this.remove()" style="display:flex">' +
+    '<div class="modal-box" style="max-width:600px;height:auto;max-height:80vh">' +
+    '<div class="flex justify-between items-start mb-4"><h3 class="text-lg font-bold text-[#1A365D]">📌 對帳說明</h3>' +
+    '<button onclick="this.closest(\'.modal-overlay\').remove()" class="text-2xl text-slate-400 hover:text-slate-700">×</button></div>' +
+    '<div class="text-sm text-slate-700 space-y-2 font-medium">' +
+    '<div>• <b>應收訂金</b> = 每人 ¥1,000 × 預約人數</div>' +
+    '<div>• <b>已收訂金</b> = 客人實際匯款金額</div>' +
+    '<div>• <span style="background:#ECFDF5;padding:2px 8px;border-radius:4px;color:#047857;font-weight:600">✓ 已對帳</span> = 已確認，金額正確</div>' +
+    '<div>• <span style="background:#EFF6FF;padding:2px 8px;border-radius:4px;color:#1E40AF;font-weight:600">△ 待收尾款</span> = 已收 < 應收訂金（店家現場補齊即可，非異常）</div>' +
+    '<div>• <span style="background:#FEF2F2;padding:2px 8px;border-radius:4px;color:#B91C1C;font-weight:600">⚠ 超收異常</span> = 已收 > 體驗總額（必須退款給客人）</div>' +
+    '<div>• <span style="background:#FFFBEB;padding:2px 8px;border-radius:4px;color:#92400E;font-weight:600">○ 未對帳</span> = 訂單尚未確認</div>' +
+    '<div class="mt-3 p-2 bg-slate-50 rounded text-xs">📌 walk-in 訂單因現場全額收款，deposit=0 但已確認也算「已對帳」。</div>' +
+    '</div></div></div>';
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  document.body.appendChild(div.firstChild);
+}
+
 async function openCloseMonthDialog() {
   if (currentAgent !== 'Jun') { toast('只有 Jun 可以執行關帳', 'error'); return; }
   const month = document.getElementById('recon-month').value;
   if (!month || month === 'all') { toast('請先選擇一個月份', 'warning'); return; }
-  // v2.4.3: 防呆 — 不能關當月或未到月份（必須等該月結束才能關）
+  // v2.4.4: 防呆（理論上下拉已 disable，這裡僅 safety net）
   const now = new Date();
   const currentMonth = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
-  if (month >= currentMonth) {
-    alert('❌ 無法關帳 ' + month + '\n\n' +
-      '只能關「已結束」的月份。\n' +
-      (month === currentMonth
-        ? '本月 (' + currentMonth + ') 還沒結束，要等下個月初才能關。'
-        : '未來月份不能預先關帳。'));
-    return;
-  }
+  if (month >= currentMonth) { toast('未到月份不能關帳', 'error'); return; }
   toast('正在預檢 ' + month + '…', 'info');
   try {
     const res = await fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'getArchiveCheck', month, token:adminToken }) });
@@ -2036,7 +2100,7 @@ function saveOrder() {
       btn.textContent = '💾 儲存變更'; btn.disabled = false;
       if (data.status === 'unauthorized') { showLogin(); return; }
       if (data.status === 'ok' || data.status === 'success') {
-        // v2.4.3: 統一只用 toast、不在 modal 顯示 ✅（避免雙重提示）
+        // v2.4.4: 統一只用 toast、不在 modal 顯示 ✅（避免雙重提示）
         const savedId = editingOrder.orderId;
         msg.textContent = '正在重新載入…';
         msg.className = 'text-center text-sm mt-3 text-slate-600';
@@ -2146,7 +2210,7 @@ document.getElementById('global-search')?.addEventListener('input', (e)=>{
     }
   });
 })();
-console.log('%c[v2.4.3] global search ready','color:#1A365D;font-weight:bold');
+console.log('%c[v2.4.4] global search ready','color:#1A365D;font-weight:bold');
 
 /* === v2.2.1 假訂單過濾（月份標題列等不完整資料） === */
 window.__isFakeOrder = function(o){
@@ -2831,7 +2895,7 @@ window.applyRolePermissions = function() {
         </label>
       </div>
 
-      <!-- v2.4.3: 活動折扣（預設無折，5:5 拆帳） -->
+      <!-- v2.4.4: 活動折扣（預設無折，5:5 拆帳） -->
       <div>
         <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">活動折扣</label>
         <div class="grid grid-cols-4 gap-2">
