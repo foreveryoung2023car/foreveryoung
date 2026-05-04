@@ -1990,15 +1990,23 @@ function openEdit(orderId) {
   document.getElementById('e-rate').value = o.rate || '0.22';
   document.getElementById('e-refund-amt').value = o.refundAmount || '';
   document.getElementById('e-refund-date').value = (o.refundTime || '').slice(0,16);
-  document.getElementById('e-refund-reason').value = o.refundReason || '';
-  // v2.4.8: 解析客人原始退款申請資料（如有「銀行:」「帳號:」「戶名:」字樣）
+  // v2.4.8: 把 refundReason 拆成 4 個帳戶分欄 + 純原因
   const reason = o.refundReason || '';
+  const parsed = parseRefundReason(reason);
+  document.getElementById('e-refund-bankcode').value = parsed.bankCode || '';
+  document.getElementById('e-refund-bankname').value = parsed.bankName || '';
+  document.getElementById('e-refund-account').value = parsed.account || '';
+  document.getElementById('e-refund-accountname').value = parsed.accountName || '';
+  document.getElementById('e-refund-reason').value = parsed.reason || '';
+  // 客人原始匯款資訊橘色框
   const infoBox = document.getElementById('refund-customer-info');
   const infoBody = document.getElementById('refund-customer-info-body');
   if (infoBox && infoBody) {
-    const matches = reason.match(/(銀行[:：][^\n]+|帳號[:：][^\n]+|戶名[:：][^\n]+|原因[:：][^\n]+)/g);
-    if (matches && matches.length) {
-      infoBody.innerHTML = matches.map(line => '<div>' + line.replace(/[<>]/g,'') + '</div>').join('');
+    if (parsed.hasBank) {
+      infoBody.innerHTML =
+        ((parsed.bankCode || parsed.bankName) ? '<div>銀行：' + (parsed.bankCode||'') + ' ' + (parsed.bankName||'') + '</div>' : '') +
+        (parsed.account ? '<div>帳號：' + parsed.account + '</div>' : '') +
+        (parsed.accountName ? '<div>戶名：' + parsed.accountName + '</div>' : '');
       infoBox.classList.remove('hidden');
     } else {
       infoBox.classList.add('hidden');
