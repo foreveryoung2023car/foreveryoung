@@ -1160,76 +1160,117 @@ function renderDashboard(){
 }
 
 function renderTodos(){
+  // v2.4.13: 每筆訂單獨立 + 帶時間戳 + 點處理直接 openEdit + 空 group 隱藏
   const list = document.getElementById('todo-list');
   const items = [];
   const now = new Date();
 
-  const overdue = allOrders.filter(o=>{
-    if(o.confirmed) return false;
+  // 1) 客人剛提交退款 (refundReason 含銀行/帳號 + refundAmount=0)
+  allOrders.forEach(o => {
+    const hasBank = /銀行[:：]|帳號[:：]/.test(o.refundReason||'');
+    if (hasBank && !(Number(o.refundAmount) > 0)) {
+      items.push({type:'urgent', icon:'💸', orderId:o.orderId, name:o.name||'—',
+        text:'新進退款申請', extra:'(客人已填銀行帳號，待客服確認金額)',
+        time: o.submitDate || ''});
+    }
+  });
+
+  // 2) 訂金超收
+  allOrders.forEach(o => {
+    const tc = totalCharge(o); const got = Number(o.deposit)||0;
+    if (o.bookingDate && tc>0 && got>tc && !(Number(o.refundAmount)>0)) {
+      items.push({type:'urgent', icon:'🧾', orderId:o.orderId, name:o.name||'—',
+        text:'訂金超收 ¥'+(got-tc).toLocaleString(), extra:'(已收 ¥'+got.toLocaleString()+' > 體驗 ¥'+tc.toLocaleString()+')',
+        time: o.submitDate || ''});
+    }
+  });
+
+  // 3) 待確認超過 24 小時
+  allOrders.forEach(o => {
+    if (o.confirmed) return;
     const c = o.createdAt || o.submitDate;
-    if(!c) return false;
+    if (!c) return;
     const cd = new Date(c);
-    return !isNaN(cd) && (now - cd) > 24*3600*1000;
+    if (!isNaN(cd) && (now - cd) > 24*3600*1000) {
+      const hours = Math.floor((now - cd) / 3600000);
+      items.push({type:'urgent', icon:'🚨', orderId:o.orderId, name:o.name||'—',
+        text:'待確認 '+(hours>=24?Math.floor(hours/24)+' 天':hours+' 小時'),
+        extra:'(客人匯款後客服未確認)',
+        time: c});
+    }
   });
-  if(overdue.length) items.push({type:'urgent',icon:'🚨',text:overdue.length+' 筆訂單待確認超過 24 小時',action:()=>{switchSection('orders',document.querySelector('[data-sec=orders]'));setFilter('pending',document.querySelectorAll('#sec-orders .tab-btn')[1])}});
 
+  // 4) 退款處理中（已填金額 + 沒填時間）
+  allOrders.forEach(o => {
+    if (Number(o.refundAmount)>0 && !o.refundTime) {
+      items.push({type:'warn', icon:'↩', orderId:o.orderId, name:o.name||'—',
+        text:'退款 ¥'+Number(o.refundAmount).toLocaleString()+' 已確認待匯款',
+        extra:'(實際匯款後按「✓ 已完成匯款」)',
+        time: o.submitDate || ''});
+    }
+  });
+
+  // 5) 明日預約
   const tomorrow = new Date(now); tomorrow.setDate(now.getDate()+1);
-  const tomorrowOrders = allOrders.filter(o=>{ const d = new Date(o.bookingDate); return !isNaN(d) && d.toDateString()===tomorrow.toDateString(); });
-  if(tomorrowOrders.length) items.push({type:'warn',icon:'📅',text:'明日有 '+tomorrowOrders.length+' 組客人預約，建議提前發送提醒',action:null});
-
-  const anomalies = allOrders.filter(isAnomaly);
-  if(anomalies.length) items.push({type:'info',icon:'⚠️',text:anomalies.length+' 筆訂單資料不完整（缺姓名/電話/日期）',action:()=>{switchSection('orders',document.querySelector('[data-sec=orders]'));setFilter('anomaly',document.querySelectorAll('#sec-orders .tab-btn')[4])}});
-
-  // v2.4.13: 客人從 inquiry.html 新進退款申請（refundReason 含 銀行/帳號 但 refundAmount=0 → 客服還沒處理）
-  const refundNew = allOrders.filter(o => {
-    const reason = o.refundReason || '';
-    const hasBank = /銀行[:：]|帳號[:：]/.test(reason);
-    return hasBank && !(Number(o.refundAmount) > 0);
+  allOrders.forEach(o => {
+    const d = new Date(o.bookingDate);
+    if (!isNaN(d) && d.toDateString() === tomorrow.toDateString()) {
+      items.push({type:'warn', icon:'📅', orderId:o.orderId, name:o.name||'—',
+        text:'明日體驗 '+(o.adults||o.pax||'')+' '+(o.plan||''),
+        extra:'(建議發行前提醒)',
+        time: o.bookingDate || ''});
+    }
   });
-  if(refundNew.length) items.push({type:'urgent',icon:'💸',text:refundNew.length+' 筆「新進退款申請」客人已提交但客服尚未確認金額',action:()=>{switchSection('orders',document.querySelector('[data-sec=orders]'));setFilter('refund',document.querySelectorAll('#sec-orders .tab-btn')[3])}});
 
-  const refunding = allOrders.filter(o=>Number(o.refundAmount)>0 && !o.refundTime);
-  if(refunding.length) items.push({type:'warn',icon:'↩',text:refunding.length+' 筆退款處理中（已確認金額、待匯款）',action:()=>{switchSection('orders',document.querySelector('[data-sec=orders]'));setFilter('refund',document.querySelectorAll('#sec-orders .tab-btn')[3])}});
-
-  // 對帳異常
-  // v2.4.13: 只把「真的超收 (got > 體驗總費用)」當成異常，少收 = 正常待店家收尾款
-  const reconOverpaid = allOrders.filter(o=>{ const tc = totalCharge(o); const got = Number(o.deposit)||0; return o.bookingDate && tc>0 && got>tc; });
-  if(reconOverpaid.length) items.push({type:'urgent',icon:'🧾',text:reconOverpaid.length+' 筆訂單訂金「超收」需退款處理',action:()=>{switchSection('reconcile',document.querySelector('[data-sec=reconcile]'));document.getElementById('recon-status').value='overpaid';renderReconcile();}});
+  // 6) 訂單資料不完整
+  allOrders.forEach(o => {
+    if (!isAnomaly(o)) return;
+    const missing = [];
+    if (!o.name) missing.push('姓名');
+    if (!o.phone) missing.push('電話');
+    if (!o.bookingDate) missing.push('預約日');
+    items.push({type:'info', icon:'⚠️', orderId:o.orderId, name:o.name||'(無名)',
+      text:'資料不完整：缺 '+missing.join('/'),
+      extra:'',
+      time: o.submitDate || ''});
+  });
 
   document.getElementById('todo-count').textContent = items.length+' 項';
 
-  if(!items.length){ list.innerHTML='<div class="text-center text-slate-600 py-6 font-semibold">🎉 太棒了！目前沒有待辦事項</div>'; return; }
+  if(!items.length){ list.innerHTML='<div class="text-center text-emerald-600 py-6 font-semibold">🎉 太棒了！目前沒有待辦事項</div>'; return; }
 
-  // v2.4.13: 待辦分類成 3 個卡片（緊急 / 注意 / 資訊）
+  // 待辦分類成 3 個卡（空的不顯示）
   const groups = {
     urgent: { label: '🚨 緊急處理', items: [], color: 'red' },
     warn:   { label: '⚠️ 提醒注意', items: [], color: 'amber' },
-    info:   { label: 'ℹ️ 一般資訊', items: [], color: 'blue' }
+    info:   { label: 'ℹ️ 系統提示', items: [], color: 'blue' }
   };
-  items.forEach((it, i) => {
-    if (groups[it.type]) {
-      groups[it.type].items.push({ ...it, idx: i });
-    }
-  });
+  items.forEach(it => { if (groups[it.type]) groups[it.type].items.push(it); });
+
+  const visibleGroups = Object.values(groups).filter(g => g.items.length > 0);
+  if (!visibleGroups.length) {
+    list.innerHTML = '<div class="text-center text-emerald-600 py-6 font-semibold">🎉 太棒了！目前沒有待辦事項</div>';
+    return;
+  }
+
   list.innerHTML = '<div class="grid grid-cols-1 md:grid-cols-3 gap-3">' +
-    Object.values(groups).map(g => {
-      if (!g.items.length) {
-        return '<div class="p-3 bg-slate-50 rounded-lg border border-slate-200 opacity-50">' +
-          '<div class="font-bold text-sm mb-1">' + g.label + '</div>' +
-          '<div class="text-xs text-slate-500">無</div></div>';
-      }
+    visibleGroups.map(g => {
       return '<div class="p-3 bg-' + g.color + '-50 rounded-lg border border-' + g.color + '-200">' +
         '<div class="font-bold text-sm mb-2 text-' + g.color + '-700">' + g.label + ' <span class="text-xs">(' + g.items.length + ')</span></div>' +
-        g.items.map((it, i) =>
-          '<div class="flex items-center gap-2 text-xs py-1.5' + (i > 0 ? ' border-t border-' + g.color + '-200/40' : '') + '">' +
-          '<span class="flex-shrink-0">' + it.icon + '</span>' +
-          '<span class="flex-1 text-[#1A365D] font-semibold">' + it.text + '</span>' +
-          (it.action ? '<button onclick="window.__todoActions[' + it.idx + ']()" class="flex-shrink-0 px-2 py-1 bg-white border border-' + g.color + '-300 hover:bg-' + g.color + '-100 text-[#1A365D] text-[11px] rounded font-bold">處理 →</button>' : '') +
-          '</div>'
-        ).join('') +
+        g.items.map((it, i) => {
+          const timeStr = it.time ? fmtJSTDateTime(it.time) : '';
+          return '<div class="text-xs py-2' + (i > 0 ? ' border-t border-' + g.color + '-200/40' : '') + '">' +
+            '<div class="flex items-center gap-2">' +
+              '<span class="flex-shrink-0">' + it.icon + '</span>' +
+              '<span class="flex-1 text-[#1A365D] font-bold">' + it.name + ' <span class="text-[10px] text-slate-500 font-mono font-normal">' + (it.orderId||'') + '</span></span>' +
+              (it.orderId ? '<button onclick="openEdit(\''+it.orderId+'\')" class="flex-shrink-0 px-2 py-1 bg-white border border-' + g.color + '-300 hover:bg-' + g.color + '-100 text-[#1A365D] text-[11px] rounded font-bold">處理 →</button>' : '') +
+            '</div>' +
+            '<div class="text-[#1A365D] mt-1 ml-6">' + it.text + ' <span class="text-slate-500 font-normal">' + (it.extra||'') + '</span></div>' +
+            (timeStr ? '<div class="text-[10px] text-slate-400 ml-6 mt-0.5">⏰ ' + timeStr + '</div>' : '') +
+          '</div>';
+        }).join('') +
       '</div>';
     }).join('') + '</div>';
-  window.__todoActions = items.map(it=>it.action || (()=>{}));
 }
 
 function renderHeat(){
