@@ -1059,6 +1059,14 @@ function loadOrders() {
   document.getElementById('orders-loading').classList.remove('hidden');
   document.getElementById('orders-list').innerHTML = '';
   document.getElementById('orders-empty').classList.add('hidden');
+  // v2.4.23: 保險絲 — 不論結果如何 12 秒後一定關閉 overlay
+  setTimeout(() => {
+    const ov = document.getElementById('loading-overlay');
+    if (ov && !ov.classList.contains('hidden')) {
+      ov.classList.add('hidden');
+      window.__firstLoadDone = true;
+    }
+  }, 12000);
   fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'adminGetOrders', filter:'all', search:'', token:adminToken, agent:currentAgent }) })
     .then(r => r.json())
     .then(data => {
@@ -1135,6 +1143,10 @@ function loadOrders() {
     })
     .catch(e => {
       document.getElementById('orders-loading').classList.add('hidden');
+      // v2.4.23: catch 也要關 overlay
+      const ov = document.getElementById('loading-overlay');
+      if (ov) ov.classList.add('hidden');
+      window.__firstLoadDone = true;
       showErr('連線失敗: ' + e.message);
     });
 }
@@ -3721,19 +3733,4 @@ async function wiSubmit() {
     err.textContent = '網路錯誤：' + e.message;
     err.classList.remove('hidden');
   } finally {
-    btn.textContent = '確認建單'; btn.disabled = false;
-  }
-}
-// Show FAB after successful login
-// (loadOrders is defined elsewhere in admin)
-
-// v2.5: 整合到 applyRolePermissions — store role 顯示 FAB
-const __origApplyRolePerms = typeof applyRolePermissions === 'function' ? applyRolePermissions : null;
-window.applyRolePermissions = function() {
-  if (__origApplyRolePerms) __origApplyRolePerms();
-  if (currentRole === 'store') showWalkInFab(); else hideWalkInFab();
-};
-
-</script>
-
-<!-
+    btn.textContent =
