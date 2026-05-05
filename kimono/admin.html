@@ -189,7 +189,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
       <div class="min-w-0 hidden xs:block sm:block">
         <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
-        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.21</div>
+        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.22</div>
       </div>
     </div>
     <div id="global-search-wrap" class="md:flex flex-1 max-w-md" style="display:none">
@@ -252,8 +252,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
   <section id="sec-dashboard" class="section active">
     <!-- v2.4.21 部署驗證橫幅（確認新版有上線） -->
     <div class="mb-3 px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between text-sm">
-      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.21</span>
-      <span class="text-emerald-700 text-xs">部署時間：2026-05-05 · 操作紀錄 + 自動寄確認信 (v2.4.21)</span>
+      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.22</span>
+      <span class="text-emerald-700 text-xs">部署時間：2026-05-05 · 修死迴圈 bug (async typo) (v2.4.22)</span>
     </div>
     <div class="flex justify-between items-end mb-5 flex-wrap gap-2">
       <div>
@@ -2582,7 +2582,7 @@ function resetPermissionOverrides(){
 }
 
 // v2.4.20 F ── 一鍵預檢上月關帳（Jun 限）
-async // v2.4.20 E ── 待辦過濾 (全部 / 我的)
+// v2.4.20 E ── 待辦過濾 (全部 / 我的)
 let currentTodoFilter = 'all';
 function setTodoFilter(f, btn){
   currentTodoFilter = f;
@@ -2591,7 +2591,7 @@ function setTodoFilter(f, btn){
   renderTodos();
 }
 
-async // v2.4.20 G ── 月度營收趨勢圖
+// v2.4.20 G ── 月度營收趨勢圖
 let __trendChart = null;
 function renderTrendChart(){
   if (typeof Chart === 'undefined') return;
@@ -3721,4 +3721,4 @@ window.applyRolePermissions = function() {
       <!-- 人數 -->
       <div class="grid grid-cols-2 gap-3">
         <div>
-          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">�
