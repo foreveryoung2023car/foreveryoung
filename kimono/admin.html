@@ -189,7 +189,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
       <div class="min-w-0 hidden xs:block sm:block">
         <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
-        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.20</div>
+        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.21</div>
       </div>
     </div>
     <div id="global-search-wrap" class="md:flex flex-1 max-w-md" style="display:none">
@@ -216,6 +216,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="nav-tab" data-sec="walkin" onclick="switchSection('walkin',this)">💴 店家月結</div>
       <div class="nav-tab" data-sec="archive" onclick="switchSection('archive',this)">📁 歷史檔案</div>
       <div class="nav-tab" data-sec="permissions" onclick="switchSection('permissions',this)">🔐 權限總表</div>
+      <div class="nav-tab" data-sec="audit" data-jun-only="1" onclick="switchSection('audit',this)" style="display:none">📜 操作紀錄</div>
     </div>
   </div>
 </nav>
@@ -249,10 +250,10 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 <div id="dashboard" class="hidden max-w-[1500px] mx-auto px-4 py-6">
 
   <section id="sec-dashboard" class="section active">
-    <!-- v2.4.20 部署驗證橫幅（確認新版有上線） -->
+    <!-- v2.4.21 部署驗證橫幅（確認新版有上線） -->
     <div class="mb-3 px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between text-sm">
-      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.20</span>
-      <span class="text-emerald-700 text-xs">部署時間：2026-05-04 · 修關帳按鈕對 Jun 不顯示 (v2.4.20)</span>
+      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.21</span>
+      <span class="text-emerald-700 text-xs">部署時間：2026-05-05 · 操作紀錄 + 自動寄確認信 (v2.4.21)</span>
     </div>
     <div class="flex justify-between items-end mb-5 flex-wrap gap-2">
       <div>
@@ -619,6 +620,48 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
     </div>
   </section>
 
+  <!-- v2.4.21 #6 操作紀錄 (Jun only) -->
+  <section id="sec-audit" class="section">
+    <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
+      <div>
+        <h2 class="text-2xl font-bold text-[#1A365D] title-serif">📜 操作紀錄</h2>
+        <p class="text-sm text-slate-600 mt-1 font-semibold">所有客服對訂單的編輯、確認、退款、寄信動作（最近 100 筆）</p>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <select id="audit-limit" class="input-field !w-auto" onchange="loadAuditLog()">
+          <option value="50">最近 50 筆</option>
+          <option value="100" selected>最近 100 筆</option>
+          <option value="300">最近 300 筆</option>
+          <option value="500">最近 500 筆</option>
+        </select>
+        <button onclick="loadAuditLog()" class="btn-navy px-4 py-2 rounded-lg text-sm">🔄 重新載入</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div id="audit-empty" class="hidden text-center py-12 text-slate-500">
+        <div class="text-5xl mb-3">📭</div>
+        <div class="text-base font-semibold">目前還沒有任何操作紀錄</div>
+        <div class="text-xs mt-1">請先在 Apps Script 編輯器執行一次 <code class="bg-slate-100 px-1 rounded">setupAuditLogSheetOneTime()</code> 建立分頁，之後客服每次編輯就會自動記錄。</div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="data-table" id="audit-table">
+          <thead>
+            <tr>
+              <th>時間 (JST)</th>
+              <th>操作者</th>
+              <th>動作</th>
+              <th>訂單號</th>
+              <th>客戶</th>
+              <th>變動內容</th>
+              <th>備註</th>
+            </tr>
+          </thead>
+          <tbody id="audit-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
 </div>
 
 <div id="edit-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeModal()">
@@ -722,8 +765,9 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       </div>
     </div>
 
-    <div class="flex gap-3 mt-6 pt-4 border-t border-slate-200">
+    <div class="flex gap-3 mt-6 pt-4 border-t border-slate-200 flex-wrap">
       <button onclick="saveOrder()" id="save-btn" class="btn-navy flex-1 py-3 rounded-xl text-base">💾 儲存變更</button>
+      <button onclick="sendConfirmEmailFromModal()" id="send-confirm-email-btn" class="px-4 py-3 rounded-xl text-base bg-emerald-600 hover:bg-emerald-700 text-white font-semibold whitespace-nowrap" title="寄送確認信給客人 (使用 Email 欄位)">✉️ 寄確認信</button>
       <button onclick="closeModal()" class="btn-outline px-6 py-3 rounded-xl text-base">取消</button>
     </div>
     <div id="save-msg" class="text-center text-sm mt-3 hidden font-semibold"></div>
@@ -866,6 +910,10 @@ function applyRolePermissions() {
   agentOnly.forEach(sec => {
     const tab = document.querySelector('[data-sec="' + sec + '"]');
     if (tab) tab.style.display = isStore ? 'none' : '';
+  });
+  // v2.4.21: Jun-only tabs (e.g. 操作紀錄)
+  document.querySelectorAll('[data-jun-only="1"]').forEach(tab => {
+    tab.style.display = (currentAgent === 'Jun') ? '' : 'none';
   });
   // 全站搜尋只給客服
   const gs = document.getElementById('global-search-wrap');
@@ -3300,7 +3348,110 @@ if (__origSwitchSection) {
       buildWalkinMonthSelect();
       renderWalkinMonth();
     }
+    if (sec === 'audit') {
+      loadAuditLog();
+    }
   };
+}
+
+// ============================================================
+//  v2.4.21 #6 操作紀錄 (audit log) — Jun only
+// ============================================================
+async function loadAuditLog() {
+  if (currentAgent !== 'Jun') {
+    alert('只有 Jun 可以查看操作紀錄');
+    return;
+  }
+  const tbody = document.getElementById('audit-tbody');
+  const empty = document.getElementById('audit-empty');
+  const limitSel = document.getElementById('audit-limit');
+  const limit = limitSel ? parseInt(limitSel.value || '100', 10) : 100;
+  if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-400">載入中…</td></tr>';
+  try {
+    const r = await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action:'getAuditLog', token:adminToken, agent:currentAgent, limit:limit })
+    });
+    const data = await r.json();
+    if (data.status !== 'ok') {
+      if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-red-500">錯誤：' + (data.message || '無法取得紀錄') + '</td></tr>';
+      return;
+    }
+    renderAuditLog(data.logs || []);
+  } catch (e) {
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-red-500">網路錯誤：' + e.message + '</td></tr>';
+  }
+}
+
+function renderAuditLog(logs) {
+  const tbody = document.getElementById('audit-tbody');
+  const empty = document.getElementById('audit-empty');
+  if (!tbody) return;
+  if (!logs || logs.length === 0) {
+    tbody.innerHTML = '';
+    if (empty) empty.classList.remove('hidden');
+    return;
+  }
+  if (empty) empty.classList.add('hidden');
+  const actionBadge = (a) => {
+    const map = {
+      '編輯訂單': 'bg-blue-100 text-blue-700',
+      '寄確認信': 'bg-emerald-100 text-emerald-700',
+      '關帳': 'bg-amber-100 text-amber-700',
+      '解凍': 'bg-purple-100 text-purple-700',
+      '現場訂單': 'bg-rose-100 text-rose-700',
+      '退款': 'bg-red-100 text-red-700'
+    };
+    const cls = map[a] || 'bg-slate-100 text-slate-700';
+    return '<span class="px-2 py-0.5 rounded text-xs font-bold ' + cls + '">' + (a || '—') + '</span>';
+  };
+  const esc = (s) => String(s == null ? '' : s).replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c]);
+  tbody.innerHTML = logs.map(l => {
+    return '<tr>'
+      + '<td class="text-xs whitespace-nowrap">' + esc(l.time) + '</td>'
+      + '<td class="font-bold">' + esc(l.agent) + '</td>'
+      + '<td>' + actionBadge(l.action) + '</td>'
+      + '<td class="font-mono text-xs">' + esc(l.orderId) + '</td>'
+      + '<td>' + esc(l.customer) + '</td>'
+      + '<td class="text-xs text-slate-600">' + esc(l.changes) + '</td>'
+      + '<td class="text-xs text-slate-500">' + esc(l.note) + '</td>'
+      + '</tr>';
+  }).join('');
+}
+
+// ============================================================
+//  v2.4.21 #8 寄確認信 — 在訂單編輯 modal 觸發
+// ============================================================
+async function sendConfirmEmailFromModal() {
+  if (!(editingOrder && editingOrder.orderId)) {
+    alert('請先選一筆訂單');
+    return;
+  }
+  const emailEl = document.getElementById('e-email');
+  const email = emailEl ? (emailEl.value || '').trim() : '';
+  if (!email) {
+    alert('該訂單沒有 email，無法寄送確認信。請先填入 email 並儲存。');
+    return;
+  }
+  if (!confirm('確定寄出確認信到 ' + email + ' 嗎？')) return;
+  const btn = document.getElementById('send-confirm-email-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '寄送中…'; }
+  try {
+    const r = await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action:'sendConfirmEmail', token:adminToken, agent:currentAgent, orderId:(editingOrder && editingOrder.orderId) })
+    });
+    const data = await r.json();
+    if (data.status === 'ok') {
+      alert('✅ ' + (data.message || '已寄出確認信'));
+    } else {
+      alert('❌ ' + (data.message || '寄送失敗'));
+    }
+  } catch (e) {
+    alert('❌ 網路錯誤：' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '✉️ 寄確認信'; }
+  }
 }
 
 
@@ -3570,106 +3721,4 @@ window.applyRolePermissions = function() {
       <!-- 人數 -->
       <div class="grid grid-cols-2 gap-3">
         <div>
-          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">大人</label>
-          <div class="flex items-center gap-2 border-2 border-slate-200 rounded-lg p-1">
-            <button type="button" onclick="wiChg('adults',-1)" class="cnt-btn">−</button>
-            <span id="wi-cnt-a" class="flex-1 text-center font-bold text-lg">1</span>
-            <button type="button" onclick="wiChg('adults',1)" class="cnt-btn">+</button>
-          </div>
-        </div>
-        <div>
-          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">小孩</label>
-          <div class="flex items-center gap-2 border-2 border-slate-200 rounded-lg p-1">
-            <button type="button" onclick="wiChg('children',-1)" class="cnt-btn">−</button>
-            <span id="wi-cnt-c" class="flex-1 text-center font-bold text-lg">0</span>
-            <button type="button" onclick="wiChg('children',1)" class="cnt-btn">+</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 和服款式（依人數動態產生） -->
-      <div>
-        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">每人選和服款式 <span class="text-pink-500">*</span></label>
-        <div id="wi-plan-rows" class="space-y-2"></div>
-        <p class="text-[11px] text-slate-500 mt-1 font-sans">※ 大人和小孩會自動帶入對應款式</p>
-      </div>
-
-      <!-- 加值服務 -->
-      <div class="grid grid-cols-2 gap-3">
-        <label class="flex items-center gap-2 border-2 border-slate-200 rounded-lg px-3 py-2.5 cursor-pointer">
-          <input type="checkbox" id="wi-hair" class="w-5 h-5">
-          <span class="font-sans">💆 妝髮服務</span>
-        </label>
-        <label class="flex items-center gap-2 border-2 border-slate-200 rounded-lg px-3 py-2.5 cursor-pointer">
-          <input type="checkbox" id="wi-photo" class="w-5 h-5">
-          <span class="font-sans">📷 攝影服務</span>
-        </label>
-      </div>
-
-      <!-- v2.4.20: 活動折扣（預設無折，5:5 拆帳） -->
-      <div>
-        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">活動折扣</label>
-        <div class="grid grid-cols-4 gap-2">
-          <label class="flex items-center justify-center border-2 border-[#1A365D] bg-[#1A365D] text-white rounded-lg py-2 cursor-pointer font-sans text-sm font-bold" id="wi-disc-10-l">
-            <input type="radio" name="wi-disc" value="10" class="hidden" onchange="wiSetDisc(10)" checked>
-            無折
-          </label>
-          <label class="flex items-center justify-center border-2 border-slate-200 rounded-lg py-2 cursor-pointer font-sans text-sm font-bold text-slate-600" id="wi-disc-9-l">
-            <input type="radio" name="wi-disc" value="9" class="hidden" onchange="wiSetDisc(9)">
-            9 折
-          </label>
-          <label class="flex items-center justify-center border-2 border-slate-200 rounded-lg py-2 cursor-pointer font-sans text-sm font-bold text-slate-600" id="wi-disc-85-l">
-            <input type="radio" name="wi-disc" value="8.5" class="hidden" onchange="wiSetDisc(8.5)">
-            85 折
-          </label>
-          <label class="flex items-center justify-center border-2 border-slate-200 rounded-lg py-2 cursor-pointer font-sans text-sm font-bold text-slate-600" id="wi-disc-8-l">
-            <input type="radio" name="wi-disc" value="8" class="hidden" onchange="wiSetDisc(8)">
-            8 折
-          </label>
-        </div>
-        <p class="text-[11px] text-slate-500 mt-1 font-sans">※ 預設無折＝ 5:5 拆帳；有折扣時店家固定拿 50%，旅乘吸收折扣</p>
-      </div>
-
-      <!-- 金額 -->
-      <div class="bg-[#FDFCF8] border-2 border-slate-200 rounded-lg p-4 space-y-3">
-        <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider font-sans">金額（日幣）</div>
-        <div>
-          <label class="block text-xs text-slate-500 mb-1 font-sans">和服原價</label>
-          <input type="number" id="wi-pp" oninput="wiCalc()" class="w-full border-b-2 border-slate-200 focus:border-[#1A365D] outline-none px-1 py-2 text-lg font-bold font-sans" placeholder="¥ 例：5000">
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs text-slate-500 mb-1 font-sans">妝髮費</label>
-            <input type="number" id="wi-hf" oninput="wiCalc()" class="w-full border-b-2 border-slate-200 focus:border-[#1A365D] outline-none px-1 py-2 text-base font-bold font-sans" placeholder="¥0">
-          </div>
-          <div>
-            <label class="block text-xs text-slate-500 mb-1 font-sans">攝影費</label>
-            <input type="number" id="wi-pf" oninput="wiCalc()" class="w-full border-b-2 border-slate-200 focus:border-[#1A365D] outline-none px-1 py-2 text-base font-bold font-sans" placeholder="¥0">
-          </div>
-        </div>
-      </div>
-
-      <!-- 自動試算 -->
-      <div class="bg-blue-50 border-l-4 border-blue-400 rounded-r-lg p-4 space-y-1.5">
-        <div class="text-[11px] font-bold text-blue-700 uppercase tracking-wider font-sans mb-2">📊 試算</div>
-        <div class="flex justify-between font-sans"><span class="text-slate-700">客人現場應付</span><span id="wi-due" class="font-bold text-lg text-[#1A365D]">¥0</span></div>
-        <div class="flex justify-between font-sans text-sm"><span class="text-slate-500">　▸ 和服費</span><span id="wi-discounted" class="text-slate-600">¥0</span></div>
-        <div class="flex justify-between font-sans text-sm"><span class="text-slate-500">　▸ 妝髮 + 攝影</span><span id="wi-extras" class="text-slate-600">¥0</span></div>
-        <hr class="border-blue-200 my-2">
-        <div class="flex justify-between font-sans"><span class="text-slate-700">店家收款金額</span><span id="wi-shop" class="font-bold text-emerald-700">¥0</span></div>
-      </div>
-
-      <!-- 備註 -->
-      <div>
-        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">備註（可選）</label>
-        <textarea id="wi-note" rows="2" class="w-full border-2 border-slate-200 focus:border-[#1A365D] outline-none rounded-lg px-3 py-2 text-base font-sans" placeholder="特殊需求、行動電話分機等"></textarea>
-      </div>
-
-      <div id="wiErr" class="hidden bg-red-50 border-l-4 border-red-400 text-red-700 px-3 py-2 text-sm font-sans rounded"></div>
-
-      <button id="wiSubmitBtn" onclick="wiSubmit()" class="w-full py-4 bg-[#1A365D] text-white font-bold text-base font-sans rounded-lg shadow-lg hover:bg-blue-900 active:scale-[0.99]">確認建單</button>
-    </div>
-  </div>
-</div>
-</body>
-</html>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-
