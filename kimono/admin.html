@@ -186,7 +186,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
       <div class="min-w-0 hidden xs:block sm:block">
         <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
-        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.18</div>
+        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.19</div>
       </div>
     </div>
     <div id="global-search-wrap" class="md:flex flex-1 max-w-md" style="display:none">
@@ -246,10 +246,10 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 <div id="dashboard" class="hidden max-w-[1500px] mx-auto px-4 py-6">
 
   <section id="sec-dashboard" class="section active">
-    <!-- v2.4.18 部署驗證橫幅（確認新版有上線） -->
+    <!-- v2.4.19 部署驗證橫幅（確認新版有上線） -->
     <div class="mb-3 px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between text-sm">
-      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.18</span>
-      <span class="text-emerald-700 text-xs">部署時間：2026-05-04 · 修關帳按鈕對 Jun 不顯示 (v2.4.18)</span>
+      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.19</span>
+      <span class="text-emerald-700 text-xs">部署時間：2026-05-04 · 修關帳按鈕對 Jun 不顯示 (v2.4.19)</span>
     </div>
     <div class="flex justify-between items-end mb-5 flex-wrap gap-2">
       <div>
@@ -269,7 +269,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       </div>
     </div>
 
-    <!-- v2.4.18 C ── 快速操作列 ── -->
+    <!-- v2.4.19 C ── 快速操作列 ── -->
     <div class="flex flex-wrap gap-2 mb-3">
       <button onclick="switchSection('orders',document.querySelector('[data-sec=orders]'));setFilter('today',document.querySelectorAll('#sec-orders .tab-btn')[1])" class="px-3 py-2 bg-white border-2 border-blue-200 hover:border-blue-400 rounded-lg text-sm font-bold text-[#1A365D]">📍 今天訂單</button>
       <button onclick="switchSection('orders',document.querySelector('[data-sec=orders]'));setFilter('refund',document.querySelectorAll('#sec-orders .tab-btn')[3])" class="px-3 py-2 bg-white border-2 border-red-200 hover:border-red-400 rounded-lg text-sm font-bold text-red-700">💸 退款處理</button>
@@ -277,12 +277,12 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <button id="quick-precheck-btn" onclick="quickPreCheckClose()" class="hidden px-3 py-2 bg-white border-2 border-amber-300 hover:border-amber-500 rounded-lg text-sm font-bold text-amber-700">📦 預檢上月關帳</button>
     </div>
 
-    <!-- v2.4.18 B+D ── KPI 重排：第一排 4 大主卡 + 第二排 3 副卡 ── -->
+    <!-- v2.4.19 B+D ── KPI 重排：第一排 4 大主卡 + 第二排 3 副卡 ── -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
       <div class="stat-card blue"><div class="section-label">📋 總訂單</div><div id="kpi-total" class="stat-num">—</div><div id="kpi-total-trend" class="text-xs text-slate-600 mt-1 font-semibold">—</div></div>
       <div class="stat-card gold"><div class="section-label">⏳ 待確認</div><div id="kpi-pending" class="stat-num amber">—</div><div id="kpi-pending-trend" class="text-xs text-slate-600 mt-1 font-semibold">—</div></div>
       <div class="stat-card green"><div class="section-label">✅ 已確認</div><div id="kpi-confirmed" class="stat-num green">—</div><div id="kpi-confirmed-trend" class="text-xs text-slate-600 mt-1 font-semibold">—</div></div>
-      <!-- v2.4.18 D ── 今日營收新卡 ── -->
+      <!-- v2.4.19 D ── 今日營收新卡 ── -->
       <div class="stat-card" style="border-left-color:#10B981;background:linear-gradient(135deg,#ECFDF5,#FFFFFF)"><div class="section-label">💴 今日入帳</div><div id="kpi-today-revenue" class="stat-num" style="font-size:22px;color:#047857">—</div><div id="kpi-today-revenue-trend" class="text-xs text-slate-600 mt-1 font-semibold">—</div></div>
     </div>
     <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-5">
@@ -302,7 +302,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div id="todo-list" class="space-y-2 text-sm"></div>
     </div>
 
-    <!-- v2.4.18: 14 天熱度 + 即將到店 平行（主要看板） -->
+    <!-- v2.4.19: 14 天熱度 + 即將到店 平行（主要看板） -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
       <div class="panel">
         <h3 class="text-[#1A365D] mb-3 title-serif">⏰ 未來 14 天預約熱度</h3>
@@ -326,7 +326,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       </div>
     </div>
 
-    <!-- v2.4.18 G ── 月度營收趨勢圖 (Chart.js) -->
+    <!-- v2.4.19 G ── 月度營收趨勢圖 (Chart.js) -->
     <div class="panel mt-4">
       <div class="flex justify-between items-start mb-3">
         <h3 class="text-[#1A365D] title-serif">📈 過去 6 個月營收趨勢</h3>
@@ -668,7 +668,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
     </div>
 
     <div id="tab-refund" class="edit-tab hidden">
-      <!-- v2.4.18: 客人提供的退款匯款資訊（從退款原因解析顯示） -->
+      <!-- v2.4.19: 客人提供的退款匯款資訊（從退款原因解析顯示） -->
       <div id="refund-customer-info" class="hidden mb-3 p-3 bg-amber-50 border border-amber-300 rounded-xl text-sm">
         <div class="font-bold text-amber-800 mb-1">📋 客人提供的退款匯款資訊</div>
         <div id="refund-customer-info-body" class="font-mono text-amber-900"></div>
@@ -687,12 +687,12 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
         <div><div class="section-label">退款金額 JPY</div><input id="e-refund-amt" class="input-field" type="number" placeholder="0"></div>
         <div><div class="section-label">退款時間</div><input id="e-refund-date" class="input-field" type="datetime-local" placeholder="實際匯款後請填"></div>
       </div>
-      <!-- v2.4.18: 「已完成匯款」改成顯眼大按鈕，獨立一列 -->
+      <!-- v2.4.19: 「已完成匯款」改成顯眼大按鈕，獨立一列 -->
       <button type="button" onclick="markRefundDone()" class="mt-3 w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-sm">
         ✓ 我已完成匯款（自動填入退款時間）
       </button>
 
-      <!-- v2.4.18: 退款匯款帳戶 4 個分欄（儲存時自動串成一段塞回退款原因欄）-->
+      <!-- v2.4.19: 退款匯款帳戶 4 個分欄（儲存時自動串成一段塞回退款原因欄）-->
       <div class="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
         <div class="font-bold text-emerald-800 mb-2 text-sm">💳 退款匯款帳戶（個欄輸入，存檔時會自動合併）</div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -847,7 +847,7 @@ function filterOrdersForRole(list) {
 
 // v2.5: 依角色控制 UI 顯示
 function applyRolePermissions() {
-  // v2.4.18: 只有 Jun 看得到關帳按鈕（用 classList 切，不是 style.display）
+  // v2.4.19: 只有 Jun 看得到關帳按鈕（用 classList 切，不是 style.display）
   const closeBtn = document.getElementById('close-month-btn');
   if (closeBtn) {
     if (currentAgent === 'Jun') closeBtn.classList.remove('hidden');
@@ -882,7 +882,7 @@ function applyRolePermissions() {
   if (savedName && savedToken) enterDashboard(savedName, savedToken, savedRole, savedStoreKey);
 })();
 
-// v2.4.18: 防 Chrome autofill 終極招 — readonly + onfocus 解除 + 多次清空
+// v2.4.19: 防 Chrome autofill 終極招 — readonly + onfocus 解除 + 多次清空
 window.addEventListener('load', () => {
   ['global-search','f-search','cust-search'].forEach(id => {
     const el = document.getElementById(id);
@@ -906,7 +906,7 @@ window.addEventListener('load', () => {
 
 function switchSection(sec, el){
   currentSection = sec;
-  // v2.4.18: 記住當前分頁，重整後恢復
+  // v2.4.19: 記住當前分頁，重整後恢復
   try { localStorage.setItem('admin_lastSection', sec); } catch(e){}
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.getElementById('sec-'+sec).classList.add('active');
@@ -922,7 +922,7 @@ function switchSection(sec, el){
   else if(sec==='customers') renderCustomers();
   else if(sec==='finance') renderFinance();
   else if(sec==='reconcile') {
-    // v2.4.18: 每次進對帳都重建月份下拉
+    // v2.4.19: 每次進對帳都重建月份下拉
     const sel = document.getElementById('recon-month');
     if (sel) sel.innerHTML = '';
     initReconMonths();
@@ -935,7 +935,7 @@ function switchSection(sec, el){
 }
 
 function loadOrders() {
-  // v2.4.18: 首次載入時顯示全頁 loading overlay
+  // v2.4.19: 首次載入時顯示全頁 loading overlay
   if (!window.__firstLoadDone) {
     const ov = document.getElementById('loading-overlay');
     if (ov) ov.classList.remove('hidden');
@@ -953,7 +953,7 @@ function loadOrders() {
         console.log('[載入] ✅ 完成，耗時 ' + elapsed + 'ms (' + (data.orders||[]).length + ' 筆)');
         if (elapsed > 5000) toast('⚠ 載入很慢: ' + Math.round(elapsed/1000) + ' 秒', 'warning');
         allOrders = data.orders || [];
-        // v2.4.18: 順便撈一次歷史月份清單（讓對帳下拉能合併顯示）
+        // v2.4.19: 順便撈一次歷史月份清單（讓對帳下拉能合併顯示）
         if (typeof loadArchivedList === 'function' && !window.__archivedMonthsListLoaded) {
           window.__archivedMonthsListLoaded = true;
           fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'getArchivedList', token:adminToken }) })
@@ -963,13 +963,13 @@ function loadOrders() {
         populateFilters();
         renderDashboard();
         filterOrders();
-        // v2.4.18: 關閉首次載入 overlay
+        // v2.4.19: 關閉首次載入 overlay
         const ov = document.getElementById('loading-overlay');
         if (ov && !window.__firstLoadDone) {
           ov.classList.add('hidden');
           window.__firstLoadDone = true;
         }
-        // v2.4.18: 若是儲存後重撈，捲到該訂單 + 閃綠
+        // v2.4.19: 若是儲存後重撈，捲到該訂單 + 閃綠
         if (window.__highlightAfterLoad) {
           const targetId = window.__highlightAfterLoad;
           window.__highlightAfterLoad = null;
@@ -981,7 +981,7 @@ function loadOrders() {
               const did = el.getAttribute('data-order-id') || '';
               if ((oc && oc.indexOf(targetId) >= 0) || did === targetId) { target = el; break; }
             }
-            // v2.4.18: 從重撈的 allOrders 找出該筆，比對訂金真的有變才報「成功」
+            // v2.4.19: 從重撈的 allOrders 找出該筆，比對訂金真的有變才報「成功」
             const updated = allOrders.find(o => (o.orderId||'').trim() === targetId);
             const newDeposit = updated ? Number(updated.deposit||0) : null;
             if (target) {
@@ -1084,7 +1084,7 @@ function fmtY(n){ n = Number(n)||0; return n ? '¥'+n.toLocaleString() : '—'; 
 function fmtY0(n){ n = Number(n)||0; return '¥'+n.toLocaleString(); }
 function fmtDate(s){
   if(!s) return '—';
-  // v2.4.18: 字串原樣判斷優先（避免 timezone bug）
+  // v2.4.19: 字串原樣判斷優先（避免 timezone bug）
   if(typeof s === 'string') {
     const m = s.match(/^(\d{4})[/\-](\d{2})[/\-](\d{2})/);
     if(m) return m[1]+'/'+m[2]+'/'+m[3];
@@ -1098,8 +1098,8 @@ function fmtDate(s){
 }
 function isAnomaly(o){ return !o.name || !o.phone || !o.bookingDate; }
 function totalAmount(o){ return (Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0); }
-// v2.4.18: 客人本次體驗應付總額（不含訂金重複計入）
-// v2.4.18: 顯示 boolean 為「是/否」
+// v2.4.19: 客人本次體驗應付總額（不含訂金重複計入）
+// v2.4.19: 顯示 boolean 為「是/否」
 function fmtYesNo(v) {
   if (v === true || v === 'true' || v === 1 || v === '1' || v === 'TRUE' || v === '是') return '是';
   if (v === false || v === 'false' || v === 0 || v === '0' || v === 'FALSE' || v === '否' || v === '' || v == null) return '否';
@@ -1107,9 +1107,9 @@ function fmtYesNo(v) {
 }
 
 function totalCharge(o){ return (Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0); }
-// v2.4.18: bookingDate → JST 月份字串 (跟 GAS 後端 archMonthOf_ 一致)
-// v2.4.18: 月份字串顯示成「YYYY年M月」(處理 Sheets 自動轉成 Date 的 ISO 字串)
-// v2.4.18: 把任何月份輸入正規化成 YYYY-MM
+// v2.4.19: bookingDate → JST 月份字串 (跟 GAS 後端 archMonthOf_ 一致)
+// v2.4.19: 月份字串顯示成「YYYY年M月」(處理 Sheets 自動轉成 Date 的 ISO 字串)
+// v2.4.19: 把任何月份輸入正規化成 YYYY-MM
 function normMonth(m) {
   if (!m) return '';
   if (m instanceof Date) return m.getFullYear()+'-'+String(m.getMonth()+1).padStart(2,'0');
@@ -1128,7 +1128,7 @@ function fmtMonth(m) {
   return s;
 }
 // JST 日期時間格式化 (處理 ISO 字串 / Date 物件 / 純字串)
-// v2.4.18: 如果輸入已是 'YYYY/MM/DD HH:MM' 字串就直接回，避免 timezone 轉換錯誤
+// v2.4.19: 如果輸入已是 'YYYY/MM/DD HH:MM' 字串就直接回，避免 timezone 轉換錯誤
 function fmtJSTDateTime(t) {
   if (!t) return '—';
   // 優先：直接 match 已經是 YYYY/MM/DD HH:MM 格式的字串
@@ -1215,7 +1215,7 @@ function renderDashboard(){
   const refundCount = filtered.filter(o=>Number(o.refundAmount)>0).length;
   document.getElementById('kpi-refund-trend').textContent = refundCount? refundCount+' 筆' : '無退款';
 
-  // v2.4.18 D ── 今日入帳計算（今天 JST 收的訂金）
+  // v2.4.19 D ── 今日入帳計算（今天 JST 收的訂金）
   const today0 = new Date(); today0.setHours(0,0,0,0);
   const tomorrow0 = new Date(today0); tomorrow0.setDate(today0.getDate()+1);
   let todayDepSum = 0, todayCount = 0;
@@ -1232,14 +1232,14 @@ function renderDashboard(){
   if (tdEl) tdEl.textContent = '¥' + todayDepSum.toLocaleString();
   if (tdTrend) tdTrend.textContent = todayCount ? todayCount + ' 筆訂單入帳' : '今天還沒入帳';
 
-  // v2.4.18 F ── 月度預檢按鈕只給 Jun 顯示
+  // v2.4.19 F ── 月度預檢按鈕只給 Jun 顯示
   const preBtn = document.getElementById('quick-precheck-btn');
   if (preBtn) {
     if (currentAgent === 'Jun') preBtn.classList.remove('hidden');
     else preBtn.classList.add('hidden');
   }
 
-  renderTrendChart(); // v2.4.18 G
+  renderTrendChart(); // v2.4.19 G
   renderTodos();
   renderHeat();
   renderPlanRatio(filtered);
@@ -1249,7 +1249,7 @@ function renderDashboard(){
 }
 
 function renderTodos(){
-  // v2.4.18: 每筆訂單獨立 + 帶時間戳 + 點處理直接 openEdit + 空 group 隱藏
+  // v2.4.19: 每筆訂單獨立 + 帶時間戳 + 點處理直接 openEdit + 空 group 隱藏
   const list = document.getElementById('todo-list');
   const items = [];
   const now = new Date();
@@ -1342,7 +1342,7 @@ function renderTodos(){
     return;
   }
 
-  // v2.4.18 A ── 預設只展開「緊急處理」，其他用 <details> 折疊
+  // v2.4.19 A ── 預設只展開「緊急處理」，其他用 <details> 折疊
   list.innerHTML = '<div class="grid grid-cols-1 md:grid-cols-3 gap-3">' +
     visibleGroups.map(g => {
       const isUrgent = g.color === 'red';
@@ -1351,7 +1351,7 @@ function renderTodos(){
         '<summary class="font-bold text-sm mb-2 text-' + g.color + '-700 cursor-pointer select-none">' + g.label + ' <span class="text-xs">(' + g.items.length + ')</span> <span class="text-[10px] font-normal text-slate-400">點擊展開/收合</span></summary>' +
         g.items.map((it, i) => {
           const timeStr = it.time ? fmtJSTDateTime(it.time) : '';
-          // v2.4.18: 一行排版 — 客戶名 + ID 一行；下方時間+敘述合併一行
+          // v2.4.19: 一行排版 — 客戶名 + ID 一行；下方時間+敘述合併一行
           const shortTime = timeStr ? timeStr.replace(/^\d{4}\//, '').slice(0, 11) : ''; // MM/DD HH:MM
           return '<div class="text-xs py-1.5' + (i > 0 ? ' border-t border-' + g.color + '-200/40' : '') + '">' +
             '<div class="flex items-center gap-2">' +
@@ -1371,7 +1371,7 @@ function renderTodos(){
 }
 
 function renderHeat(){
-  // v2.4.18: 緊湊版 14 日熱圖 — 2 列 x 7 格小方塊（節省空間 4 倍）
+  // v2.4.19: 緊湊版 14 日熱圖 — 2 列 x 7 格小方塊（節省空間 4 倍）
   const list = document.getElementById('heat-list');
   const today = new Date(); today.setHours(0,0,0,0);
   const days = [];
@@ -1592,7 +1592,7 @@ function renderOrders(orders){
 
   const now = new Date();
   el.innerHTML = orders.map(o=>{
-    // v2.4.18: 退款 3 態判斷
+    // v2.4.19: 退款 3 態判斷
     const hasRefund = Number(o.refundAmount)>0;
     const refundDone = hasRefund && o.refundTime;        // 已完成匯款
     const refundProcessing = hasRefund && !o.refundTime; // 已確認金額待匯款
@@ -1974,7 +1974,7 @@ function renderFinance(){
 function initReconMonths(){
   const sel = document.getElementById('recon-month');
   if (!sel) return;
-  // v2.4.18: 每次都重建（不再用 cache 阻擋），並合併歷史檔案月份
+  // v2.4.19: 每次都重建（不再用 cache 阻擋），並合併歷史檔案月份
   const months = new Set();
   allOrders.forEach(o=>{ const m=bookingMonth(o); if(m) months.add(m); });
   // 加歷史檔案已關帳月份（從 window.__archivedMonthsList 取，由 loadArchivedList 設定）
@@ -2006,12 +2006,12 @@ function renderReconcile(){
     const expect = expectedDeposit(o);
     const got = Number(o.deposit)||0;
     const tc = totalCharge(o);
-    // v2.4.18 對帳狀態：
+    // v2.4.19 對帳狀態：
     //   matched   = 已收 ≥ 應收訂金 且 ≤ 體驗總額（合理範圍）
     //   partial   = 已收 < 應收訂金（少收 → 待店家現場收尾款，不算異常）
     //   overpaid  = 已收 > 體驗總額（真的超收 → 必須退款 / 處理）
     //   unmatched = 待確認 / 無訂金資料
-    // v2.4.18: 加 walk-in 偵測 — walk-in 訂單 deposit=0 但已確認也算對帳完成
+    // v2.4.19: 加 walk-in 偵測 — walk-in 訂單 deposit=0 但已確認也算對帳完成
     const isWalkIn = (o.platform === 'WALK_IN') ||
                      (String(o.source||'').toLowerCase().indexOf('walk-in@') === 0) ||
                      (String(o.introducer||'').toLowerCase().indexOf('walk-in@') === 0);
@@ -2044,7 +2044,7 @@ function renderReconcile(){
   if(!list.length){ tbl.innerHTML='<div class="text-center text-slate-600 py-8 font-semibold">本期無資料</div>'; return; }
 
   list.sort((a,b)=>{
-    // v2.4.18: 依使用者選擇排序
+    // v2.4.19: 依使用者選擇排序
     const sortMode = (document.getElementById('recon-sort')||{}).value || 'status-asc';
     const order = {overpaid:0, partial:1, unmatched:2, matched:3};
     const dateA = new Date(a.bookingDate||0).getTime() || 0;
@@ -2057,7 +2057,7 @@ function renderReconcile(){
     return new Date(b.bookingDate||0)-new Date(a.bookingDate||0);
   });
 
-  // v2.4.18: list 為空時提供有用引導
+  // v2.4.19: list 為空時提供有用引導
   if (!list.length) {
     const archivedSet = new Set(window.__archivedMonthsList || []);
     if (archivedSet.has(month)) {
@@ -2180,7 +2180,7 @@ function openEdit(orderId) {
   document.getElementById('e-rate').value = o.rate || '0.22';
   document.getElementById('e-refund-amt').value = o.refundAmount || '';
   document.getElementById('e-refund-date').value = (o.refundTime || '').slice(0,16);
-  // v2.4.18: 把 refundReason 拆成 4 個帳戶分欄 + 純原因
+  // v2.4.19: 把 refundReason 拆成 4 個帳戶分欄 + 純原因
   const reason = o.refundReason || '';
   const parsed = parseRefundReason(reason);
   document.getElementById('e-refund-bankcode').value = parsed.bankCode || '';
@@ -2225,7 +2225,7 @@ function injectAnomalyWarning(o){
 
   const exp = (typeof expectedDeposit === 'function') ? expectedDeposit(o) : 0;
   const got = Number(o.deposit) || 0;
-  // v2.4.18 只把「超收 (got > 體驗總額)」當異常
+  // v2.4.19 只把「超收 (got > 體驗總額)」當異常
   const tc = (typeof totalCharge==='function') ? totalCharge(o) : 0;
   if(o.bookingDate && tc > 0 && got > tc) {
     reasons.push('⚠ 訂金「超收」¥' + (got-tc).toLocaleString() + '（體驗總額 ¥' + tc.toLocaleString() + '，實收 ¥' + got.toLocaleString() + '）→ 必須退款');
@@ -2280,8 +2280,8 @@ function updateCalc() {
 // ============================================================
 // v2.4 月度關帳歸檔
 // ============================================================
-// v2.4.18: 一鍵填入退款時間
-// v2.4.18: 解析退款原因字串成 {bankCode, bankName, account, accountName, reason, hasBank}
+// v2.4.19: 一鍵填入退款時間
+// v2.4.19: 解析退款原因字串成 {bankCode, bankName, account, accountName, reason, hasBank}
 function parseRefundReason(text){
   const result = { bankCode:'', bankName:'', account:'', accountName:'', reason:'', hasBank:false };
   if (!text) return result;
@@ -2331,18 +2331,17 @@ function markRefundDone(){
   toast('已填入退款時間：' + local.replace('T', ' '), 'success');
 }
 
-// v2.4.18: 對帳說明燈箱
+// v2.4.19: 對帳說明燈箱
 function renderPermissions(){
-  // v2.4.18: 角色 × 權限 矩陣（Jun 可勾選編輯，存在 localStorage）
+  // v2.4.19: 改良版 X — toggle 開關 + 套用模板 + 一行 hover 高亮 + 篩選
   const roles = [
-    { id:'jun', name:'Jun (主管)', emoji:'👑' },
-    { id:'agent', name:'Ren / Amy (客服)', emoji:'👤' },
-    { id:'kyoto1', name:'京都清水寺店', emoji:'🏪' },
-    { id:'osaka1', name:'大阪日本橋店', emoji:'🏪' },
-    { id:'kyoto2', name:'京都祇園店', emoji:'🏪' },
-    { id:'tokyo1', name:'東京淺草寺店', emoji:'🏪' },
+    { id:'jun', name:'Jun', sub:'(主管)', emoji:'👑' },
+    { id:'agent', name:'Ren / Amy', sub:'(客服)', emoji:'👤' },
+    { id:'kyoto1', name:'京都清水寺', sub:'店家', emoji:'🏪' },
+    { id:'osaka1', name:'大阪日本橋', sub:'店家', emoji:'🏪' },
+    { id:'kyoto2', name:'京都祇園', sub:'店家', emoji:'🏪' },
+    { id:'tokyo1', name:'東京淺草寺', sub:'店家', emoji:'🏪' },
   ];
-  // 預設權限值（程式碼裡的 hardcode source of truth）
   const defaultPerms = [
     { id:'p01', name:'登入後台', jun:1, agent:1, store:1 },
     { id:'p02', name:'看儀表板', jun:1, agent:1, store:0 },
@@ -2360,80 +2359,165 @@ function renderPermissions(){
     { id:'p14', name:'🔓 解凍已關帳月份', jun:1, agent:0, store:0 },
     { id:'p15', name:'匯出 CSV', jun:1, agent:1, store:0 },
   ];
-  // localStorage 存使用者調整過的權限 overrides
   const overridesKey = 'admin_permissions_overrides';
   let overrides = {};
   try { overrides = JSON.parse(localStorage.getItem(overridesKey) || '{}'); } catch(e){}
+  // 暫存修改 (尚未存)
+  if (!window.__permPendingChanges) window.__permPendingChanges = {};
+  let pending = window.__permPendingChanges;
 
   const isStoreId = (id) => ['kyoto1','osaka1','kyoto2','tokyo1'].includes(id);
   const roleKey = (rid) => rid === 'jun' ? 'jun' : (rid === 'agent' ? 'agent' : 'store');
-  const getCan = (perm, role) => {
-    const ov = overrides[perm.id + '__' + roleKey(role.id)];
-    if (ov === 0 || ov === 1) return ov;
+  const getDefault = (perm, role) => {
     if (role.id === 'jun') return perm.jun;
     if (role.id === 'agent') return perm.agent;
     if (isStoreId(role.id)) return perm.store;
     return 0;
   };
-  const setOverride = (permId, rid, val) => {
-    overrides[permId + '__' + roleKey(rid)] = val;
-    localStorage.setItem(overridesKey, JSON.stringify(overrides));
+  const getEffective = (perm, role) => {
+    const k = perm.id + '__' + roleKey(role.id);
+    if (k in pending) return pending[k];
+    if (k in overrides) return overrides[k];
+    return getDefault(perm, role);
+  };
+  const isCustomized = (perm, role) => {
+    const k = perm.id + '__' + roleKey(role.id);
+    if (k in pending) return pending[k] !== getDefault(perm, role);
+    return (k in overrides) && overrides[k] !== getDefault(perm, role);
   };
 
   const canEdit = (currentAgent === 'Jun');
+  const filterMode = window.__permFilterMode || 'all';
 
-  // header
-  const thead = document.getElementById('permissions-thead');
-  thead.innerHTML = '<th style="min-width:220px">能做什麼 ↓</th>' +
-    roles.map(r => '<th class="text-center" style="min-width:90px">' + r.emoji + '<br><span class="text-xs">' + r.name + '</span></th>').join('');
-
-  // 上方加 controls
+  // 上方控制列（每次重繪重建）
+  const oldControls = document.getElementById('perm-controls');
+  if (oldControls) oldControls.remove();
   const tableEl = document.getElementById('permissions-table');
-  if (tableEl && !document.getElementById('perm-controls')) {
+  if (tableEl) {
     const controls = document.createElement('div');
     controls.id = 'perm-controls';
-    controls.className = 'mb-3 flex justify-between items-center flex-wrap gap-2';
-    controls.innerHTML = '<div class="text-sm text-slate-700">' + (canEdit ?
-      '<span class="text-emerald-700 font-bold">✏️ 你能編輯</span>　點 ✅/❌ 切換權限' :
-      '<span class="text-slate-500">🔒 唯讀模式（只有 Jun 能編輯）</span>') + '</div>' +
-      (canEdit ? '<button onclick="resetPermissionOverrides()" class="btn-outline px-3 py-1.5 rounded-lg text-xs">↺ 重置為預設</button>' : '');
+    controls.className = 'mb-3 flex flex-wrap items-center justify-between gap-2';
+    const pendingCount = Object.keys(pending).length;
+    controls.innerHTML =
+      '<div class="flex items-center gap-3 flex-wrap">' +
+        '<div class="flex gap-1 text-xs">' +
+          '<button onclick="setPermFilter(\'all\',this)" class="tab-btn ' + (filterMode==='all'?'active':'') + ' !text-xs">全部</button>' +
+          '<button onclick="setPermFilter(\'custom\',this)" class="tab-btn ' + (filterMode==='custom'?'active':'') + ' !text-xs">✏️ 已自訂</button>' +
+        '</div>' +
+        (canEdit ? '<select onchange="applyPermTemplate(this.value);this.value=\'\'" class="text-xs border border-slate-200 rounded px-2 py-1">' +
+          '<option value="">📋 套用模板…</option>' +
+          '<option value="default">↺ 全部回到預設</option>' +
+          '<option value="agent_admin">給客服月度關帳權限</option>' +
+          '<option value="agent_full">給客服全部後台權限</option>' +
+          '<option value="store_view">給店家看訂單管理</option>' +
+        '</select>' : '') +
+      '</div>' +
+      '<div class="flex items-center gap-2">' +
+        '<span class="text-xs ' + (pendingCount > 0 ? 'text-amber-700 font-bold' : 'text-slate-400') + '">' +
+          (pendingCount > 0 ? '● ' + pendingCount + ' 項待儲存' : '已同步') +
+        '</span>' +
+        (canEdit ? '<button onclick="savePermissionChanges()" ' + (pendingCount === 0 ? 'disabled' : '') +
+          ' class="px-3 py-1.5 ' + (pendingCount > 0 ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-slate-200 text-slate-400') + ' rounded-lg text-xs font-bold">💾 儲存所有變更</button>' +
+          '<button onclick="discardPermissionChanges()" class="btn-outline px-2 py-1.5 rounded-lg text-xs">↺ 取消未存</button>' : '') +
+      '</div>';
     tableEl.parentElement.insertBefore(controls, tableEl);
   }
 
+  // header
+  const thead = document.getElementById('permissions-thead');
+  thead.innerHTML = '<th class="text-left py-2" style="min-width:200px">能做什麼</th>' +
+    roles.map(r => '<th class="text-center py-2" style="min-width:100px">' + r.emoji + '<br><span class="text-[11px] font-bold">' + r.name + '</span><br><span class="text-[9px] text-slate-400 font-normal">' + r.sub + '</span></th>').join('');
+
   // body
   const tbody = document.getElementById('permissions-tbody');
-  tbody.innerHTML = defaultPerms.map(p =>
-    '<tr><td class="font-semibold">' + p.name + '</td>' +
-    roles.map(r => {
-      const can = getCan(p, r);
-      const isMe = (currentAgent === 'Jun' && r.id === 'jun') ||
-                   (currentRole === 'agent' && currentAgent !== 'Jun' && r.id === 'agent') ||
-                   (currentRole === 'store' && r.id === currentStoreKey);
-      const ov = overrides[p.id + '__' + roleKey(r.id)];
-      const isOverridden = (ov === 0 || ov === 1);
-      const cellBg = isMe ? 'bg-blue-50' : (isOverridden ? 'bg-amber-50' : '');
-      const ovBadge = isOverridden ? '<span class="absolute top-0 right-0 text-[8px] text-amber-600">●</span>' : '';
-      const editable = canEdit ? 'cursor-pointer hover:bg-amber-100/70' : '';
-      const onclick = canEdit ? 'onclick="togglePermission(\''+p.id+'\',\''+r.id+'\',this)"' : '';
-      return '<td class="text-center text-lg relative ' + cellBg + ' ' + editable + '" ' + onclick + '>' + (can ? '✅' : '<span class="text-slate-300">❌</span>') + ovBadge + '</td>';
-    }).join('') + '</tr>'
-  ).join('');
+  const visiblePerms = filterMode === 'custom'
+    ? defaultPerms.filter(p => roles.some(r => isCustomized(p, r)))
+    : defaultPerms;
+  if (visiblePerms.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="' + (roles.length+1) + '" class="text-center py-6 text-slate-500">尚無自訂權限</td></tr>';
+    return;
+  }
+  tbody.innerHTML = visiblePerms.map((p, ri) => {
+    const rowBg = ri % 2 === 1 ? 'bg-slate-50' : '';
+    return '<tr class="' + rowBg + ' hover:bg-blue-50/40 transition-colors"><td class="py-2 px-3 font-semibold">' + p.name + '</td>' +
+      roles.map(r => {
+        const eff = getEffective(p, r);
+        const customized = isCustomized(p, r);
+        const isMe = (currentAgent === 'Jun' && r.id === 'jun') ||
+                     (currentRole === 'agent' && currentAgent !== 'Jun' && r.id === 'agent') ||
+                     (currentRole === 'store' && r.id === currentStoreKey);
+        const k = p.id + '__' + roleKey(r.id);
+        const inputAttrs = canEdit ? 'onchange="togglePermission(\''+p.id+'\',\''+r.id+'\',this.checked)"' : 'disabled';
+        const cellBg = isMe ? 'bg-blue-100/40' : '';
+        const dot = customized ? '<span class="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-amber-500 rounded-full"></span>' : '';
+        return '<td class="py-1.5 px-3 text-center ' + cellBg + '">' +
+          '<label class="relative inline-flex items-center cursor-pointer">' +
+            '<input type="checkbox" class="sr-only peer" ' + (eff ? 'checked' : '') + ' ' + inputAttrs + '>' +
+            '<div class="w-9 h-5 bg-slate-300 rounded-full peer-checked:bg-emerald-500 transition-colors relative">' +
+              '<div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4"></div>' +
+              dot +
+            '</div>' +
+          '</label>' +
+        '</td>';
+      }).join('') + '</tr>';
+  }).join('');
 }
 
-function togglePermission(permId, roleId, cell){
-  // v2.4.18: Jun 點擊權限格子切換 (存到 localStorage，不會即時生效)
+// v2.4.19 #4 改良版 — 改 pending 暫存，等用戶按「儲存所有變更」
+function togglePermission(permId, roleId, isChecked){
   if (currentAgent !== 'Jun') return;
-  const overridesKey = 'admin_permissions_overrides';
+  if (!window.__permPendingChanges) window.__permPendingChanges = {};
+  const rk = roleId === 'jun' ? 'jun' : (roleId === 'agent' ? 'agent' : 'store');
+  window.__permPendingChanges[permId + '__' + rk] = isChecked ? 1 : 0;
+  renderPermissions();
+}
+
+function setPermFilter(mode, btn){
+  window.__permFilterMode = mode;
+  renderPermissions();
+}
+
+function applyPermTemplate(tmpl){
+  if (!tmpl || currentAgent !== 'Jun') return;
+  if (!window.__permPendingChanges) window.__permPendingChanges = {};
+  const p = window.__permPendingChanges;
+  if (tmpl === 'default') {
+    if (!confirm('確認重置所有自訂權限為系統預設？(這會清掉所有客製，但要按「儲存」才會生效)')) return;
+    // 把所有 overrides 也清掉
+    Object.keys(JSON.parse(localStorage.getItem('admin_permissions_overrides')||'{}')).forEach(k => p[k] = '_DELETE_');
+  } else if (tmpl === 'agent_admin') {
+    p['p13__agent'] = 1; p['p14__agent'] = 1;
+    toast('套用：給客服月度關帳 + 解凍權限 (記得儲存)', 'info');
+  } else if (tmpl === 'agent_full') {
+    ['p02','p03','p06','p07','p08','p09','p10','p11','p12','p13','p14','p15'].forEach(pid => p[pid+'__agent'] = 1);
+    toast('套用：給客服全部後台權限 (記得儲存)', 'info');
+  } else if (tmpl === 'store_view') {
+    ['p02','p03','p06','p07','p08','p09'].forEach(pid => p[pid+'__store'] = 1);
+    toast('套用：給店家看訂單管理 + 客戶 + 對帳 (記得儲存)', 'info');
+  }
+  renderPermissions();
+}
+
+function savePermissionChanges(){
+  if (currentAgent !== 'Jun') return;
+  const pending = window.__permPendingChanges || {};
+  if (Object.keys(pending).length === 0) return;
   let overrides = {};
-  try { overrides = JSON.parse(localStorage.getItem(overridesKey) || '{}'); } catch(e){}
-  const roleKey = roleId === 'jun' ? 'jun' : (roleId === 'agent' ? 'agent' : 'store');
-  const k = permId + '__' + roleKey;
-  // 切換值（如果沒 override 就以當前顯示反向）
-  const isOn = cell.textContent.trim().startsWith('✅');
-  overrides[k] = isOn ? 0 : 1;
-  localStorage.setItem(overridesKey, JSON.stringify(overrides));
-  toast('已記錄 ' + (isOn ? '取消' : '勾選') + '：' + permId + '_' + roleKey + '（暫存於本機，待下次系統更新生效）', 'info');
-  renderPermissions(); // 重繪
+  try { overrides = JSON.parse(localStorage.getItem('admin_permissions_overrides') || '{}'); } catch(e){}
+  Object.entries(pending).forEach(([k, v]) => {
+    if (v === '_DELETE_') delete overrides[k];
+    else overrides[k] = v;
+  });
+  localStorage.setItem('admin_permissions_overrides', JSON.stringify(overrides));
+  window.__permPendingChanges = {};
+  toast('✅ 已儲存 ' + Object.keys(pending).length + ' 項權限調整 (本機暫存，需通知 Jun 更新程式碼才會生效)', 'success');
+  renderPermissions();
+}
+
+function discardPermissionChanges(){
+  window.__permPendingChanges = {};
+  toast('已捨棄未儲存的變更', 'info');
+  renderPermissions();
 }
 
 function resetPermissionOverrides(){
@@ -2446,8 +2530,8 @@ function resetPermissionOverrides(){
   renderPermissions();
 }
 
-// v2.4.18 F ── 一鍵預檢上月關帳（Jun 限）
-async // v2.4.18 E ── 待辦過濾 (全部 / 我的)
+// v2.4.19 F ── 一鍵預檢上月關帳（Jun 限）
+async // v2.4.19 E ── 待辦過濾 (全部 / 我的)
 let currentTodoFilter = 'all';
 function setTodoFilter(f, btn){
   currentTodoFilter = f;
@@ -2456,7 +2540,7 @@ function setTodoFilter(f, btn){
   renderTodos();
 }
 
-async // v2.4.18 G ── 月度營收趨勢圖
+async // v2.4.19 G ── 月度營收趨勢圖
 let __trendChart = null;
 function renderTrendChart(){
   if (typeof Chart === 'undefined') return;
@@ -2526,7 +2610,7 @@ async function quickPreCheckClose(){
 }
 
 function showMyPermissions(){
-  // v2.4.18: 顯示當前用戶的角色與權限
+  // v2.4.19: 顯示當前用戶的角色與權限
   const isJun = currentAgent === 'Jun';
   const isAgent = currentRole === 'agent';
   const isStore = currentRole === 'store';
@@ -2583,7 +2667,7 @@ async function openCloseMonthDialog() {
   if (currentAgent !== 'Jun') { toast('只有 Jun 可以執行關帳', 'error'); return; }
   const month = document.getElementById('recon-month').value;
   if (!month || month === 'all') { toast('請先選擇一個月份', 'warning'); return; }
-  // v2.4.18: 防呆（理論上下拉已 disable，這裡僅 safety net）
+  // v2.4.19: 防呆（理論上下拉已 disable，這裡僅 safety net）
   const now = new Date();
   const currentMonth = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
   if (month >= currentMonth) { toast('未到月份不能關帳', 'error'); return; }
@@ -2626,7 +2710,7 @@ async function loadArchivedList() {
     const d = await res.json();
     if (d.status !== 'ok') { list.innerHTML = '<div class="text-center text-red-500 py-6">' + (d.message || '載入失敗') + '</div>'; return; }
     const months = d.months || [];
-    // v2.4.18: 把已關帳月份清單存到全域，供 initReconMonths 合併
+    // v2.4.19: 把已關帳月份清單存到全域，供 initReconMonths 合併
     window.__archivedMonthsList = months.map(m => normMonth(m.month));
     if (!months.length) { list.innerHTML = '<div class="text-center text-slate-500 py-6 font-semibold">尚未關帳任何月份</div>'; return; }
     list.innerHTML = months.map(m =>
@@ -2645,7 +2729,7 @@ async function loadArchivedList() {
 
 let currentArchiveMonth = null;
 async function showArchivedMonth(month) {
-  // v2.4.18: month 從 Sheets 撈出可能是 ISO 字串，正規化成 YYYY-MM
+  // v2.4.19: month 從 Sheets 撈出可能是 ISO 字串，正規化成 YYYY-MM
   month = normMonth(month);
   currentArchiveMonth = month;
   const detail = document.getElementById('archive-detail');
@@ -2723,7 +2807,7 @@ function saveOrder() {
       btn.textContent = '💾 儲存變更'; btn.disabled = false;
       if (data.status === 'unauthorized') { showLogin(); return; }
       if (data.status === 'ok' || data.status === 'success') {
-        // v2.4.18: 統一只用 toast、不在 modal 顯示 ✅（避免雙重提示）
+        // v2.4.19: 統一只用 toast、不在 modal 顯示 ✅（避免雙重提示）
         const savedId = editingOrder.orderId;
         msg.textContent = '正在重新載入…';
         msg.className = 'text-center text-sm mt-3 text-slate-600';
@@ -2833,7 +2917,7 @@ document.getElementById('global-search')?.addEventListener('input', (e)=>{
     }
   });
 })();
-console.log('%c[v2.4.18] global search ready','color:#1A365D;font-weight:bold');
+console.log('%c[v2.4.19] global search ready','color:#1A365D;font-weight:bold');
 
 /* === v2.2.1 假訂單過濾（月份標題列等不完整資料） === */
 window.__isFakeOrder = function(o){
@@ -2995,7 +3079,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // v2.4 Walk-in 月結對帳
 // ============================================================
 function buildWalkinMonthSelect() {
-  // v2.4.18: 只列「實際有 walk-in 訂單」的月份
+  // v2.4.19: 只列「實際有 walk-in 訂單」的月份
   const sel = document.getElementById('walkin-month');
   if (!sel) return;
   const months = new Set();
@@ -3519,7 +3603,7 @@ window.applyRolePermissions = function() {
         </label>
       </div>
 
-      <!-- v2.4.18: 活動折扣（預設無折，5:5 拆帳） -->
+      <!-- v2.4.19: 活動折扣（預設無折，5:5 拆帳） -->
       <div>
         <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">活動折扣</label>
         <div class="grid grid-cols-4 gap-2">
