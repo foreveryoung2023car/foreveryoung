@@ -189,7 +189,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
       <div class="min-w-0 hidden xs:block sm:block">
         <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
-        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.24</div>
+        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.25</div>
       </div>
     </div>
     <div id="global-search-wrap" class="md:flex flex-1 max-w-md" style="display:none">
@@ -252,8 +252,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
   <section id="sec-dashboard" class="section active">
     <!-- v2.4.21 部署驗證橫幅（確認新版有上線） -->
     <div class="mb-3 px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between text-sm">
-      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.24</span>
-      <span class="text-emerald-700 text-xs">部署時間：2026-05-05 · 修檔案被截斷的語法錯誤 (v2.4.24)</span>
+      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.25</span>
+      <span class="text-emerald-700 text-xs">部署時間：2026-05-05 · 修 renderTodos 的 _allOrders typo bug (v2.4.25)</span>
     </div>
     <div class="flex justify-between items-end mb-5 flex-wrap gap-2">
       <div>
@@ -1383,7 +1383,7 @@ function renderTodos(){
   const now = new Date();
 
   // 1) 客人剛提交退款 (refundReason 含銀行/帳號 + refundAmount=0)
-  _allOrders.forEach(o => {
+  allOrders.forEach(o => {
     const hasBank = /銀行[:：]|帳號[:：]/.test(o.refundReason||'');
     if (hasBank && !(Number(o.refundAmount) > 0)) {
       items.push({type:'urgent', icon:'💸', orderId:o.orderId, name:o.name||'—',
@@ -1393,7 +1393,7 @@ function renderTodos(){
   });
 
   // 2) 訂金超收
-  _allOrders.forEach(o => {
+  allOrders.forEach(o => {
     const tc = totalCharge(o); const got = Number(o.deposit)||0;
     if (o.bookingDate && tc>0 && got>tc && !(Number(o.refundAmount)>0)) {
       items.push({type:'urgent', icon:'🧾', orderId:o.orderId, name:o.name||'—',
@@ -1403,7 +1403,7 @@ function renderTodos(){
   });
 
   // 3) 待確認超過 24 小時
-  _allOrders.forEach(o => {
+  allOrders.forEach(o => {
     if (o.confirmed) return;
     const c = o.createdAt || o.submitDate;
     if (!c) return;
@@ -1418,7 +1418,7 @@ function renderTodos(){
   });
 
   // 4) 退款處理中（已填金額 + 沒填時間）
-  _allOrders.forEach(o => {
+  allOrders.forEach(o => {
     if (Number(o.refundAmount)>0 && !o.refundTime) {
       items.push({type:'warn', icon:'↩', orderId:o.orderId, name:o.name||'—',
         text:'退款 ¥'+Number(o.refundAmount).toLocaleString()+' 已確認待匯款',
@@ -1429,7 +1429,7 @@ function renderTodos(){
 
   // 5) 明日預約
   const tomorrow = new Date(now); tomorrow.setDate(now.getDate()+1);
-  _allOrders.forEach(o => {
+  allOrders.forEach(o => {
     const d = new Date(o.bookingDate);
     if (!isNaN(d) && d.toDateString() === tomorrow.toDateString()) {
       items.push({type:'warn', icon:'📅', orderId:o.orderId, name:o.name||'—',
@@ -1440,7 +1440,7 @@ function renderTodos(){
   });
 
   // 6) 訂單資料不完整
-  _allOrders.forEach(o => {
+  allOrders.forEach(o => {
     if (!isAnomaly(o)) return;
     const missing = [];
     if (!o.name) missing.push('姓名');
