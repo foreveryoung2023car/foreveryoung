@@ -189,7 +189,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
       <div class="min-w-0 hidden xs:block sm:block">
         <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
-        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.22</div>
+        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.23</div>
       </div>
     </div>
     <div id="global-search-wrap" class="md:flex flex-1 max-w-md" style="display:none">
@@ -252,8 +252,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
   <section id="sec-dashboard" class="section active">
     <!-- v2.4.21 部署驗證橫幅（確認新版有上線） -->
     <div class="mb-3 px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between text-sm">
-      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.22</span>
-      <span class="text-emerald-700 text-xs">部署時間：2026-05-05 · 修死迴圈 bug (async typo) (v2.4.22)</span>
+      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.23</span>
+      <span class="text-emerald-700 text-xs">部署時間：2026-05-05 · fetch 防呆 timeout + cookie 清除 (v2.4.23)</span>
     </div>
     <div class="flex justify-between items-end mb-5 flex-wrap gap-2">
       <div>
@@ -791,6 +791,71 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 
 <script>
 const GAS_URL = typeof KIMONO_CONFIG !== 'undefined' ? KIMONO_CONFIG.APPS_SCRIPT_URL : '';
+
+// ============================================================
+// v2.4.23: GAS fetch 防呆 — timeout + cache-bust + 失敗 UI
+// 解決：Chrome 對 googleusercontent.com 的 stale cookie 造成
+//       fetch 永遠 pending 卡死「載入資料」轉圈圈問題
+// ============================================================
+(function patchFetchForGAS() {
+  const _origFetch = window.fetch.bind(window);
+  let __stuckShown = false;
+  window.fetch = function(input, init) {
+    const url = typeof input === 'string' ? input : (input && input.url) || '';
+    if (url && url.indexOf('script.google.com') !== -1) {
+      // 1) 加 cache-bust 強制每次拿新資料
+      const cbUrl = url + (url.indexOf('?') !== -1 ? '&' : '?') + '_cb=' + Date.now();
+      // 2) 加 8 秒 timeout，超時自動 abort
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 8000);
+      const newInit = Object.assign({}, init || {}, {
+        signal: ctrl.signal,
+        cache: 'no-store',
+        credentials: 'omit'  // 不送 Google session cookie，避免 redirect loop
+      });
+      return _origFetch(cbUrl, newInit).then(r => {
+        clearTimeout(timer);
+        return r;
+      }).catch(e => {
+        clearTimeout(timer);
+        if (e.name === 'AbortError' && !__stuckShown) {
+          __stuckShown = true;
+          if (typeof showFetchStuckUI === 'function') showFetchStuckUI();
+        }
+        throw e;
+      });
+    }
+    return _origFetch(input, init);
+  };
+})();
+
+function showFetchStuckUI() {
+  const ov = document.getElementById('loading-overlay');
+  if (!ov) return;
+  ov.classList.remove('hidden');
+  ov.innerHTML = '<div class="text-center bg-white p-8 rounded-2xl shadow-2xl max-w-md mx-4">' +
+    '<div class="text-5xl mb-3">⚠️</div>' +
+    '<div class="text-lg font-bold text-red-600 mb-2">連線到後台超時</div>' +
+    '<div class="text-sm text-slate-600 mb-4 leading-relaxed">通常是 Google cookie 卡住<br>清掉就會立刻好</div>' +
+    '<button onclick="clearGoogleCookieAndReload()" class="btn-navy px-6 py-3 rounded-lg w-full mb-2">🔄 清 cookie 並重新整理</button>' +
+    '<button onclick="location.reload()" class="px-6 py-2 rounded-lg w-full text-sm border border-slate-300 hover:bg-slate-50">只重新整理（不清 cookie）</button>' +
+    '<div class="text-xs text-slate-400 mt-3">無痕模式 (Ctrl+Shift+N) 也可以避開</div>' +
+    '</div>';
+}
+
+function clearGoogleCookieAndReload() {
+  // 清掉所有同源 cookie
+  document.cookie.split(';').forEach(function(c) {
+    const eq = c.indexOf('=');
+    const name = (eq > -1 ? c.substring(0, eq) : c).trim();
+    if (!name) return;
+    const expire = ';expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+    document.cookie = name + '=' + expire;
+    document.cookie = name + '=' + expire + ';domain=' + location.hostname;
+  });
+  alert('Cookie 已清除，按確定後會重整\n如果還是卡住，請改用無痕視窗 (Ctrl+Shift+N)');
+  setTimeout(() => location.reload(true), 100);
+}
 const DEPOSIT_JPY = (typeof KIMONO_CONFIG !== 'undefined' && KIMONO_CONFIG.DEPOSIT_JPY) ? Number(KIMONO_CONFIG.DEPOSIT_JPY) : 1000;
 let currentAgent = '';
 let adminToken = '';
@@ -3671,54 +3736,4 @@ window.applyRolePermissions = function() {
 
 </script>
 
-<!-- v2.4: 新增現場訂單 FAB -->
-<button id="walkInFab" onclick="openWalkInModal()" class="hidden fixed bottom-6 right-6 z-40 bg-[#1A365D] text-white px-5 py-4 rounded-full shadow-2xl font-bold text-base flex items-center gap-2 hover:bg-blue-900 active:scale-95 transition-transform" style="box-shadow:0 8px 24px rgba(26,54,93,0.35)">
-  <span class="text-xl">＋</span>
-  <span class="font-sans">現場新增</span>
-</button>
-
-<!-- v2.4: Walk-in 新增訂單 Modal -->
-<div class="modal-bg" id="walkInModal">
-  <div class="modal-body" style="max-height:96vh">
-    <div class="modal-handle"></div>
-    <div class="flex justify-between items-start mb-3">
-      <div>
-        <div class="text-[10px] text-slate-400 uppercase tracking-[0.4em] font-sans mb-1">WALK-IN ORDER</div>
-        <div class="text-xl font-bold text-[#1A365D] font-sans">🆕 現場新增訂單</div>
-      </div>
-      <button onclick="closeWalkInModal()" class="text-2xl text-slate-400 hover:text-slate-700">×</button>
-    </div>
-
-    <div class="space-y-4">
-      <!-- 客人基本資料 -->
-      <div>
-        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">姓名 <span class="text-pink-500">*</span></label>
-        <input id="wi-name" class="w-full border-2 border-slate-200 focus:border-[#1A365D] outline-none rounded-lg px-3 py-2.5 text-base font-sans" placeholder="客人姓名（中文/拼音）">
-      </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">電話</label>
-          <input id="wi-phone" class="w-full border-2 border-slate-200 focus:border-[#1A365D] outline-none rounded-lg px-3 py-2.5 text-base font-sans" placeholder="可選 / 國際號碼">
-        </div>
-        <div>
-          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">國籍</label>
-          <select id="wi-nationality" class="w-full border-2 border-slate-200 focus:border-[#1A365D] outline-none rounded-lg px-3 py-2.5 text-base font-sans bg-white">
-            <option value="台灣">🇹🇼 台灣</option>
-            <option value="香港">🇭🇰 香港</option>
-            <option value="日本">🇯🇵 日本</option>
-            <option value="韓國">🇰🇷 韓國</option>
-            <option value="新加坡">🇸🇬 新加坡</option>
-            <option value="馬來西亞">🇲🇾 馬來西亞</option>
-            <option value="印尼">🇮🇩 印尼</option>
-            <option value="越南">🇻🇳 越南</option>
-            <option value="澳洲">🇦🇺 澳洲</option>
-            <option value="美國">🇺🇸 美國</option>
-            <option value="其他">其他</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- 人數 -->
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">�
+<!-
