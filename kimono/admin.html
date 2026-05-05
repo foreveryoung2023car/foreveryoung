@@ -189,7 +189,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
       <div class="min-w-0 hidden xs:block sm:block">
         <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
-        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.25</div>
+        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.26</div>
       </div>
     </div>
     <div id="global-search-wrap" class="md:flex flex-1 max-w-md" style="display:none">
@@ -252,8 +252,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
   <section id="sec-dashboard" class="section active">
     <!-- v2.4.21 部署驗證橫幅（確認新版有上線） -->
     <div class="mb-3 px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between text-sm">
-      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.25</span>
-      <span class="text-emerald-700 text-xs">部署時間：2026-05-05 · 修 renderTodos 的 _allOrders typo bug (v2.4.25)</span>
+      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.26</span>
+      <span class="text-emerald-700 text-xs">部署時間：2026-05-05 · 天氣 widget 改氣象台矩陣風格 (v2.4.26)</span>
     </div>
     <div class="flex justify-between items-end mb-5 flex-wrap gap-2">
       <div>
@@ -3172,28 +3172,62 @@ function renderWeather(results){
     const fetchedEl = document.getElementById('weather-fetched-at');
     if (fetchedEl) fetchedEl.textContent = m + '/' + d + ' ' + hh + ':' + mm + ' (本地時間)';
   } catch(_){}
+
+  // v2.4.26: 氣象台風格 — 日期 column 共用，各城市一 row
   const mdLabels = ['一','二','三','四','五','六','日'];
-  container.innerHTML = results.map(r=>{
+  // 取共用的日期 (用第一個有資料的城市的時間軸，預設 7 天)
+  const firstCity = results.find(r => r.daily && r.daily.time);
+  if (!firstCity) {
+    container.innerHTML = '<div class="text-red-500 text-center py-4">無天氣資料</div>';
+    return;
+  }
+  const dates = firstCity.daily.time.slice(0, 7);
+
+  // Header row: city label cell + date cells
+  let html = '<div class="bg-white border border-slate-100 rounded-lg overflow-x-auto"><table class="w-full text-sm" style="border-collapse:collapse">';
+  // Header
+  html += '<thead><tr>';
+  html += '<th class="text-left px-3 py-2 bg-slate-50 sticky left-0 text-[11px] font-bold text-slate-500 uppercase tracking-wider" style="min-width:60px">地點</th>';
+  dates.forEach((iso, i) => {
+    const dt = new Date(iso);
+    const isToday = i === 0;
+    const md = mdLabels[(dt.getDay()+6)%7];
+    html += '<th class="text-center px-2 py-2 ' + (isToday?'bg-amber-50':'bg-slate-50') + '" style="min-width:54px">';
+    html += '<div class="text-[11px] font-bold ' + (isToday?'text-amber-700':'text-slate-700') + '">' + (isToday?'今':(dt.getMonth()+1)+'/'+dt.getDate()) + '</div>';
+    html += '<div class="text-[10px] text-slate-500 font-normal">' + md + '</div>';
+    html += '</th>';
+  });
+  html += '</tr></thead>';
+
+  // Body rows: one per city
+  html += '<tbody>';
+  results.forEach((r, rowIdx) => {
     const d = r.daily;
-    if(!d) return '<div class="bg-white border border-slate-100 rounded-lg p-3"><div class="font-bold text-[#1A365D]">'+r.city+'</div><div class="text-xs text-red-400">無資料</div></div>';
-    const days = d.time.map((iso,i)=>{
-      const dt = new Date(iso);
-      const md = mdLabels[(dt.getDay()+6)%7];
-      const isToday = i===0;
-      return '<div class="flex flex-col items-center px-1.5 py-2 rounded '+(isToday?'bg-amber-50 border border-amber-200':'bg-slate-50')+'">'+
-        '<div class="text-[11px] text-slate-700 font-bold">'+(isToday?'今':(dt.getMonth()+1)+'/'+dt.getDate())+'</div>'+
-        '<div class="text-[10px] text-slate-500">'+md+'</div>'+
-        '<div class="text-2xl my-1" title="'+wxLabel(d.weathercode[i])+'">'+wxIcon(d.weathercode[i])+'</div>'+
-        '<div class="text-[11px] font-bold text-rose-600">'+Math.round(d.temperature_2m_max[i])+'°</div>'+
-        '<div class="text-[11px] text-blue-600">'+Math.round(d.temperature_2m_min[i])+'°</div>'+
-        (d.precipitation_probability_max[i]>=20? '<div class="text-[10px] text-blue-500 mt-0.5">💧'+d.precipitation_probability_max[i]+'%</div>':'')+
-        '</div>';
-    }).join('');
-    return '<div class="bg-white border border-slate-100 rounded-lg p-3">'+
-      '<div class="font-bold text-[#1A365D] mb-2">📍 '+r.city+'</div>'+
-      '<div class="grid grid-cols-7 gap-1">'+days+'</div>'+
-      '</div>';
-  }).join('');
+    html += '<tr class="border-t border-slate-100">';
+    // City name cell
+    html += '<td class="px-3 py-2 sticky left-0 bg-white font-bold text-[#1A365D] text-sm" style="min-width:60px">📍 ' + r.city + '</td>';
+    if (!d) {
+      html += '<td colspan="' + dates.length + '" class="text-center text-xs text-red-400 py-2">無資料</td>';
+    } else {
+      d.time.slice(0, 7).forEach((iso, i) => {
+        const isToday = i === 0;
+        const code = d.weathercode[i];
+        const tmax = Math.round(d.temperature_2m_max[i]);
+        const tmin = Math.round(d.temperature_2m_min[i]);
+        const pop = d.precipitation_probability_max[i];
+        html += '<td class="text-center px-1 py-2 ' + (isToday?'bg-amber-50/40':'') + '" title="' + wxLabel(code) + '">';
+        html += '<div class="text-xl leading-none mb-1">' + wxIcon(code) + '</div>';
+        html += '<div class="text-[11px] font-bold leading-tight"><span class="text-rose-600">' + tmax + '°</span><span class="text-slate-400 mx-0.5">/</span><span class="text-blue-600">' + tmin + '°</span></div>';
+        if (pop >= 20) html += '<div class="text-[10px] text-blue-500 mt-0.5">💧' + pop + '%</div>';
+        html += '</td>';
+      });
+    }
+    html += '</tr>';
+  });
+  html += '</tbody></table></div>';
+  // Override grid layout: take full width, no internal grid
+  container.className = 'text-sm';
+  container.innerHTML = html;
 }
 // Auto-load on dashboard show or initial load
 document.addEventListener('DOMContentLoaded', () => {
