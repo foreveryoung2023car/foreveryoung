@@ -174,6 +174,33 @@
 .text-white\/60{ color: rgba(255,255,255,0.78) !important; }
 .text-white\/70{ color: rgba(255,255,255,0.85) !important; }
 input.input-field, textarea.input-field, select.input-field { font-size: 15px !important; }
+
+/* === v2.4.33 實體開關 toggle (擺脫 Tailwind CDN peer 不穩定問題) === */
+.perm-switch{ position:relative; display:inline-block; width:44px; height:24px; flex-shrink:0; }
+.perm-switch input{ opacity:0; width:0; height:0; position:absolute; }
+.perm-switch .track{
+  position:absolute; inset:0; cursor:pointer;
+  background:#CBD5E1; border-radius:9999px; transition:background .25s ease;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.12);
+}
+.perm-switch .thumb{
+  position:absolute; top:2px; left:2px; width:20px; height:20px;
+  background:#fff; border-radius:9999px; transition:transform .25s ease, box-shadow .25s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25), 0 1px 2px rgba(0,0,0,0.15);
+}
+.perm-switch input:checked + .track{ background:#10B981; }
+.perm-switch input:checked + .track .thumb{ transform: translateX(20px); }
+.perm-switch input:disabled + .track{ cursor: not-allowed; opacity:0.55; }
+.perm-switch .custom-dot{
+  position:absolute; top:-3px; right:-3px; width:8px; height:8px;
+  background:#F59E0B; border-radius:9999px; box-shadow: 0 0 0 2px #fff;
+}
+
+/* === v2.4.33 modal 共用 === */
+.todo-modal-bg{ position:fixed; inset:0; background:rgba(15,23,42,0.55); z-index:9999; display:flex; align-items:center; justify-content:center; padding:1rem; }
+.todo-modal-card{ background:#fff; border-radius:14px; max-width:640px; width:100%; max-height:80vh; display:flex; flex-direction:column; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35); }
+.todo-modal-head{ padding:14px 18px; border-bottom:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center; }
+.todo-modal-body{ padding:12px 18px; overflow-y:auto; flex:1; }
 </style>
 </head>
 <body class="min-h-screen" style="overflow-x:hidden">
@@ -184,18 +211,18 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 <div class="petal" style="width:7px;height:7px;background:#fce7f3;left:85%;animation-duration:20s;animation-delay:2s;top:-20px"></div>
 
 <nav class="admin-nav shadow-lg sticky top-0 z-40">
-  <div class="max-w-[1500px] mx-auto px-2 md:px-4 py-2 md:py-3 flex items-center justify-between gap-2 md:gap-4">
+  <div class="max-w-[1500px] mx-auto px-1.5 md:px-3 py-2 md:py-3 flex items-center justify-between gap-1.5 md:gap-3">
     <div class="flex items-center gap-2 flex-shrink-0 min-w-0">
       <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
       <div class="min-w-0 hidden xs:block sm:block">
         <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
-        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.32</div>
+        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.33</div>
       </div>
     </div>
     <div id="global-search-wrap" class="md:flex flex-1 max-w-md" style="display:none">
       <div class="relative w-full">
-        <input id="global-search" name="global_search_kimono" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="w-full bg-white/15 border border-white/30 text-white placeholder-white/70 rounded-lg px-9 py-2 text-sm focus:bg-white/25 focus:outline-none" placeholder="🔍 全站搜尋訂單號 / 姓名 / 電話">
-        <kbd class="absolute right-2 top-2 text-[11px] text-white/60 border border-white/30 px-1.5 rounded">Ctrl+K</kbd>
+        <input id="global-search" name="global_search_kimono" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="w-full bg-white/15 border border-white/30 text-white placeholder-white/70 rounded-lg pl-3 pr-12 lg:pr-16 py-2 text-sm focus:bg-white/25 focus:outline-none" placeholder="🔍 搜尋訂單">
+        <kbd class="absolute right-2 top-2 text-[11px] text-white/60 border border-white/30 px-1.5 rounded hidden lg:inline-block">Ctrl+K</kbd>
       </div>
     </div>
     <div class="flex items-center gap-3 flex-shrink-0">
@@ -252,8 +279,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
   <section id="sec-dashboard" class="section active">
     <!-- v2.4.21 部署驗證橫幅（確認新版有上線） -->
     <div class="mb-3 px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between text-sm">
-      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.32</span>
-      <span class="text-emerald-700 text-xs">部署時間：2026-05-08 · 對帳自動配對銀行入帳 (v2.4.32 + GAS v35)</span>
+      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.33</span>
+      <span class="text-emerald-700 text-xs">部署時間：2026-05-08 · RWD/UX 大改進 — 待辦 modal + 實體 toggle + 訂單緊湊版</span>
     </div>
     <div class="flex justify-between items-end mb-5 flex-wrap gap-2">
       <div>
@@ -318,13 +345,18 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       </div>
     </div>
 
-    <!-- 款式 / 來源 — 次要分析 -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <div class="panel">
+    <!-- 款式 / 來源 — 次要分析 (v2.4.33: 預設收合節省空間) -->
+    <details class="panel mb-0">
+      <summary class="flex justify-between items-center cursor-pointer select-none">
+        <span class="font-bold text-[#1A365D] text-base">📊 款式佔比 / 預約來源</span>
+        <span class="text-xs text-slate-500 font-semibold">▼ 展開</span>
+      </summary>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-3">
+      <div>
         <h3 class="text-[#1A365D] mb-3 title-serif">👘 款式佔比</h3>
         <div id="plan-ratio" class="space-y-3 text-sm"></div>
       </div>
-      <div class="panel">
+      <div>
         <h3 class="text-[#1A365D] mb-3 title-serif">📱 預約來源</h3>
         <div id="platform-ratio" class="space-y-3 text-sm"></div>
       </div>
@@ -365,12 +397,12 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
     </div>
 
     <div class="panel mb-4">
-      <details open>
-        <summary class="flex justify-between items-center mb-3">
+      <details>
+        <summary class="flex justify-between items-center cursor-pointer select-none">
           <span class="font-bold text-[#1A365D] text-base">🔍 進階搜尋與篩選</span>
-          <span class="text-xs text-slate-500 font-semibold">點擊展開/收合</span>
+          <span class="text-xs text-slate-500 font-semibold">▼ 展開</span>
         </summary>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
           <div><div class="section-label">關鍵字</div><input id="f-search" name="orders_search_kimono" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="input-field" placeholder="姓名/電話/訂單號/Email" oninput="filterOrders()"></div>
           <div><div class="section-label">日期區間（從）</div><input id="f-date-from" class="input-field" type="date" onchange="filterOrders()"></div>
           <div><div class="section-label">日期區間（到）</div><input id="f-date-to" class="input-field" type="date" onchange="filterOrders()"></div>
@@ -384,9 +416,9 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 
       <div class="flex justify-between items-center mt-4 pt-3 border-t border-slate-200 flex-wrap gap-2">
         <div class="flex flex-wrap gap-2">
-          <button class="tab-btn active" onclick="setFilter('all',this)">全部 <span id="cnt-all" class="ml-1 opacity-80">0</span></button>
+          <button class="tab-btn" onclick="setFilter('all',this)">全部 <span id="cnt-all" class="ml-1 opacity-80">0</span></button>
           <button class="tab-btn" onclick="setFilter('today',this)">📍 今天 <span id="cnt-today" class="ml-1 opacity-80">0</span></button>
-          <button class="tab-btn" onclick="setFilter('pending',this)">待確認 <span id="cnt-pending" class="ml-1 opacity-80">0</span></button>
+          <button class="tab-btn active" onclick="setFilter('pending',this)">待確認 <span id="cnt-pending" class="ml-1 opacity-80">0</span></button>
           <button class="tab-btn" onclick="setFilter('confirmed',this)">已確認 <span id="cnt-confirmed" class="ml-1 opacity-80">0</span></button>
           <button class="tab-btn" onclick="setFilter('refund',this)">有退款 <span id="cnt-refund" class="ml-1 opacity-80">0</span></button>
           <button class="tab-btn" onclick="setFilter('anomaly',this)">⚠ 異常 <span id="cnt-anomaly" class="ml-1 opacity-80">0</span></button>
@@ -863,7 +895,7 @@ let adminToken = '';
 let currentRole = 'agent';      // v2.5: 'agent' (客服) | 'store' (店家)
 let currentStoreKey = '';       // v2.5: when role=store, this is the store identifier
 let allOrders = [];
-let currentFilter = 'all';
+let currentFilter = 'pending';  // v2.4.33: default to 待確認 for faster execution
 let editingOrder = null;
 let selectedIds = new Set();
 let currentSection = 'dashboard';
@@ -1488,32 +1520,72 @@ function renderTodos(){
     return;
   }
 
-  // v2.4.20 A ── 預設只展開「緊急處理」，其他用 <details> 折疊
+  // v2.4.33 A ── 每個分類只顯示前 3 筆，超過彈視窗看全部；緊急仍預設展開
+  window.__todoGroupsCache = groups; // 給 modal 重用
+  const renderItem = (it, i, color) => {
+    const timeStr = it.time ? fmtJSTDateTime(it.time) : '';
+    const shortTime = timeStr ? timeStr.replace(/^\d{4}\//, '').slice(0, 11) : '';
+    return '<div class="text-xs py-1.5' + (i > 0 ? ' border-t border-' + color + '-200/40' : '') + '">' +
+      '<div class="flex items-center gap-2">' +
+        '<span class="flex-shrink-0">' + it.icon + '</span>' +
+        '<span class="flex-1 text-[#1A365D] font-bold">' + it.name + ' <span class="text-[10px] text-slate-500 font-mono font-normal">' + (it.orderId||'') + '</span></span>' +
+        (it.orderId ? '<button onclick="openEdit(\''+it.orderId+'\')" class="flex-shrink-0 px-2 py-1 bg-white border border-' + color + '-300 hover:bg-' + color + '-100 text-[#1A365D] text-[11px] rounded font-bold">處理 →</button>' : '') +
+      '</div>' +
+      '<div class="text-[11px] mt-0.5 ml-6">' +
+        (shortTime ? '<span class="text-slate-400 mr-2">⏰' + shortTime + '</span>' : '') +
+        '<span class="text-[#1A365D]">' + it.text + '</span>' +
+        (it.extra ? ' <span class="text-slate-500">' + it.extra + '</span>' : '') +
+      '</div>' +
+    '</div>';
+  };
+  window.__renderTodoItem = renderItem;
+
+  const TOP_N = 3;
   list.innerHTML = '<div class="grid grid-cols-1 md:grid-cols-3 gap-3">' +
     visibleGroups.map(g => {
       const isUrgent = g.color === 'red';
       const expanded = isUrgent ? ' open' : '';
+      const total = g.items.length;
+      const shown = g.items.slice(0, TOP_N);
+      const hiddenCount = total - shown.length;
+      const moreBtn = hiddenCount > 0
+        ? '<button onclick="openTodoModal(\''+g.color+'\')" class="w-full mt-2 py-1.5 bg-white border border-' + g.color + '-300 hover:bg-' + g.color + '-100 text-' + g.color + '-700 text-[11px] rounded font-bold">查看全部 ' + total + ' 筆 →</button>'
+        : '';
       return '<details' + expanded + ' class="p-3 bg-' + g.color + '-50 rounded-lg border border-' + g.color + '-200">' +
-        '<summary class="font-bold text-sm mb-2 text-' + g.color + '-700 cursor-pointer select-none">' + g.label + ' <span class="text-xs">(' + g.items.length + ')</span> <span class="text-[10px] font-normal text-slate-400">點擊展開/收合</span></summary>' +
-        g.items.map((it, i) => {
-          const timeStr = it.time ? fmtJSTDateTime(it.time) : '';
-          // v2.4.20: 一行排版 — 客戶名 + ID 一行；下方時間+敘述合併一行
-          const shortTime = timeStr ? timeStr.replace(/^\d{4}\//, '').slice(0, 11) : ''; // MM/DD HH:MM
-          return '<div class="text-xs py-1.5' + (i > 0 ? ' border-t border-' + g.color + '-200/40' : '') + '">' +
-            '<div class="flex items-center gap-2">' +
-              '<span class="flex-shrink-0">' + it.icon + '</span>' +
-              '<span class="flex-1 text-[#1A365D] font-bold">' + it.name + ' <span class="text-[10px] text-slate-500 font-mono font-normal">' + (it.orderId||'') + '</span></span>' +
-              (it.orderId ? '<button onclick="openEdit(\''+it.orderId+'\')" class="flex-shrink-0 px-2 py-1 bg-white border border-' + g.color + '-300 hover:bg-' + g.color + '-100 text-[#1A365D] text-[11px] rounded font-bold">處理 →</button>' : '') +
-            '</div>' +
-            '<div class="text-[11px] mt-0.5 ml-6">' +
-              (shortTime ? '<span class="text-slate-400 mr-2">⏰' + shortTime + '</span>' : '') +
-              '<span class="text-[#1A365D]">' + it.text + '</span>' +
-              (it.extra ? ' <span class="text-slate-500">' + it.extra + '</span>' : '') +
-            '</div>' +
-          '</div>';
-        }).join('') +
+        '<summary class="font-bold text-sm mb-2 text-' + g.color + '-700 cursor-pointer select-none">' + g.label + ' <span class="text-xs">(' + total + ')</span> <span class="text-[10px] font-normal text-slate-400">點擊展開</span></summary>' +
+        shown.map((it, i) => renderItem(it, i, g.color)).join('') +
+        moreBtn +
       '</details>';
     }).join('') + '</div>';
+}
+
+// v2.4.33: 待辦分類點「查看全部」彈出 modal
+function openTodoModal(color){
+  const groups = window.__todoGroupsCache || {};
+  const g = Object.values(groups).find(x => x.color === color);
+  if (!g) return;
+  const renderItem = window.__renderTodoItem;
+  const old = document.getElementById('todo-modal');
+  if (old) old.remove();
+  const wrap = document.createElement('div');
+  wrap.id = 'todo-modal';
+  wrap.className = 'todo-modal-bg';
+  wrap.onclick = (e) => { if (e.target === wrap) closeTodoModal(); };
+  wrap.innerHTML =
+    '<div class="todo-modal-card">' +
+      '<div class="todo-modal-head">' +
+        '<span class="font-bold text-base text-' + g.color + '-700">' + g.label + ' <span class="text-xs">(' + g.items.length + ')</span></span>' +
+        '<button onclick="closeTodoModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">×</button>' +
+      '</div>' +
+      '<div class="todo-modal-body">' +
+        g.items.map((it, i) => renderItem(it, i, g.color)).join('') +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(wrap);
+}
+function closeTodoModal(){
+  const old = document.getElementById('todo-modal');
+  if (old) old.remove();
 }
 
 function renderHeat(){
@@ -1767,18 +1839,18 @@ function renderOrders(orders){
     const days = o.bookingDate ? Math.ceil((new Date(o.bookingDate)-now)/(86400000)) : null;
     const daysTag = days!==null && !isNaN(days) ? (days<0? '<span class="pill bg-slate-200 text-slate-700">已過 '+Math.abs(days)+' 天</span>' : days===0? '<span class="pill bg-amber-100 text-amber-800">📍 今天到店</span>' : days<=3? '<span class="pill bg-amber-100 text-amber-800">⏰ 剩 '+days+' 天</span>' : '<span class="pill bg-blue-100 text-blue-800">剩 '+days+' 天</span>') : '';
 
-    return '<div class="order-card '+cls+' '+sel+' p-5">'+
-      '<div class="flex flex-col md:flex-row items-stretch md:items-start gap-3">'+
+    return '<div class="order-card '+cls+' '+sel+' p-3 md:p-4">'+
+      '<div class="flex flex-col md:flex-row items-stretch md:items-start gap-2 md:gap-3">'+
         '<input type="checkbox" class="checkbox-lg mt-1" '+(selectedIds.has(o.orderId)?'checked':'')+' onclick="event.stopPropagation();toggleSelect(\''+(o.orderId||'')+'\')">'+
         '<div class="flex-1 min-w-0">'+
           '<div class="flex items-center gap-2 mb-2 flex-wrap">'+
             badge+
-            '<span class="font-bold text-[#1A365D] text-lg">'+(o.name||'—')+'</span>'+
-            '<span class="text-slate-600 text-sm font-mono">'+(o.orderId||'')+'</span>'+(o.submitDate? '<span class="text-[11px] text-slate-500 ml-1">下單 '+fmtJST(o.submitDate)+'</span>':'')+
+            '<span class="font-bold text-[#1A365D] text-base md:text-lg">'+(o.name||'—')+'</span>'+
+            '<span class="text-slate-600 text-xs md:text-sm font-mono">'+(o.orderId||'')+'</span>'+(o.submitDate? '<span class="text-[11px] text-slate-500 ml-1 hidden md:inline">下單 '+fmtJST(o.submitDate)+'</span>':'')+
             (o.platform? '<span class="pill bg-blue-100 text-blue-800">📱 '+o.platform+'</span>':'')+
             daysTag+
           '</div>'+
-          '<div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm bg-slate-50 p-3 rounded-lg mb-2">'+
+          '<div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 text-sm bg-slate-50 p-2.5 md:p-3 rounded-lg mb-2">'+
             '<div><div class="text-xs text-slate-600 font-semibold">體驗日期</div><div class="font-bold text-[#1A365D]">'+fmtBookingDateTime(o.bookingDate)+'</div></div>'+
             '<div><div class="text-xs text-slate-600 font-semibold">電話</div><div class="font-bold">'+(o.phone||'—')+'</div></div>'+
             '<div><div class="text-xs text-slate-600 font-semibold">人數</div><div class="font-bold">'+(o.adults||o.pax||'—')+'</div></div>'+
@@ -2678,14 +2750,12 @@ function renderPermissions(){
         const k = p.id + '__' + roleKey(r.id);
         const inputAttrs = canEdit ? 'onchange="togglePermission(\''+p.id+'\',\''+r.id+'\',this.checked)"' : 'disabled';
         const cellBg = isMe ? 'bg-blue-100/40' : '';
-        const dot = customized ? '<span class="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-amber-500 rounded-full"></span>' : '';
+        const dot = customized ? '<span class="custom-dot"></span>' : '';
+        // v2.4.33: 改用 .perm-switch 自寫 CSS 確保 thumb 滑動效果在所有瀏覽器都正確
         return '<td class="py-1.5 px-3 text-center ' + cellBg + '">' +
-          '<label class="relative inline-flex items-center cursor-pointer">' +
-            '<input type="checkbox" class="sr-only peer" ' + (eff ? 'checked' : '') + ' ' + inputAttrs + '>' +
-            '<div class="w-9 h-5 bg-slate-300 rounded-full peer-checked:bg-emerald-500 transition-colors relative">' +
-              '<div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4"></div>' +
-              dot +
-            '</div>' +
+          '<label class="perm-switch" title="' + (eff ? '已開啟' : '已關閉') + '">' +
+            '<input type="checkbox" ' + (eff ? 'checked' : '') + ' ' + inputAttrs + '>' +
+            '<span class="track"><span class="thumb"></span>' + dot + '</span>' +
           '</label>' +
         '</td>';
       }).join('') + '</tr>';
@@ -4081,4 +4151,4 @@ window.applyRolePermissions = function() {
   </div>
 </div>
 </body>
-                     
+</html>
