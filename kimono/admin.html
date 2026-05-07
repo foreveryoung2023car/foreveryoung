@@ -189,7 +189,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
       <div class="min-w-0 hidden xs:block sm:block">
         <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
-        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.28</div>
+        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.29</div>
       </div>
     </div>
     <div id="global-search-wrap" class="md:flex flex-1 max-w-md" style="display:none">
@@ -252,8 +252,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
   <section id="sec-dashboard" class="section active">
     <!-- v2.4.21 部署驗證橫幅（確認新版有上線） -->
     <div class="mb-3 px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between text-sm">
-      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.28</span>
-      <span class="text-emerald-700 text-xs">部署時間：2026-05-07 · 修 walk-in 月結 + 請款單 platform filter (v2.4.28)</span>
+      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.29</span>
+      <span class="text-emerald-700 text-xs">部署時間：2026-05-07 · 店家視角隱私漏洞修復 (v2.4.29)</span>
     </div>
     <div class="flex justify-between items-end mb-5 flex-wrap gap-2">
       <div>
@@ -942,12 +942,18 @@ function enterDashboard(name, token, role, storeKey) {
 // v2.5: 判斷一筆訂單是否屬於某店家
 function orderBelongsToStore(o, storeKey) {
   if (!storeKey) return false;
-  // 1) Walk-in 直接看 source 欄位
-  const src = String(o.source || o.introducer || o.platform || '').toLowerCase();
-  if (src.indexOf('walk-in@') >= 0 || src.indexOf(storeKey) >= 0) return true;
-  // 2) 客人預約時選的門市（從 plan 或 location 欄位推測；目前沒有專屬欄位）
-  // TODO: 等資料表加 storeKey 欄位後改用直接比對
-  // For now, allow store to see all orders if their key matches existing legacy data
+  const sk = String(storeKey).toLowerCase();
+  const plat = String(o.platform || '').toLowerCase();
+  const src = String(o.source || '').toLowerCase();
+  const intro = String(o.introducer || '').toLowerCase();
+  // v2.4.29: 嚴格只比對自家店家代號
+  // 1) Walk-in 訂單：platform = 'walk-in@<storeKey>'，必須完全對上自家
+  if (plat === 'walk-in@' + sk) return true;
+  if (src === 'walk-in@' + sk) return true;
+  if (intro === 'walk-in@' + sk) return true;
+  // 2) Pre-order：source 或 introducer 含自家 storeKey 關鍵字
+  if (src.indexOf(sk) >= 0) return true;
+  if (intro.indexOf(sk) >= 0) return true;
   return false;
 }
 
@@ -1315,8 +1321,10 @@ function isInRange(o, range){
 
 // ── DASHBOARD ──
 function renderDashboard(){
+  // v2.4.29: store 角色 dashboard 只看自家
+  const visible = filterOrdersForRole(allOrders);
   const range = document.getElementById('dash-range').value;
-  const filtered = allOrders.filter(o => isInRange(o, range));
+  const filtered = visible.filter(o => isInRange(o, range));
   const now = new Date();
   document.getElementById('dash-date').textContent = now.toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'long'}) + ' · ' + (currentAgent||'');
 
@@ -1344,10 +1352,11 @@ function renderDashboard(){
   document.getElementById('kpi-refund-trend').textContent = refundCount? refundCount+' 筆' : '無退款';
 
   // v2.4.20 D ── 今日入帳計算（今天 JST 收的訂金）
+  // v2.4.29: 用 visible (filterOrdersForRole) 取代 allOrders 讓 store 只看自家入帳
   const today0 = new Date(); today0.setHours(0,0,0,0);
   const tomorrow0 = new Date(today0); tomorrow0.setDate(today0.getDate()+1);
   let todayDepSum = 0, todayCount = 0;
-  allOrders.forEach(o => {
+  visible.forEach(o => {
     // 用 submitDate 或 paidAt 都行；簡單用 submitDate
     const sd = new Date(o.submitDate || 0);
     if (!isNaN(sd) && sd >= today0 && sd < tomorrow0 && Number(o.deposit) > 0) {
@@ -1378,12 +1387,14 @@ function renderDashboard(){
 
 function renderTodos(){
   // v2.4.20: 每筆訂單獨立 + 帶時間戳 + 點處理直接 openEdit + 空 group 隱藏
+  // v2.4.29: store 角色只看自家訂單的待辦
+  const visible = filterOrdersForRole(allOrders);
   const list = document.getElementById('todo-list');
   const items = [];
   const now = new Date();
 
   // 1) 客人剛提交退款 (refundReason 含銀行/帳號 + refundAmount=0)
-  allOrders.forEach(o => {
+  visible.forEach(o => {
     const hasBank = /銀行[:：]|帳號[:：]/.test(o.refundReason||'');
     if (hasBank && !(Number(o.refundAmount) > 0)) {
       items.push({type:'urgent', icon:'💸', orderId:o.orderId, name:o.name||'—',
@@ -1393,7 +1404,7 @@ function renderTodos(){
   });
 
   // 2) 訂金超收
-  allOrders.forEach(o => {
+  visible.forEach(o => {
     const tc = totalCharge(o); const got = Number(o.deposit)||0;
     if (o.bookingDate && tc>0 && got>tc && !(Number(o.refundAmount)>0)) {
       items.push({type:'urgent', icon:'🧾', orderId:o.orderId, name:o.name||'—',
@@ -1403,7 +1414,7 @@ function renderTodos(){
   });
 
   // 3) 待確認超過 24 小時
-  allOrders.forEach(o => {
+  visible.forEach(o => {
     if (o.confirmed) return;
     const c = o.createdAt || o.submitDate;
     if (!c) return;
@@ -1418,7 +1429,7 @@ function renderTodos(){
   });
 
   // 4) 退款處理中（已填金額 + 沒填時間）
-  allOrders.forEach(o => {
+  visible.forEach(o => {
     if (Number(o.refundAmount)>0 && !o.refundTime) {
       items.push({type:'warn', icon:'↩', orderId:o.orderId, name:o.name||'—',
         text:'退款 ¥'+Number(o.refundAmount).toLocaleString()+' 已確認待匯款',
@@ -1429,7 +1440,7 @@ function renderTodos(){
 
   // 5) 明日預約
   const tomorrow = new Date(now); tomorrow.setDate(now.getDate()+1);
-  allOrders.forEach(o => {
+  visible.forEach(o => {
     const d = new Date(o.bookingDate);
     if (!isNaN(d) && d.toDateString() === tomorrow.toDateString()) {
       items.push({type:'warn', icon:'📅', orderId:o.orderId, name:o.name||'—',
@@ -1440,7 +1451,7 @@ function renderTodos(){
   });
 
   // 6) 訂單資料不完整
-  allOrders.forEach(o => {
+  visible.forEach(o => {
     if (!isAnomaly(o)) return;
     const missing = [];
     if (!o.name) missing.push('姓名');
@@ -1500,12 +1511,14 @@ function renderTodos(){
 
 function renderHeat(){
   // v2.4.20: 緊湊版 14 日熱圖 — 2 列 x 7 格小方塊（節省空間 4 倍）
+  // v2.4.29: store 角色只看自家熱度
+  const visible = filterOrdersForRole(allOrders);
   const list = document.getElementById('heat-list');
   const today = new Date(); today.setHours(0,0,0,0);
   const days = [];
   for(let i=0;i<14;i++){
     const d = new Date(today); d.setDate(today.getDate()+i);
-    const cnt = allOrders.filter(o=>{const od=new Date(o.bookingDate); return !isNaN(od) && od.toDateString()===d.toDateString();}).length;
+    const cnt = visible.filter(o=>{const od=new Date(o.bookingDate); return !isNaN(od) && od.toDateString()===d.toDateString();}).length;
     days.push({d:d,cnt:cnt});
   }
   const wd = ['日','一','二','三','四','五','六'];
@@ -1568,6 +1581,8 @@ function renderPlatformRatio(filtered){
   }).join('');
 }
 function renderUpcoming(){
+  // v2.4.29: store 角色只看自家來店預約
+  const visible = filterOrdersForRole(allOrders);
   const list = document.getElementById('upcoming-list');
   const range = (document.getElementById('upcoming-range')||{}).value || '3days';
   const today0 = new Date(); today0.setHours(0,0,0,0);
@@ -1576,7 +1591,7 @@ function renderUpcoming(){
   else if(range==='tomorrow') { start.setDate(today0.getDate()+1); endDate.setDate(today0.getDate()+2); }
   else if(range==='3days') endDate.setDate(today0.getDate()+3);
   else endDate.setDate(today0.getDate()+7);
-  const upcoming = allOrders.filter(o=>{const d=new Date(o.bookingDate); return !isNaN(d) && d>=start && d<endDate;}).sort((a,b)=>new Date(a.bookingDate)-new Date(b.bookingDate));
+  const upcoming = visible.filter(o=>{const d=new Date(o.bookingDate); return !isNaN(d) && d>=start && d<endDate;}).sort((a,b)=>new Date(a.bookingDate)-new Date(b.bookingDate));
   if(!upcoming.length){ list.innerHTML='<div class="text-center text-slate-500 py-4 font-semibold">此期間無預約</div>'; return; }
   list.innerHTML = upcoming.map(o=>{
     const d = new Date(o.bookingDate);
@@ -1854,6 +1869,8 @@ function copyOrderId(id){
 function changeMonth(d){ calCursor.setMonth(calCursor.getMonth()+d); renderCalendar(); }
 function goToday(){ calCursor = new Date(); renderCalendar(); }
 function renderCalendar(){
+  // v2.4.29: store 角色行事曆只看自家
+  const visible = filterOrdersForRole(allOrders);
   const y = calCursor.getFullYear(); const m = calCursor.getMonth();
   document.getElementById('cal-title').textContent = y+' 年 '+(m+1)+' 月';
   const first = new Date(y,m,1); const startDay = first.getDay();
@@ -1865,7 +1882,7 @@ function renderCalendar(){
   for(let i=startDay-1;i>=0;i--){ html += '<div class="calendar-day other-month"><div>'+(prevDays-i)+'</div></div>'; }
   for(let d=1; d<=daysInMonth; d++){
     const dt = new Date(y,m,d);
-    const dayOrders = allOrders.filter(o=>{const od=new Date(o.bookingDate); return !isNaN(od) && od.toDateString()===dt.toDateString();});
+    const dayOrders = visible.filter(o=>{const od=new Date(o.bookingDate); return !isNaN(od) && od.toDateString()===dt.toDateString();});
     const cnt = dayOrders.length;
     let cls = '';
     if(dt.toDateString()===today.toDateString()) cls += ' today';
@@ -1880,8 +1897,10 @@ function renderCalendar(){
   grid.innerHTML = html;
 }
 function showDayOrders(dateStr){
+  // v2.4.29: store 角色 popup 只看自家
+  const visible = filterOrdersForRole(allOrders);
   const dt = new Date(dateStr);
-  const dayOrders = allOrders.filter(o=>{const od=new Date(o.bookingDate); return !isNaN(od) && od.toDateString()===dt.toDateString();});
+  const dayOrders = visible.filter(o=>{const od=new Date(o.bookingDate); return !isNaN(od) && od.toDateString()===dt.toDateString();});
   if(!dayOrders.length){ toast('該日無預約','warning'); return; }
   // Show inline popup instead of jumping to orders list
   let pop = document.getElementById('day-orders-popup');
@@ -2272,16 +2291,20 @@ function ordersToCSV(list){
   URL.revokeObjectURL(url);
 }
 function exportCSV(){
+  // v2.4.29: store 角色匯出只能匯自家
+  const allowed = filterOrdersForRole(allOrders);
   const visible = document.querySelectorAll('#orders-list .order-card');
   if(!visible.length){ toast('無資料可匯出','warning'); return; }
   const ids = Array.from(visible).map(c=>c.querySelector('.font-mono')?.textContent.trim()).filter(Boolean);
-  const list = allOrders.filter(o=>ids.includes(o.orderId));
-  ordersToCSV(list.length? list : allOrders);
+  const list = allowed.filter(o=>ids.includes(o.orderId));
+  ordersToCSV(list.length? list : allowed);
   toast('已匯出 CSV');
 }
 function batchExportCSV(){
   if(!selectedIds.size){ toast('請先選取訂單','warning'); return; }
-  ordersToCSV(allOrders.filter(o=>selectedIds.has(o.orderId)));
+  // v2.4.29: 雙重保險，store 角色僅匯出自家訂單
+  const allowed = filterOrdersForRole(allOrders);
+  ordersToCSV(allowed.filter(o=>selectedIds.has(o.orderId)));
   toast('已匯出 '+selectedIds.size+' 筆');
 }
 
