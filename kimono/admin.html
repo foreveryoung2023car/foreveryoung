@@ -189,7 +189,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
       <div class="min-w-0 hidden xs:block sm:block">
         <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
-        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.30</div>
+        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.31</div>
       </div>
     </div>
     <div id="global-search-wrap" class="md:flex flex-1 max-w-md" style="display:none">
@@ -252,8 +252,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
   <section id="sec-dashboard" class="section active">
     <!-- v2.4.21 部署驗證橫幅（確認新版有上線） -->
     <div class="mb-3 px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between text-sm">
-      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.30</span>
-      <span class="text-emerald-700 text-xs">部署時間：2026-05-08 · 權限總表依角色過濾 + 天氣 widget 在地化 (v2.4.30)</span>
+      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.31</span>
+      <span class="text-emerald-700 text-xs">部署時間：2026-05-08 · 平板 RWD 改進 (v2.4.31)</span>
     </div>
     <div class="flex justify-between items-end mb-5 flex-wrap gap-2">
       <div>
@@ -458,7 +458,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       </div>
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
       <div class="stat-card blue"><div class="section-label">總客戶數</div><div id="cust-stat-total" class="stat-num">—</div></div>
       <div class="stat-card gold" title="VIP 條件：訂單數 ≥ 3 筆 OR 累計消費 ≥ ¥30,000"><div class="section-label">VIP 客戶 <span class="text-[10px] text-slate-400 normal-case tracking-normal" style="letter-spacing:0">ⓘ</span></div><div id="cust-stat-vip" class="stat-num" style="color:#C9A961">—</div><div class="text-[11px] text-slate-500 mt-1">≥3 筆訂單 或 累計 ¥30,000+</div></div>
       <div class="stat-card green"><div class="section-label">回訪客戶 (≥2 次)</div><div id="cust-stat-repeat" class="stat-num green">—</div></div>
@@ -484,7 +484,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       </div>
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
       <div class="stat-card green"><div class="section-label">已收訂金 (¥)</div><div id="fin-deposit" class="stat-num green" style="font-size:22px">—</div></div>
       <div class="stat-card blue"><div class="section-label">應收尾款 (¥)</div><div id="fin-due" class="stat-num" style="font-size:22px">—</div></div>
       <div class="stat-card gold"><div class="section-label">總營收 (預估)</div><div id="fin-total" class="stat-num" style="color:#C9A961;font-size:22px">—</div></div>
@@ -549,14 +549,14 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       </div>
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
       <div class="stat-card blue"><div class="section-label">當月 walk-in 筆數</div><div id="walkin-stat-count" class="stat-num">—</div></div>
       <div class="stat-card gold"><div class="section-label">當月總營業額 (¥)</div><div id="walkin-stat-revenue" class="stat-num" style="font-size:22px">—</div></div>
       <div class="stat-card green jun-only"><div class="section-label">店家保留 (¥)<br><span class="text-[10px] text-slate-400 font-normal">和服 50% + 妝髮/攝影全額</span></div><div id="walkin-stat-shop" class="stat-num" style="font-size:22px">—</div></div>
       <div class="stat-card purple jun-only"><div class="section-label">應向店家收 (¥)<br><span class="text-[10px] text-slate-400 font-normal">僅和服費抽成</span></div><div id="walkin-stat-ours" class="stat-num" style="font-size:22px;color:#7C3AED">—</div></div>
     </div>
 
-    <div id="walkin-stores-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"></div>
+    <div id="walkin-stores-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-4"></div>
 
     <div class="panel">
       <h3 class="text-[#1A365D] mb-3 title-serif">📋 當月 walk-in 訂單明細</h3>
@@ -588,7 +588,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
         <h3 id="archive-detail-title" class="text-[#1A365D] title-serif">月份明細</h3>
         <button onclick="document.getElementById('archive-detail').classList.add('hidden');document.getElementById('unlock-month-btn').classList.add('hidden');" class="text-slate-400 hover:text-slate-700 text-sm">× 關閉</button>
       </div>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 text-center">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4 text-center">
         <div class="bg-slate-50 rounded p-2"><div class="text-[11px] text-slate-500">本月筆數</div><div id="arch-stat-count" class="font-bold text-lg text-[#1A365D]">—</div></div>
         <div class="bg-emerald-50 rounded p-2"><div class="text-[11px] text-slate-500">訂金總額</div><div id="arch-stat-deposit" class="font-bold text-lg text-emerald-700">—</div></div>
         <div class="bg-blue-50 rounded p-2"><div class="text-[11px] text-slate-500">體驗總額</div><div id="arch-stat-charge" class="font-bold text-lg text-blue-700">—</div></div>
@@ -2023,7 +2023,7 @@ function openCustomerDetail(key){
   document.getElementById('cust-modal-sub').textContent = c.phone + (c.email? ' · '+c.email:'') + ' · 共 '+c.count+' 筆訂單';
   const body = document.getElementById('cust-modal-body');
   body.innerHTML =
-    '<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">'+
+    '<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">'+
       '<div class="stat-card blue"><div class="section-label">訂單數</div><div class="stat-num">'+c.count+'</div></div>'+
       '<div class="stat-card green"><div class="section-label">累積消費</div><div class="stat-num green" style="font-size:20px">'+fmtY0(c.totalSpent)+'</div></div>'+
       '<div class="stat-card gold"><div class="section-label">已收訂金</div><div class="stat-num" style="font-size:20px;color:#C9A961">'+fmtY0(c.totalDeposit)+'</div></div>'+
@@ -4014,3 +4014,4 @@ window.applyRolePermissions = function() {
   </div>
 </div>
 </body>
+                     
