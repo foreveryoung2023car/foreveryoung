@@ -189,7 +189,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
       <div class="min-w-0 hidden xs:block sm:block">
         <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
-        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.27</div>
+        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.28</div>
       </div>
     </div>
     <div id="global-search-wrap" class="md:flex flex-1 max-w-md" style="display:none">
@@ -252,8 +252,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
   <section id="sec-dashboard" class="section active">
     <!-- v2.4.21 部署驗證橫幅（確認新版有上線） -->
     <div class="mb-3 px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between text-sm">
-      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.27</span>
-      <span class="text-emerald-700 text-xs">部署時間：2026-05-05 · 待辦動態欄數+同步收合+箭頭 (v2.4.27)</span>
+      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.28</span>
+      <span class="text-emerald-700 text-xs">部署時間：2026-05-07 · 修 walk-in 月結 + 請款單 platform filter (v2.4.28)</span>
     </div>
     <div class="flex justify-between items-end mb-5 flex-wrap gap-2">
       <div>
@@ -1470,18 +1470,13 @@ function renderTodos(){
     return;
   }
 
-  // v2.4.27 ── 動態欄數（1/2/3 隨著有資料的 group）+ 展開收合同步 + 箭頭 icon
-  // 1 group → 1 col；2 groups → 2 cols (5:5)；3 groups → 3 cols (3:3:3)
-  const colCls = visibleGroups.length === 1 ? 'grid-cols-1' :
-                 visibleGroups.length === 2 ? 'grid-cols-1 md:grid-cols-2' :
-                 'grid-cols-1 md:grid-cols-3';
-  list.innerHTML = '<div class="grid ' + colCls + ' gap-3" data-todo-grid>' +
+  // v2.4.20 A ── 預設只展開「緊急處理」，其他用 <details> 折疊
+  list.innerHTML = '<div class="grid grid-cols-1 md:grid-cols-3 gap-3">' +
     visibleGroups.map(g => {
       const isUrgent = g.color === 'red';
       const expanded = isUrgent ? ' open' : '';
-      // 箭頭以 CSS 控制旋轉（details[open] 時旋轉 90°）
-      return '<details' + expanded + ' ontoggle="syncTodoDetails(this)" class="p-3 bg-' + g.color + '-50 rounded-lg border border-' + g.color + '-200">' +
-        '<summary class="font-bold text-sm mb-2 text-' + g.color + '-700 cursor-pointer select-none flex items-center gap-1.5"><span class="todo-arrow inline-block transition-transform" style="font-size:10px">▶</span><span>' + g.label + '</span> <span class="text-xs">(' + g.items.length + ')</span></summary>' +
+      return '<details' + expanded + ' class="p-3 bg-' + g.color + '-50 rounded-lg border border-' + g.color + '-200">' +
+        '<summary class="font-bold text-sm mb-2 text-' + g.color + '-700 cursor-pointer select-none">' + g.label + ' <span class="text-xs">(' + g.items.length + ')</span> <span class="text-[10px] font-normal text-slate-400">點擊展開/收合</span></summary>' +
         g.items.map((it, i) => {
           const timeStr = it.time ? fmtJSTDateTime(it.time) : '';
           // v2.4.20: 一行排版 — 客戶名 + ID 一行；下方時間+敘述合併一行
@@ -2146,6 +2141,7 @@ function renderReconcile(){
     //   unmatched = 待確認 / 無訂金資料
     // v2.4.20: 加 walk-in 偵測 — walk-in 訂單 deposit=0 但已確認也算對帳完成
     const isWalkIn = (o.platform === 'WALK_IN') ||
+                     (String(o.platform||'').toLowerCase().indexOf('walk-in') === 0) ||
                      (String(o.source||'').toLowerCase().indexOf('walk-in@') === 0) ||
                      (String(o.introducer||'').toLowerCase().indexOf('walk-in@') === 0);
     let recState = 'unmatched';
@@ -2672,34 +2668,6 @@ function setTodoFilter(f, btn){
   if (btn) btn.classList.add('active');
   renderTodos();
 }
-
-// v2.4.27: 待辦三個 details 同步展開/收合 + 旋轉箭頭
-function syncTodoDetails(changedEl) {
-  if (window.__todoSyncing) return;  // 防止無限遞迴
-  window.__todoSyncing = true;
-  try {
-    const isOpen = changedEl.open;
-    document.querySelectorAll('[data-todo-grid] details').forEach(d => {
-      if (d !== changedEl) d.open = isOpen;
-      const arrow = d.querySelector('.todo-arrow');
-      if (arrow) arrow.style.transform = d.open ? 'rotate(90deg)' : 'rotate(0deg)';
-    });
-    // changedEl's arrow too
-    const arrow = changedEl.querySelector('.todo-arrow');
-    if (arrow) arrow.style.transform = changedEl.open ? 'rotate(90deg)' : 'rotate(0deg)';
-  } finally {
-    setTimeout(() => { window.__todoSyncing = false; }, 50);
-  }
-}
-// 初始化時把已 open 的 details 箭頭轉好
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    document.querySelectorAll('[data-todo-grid] details').forEach(d => {
-      const arrow = d.querySelector('.todo-arrow');
-      if (arrow) arrow.style.transform = d.open ? 'rotate(90deg)' : 'rotate(0deg)';
-    });
-  }, 500);
-});
 
 // v2.4.20 G ── 月度營收趨勢圖
 let __trendChart = null;
@@ -3280,6 +3248,7 @@ function buildWalkinMonthSelect() {
   const months = new Set();
   (allOrders || []).forEach(o => {
     const isWalkIn = (o.platform === 'WALK_IN') ||
+                     (String(o.platform||'').toLowerCase().indexOf('walk-in') === 0) ||
                      (String(o.source||'').toLowerCase().indexOf('walk-in@') === 0) ||
                      (String(o.introducer||'').toLowerCase().indexOf('walk-in@') === 0);
     if (!isWalkIn) return;
@@ -3304,6 +3273,7 @@ function renderWalkinMonth() {
   let monthOrders = (allOrders || []).filter(o => {
     // v2.5: detect walk-in by platform OR source field (handles legacy column variants)
     const isWalkIn = (o.platform === 'WALK_IN') ||
+                     (String(o.platform || '').toLowerCase().indexOf('walk-in') === 0) ||
                      (String(o.source || '').toLowerCase().indexOf('walk-in@') === 0) ||
                      (String(o.introducer || '').toLowerCase().indexOf('walk-in@') === 0);
     if (!isWalkIn) return false;
@@ -3338,16 +3308,28 @@ function renderWalkinMonth() {
   document.getElementById('walkin-stat-shop').textContent = '¥' + shopKeep.toLocaleString();
   document.getElementById('walkin-stat-ours').textContent = '¥' + oursOwed.toLocaleString();
 
-  // Group by store (introducer/source extracts store name)
+  // v2.4.28: extract store from platform suffix first, then fallback to source/introducer keyword
+  const STORE_MAP = {
+    'kyoto1': '京都清水寺店',
+    'osaka':  '大阪日本橋店',
+    'kyoto2': '京都祇園店',
+    'tokyo1': '東京淺草寺店',
+    'tokyo':  '東京淺草寺店'
+  };
   const byStore = {};
   monthOrders.forEach(o => {
+    const plat = String(o.platform || '').toLowerCase();
     const src = String(o.source || o.introducer || '').toLowerCase();
-    let store = 'unknown';
-    if (src.indexOf('kyoto1') >= 0 || src.indexOf('清水寺') >= 0) store = '京都清水寺店';
-    else if (src.indexOf('osaka') >= 0 || src.indexOf('日本橋') >= 0) store = '大阪日本橋店';
-    else if (src.indexOf('kyoto2') >= 0 || src.indexOf('祇園') >= 0) store = '京都祇園店';
-    else if (src.indexOf('tokyo') >= 0 || src.indexOf('淺草') >= 0) store = '東京淺草寺店';
-    else store = '未分類';
+    let store = '';
+    const at = plat.indexOf('@');
+    if (at >= 0) store = STORE_MAP[plat.slice(at + 1)] || '';
+    if (!store) {
+      if (src.indexOf('kyoto1') >= 0 || src.indexOf('清水寺') >= 0) store = '京都清水寺店';
+      else if (src.indexOf('osaka') >= 0 || src.indexOf('日本橋') >= 0) store = '大阪日本橋店';
+      else if (src.indexOf('kyoto2') >= 0 || src.indexOf('祇園') >= 0) store = '京都祇園店';
+      else if (src.indexOf('tokyo') >= 0 || src.indexOf('淺草') >= 0) store = '東京淺草寺店';
+      else store = '未分類';
+    }
     if (!byStore[store]) byStore[store] = { orders: [], pp: 0, due: 0, ours: 0 };
     const calc = orderCalc(o);
     byStore[store].orders.push(o);
@@ -3387,7 +3369,7 @@ function renderWalkinMonth() {
       return '<tr class="border-b border-slate-100 hover:bg-slate-50"><td class="p-2">' + (dt.getMonth()+1) + '/' + dt.getDate() + '</td>' +
              '<td class="p-2 font-mono text-xs">' + (o.orderId||'') + '</td>' +
              '<td class="p-2 font-bold">' + (o.name||'') + '</td>' +
-             '<td class="p-2 text-xs">' + String(o.source||'').replace('walk-in@','') + '</td>' +
+             '<td class="p-2 text-xs">' + (String(o.platform||'').replace('walk-in@','') || String(o.source||'').replace('walk-in@','')) + '</td>' +
              '<td class="p-2 text-center">' + discTag + '</td>' +
              '<td class="p-2 text-right">¥' + c.pp.toLocaleString() + '</td>' +
              '<td class="p-2 text-right">¥' + c.hf.toLocaleString() + '</td>' +
@@ -3399,15 +3381,33 @@ function renderWalkinMonth() {
 
 function generateInvoice(storeName, monthYM) {
   const [y, m] = monthYM.split('-').map(Number);
+  // v2.4.28: detect walk-in by platform prefix (was: o.platform === 'WALK_IN');
+  // map store from platform suffix (was: source keyword scan — never matched seed data)
+  const STORE_MAP = {
+    'kyoto1': '京都清水寺店',
+    'osaka':  '大阪日本橋店',
+    'kyoto2': '京都祇園店',
+    'tokyo1': '東京淺草寺店',
+    'tokyo':  '東京淺草寺店'
+  };
   const monthOrders = (allOrders || []).filter(o => {
-    if (o.platform !== 'WALK_IN') return false;
+    const plat = String(o.platform || '').toLowerCase();
+    const isWalkIn = (o.platform === 'WALK_IN') || (plat.indexOf('walk-in') === 0);
+    if (!isWalkIn) return false;
+    // Parse store key from platform suffix: "walk-in@kyoto1" → "kyoto1"
+    let key = '';
+    const at = plat.indexOf('@');
+    if (at >= 0) key = plat.slice(at + 1);
+    // Fallback: keyword scan in source (legacy)
     const src = String(o.source || '').toLowerCase();
-    let s = '';
-    if (src.indexOf('kyoto1') >= 0 || src.indexOf('清水寺') >= 0) s = '京都清水寺店';
-    else if (src.indexOf('osaka') >= 0 || src.indexOf('日本橋') >= 0) s = '大阪日本橋店';
-    else if (src.indexOf('kyoto2') >= 0 || src.indexOf('祇園') >= 0) s = '京都祇園店';
-    else if (src.indexOf('tokyo') >= 0 || src.indexOf('淺草') >= 0) s = '東京淺草寺店';
-    else s = '未分類';
+    let s = STORE_MAP[key] || '';
+    if (!s) {
+      if (src.indexOf('kyoto1') >= 0 || src.indexOf('清水寺') >= 0) s = '京都清水寺店';
+      else if (src.indexOf('osaka') >= 0 || src.indexOf('日本橋') >= 0) s = '大阪日本橋店';
+      else if (src.indexOf('kyoto2') >= 0 || src.indexOf('祇園') >= 0) s = '京都祇園店';
+      else if (src.indexOf('tokyo') >= 0 || src.indexOf('淺草') >= 0) s = '東京淺草寺店';
+      else s = '未分類';
+    }
     if (s !== storeName) return false;
     const d = new Date(o.bookingDate || o.submitDate);
     return !isNaN(d) && d.getFullYear() === y && d.getMonth() === m - 1;
@@ -3967,4 +3967,3 @@ window.applyRolePermissions = function() {
   </div>
 </div>
 </body>
-</html>
