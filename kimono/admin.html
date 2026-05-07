@@ -189,7 +189,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
       <div class="min-w-0 hidden xs:block sm:block">
         <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
-        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.31</div>
+        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.32</div>
       </div>
     </div>
     <div id="global-search-wrap" class="md:flex flex-1 max-w-md" style="display:none">
@@ -252,8 +252,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
   <section id="sec-dashboard" class="section active">
     <!-- v2.4.21 部署驗證橫幅（確認新版有上線） -->
     <div class="mb-3 px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between text-sm">
-      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.31</span>
-      <span class="text-emerald-700 text-xs">部署時間：2026-05-08 · 平板 RWD 改進 (v2.4.31)</span>
+      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.32</span>
+      <span class="text-emerald-700 text-xs">部署時間：2026-05-08 · 對帳自動配對銀行入帳 (v2.4.32 + GAS v35)</span>
     </div>
     <div class="flex justify-between items-end mb-5 flex-wrap gap-2">
       <div>
@@ -519,6 +519,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
           <option value="unmatched">未對帳</option>
         </select>
         <button onclick="exportReconCSV()" class="btn-outline px-4 py-2 rounded-xl text-sm">📥 匯出對帳</button>
+        <button id="auto-reconcile-btn" onclick="runAutoReconcile()" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-bold" title="從収款辨識分頁自動配對銀行入帳到訂單（限 Jun）">🤖 自動配對銀行入帳</button>
         <button id="close-month-btn" onclick="openCloseMonthDialog()" class="hidden bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl text-sm font-bold" title="月度關帳並歸檔（限 Jun）">📦 關帳並歸檔</button>
       </div>
     </div>
@@ -1374,6 +1375,12 @@ function renderDashboard(){
   if (preBtn) {
     if (currentAgent === 'Jun') preBtn.classList.remove('hidden');
     else preBtn.classList.add('hidden');
+  }
+  // v2.4.32: 自動配對按鈕只給 Jun 顯示
+  const autoBtn = document.getElementById('auto-reconcile-btn');
+  if (autoBtn) {
+    if (currentAgent === 'Jun') autoBtn.classList.remove('hidden');
+    else autoBtn.classList.add('hidden');
   }
 
   renderTrendChart(); // v2.4.20 G
@@ -2276,6 +2283,66 @@ function exportReconCSV(){
   a.href=url; a.download='kimono-reconcile-'+(month||'all')+'.csv'; a.click();
   URL.revokeObjectURL(url);
   toast('已匯出對帳資料');
+}
+
+// ── v2.4.32 自動配對銀行入帳 ──
+async function runAutoReconcile(){
+  if (currentAgent !== 'Jun') { toast('需要主管權限', 'error'); return; }
+  toast('正在掃描収款辨識…');
+  let res;
+  try {
+    const r = await fetch(GAS_URL + '?_cb=' + Date.now(), {
+      method:'POST', credentials:'omit', cache:'no-store',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'autoReconcile', token:adminToken, preview:true })
+    });
+    res = await r.json();
+  } catch(e) { toast('連線失敗：'+e.message, 'error'); return; }
+  if (res.status !== 'ok') { toast(res.message || '掃描失敗', 'error'); return; }
+  const m = res.matches || 0, a = res.ambiguous || 0, u = res.unlinked || 0;
+  let body = '<div class="text-sm space-y-2">' +
+    '<div>📊 掃描完成，<b class="text-emerald-700">'+m+'</b> 筆可自動配對、<span class="text-amber-700">'+a+'</span> 筆需人工確認、<span class="text-slate-500">'+u+'</span> 筆找不到對應訂單</div>';
+  if (m > 0 && res.matchSamples) {
+    body += '<div class="mt-2"><b>會自動填入訂單號的銀行入帳（前 10 筆）：</b></div>' +
+      '<table class="w-full text-xs mt-2 border border-slate-200"><thead><tr class="bg-slate-100"><th class="p-1 text-left">銀行 row</th><th class="p-1 text-left">訂單號</th><th class="p-1 text-right">金額</th><th class="p-1 text-right">日期差</th></tr></thead><tbody>' +
+      res.matchSamples.slice(0,10).map(s=>'<tr class="border-t"><td class="p-1">'+s.bankRow+'</td><td class="p-1 font-mono">'+s.orderId+'</td><td class="p-1 text-right">¥'+s.amount.toLocaleString()+'</td><td class="p-1 text-right">'+s.daysDiff.toFixed(1)+' 天</td></tr>').join('') +
+      '</tbody></table>';
+  }
+  if (a > 0 && res.ambiguousSamples) {
+    body += '<div class="mt-3 text-amber-700"><b>⚠️ 多個候選（不會自動處理）：</b><br>' +
+      res.ambiguousSamples.map(s=>'銀行 row '+s.bankRow+'：¥'+s.amount.toLocaleString()+' ↔ '+s.candidates.join(' / ')).join('<br>') + '</div>';
+  }
+  body += '</div>';
+  const html = '<div class="modal-overlay" onclick="if(event.target===this)this.remove()" style="display:flex">' +
+    '<div class="modal-box" style="max-width:640px;height:auto;max-height:80vh">' +
+    '<div class="flex justify-between items-center mb-3"><h3 class="font-bold text-lg text-[#1A365D]">🤖 自動配對預覽</h3>' +
+    '<button onclick="this.closest(\'.modal-overlay\').remove()" class="text-2xl text-slate-400 hover:text-slate-700">×</button></div>' +
+    body +
+    '<div class="flex gap-2 mt-4 pt-3 border-t">' +
+      (m > 0 ? '<button onclick="confirmAutoReconcile(this)" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg font-bold">✓ 套用 '+m+' 筆配對</button>' : '') +
+      '<button onclick="this.closest(\'.modal-overlay\').remove()" class="flex-1 bg-slate-200 hover:bg-slate-300 py-2 rounded-lg">取消</button>' +
+    '</div></div></div>';
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  document.body.appendChild(div.firstChild);
+}
+async function confirmAutoReconcile(btn){
+  btn.disabled = true; btn.textContent = '套用中…';
+  try {
+    const r = await fetch(GAS_URL + '?_cb=' + Date.now(), {
+      method:'POST', credentials:'omit', cache:'no-store',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'autoReconcile', token:adminToken, preview:false })
+    });
+    const res = await r.json();
+    if (res.status !== 'ok') { toast(res.message || '套用失敗', 'error'); return; }
+    btn.closest('.modal-overlay').remove();
+    toast('✅ 已自動配對 '+res.matches+' 筆', 'success');
+    if (typeof loadOrders === 'function') loadOrders();
+  } catch(e) {
+    toast('連線失敗：'+e.message, 'error');
+    btn.disabled = false;
+  }
 }
 
 // ── CSV EXPORT ──
