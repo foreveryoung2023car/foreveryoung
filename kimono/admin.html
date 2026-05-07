@@ -189,7 +189,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
       <div class="min-w-0 hidden xs:block sm:block">
         <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
-        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.29</div>
+        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.30</div>
       </div>
     </div>
     <div id="global-search-wrap" class="md:flex flex-1 max-w-md" style="display:none">
@@ -252,8 +252,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
   <section id="sec-dashboard" class="section active">
     <!-- v2.4.21 部署驗證橫幅（確認新版有上線） -->
     <div class="mb-3 px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between text-sm">
-      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.29</span>
-      <span class="text-emerald-700 text-xs">部署時間：2026-05-07 · 店家視角隱私漏洞修復 (v2.4.29)</span>
+      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.30</span>
+      <span class="text-emerald-700 text-xs">部署時間：2026-05-08 · 權限總表依角色過濾 + 天氣 widget 在地化 (v2.4.30)</span>
     </div>
     <div class="flex justify-between items-end mb-5 flex-wrap gap-2">
       <div>
@@ -2486,7 +2486,8 @@ function markRefundDone(){
 // v2.4.20: 對帳說明燈箱
 function renderPermissions(){
   // v2.4.20: 改良版 X — toggle 開關 + 套用模板 + 一行 hover 高亮 + 篩選
-  const roles = [
+  // v2.4.30: 依角色過濾顯示欄位 — store 只看自家、agent 看 Jun+自己、Jun 看全部
+  const _allRoles = [
     { id:'jun', name:'Jun', sub:'(主管)', emoji:'👑' },
     { id:'agent', name:'Ren / Amy', sub:'(客服)', emoji:'👤' },
     { id:'kyoto1', name:'京都清水寺', sub:'店家', emoji:'🏪' },
@@ -2494,6 +2495,15 @@ function renderPermissions(){
     { id:'kyoto2', name:'京都祇園', sub:'店家', emoji:'🏪' },
     { id:'tokyo1', name:'東京淺草寺', sub:'店家', emoji:'🏪' },
   ];
+  let roles;
+  if (currentAgent === 'Jun') {
+    roles = _allRoles;  // Jun 看全部
+  } else if (currentRole === 'store') {
+    roles = _allRoles.filter(r => r.id === currentStoreKey);  // 店家只看自家
+  } else {
+    // 客服 (Ren/Amy)：看 Jun + 自己 (給客服一個對照知道自己跟主管權限差在哪)
+    roles = _allRoles.filter(r => r.id === 'jun' || r.id === 'agent');
+  }
   const defaultPerms = [
     { id:'p01', name:'登入後台', jun:1, agent:1, store:1 },
     { id:'p02', name:'看儀表板', jun:1, agent:1, store:0 },
@@ -3124,11 +3134,20 @@ console.log('%c[v2.2.1] fake order filter ready','color:#1A365D;font-weight:bold
 
 
 // ── v2.3 weather widget (Open-Meteo, no key required) ──
-const KIMONO_WX_CITIES = [
-  { name: '京都', lat: 35.0116, lng: 135.7681 },
-  { name: '大阪', lat: 34.6937, lng: 135.5023 },
-  { name: '東京', lat: 35.6762, lng: 139.6503 }
+// v2.4.30: store 角色只顯示自家所在城市；agent 看全部 3 個城市
+const KIMONO_WX_ALL_CITIES = [
+  { name: '京都', lat: 35.0116, lng: 135.7681, stores: ['kyoto1','kyoto2'] },
+  { name: '大阪', lat: 34.6937, lng: 135.5023, stores: ['osaka1'] },
+  { name: '東京', lat: 35.6762, lng: 139.6503, stores: ['tokyo1'] }
 ];
+function getKimonoWxCities() {
+  if (currentRole === 'store' && currentStoreKey) {
+    const own = KIMONO_WX_ALL_CITIES.filter(c => c.stores.indexOf(currentStoreKey) >= 0);
+    return own.length ? own : KIMONO_WX_ALL_CITIES;  // fallback 若 storeKey 對不上 city map
+  }
+  return KIMONO_WX_ALL_CITIES;
+}
+const KIMONO_WX_CITIES = KIMONO_WX_ALL_CITIES;  // legacy alias for backward compat
 const WX_CACHE_KEY = 'kimono_wx_cache_v1';
 const WX_CACHE_TTL = 30 * 60 * 1000;  // 30 minutes
 function wxIcon(code){
@@ -3159,18 +3178,23 @@ function wxLabel(code){
 async function loadWeather(force){
   const container = document.getElementById('weather-container');
   if(!container) return;
-  // Cached?
+  // v2.4.30: cache 比對城市清單，role 切換時自動 refetch
+  const expectedCities = getKimonoWxCities().map(c => c.name).join(',');
   if(!force){
     try{
       const cached = JSON.parse(localStorage.getItem(WX_CACHE_KEY)||'null');
       if(cached && cached.ts && Date.now() - cached.ts < WX_CACHE_TTL){
-        renderWeather(cached.data);
-        return;
+        const cachedCities = (cached.data||[]).map(d => d.city).join(',');
+        if (cachedCities === expectedCities) {
+          renderWeather(cached.data);
+          return;
+        }
+        // 城市清單變了（換角色登入）→ 不用 cache，去 refetch
       }
     }catch(_){}
   }
   try{
-    const results = await Promise.all(KIMONO_WX_CITIES.map(async c=>{
+    const results = await Promise.all(getKimonoWxCities().map(async c=>{
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lng}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia/Tokyo&forecast_days=7`;
       const r = await fetch(url);
       const d = await r.json();
