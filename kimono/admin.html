@@ -201,6 +201,27 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 .todo-modal-card{ background:#fff; border-radius:14px; max-width:640px; width:100%; max-height:80vh; display:flex; flex-direction:column; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35); }
 .todo-modal-head{ padding:14px 18px; border-bottom:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center; }
 .todo-modal-body{ padding:12px 18px; overflow-y:auto; flex:1; }
+
+/* === v2.4.35 雙保險 RWD：用 .smart-2col 和 .smart-3col 強制多欄
+       即使 Tailwind 的 md:/lg:/xl: 因 CDN 配置問題沒生效，這裡的 @media 也會接手。
+       Honor V2 Pad / Galaxy Tab / iPad Mini 等小平板 (CSS 寬約 700~820) 必出 2 欄 === */
+.smart-2col{ display:grid; grid-template-columns:1fr; gap:1rem; }
+.smart-3col{ display:grid; grid-template-columns:1fr; gap:0.75rem; }
+@media (min-width: 600px){
+  .smart-2col{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .smart-3col{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1280px){
+  .smart-3col{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+/* 訂單卡內部資料：手機 2 欄，平板/桌機 4 欄 */
+.order-grid-inner{ display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:0.5rem; }
+@media (min-width: 768px){
+  .order-grid-inner{ gap: 0.75rem; }
+}
+@media (min-width: 1280px){
+  .order-grid-inner{ grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
 </style>
 </head>
 <body class="min-h-screen" style="overflow-x:hidden">
@@ -216,7 +237,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
       <div class="min-w-0 hidden xs:block sm:block">
         <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
-        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.34</div>
+        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.35</div>
       </div>
     </div>
     <div id="global-search-wrap" class="md:flex flex-1 max-w-md" style="display:none">
@@ -279,8 +300,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
   <section id="sec-dashboard" class="section active">
     <!-- v2.4.21 部署驗證橫幅（確認新版有上線） -->
     <div class="mb-3 px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between text-sm">
-      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.34</span>
-      <span class="text-emerald-700 text-xs">部署時間：2026-05-08 · 訂單卡 2-col + 趨勢/天氣/款式並排 + VIP 圖示 + 名字斷字修復</span>
+      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.35</span>
+      <span class="text-emerald-700 text-xs">部署時間：2026-05-08 · RWD 雙保險：smart-2col @600px、smart-3col @1280px、Honor V2 平板必出兩欄</span>
     </div>
     <div class="flex justify-between items-end mb-5 flex-wrap gap-2">
       <div>
@@ -333,8 +354,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div id="todo-list" class="space-y-2 text-sm"></div>
     </div>
 
-    <!-- v2.4.20: 14 天熱度 + 即將到店 平行（主要看板） -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+    <!-- v2.4.20: 14 天熱度 + 即將到店 平行（主要看板）— v2.4.35 改 smart-2col (≥600px) -->
+    <div class="smart-2col mb-4">
       <div class="panel">
         <h3 class="text-[#1A365D] mb-3 title-serif">⏰ 未來 14 天預約熱度</h3>
         <div id="heat-list" class="space-y-2 text-sm"></div>
@@ -345,8 +366,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       </div>
     </div>
 
-    <!-- 款式 / 來源 — 次要分析 (v2.4.34: 改回左右並排呈現，不再收合) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+    <!-- 款式 / 來源 — 次要分析 (v2.4.35 改 smart-2col 確保 ≥600px 必出 2 欄) -->
+    <div class="smart-2col mb-4">
       <div class="panel">
         <h3 class="text-[#1A365D] mb-3 title-serif">👘 款式佔比</h3>
         <div id="plan-ratio" class="space-y-3 text-sm"></div>
@@ -357,8 +378,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       </div>
     </div>
 
-    <!-- v2.4.34: 趨勢圖 + 天氣 改成左右並排（平板/桌機），手機才上下堆疊 -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- v2.4.35: 趨勢圖 + 天氣 用 smart-2col (≥600px 必出 2 欄) -->
+    <div class="smart-2col">
       <!-- 月度營收趨勢圖 -->
       <div class="panel">
         <div class="flex justify-between items-start mb-3">
@@ -438,8 +459,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 
     <div id="orders-loading" class="text-center py-12 text-slate-500 hidden font-semibold"><div class="text-3xl mb-2 animate-pulse">⏳</div>載入中…</div>
     <div id="orders-empty" class="text-center py-12 text-slate-500 hidden font-semibold"><div class="text-3xl mb-2">🔍</div>查無符合訂單</div>
-    <!-- v2.4.34: 訂單卡左右並排 — 平板/桌機 2 欄，手機 1 欄 -->
-    <div id="orders-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+    <!-- v2.4.35: 訂單卡左右並排 — ≥600 (小平板/橫向) 2 欄，≥1280 桌機 3 欄 -->
+    <div id="orders-list" class="smart-3col"></div>
   </section>
 
   <section id="sec-calendar" class="section">
@@ -1850,7 +1871,7 @@ function renderOrders(orders){
               (o.platform? '<span class="pill bg-blue-100 text-blue-800">📱 '+o.platform+'</span>':'')+
               daysTag+
             '</div>'+
-          '<div class="grid grid-cols-2 gap-2 md:gap-3 text-sm bg-slate-50 p-2.5 md:p-3 rounded-lg mb-2">'+
+          '<div class="order-grid-inner text-sm bg-slate-50 p-2.5 md:p-3 rounded-lg mb-2">'+
             '<div><div class="text-xs text-slate-600 font-semibold">體驗日期</div><div class="font-bold text-[#1A365D]">'+fmtBookingDateTime(o.bookingDate)+'</div></div>'+
             '<div><div class="text-xs text-slate-600 font-semibold">電話</div><div class="font-bold">'+(o.phone||'—')+'</div></div>'+
             '<div><div class="text-xs text-slate-600 font-semibold">人數</div><div class="font-bold">'+(o.adults||o.pax||'—')+'</div></div>'+
