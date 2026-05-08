@@ -1264,15 +1264,12 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 phone: document.getElementById('input-phone').value.trim(),
                 email: document.getElementById('input-email').value.trim(),
                 bookingDate: (() => {
+                    // v37c: 改成 24h 純數字格式，避免「上午/下午」被當成 Date 物件後 timezone 亂跑
                     const date = document.getElementById('input-date').value;
                     const time = document.getElementById('input-time').value;
                     if (!date || !time) return date;
                     const [y, m, d] = date.split('-');
-                    const hour = parseInt(time.split(':')[0]);
-                    const min = time.split(':')[1];
-                    const period = hour < 12 ? '上午' : ("下午");
-                    const h12 = hour > 12 ? hour - 12 : hour;
-                    return `${y}/${m}/${d} ${period}${h12}:${min}`;
+                    return `${y}/${m}/${d} ${time}`;  // 例：2026/07/10 14:30
                 })(),
                 platform: 'LINE', adults: guestData.adults, children: guestData.children,
                 plan: Array.from(document.querySelectorAll('[name="person-kimono"]')).map((s,i)=>(i+1)+'人:'+s.value).join('; ') || '',
