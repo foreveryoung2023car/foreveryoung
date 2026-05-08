@@ -116,11 +116,12 @@
 
   .checkbox-lg{width:20px;height:20px;cursor:pointer;accent-color:#1A365D}
 
-  /* 表格樣式（用於客戶名單、財務對帳） */
+  /* 表格樣式（用於客戶名單、財務對帳）— v2.4.36: 預設 nowrap，避免文字一字一行 */
   .data-table{width:100%;border-collapse:collapse;font-size:14px}
   .data-table thead{background:#F1F5F9}
-  .data-table th{padding:11px 12px;text-align:left;font-weight:700;color:#1A365D;border-bottom:2px solid #CBD5E1;font-size:13px;letter-spacing:.02em}
-  .data-table td{padding:11px 12px;border-bottom:1px solid #E2E8F0;color:#1A365D}
+  .data-table th{padding:11px 12px;text-align:left;font-weight:700;color:#1A365D;border-bottom:2px solid #CBD5E1;font-size:13px;letter-spacing:.02em;white-space:nowrap}
+  .data-table td{padding:11px 12px;border-bottom:1px solid #E2E8F0;color:#1A365D;white-space:nowrap}
+  .data-table td.wrap{white-space:normal}
   .data-table tbody tr:hover{background:#F8FAFC;cursor:pointer}
   .data-table .num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 
@@ -237,7 +238,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
       <div class="min-w-0 hidden xs:block sm:block">
         <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
-        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.35</div>
+        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.36</div>
       </div>
     </div>
     <div id="global-search-wrap" class="md:flex flex-1 max-w-md" style="display:none">
@@ -300,8 +301,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
   <section id="sec-dashboard" class="section active">
     <!-- v2.4.21 部署驗證橫幅（確認新版有上線） -->
     <div class="mb-3 px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between text-sm">
-      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.35</span>
-      <span class="text-emerald-700 text-xs">部署時間：2026-05-08 · RWD 雙保險：smart-2col @600px、smart-3col @1280px、Honor V2 平板必出兩欄</span>
+      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.36</span>
+      <span class="text-emerald-700 text-xs">部署時間：2026-05-08 · 趨勢/天氣全寬展開 + data-table td 預設 nowrap (修對帳/退款斷字)</span>
     </div>
     <div class="flex justify-between items-end mb-5 flex-wrap gap-2">
       <div>
@@ -378,30 +379,28 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       </div>
     </div>
 
-    <!-- v2.4.35: 趨勢圖 + 天氣 用 smart-2col (≥600px 必出 2 欄) -->
-    <div class="smart-2col">
-      <!-- 月度營收趨勢圖 -->
-      <div class="panel">
-        <div class="flex justify-between items-start mb-3">
-          <h3 class="text-[#1A365D] title-serif">📈 過去 6 個月營收趨勢</h3>
-          <span class="text-[10px] text-slate-500">訂金 vs 退款</span>
-        </div>
-        <canvas id="monthly-trend-chart" style="max-height:200px"></canvas>
+    <!-- v2.4.36: 趨勢 + 天氣改成獨立全寬 panel（資訊量大不擠在一起）-->
+    <!-- 月度營收趨勢圖 -->
+    <div class="panel mt-4">
+      <div class="flex justify-between items-start mb-3">
+        <h3 class="text-[#1A365D] title-serif">📈 過去 6 個月營收趨勢</h3>
+        <span class="text-[10px] text-slate-500">訂金 vs 退款</span>
       </div>
+      <canvas id="monthly-trend-chart" style="max-height:240px"></canvas>
+    </div>
 
-      <!-- 拍攝景點天氣熱區 -->
-      <div class="panel">
-        <div class="flex justify-between items-start mb-3">
-          <h3 class="text-[#1A365D] title-serif">🌤 拍攝景點 7 日天氣</h3>
-          <button onclick="loadWeather(true)" class="text-xs text-slate-600 hover:text-[#1A365D] font-semibold">↻ 重新整理</button>
-        </div>
-        <div id="weather-container" class="grid grid-cols-1 gap-3 text-sm">
-          <div class="text-slate-500 text-center py-6">載入中…</div>
-        </div>
-        <div id="weather-meta" class="mt-3 text-[11px] text-slate-500 font-sans flex justify-between flex-wrap gap-1">
-          <span>📡 Open-Meteo</span>
-          <span>⏱ <span id="weather-fetched-at">—</span></span>
-        </div>
+    <!-- 拍攝景點天氣熱區 -->
+    <div class="panel mt-4">
+      <div class="flex justify-between items-start mb-3">
+        <h3 class="text-[#1A365D] title-serif">🌤 拍攝景點 7 日天氣</h3>
+        <button onclick="loadWeather(true)" class="text-xs text-slate-600 hover:text-[#1A365D] font-semibold">↻ 重新整理</button>
+      </div>
+      <div id="weather-container" class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+        <div class="text-slate-500 text-center py-6 col-span-1 sm:col-span-3">載入中…</div>
+      </div>
+      <div id="weather-meta" class="mt-3 text-[11px] text-slate-500 font-sans flex justify-between flex-wrap gap-1">
+        <span>📡 Open-Meteo</span>
+        <span>⏱ <span id="weather-fetched-at">—</span></span>
       </div>
     </div>
   </section>
@@ -2208,12 +2207,12 @@ function renderFinance(){
       '<th class="num">退款金額</th><th>退款時間</th>'+
       '<th>原因</th></tr></thead><tbody>'+
       refunds.map(o=>'<tr onclick="openEdit(\''+o.orderId+'\')">'+
-      '<td class="font-mono text-sm whitespace-nowrap">'+o.orderId+'</td>'+
-      '<td class="font-bold whitespace-nowrap">'+(o.name||'—')+'</td>'+
-      '<td class="whitespace-nowrap">'+fmtDate(o.bookingDate)+'</td>'+
+      '<td class="font-mono text-sm">'+o.orderId+'</td>'+
+      '<td class="font-bold">'+(o.name||'—')+'</td>'+
+      '<td>'+fmtDate(o.bookingDate)+'</td>'+
       '<td class="num text-red-600 font-bold">'+fmtY0(o.refundAmount)+'</td>'+
       '<td>'+(o.refundTime? fmtDate(o.refundTime):'<span class="badge badge-pending">處理中</span>')+'</td>'+
-      '<td class="text-sm">'+(o.refundReason||'—')+'</td>'+
+      '<td class="text-sm wrap" style="min-width:200px;max-width:380px">'+(o.refundReason||'—')+'</td>'+
       '</tr>').join('')+'</tbody></table>';
   }
 }
