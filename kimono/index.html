@@ -520,6 +520,19 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                                 <input required type="email" id="input-email" placeholder="example@gmail.com" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent">
                             </label>
                         </div>
+                        <!-- v37 新增：選擇體驗門市 -->
+                        <div class="grid grid-cols-1 gap-10 font-sans uppercase">
+                            <label class="block border-b border-slate-100 pb-2">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase">選擇體驗門市 / Store</span>
+                                <select required id="input-store" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent cursor-pointer font-sans">
+                                    <option value="">請選擇門市</option>
+                                    <option value="kyoto1">京都清水寺店 (京都東山區五條橋東4-432-13)</option>
+                                    <option value="kyoto2">京都祇園店 (京都東山區常盤町169)</option>
+                                    <option value="osaka1">大阪日本橋店 (大阪中央區日本橋1-18-14)</option>
+                                    <option value="tokyo1">東京淺草寺店 (東京都台東區淺草1-33-8)</option>
+                                </select>
+                            </label>
+                        </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
                             <div class="flex items-center justify-between p-5 bg-[#FDFCF8] rounded-xl border border-slate-100">
                                 <div class="flex flex-col"><span class="text-sm font-bold text-[#1A365D] font-sans">大人人數</span><span class="text-[10px] text-slate-400 uppercase font-sans mt-1">Adults</span></div>
@@ -1217,6 +1230,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
         document.getElementById('booking-form-1').onsubmit = (e) => {
             e.preventDefault();
             if (!document.getElementById('input-time').value) { alert('請選擇預約時段'); return; }
+            if (!document.getElementById('input-store').value) { alert('請選擇體驗門市'); return; }
             setStep(2); scrollToId('booking');
         };
 
@@ -1265,6 +1279,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 hair: document.getElementById('input-hair').value === 'Yes' ? '是' : '否',
                 photo: document.getElementById('input-photo').value === 'Yes' ? '是' : '否',
                 source: '官網',
+                storeKey: document.getElementById('input-store').value || '',
                 couponCode: document.getElementById('input-coupon').value.trim() || '',
                 last5: document.getElementById('input-last5').value.trim(),
                 proofImageUrl: (function(){
