@@ -8,7 +8,7 @@ const KIMONO_CONFIG = {
 
     // ★ Google Apps Script Web App URL
     // 重新部署後只需要改這裡
-    APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbz9lcS7bo1voVp2UB2nIsiv0aQoUbTwr_GO_28rwmmvUXfIgx-FISPPCPT8m0-N5bC-/exec',
+    APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwop8K1yFhUFZSsxLVA3iaPEUx9yr0FlLrp0eRDQ9bszlhLCi_SBLYQG42ZL_fQiprQ/exec',
 
     // ★ 聯繫連結
     LINE_URL:       'https://lin.ee/TgFCvYQ',
@@ -43,4 +43,5 @@ window.addEventListener('load', () => {
         }, 300);
     }
 });
+
 
