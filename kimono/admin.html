@@ -238,7 +238,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
       <div class="min-w-0 hidden xs:block sm:block">
         <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
-        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.36</div>
+        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.38</div>
       </div>
     </div>
     <div id="global-search-wrap" class="md:flex flex-1 max-w-md" style="display:none">
@@ -301,7 +301,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
   <section id="sec-dashboard" class="section active">
     <!-- v2.4.21 部署驗證橫幅（確認新版有上線） -->
     <div class="mb-3 px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between text-sm">
-      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.36</span>
+      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.38 報到功能</span>
       <span class="text-emerald-700 text-xs">部署時間：2026-05-08 · 趨勢/天氣全寬展開 + data-table td 預設 nowrap (修對帳/退款斷字)</span>
     </div>
     <div class="flex justify-between items-end mb-5 flex-wrap gap-2">
@@ -1843,10 +1843,13 @@ function renderOrders(orders){
     const cls = anomaly ? 'urgent' : (overdueClass || '');
     const sel = selectedIds.has(o.orderId) ? 'selected' : '';
 
+    // v2.4.38 報到 badge：若已報到，最高優先 (覆蓋 已確認)
+    const checkinBadge = o.checkedInAt ? '<span class="badge" style="background:#D1FAE5;color:#065F46" title="'+(o.checkedInBy||'')+' '+fmtJST(o.checkedInAt).slice(0,16)+'">🎌 已報到</span>' : '';
     const badge = anomaly ? '<span class="badge badge-anomaly">⚠ 異常</span>' :
                   refundDone ? '<span class="badge" style="background:#E5E7EB;color:#374151">✓ 已退款</span>' :
                   refundProcessing ? '<span class="badge" style="background:#FEF3C7;color:#92400E">↩ 退款處理中</span>' :
                   refundNew ? '<span class="badge" style="background:#FECACA;color:#7F1D1D">💸 申請退款</span>' :
+                  o.checkedInAt ? checkinBadge :
                   o.confirmed ? '<span class="badge badge-confirmed">已確認</span>' :
                   '<span class="badge badge-pending">待確認</span>';
 
@@ -1893,6 +1896,8 @@ function renderOrders(orders){
         '<div class="flex flex-row gap-1.5 flex-shrink-0 w-full">'+
           '<button onclick="openEdit(\''+(o.orderId||'')+'\')" class="btn-navy px-3 py-1.5 rounded-lg text-sm flex-1">✏️ 編輯</button>'+
           (!o.confirmed && !anomaly ? '<button onclick="quickConfirm(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-emerald-400 text-emerald-700 rounded-lg text-sm hover:bg-emerald-50 font-semibold flex-1">✅ 快速確認</button>' : '')+
+          /* v2.4.38: 報到按鈕，只在「已確認 + 未報到 + 體驗日 ±1 天內」顯示 */
+          (o.confirmed && !o.checkedInAt && days!==null && days>=-1 && days<=1 ? '<button onclick="checkInOrder(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-amber-400 text-amber-700 rounded-lg text-sm hover:bg-amber-50 font-semibold flex-1">🎌 報到</button>' : '')+
           '<button onclick="copyOrderId(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-slate-300 rounded-lg text-sm hover:bg-slate-50 font-semibold flex-1">📋 複製編號</button>'+
         '</div>'+
       '</div>'+
@@ -1917,6 +1922,46 @@ async function quickConfirm(id){
   if(!o) return;
   if(!confirm('確定要將「'+(o.name||id)+'」標記為已確認嗎？')) return;
   await saveOrderQuick(o, {confirmed:'true'});
+}
+
+// v2.4.38 報到功能：店家在客人到店時點，記錄報到時間與報到店家
+async function checkInOrder(id){
+  const o = allOrders.find(x=>x.orderId===id);
+  if(!o) return;
+  // 預設 storeKey：店家身份用 currentStoreKey；Jun/Ren 客服可手動輸入
+  let storeKey = currentStoreKey;
+  if (!storeKey) {
+    storeKey = prompt('請輸入報到門市代號 (kyoto1 / kyoto2 / osaka1 / tokyo1)：', o.storeKey || '');
+    if (!storeKey) return;
+    storeKey = String(storeKey).trim().toLowerCase();
+    if (!['kyoto1','kyoto2','osaka1','tokyo1'].includes(storeKey)) { alert('門市代號錯誤'); return; }
+  }
+  // 驗證最後 5 碼電話
+  const last5 = prompt('請輸入客人手機末 3 碼（驗證身份）：');
+  if (last5 === null) return;
+  const phone = String(o.phone||'').replace(/[^0-9]/g,'');
+  if (last5 && !phone.endsWith(String(last5).trim().slice(-3))) {
+    if (!confirm('手機末 3 碼不符（客人輸入：'+last5+'，記錄：'+phone.slice(-3)+'）。仍要報到？')) return;
+  }
+  if (!confirm('確定為「'+(o.name||id)+'」辦理報到？\n門市：'+storeKey+'\n體驗日：'+(o.bookingDate||'—'))) return;
+  try {
+    const res = await fetch(GAS_URL, {method:'POST', body:JSON.stringify({
+      action:'checkInOrder', agent:currentAgent, token:adminToken,
+      orderId:id, storeKey:storeKey, last5:String(last5||'').trim()
+    })});
+    const data = await res.json();
+    if(data.status==='unauthorized'){ showLogin(); return; }
+    if(data.status==='ok'||data.status==='success'){
+      o.checkedInAt = data.checkedInAt || new Date().toISOString();
+      o.checkedInBy = storeKey;
+      filterOrders();
+      toast('已報到：'+(o.name||id)+' @ '+storeKey);
+    } else {
+      alert('報到失敗：'+(data.message||'未知錯誤'));
+    }
+  } catch(e){
+    alert('網路異常：'+e.message);
+  }
 }
 
 async function batchConfirm(){
@@ -4173,4 +4218,3 @@ window.applyRolePermissions = function() {
 </div>
 </body>
 </html>
- 
