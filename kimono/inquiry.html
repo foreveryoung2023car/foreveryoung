@@ -1,3 +1,4 @@
+<!-- inquiry.html v2.4.38: RWD 手機平板優化 -->
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -54,6 +55,43 @@
 .text-white\/60{ color: rgba(255,255,255,0.78) !important; }
 .text-white\/70{ color: rgba(255,255,255,0.85) !important; }
 input.input-field, textarea.input-field, select.input-field { font-size: 15px !important; }
+
+/* === v2.4.38 inquiry RWD：手機 + 平板優化 === */
+/* 手機 (≤480px)：縮小卡片內距、栅格收緊、字體微調 */
+@media (max-width: 480px) {
+  #formCard { padding: 1.25rem !important; }
+  main.max-w-2xl { padding-left: 0.75rem !important; padding-right: 0.75rem !important; padding-top: 1.5rem !important; }
+  /* 訂單內容區內距收 */
+  .inq-card-body { padding: 1rem !important; }
+  /* 退改政策三卡：保留三欄但字更小，避免換行擠 */
+  .grid-cols-3.gap-2 > div { padding: 0.4rem 0.25rem !important; font-size: 9px !important; }
+  /* 銀行代碼+銀行名稱 grid-cols-2：保留並排 */
+  /* 預約內容 grid-cols-2：保留 */
+  /* 大標欄距收 */
+  h1, .text-3xl { font-size: 1.5rem !important; }
+  /* 現場應付數字大字稍縮 */
+  #r-onsiteDue { font-size: 1.875rem !important; }
+  /* 退款按鈕全寬 */
+  #refundTrigger button { width: 100%; padding: 0.75rem 1rem !important; }
+  /* fee table 字體 */
+  #feeTable { font-size: 12px !important; }
+}
+/* 超窄手機 (≤360px iPhone SE)：再緊一點 */
+@media (max-width: 360px) {
+  #formCard { padding: 1rem !important; }
+  .grid-cols-2.gap-x-6 { column-gap: 0.75rem !important; }
+  #r-onsiteDue { font-size: 1.625rem !important; }
+}
+/* 平板直 (768-1024px)：放大卡片、間距更舒適 */
+@media (min-width: 768px) and (max-width: 1024px) {
+  main.max-w-2xl { max-width: 720px !important; }
+  #formCard { padding: 2.5rem !important; }
+}
+/* 通用：避免水平 overflow + 點擊區夠大 */
+button, select, input { min-height: 44px; }
+input[type="text"], input[type="email"], input[type="tel"], select, textarea { font-size: 16px !important; /* 避免 iOS Safari 縮放 */ }
+.refund-panel { -webkit-overflow-scrolling: touch; }
+
 </style>
 </head>
 <body class="text-[#1A365D] selection:bg-pink-100 overflow-x-hidden min-h-screen">
