@@ -1001,7 +1001,7 @@ const GAS_URL = typeof KIMONO_CONFIG !== 'undefined' ? KIMONO_CONFIG.APPS_SCRIPT
       const cbUrl = url + (url.indexOf('?') !== -1 ? '&' : '?') + '_cb=' + Date.now();
       // 2) 加 8 秒 timeout，超時自動 abort
       const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 8000);
+      const timer = setTimeout(() => ctrl.abort(), 30000);
       const newInit = Object.assign({}, init || {}, {
         signal: ctrl.signal,
         cache: 'no-store',
