@@ -225,12 +225,16 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 }
 
 
-/* v2.4.40: 教學導覽 spotlight */
-#tour-overlay { background: rgba(15, 23, 42, 0.65); }
+/* v2.4.40e: 教學導覽 spotlight (修：overlay 透明，靠 highlight 的 box-shadow 做暗化避免重疊雙重變暗) */
+#tour-overlay { background: transparent; }
+#tour-overlay.tour-center-mode { background: rgba(15, 23, 42, 0.7); }
 #tour-highlight {
   position: absolute;
-  border-radius: 8px;
-  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.95), 0 0 0 9999px rgba(15, 23, 42, 0.65);
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 4px rgba(251, 191, 36, 1),                /* 內框琥珀色 */
+    0 0 0 8px rgba(245, 158, 11, 0.6),              /* 外框較淡的琥珀 halo */
+    0 0 0 9999px rgba(15, 23, 42, 0.7);             /* 9999px 黑色 spread = 框外整片變暗 */
   transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
   z-index: 9999;
@@ -4341,17 +4345,21 @@ function renderTourStep() {
   document.getElementById('tour-prev').style.visibility = _tourStep === 0 ? 'hidden' : 'visible';
   document.getElementById('tour-next').textContent = (_tourStep === TOUR_STEPS.length - 1) ? '完成 ✓' : '下一步 →';
 
-  // Center mode：tooltip 置中、無 highlight
+  // Center mode：tooltip 置中、無 highlight、整個 overlay 變暗
   const tip = document.getElementById('tour-tooltip');
   const hi = document.getElementById('tour-highlight');
+  const overlay = document.getElementById('tour-overlay');
   if (step.center) {
     hi.style.display = 'none';
+    overlay.classList.add('tour-center-mode');
     tip.setAttribute('data-position', 'center');
     tip.style.top = '50%';
     tip.style.left = '50%';
     tip.style.transform = 'translate(-50%, -50%)';
     return;
   }
+  // Target mode：移除 center-mode（讓 box-shadow 做暗化）
+  overlay.classList.remove('tour-center-mode');
 
   // 找目標元素
   setTimeout(() => {
