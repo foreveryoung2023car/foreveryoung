@@ -223,6 +223,38 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 @media (min-width: 1280px){
   .order-grid-inner{ grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
+
+
+/* v2.4.40: 教學導覽 spotlight */
+#tour-overlay { background: rgba(15, 23, 42, 0.65); }
+#tour-highlight {
+  position: absolute;
+  border-radius: 8px;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.95), 0 0 0 9999px rgba(15, 23, 42, 0.65);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: 9999;
+}
+#tour-tooltip {
+  position: absolute;
+  background: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  padding: 20px;
+  max-width: 340px;
+  z-index: 10000;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#tour-tooltip::before {
+  content: '';
+  position: absolute;
+  border: 8px solid transparent;
+}
+#tour-tooltip[data-position="bottom"]::before { top: -16px; left: 24px; border-bottom-color: #FFFFFF; }
+#tour-tooltip[data-position="top"]::before    { bottom: -16px; left: 24px; border-top-color: #FFFFFF; }
+#tour-tooltip[data-position="left"]::before   { right: -16px; top: 24px; border-left-color: #FFFFFF; }
+#tour-tooltip[data-position="right"]::before  { left: -16px; top: 24px; border-right-color: #FFFFFF; }
+#tour-tooltip[data-position="center"]::before { display: none; }
 </style>
 </head>
 <body class="min-h-screen" style="overflow-x:hidden">
@@ -249,7 +281,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
     </div>
     <div class="flex items-center gap-3 flex-shrink-0">
       
-      <button onclick="loadOrders()" class="text-white/80 hover:text-white text-base hidden md:block" title="重新載入訂單資料">↻</button><button onclick="if(confirm('整個頁面重整？會清掉未存的編輯。'))location.reload()" class="text-white/60 hover:text-white text-base hidden md:block ml-1" title="強制整頁重整 (清快取)">⟳</button>
+      <button onclick="startAdminTour(true)" class="text-white/80 hover:text-white text-base font-bold mr-1" title="使用教學導覽">?</button><button onclick="loadOrders()" class="text-white/80 hover:text-white text-base hidden md:block" title="重新載入訂單資料">↻</button><button onclick="if(confirm('整個頁面重整？會清掉未存的編輯。'))location.reload()" class="text-white/60 hover:text-white text-base hidden md:block ml-1" title="強制整頁重整 (清快取)">⟳</button>
       <span id="nav-agent" class="text-white text-sm hidden md:block font-semibold cursor-pointer hover:underline" onclick="showMyPermissions()" title="點看我的權限"></span>
       <button onclick="showLogin()" id="logout-btn" class="text-white hover:bg-white/10 text-xs border border-white/30 px-2 py-1 md:px-3 md:py-1.5 md:text-sm rounded-lg hidden font-semibold whitespace-nowrap shrink-0">登出</button>
     </div>
@@ -1013,6 +1045,8 @@ function enterDashboard(name, token, role, storeKey) {
   loadOrders();
   // v2.4.40: 登入後重新載入天氣，依角色 (agent 全部 / store 自家城市) 抓對的城市
   if (typeof loadWeather === 'function') loadWeather(true);
+  // v2.4.40: 首次登入自動跳教學
+  if (typeof maybeAutoStartTour === 'function') maybeAutoStartTour();
 }
 
 
@@ -3847,7 +3881,28 @@ function generateInvoice(storeName, monthYM) {
       <div><b>旅乘確認</b><div class="box">旅乘用印</div></div>
     </div>
     <div style="text-align:center;margin-top:30px"><button onclick="window.print()" style="padding:10px 30px;background:#1A365D;color:white;border:none;font-size:14px;cursor:pointer;border-radius:6px;letter-spacing:0.2em">列印 / Save PDF</button></div>
-    </body></html>`;
+    
+<!-- v2.4.40: 教學導覽 overlay -->
+<div id="tour-overlay" class="hidden fixed inset-0" style="z-index:9998">
+  <div id="tour-highlight"></div>
+  <div id="tour-tooltip" data-position="bottom">
+    <div class="flex justify-between items-start mb-2">
+      <div class="text-xs text-amber-600 font-bold" id="tour-step-num">第 1 / 1 步</div>
+      <button onclick="endAdminTour()" class="text-slate-300 hover:text-slate-600 text-lg leading-none">×</button>
+    </div>
+    <h3 id="tour-title" class="text-lg font-bold text-[#1A365D] mb-2">標題</h3>
+    <p id="tour-body" class="text-sm text-slate-600 leading-relaxed mb-4">內容</p>
+    <div class="flex justify-between items-center">
+      <button onclick="endAdminTour()" class="text-xs text-slate-400 hover:text-slate-600 font-sans">略過教學</button>
+      <div class="flex gap-2">
+        <button id="tour-prev" onclick="tourPrev()" class="px-3 py-1.5 border-2 border-slate-200 hover:border-slate-400 rounded text-sm font-bold text-slate-600">← 上一步</button>
+        <button id="tour-next" onclick="tourNext()" class="px-3 py-1.5 bg-[#1A365D] hover:bg-blue-900 text-white rounded text-sm font-bold">下一步 →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body></html>`;
 
   const w = window.open('', '_blank');
   w.document.write(invHtml);
@@ -4183,6 +4238,201 @@ window.applyRolePermissions = function() {
   if (__origApplyRolePerms) __origApplyRolePerms();
   if (currentRole === 'store') showWalkInFab(); else hideWalkInFab();
 };
+
+
+
+// ============================================================
+// v2.4.40: 教學導覽 (Admin Tour)
+// ============================================================
+const ADMIN_TOUR_VERSION = 'v440';
+const TOUR_STEPS = [
+  { center: true, title: '👋 歡迎使用旅乘和服後台',
+    body: '快速導覽帶您認識 4 個主要功能。約 2-3 分鐘。隨時可按右上角「?」重看。' },
+
+  // === 訂單管理 ===
+  { tab: 'orders', selector: '[data-sec="orders"]', position: 'bottom',
+    title: '📋 訂單管理',
+    body: '所有訂單在這裡列出。最常用的功能，每天都會看。' },
+  { tab: 'orders', selector: '#sec-orders .flex.flex-wrap.gap-2.items-center',
+    title: '快速狀態 tab',
+    body: '上面的 tab 可以快速切換：今天 / 待確認 / 已確認 / 退款 / 異常。點一下就只看那個狀態的訂單。' },
+  { tab: 'orders', selector: '#sec-orders [onclick*="quickPreCheckClose"], #sec-orders details, #sec-orders summary',
+    title: '進階搜尋與篩選',
+    body: '展開「進階搜尋」可以用姓名、電話、訂單號、Email 找特定客人，也能用日期區間篩選。' },
+  { tab: 'orders', selector: '.order-card, #orders-grid, [id*="orders"]', optional: true,
+    title: '訂單卡',
+    body: '每張卡片顯示客人姓名、訂單號、體驗日期、人數、和服款式。已確認 + 體驗日 ±1 天會看到 🎌 報到按鈕。' },
+
+  // === 報到中心 (NEW) ===
+  { tab: 'checkin', selector: '[data-sec="checkin"]', position: 'bottom',
+    title: '🎌 報到中心 (NEW)',
+    body: '新功能！今日 ±1 天的訂單看板，客人到店時用這裡最快。' },
+  { tab: 'checkin', selector: '#sec-checkin .grid.grid-cols-1.md\\:grid-cols-3',
+    title: '當日報到統計',
+    body: '三個格子：⏳ 待報到、🎌 客人自助、✅ 已代客報到。一眼看出今天進度。' },
+  { tab: 'checkin', selector: '#checkin-search',
+    title: '末碼搜尋',
+    body: '客人說「我手機末3碼是 999」→ 直接打 999，看板會即時 filter 到那筆訂單。比翻訂單列表快很多。' },
+  { tab: 'checkin', selector: '#checkin-list, #checkin-empty',
+    title: '訂單卡片 + 報到按鈕',
+    body: '每張卡片有客人姓名、訂單號、體驗時間、末3碼。確認客人身份後點「🎌 為客人報到」就完成。已報到的卡片按鈕會變灰。' },
+
+  // === 對帳 ===
+  { tab: 'reconcile', selector: '[data-sec="reconcile"]', position: 'bottom',
+    title: '🧾 對帳作業',
+    body: '對帳是檢查每筆訂單收款狀況。月底結帳前要清完所有狀態。' },
+  { tab: 'reconcile', selector: '#recon-month',
+    title: '月份切換',
+    body: '預設顯示本月，可以下拉切到上個月看歷史對帳記錄。' },
+  { tab: 'reconcile', selector: '#recon-status',
+    title: '對帳狀態',
+    body: '🟢 已對帳 (收款金額正確)、🟡 部分收款 (待補尾款)、🔴 超收 (要退費)、⚪ 待對帳。可以下拉只看其中一種狀態。' },
+
+  // === 店家月結 ===
+  { tab: 'walkin', selector: '[data-sec="walkin"]', position: 'bottom',
+    title: '💴 店家月結',
+    body: 'Walk-in 客人專用月結頁。每月底用這裡跟我們對帳。' },
+  { tab: 'walkin', selector: '#walkin-month, #sec-walkin select',
+    title: '選月份',
+    body: '選要結算的月份，下面會列出該月所有 walk-in 訂單，自動算總收入、店家收的、我們應收的。' },
+  { tab: 'walkin', selector: '#sec-walkin button[onclick*="export"], #sec-walkin button:last-of-type', optional: true,
+    title: '匯出 CSV',
+    body: '匯出該月明細給會計核帳。' },
+
+  // 結尾
+  { center: true, title: '🎉 教學完成！',
+    body: '隨時可以點右上角的「?」重看。如果有任何使用問題或建議，請聯絡 Jun。' }
+];
+
+let _tourStep = 0;
+let _tourActive = false;
+
+function startAdminTour(forceManual) {
+  _tourStep = 0;
+  _tourActive = true;
+  document.getElementById('tour-overlay').classList.remove('hidden');
+  renderTourStep();
+}
+
+function endAdminTour() {
+  _tourActive = false;
+  document.getElementById('tour-overlay').classList.add('hidden');
+  // 標記已看過（首次自動跳就不會再出現）
+  try { localStorage.setItem('admin_tour_seen_' + ADMIN_TOUR_VERSION, '1'); } catch(e){}
+}
+
+function tourNext() {
+  if (_tourStep >= TOUR_STEPS.length - 1) { endAdminTour(); return; }
+  _tourStep++;
+  renderTourStep();
+}
+
+function tourPrev() {
+  if (_tourStep === 0) return;
+  _tourStep--;
+  renderTourStep();
+}
+
+function renderTourStep() {
+  const step = TOUR_STEPS[_tourStep];
+  if (!step) { endAdminTour(); return; }
+
+  // 切到對應 tab
+  if (step.tab) {
+    const tab = document.querySelector('.nav-tab[data-sec="' + step.tab + '"]');
+    if (tab && typeof switchSection === 'function') {
+      switchSection(step.tab, tab);
+    }
+  }
+
+  // 更新內容
+  document.getElementById('tour-step-num').textContent = '第 ' + (_tourStep + 1) + ' / ' + TOUR_STEPS.length + ' 步';
+  document.getElementById('tour-title').textContent = step.title;
+  document.getElementById('tour-body').textContent = step.body;
+  document.getElementById('tour-prev').style.visibility = _tourStep === 0 ? 'hidden' : 'visible';
+  document.getElementById('tour-next').textContent = (_tourStep === TOUR_STEPS.length - 1) ? '完成 ✓' : '下一步 →';
+
+  // Center mode：tooltip 置中、無 highlight
+  const tip = document.getElementById('tour-tooltip');
+  const hi = document.getElementById('tour-highlight');
+  if (step.center) {
+    hi.style.display = 'none';
+    tip.setAttribute('data-position', 'center');
+    tip.style.top = '50%';
+    tip.style.left = '50%';
+    tip.style.transform = 'translate(-50%, -50%)';
+    return;
+  }
+
+  // 找目標元素
+  setTimeout(() => {
+    let target = null;
+    if (step.selector) {
+      try { target = document.querySelector(step.selector); } catch(e) { target = null; }
+    }
+    if (!target && step.optional) {
+      // optional step 找不到就跳下一步
+      tourNext();
+      return;
+    }
+    if (!target) {
+      // 找不到 → fallback 置中
+      hi.style.display = 'none';
+      tip.setAttribute('data-position', 'center');
+      tip.style.top = '50%';
+      tip.style.left = '50%';
+      tip.style.transform = 'translate(-50%, -50%)';
+      return;
+    }
+    // 顯示 highlight
+    hi.style.display = 'block';
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const rect = target.getBoundingClientRect();
+    const pad = 8;
+    hi.style.top = (rect.top + window.scrollY - pad) + 'px';
+    hi.style.left = (rect.left + window.scrollX - pad) + 'px';
+    hi.style.width = (rect.width + pad * 2) + 'px';
+    hi.style.height = (rect.height + pad * 2) + 'px';
+
+    // 定位 tooltip
+    tip.style.transform = '';
+    const position = step.position || 'bottom';
+    tip.setAttribute('data-position', position);
+    const tipRect = tip.getBoundingClientRect();
+    const tipW = tipRect.width || 340;
+    const tipH = tipRect.height || 180;
+    let top, left;
+    if (position === 'bottom') {
+      top = rect.bottom + window.scrollY + 16;
+      left = rect.left + window.scrollX;
+    } else if (position === 'top') {
+      top = rect.top + window.scrollY - tipH - 16;
+      left = rect.left + window.scrollX;
+    } else if (position === 'right') {
+      top = rect.top + window.scrollY;
+      left = rect.right + window.scrollX + 16;
+    } else if (position === 'left') {
+      top = rect.top + window.scrollY;
+      left = rect.left + window.scrollX - tipW - 16;
+    }
+    // 邊界保護
+    if (left + tipW > window.innerWidth - 16) left = window.innerWidth - tipW - 16;
+    if (left < 16) left = 16;
+    if (top < window.scrollY + 16) top = window.scrollY + 16;
+    tip.style.top = top + 'px';
+    tip.style.left = left + 'px';
+  }, 350);  // wait for tab switch animation
+}
+
+// 首次登入自動跳
+function maybeAutoStartTour() {
+  try {
+    const seen = localStorage.getItem('admin_tour_seen_' + ADMIN_TOUR_VERSION);
+    if (!seen) {
+      setTimeout(() => startAdminTour(false), 1500);
+    }
+  } catch(e){}
+}
 
 </script>
 
