@@ -4309,12 +4309,43 @@ const TOUR_STEPS = [
     body: '隨時可以點右上角的「?」重看。如果有任何使用問題或建議，請聯絡 Jun。' }
 ];
 
+const STORE_TOUR_STEPS = [
+  { center: true, title: '👋 您好！店家後台快速導覽',
+    body: '5 個步驟帶您看店家每天會用到的功能。約 1 分鐘。隨時可按右上「?」重看。' },
+
+  { tab: 'checkin', selector: '[data-sec="checkin"]', position: 'bottom',
+    title: '🎌 報到中心（最常用）',
+    body: '客人到店 → 直接點這個 tab。看今天 ±1 天所有預約，按時間排好。' },
+
+  { tab: 'checkin', selector: '#checkin-search',
+    title: '末碼搜尋（超好用）',
+    body: '客人說「我手機末3碼是 999」→ 打 999 → 那筆訂單即時跳出來。比翻訂單列表快太多。' },
+
+  { tab: 'checkin', selector: '#checkin-list, #checkin-empty',
+    title: '幫客人報到',
+    body: '找到客人那張卡 → 點下方「🎌 為客人報到」按鈕 → 完成。已報到的卡片變綠色，按鈕變灰防重複點。' },
+
+  { tab: 'orders', selector: '#walkInFab', position: 'left',
+    title: '＋ 現場新增（Walk-in）',
+    body: '右下角藍色「＋ 現場新增」按鈕：客人沒預約直接走進店裡 → 點這個現場開單收錢。' },
+
+  { tab: 'walkin', selector: '#walkin-stores-grid, #sec-walkin',
+    title: '💴 店家月結',
+    body: '月底跟旅乘對帳用。看本月所有 walk-in 訂單、總收入。點卡片右上「📄 請款單」可下載明細給會計。' },
+
+  { center: true, title: '🎉 教學完成！',
+    body: '隨時可以點右上角的「?」重看。有任何問題請聯絡客服 Jun。' }
+];
+
 let _tourStep = 0;
 let _tourActive = false;
+let _activeTourSteps = TOUR_STEPS;  // v2.4.40i: 動態指向 STORE_TOUR_STEPS 或 TOUR_STEPS
 
 function startAdminTour(forceManual) {
   _tourStep = 0;
   _tourActive = true;
+  // v2.4.40i: 依角色選擇導覽內容 — 店家用簡化版 (約 5-6 步)，agent 用完整版 (16 步)
+  _activeTourSteps = (currentRole === 'store') ? STORE_TOUR_STEPS : TOUR_STEPS;
   document.getElementById('tour-overlay').classList.remove('hidden');
   renderTourStep();
 }
@@ -4327,7 +4358,7 @@ function endAdminTour() {
 }
 
 function tourNext() {
-  if (_tourStep >= TOUR_STEPS.length - 1) { endAdminTour(); return; }
+  if (_tourStep >= _activeTourSteps.length - 1) { endAdminTour(); return; }
   _tourStep++;
   renderTourStep();
 }
@@ -4339,7 +4370,7 @@ function tourPrev() {
 }
 
 function renderTourStep() {
-  const step = TOUR_STEPS[_tourStep];
+  const step = _activeTourSteps[_tourStep];
   if (!step) { endAdminTour(); return; }
 
   // 切到對應 tab
@@ -4351,11 +4382,11 @@ function renderTourStep() {
   }
 
   // 更新內容
-  document.getElementById('tour-step-num').textContent = '第 ' + (_tourStep + 1) + ' / ' + TOUR_STEPS.length + ' 步';
+  document.getElementById('tour-step-num').textContent = '第 ' + (_tourStep + 1) + ' / ' + _activeTourSteps.length + ' 步';
   document.getElementById('tour-title').textContent = step.title;
   document.getElementById('tour-body').textContent = step.body;
   document.getElementById('tour-prev').style.visibility = _tourStep === 0 ? 'hidden' : 'visible';
-  document.getElementById('tour-next').textContent = (_tourStep === TOUR_STEPS.length - 1) ? '完成 ✓' : '下一步 →';
+  document.getElementById('tour-next').textContent = (_tourStep === _activeTourSteps.length - 1) ? '完成 ✓' : '下一步 →';
 
   // Center mode：tooltip 置中、無 highlight、整個 overlay 變暗
   const tip = document.getElementById('tour-tooltip');
