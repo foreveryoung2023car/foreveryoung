@@ -1074,7 +1074,8 @@ function enterDashboard(name, token, role, storeKey) {
   applyRolePermissions();   // v2.5: hide/show UI based on role
   loadOrders();
   // v2.4.40: 登入後重新載入天氣，依角色 (agent 全部 / store 自家城市) 抓對的城市
-  if (typeof loadWeather === 'function') loadWeather(true);
+  // v2.4.40n: setTimeout 包起來避免 IIFE 自動登入時 TDZ error (KIMONO_WX_ALL_CITIES 尚未初始化)
+  setTimeout(() => { if (typeof loadWeather === 'function') loadWeather(true); }, 100);
   // v2.4.40: 首次登入自動跳教學
   if (typeof maybeAutoStartTour === 'function') maybeAutoStartTour();
 }
