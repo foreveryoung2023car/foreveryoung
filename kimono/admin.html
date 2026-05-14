@@ -281,7 +281,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
     </div>
     <div class="flex items-center gap-3 flex-shrink-0">
       
-      <button onclick="startAdminTour(true)" class="text-white/80 hover:text-white text-base font-bold mr-1" title="使用教學導覽">?</button><button onclick="loadOrders()" class="text-white/80 hover:text-white text-base hidden md:block" title="重新載入訂單資料">↻</button><button onclick="if(confirm('整個頁面重整？會清掉未存的編輯。'))location.reload()" class="text-white/60 hover:text-white text-base hidden md:block ml-1" title="強制整頁重整 (清快取)">⟳</button>
+      <button onclick="startAdminTour(true)" class="text-white/80 hover:text-white text-base font-bold mr-1" title="使用教學導覽">?</button><button onclick="fullReload()" class="text-white/80 hover:text-white text-base" title="清快取 + 重新載入訂單">↻</button>
       <span id="nav-agent" class="text-white text-sm hidden md:block font-semibold cursor-pointer hover:underline" onclick="showMyPermissions()" title="點看我的權限"></span>
       <button onclick="showLogin()" id="logout-btn" class="text-white hover:bg-white/10 text-xs border border-white/30 px-2 py-1 md:px-3 md:py-1.5 md:text-sm rounded-lg hidden font-semibold whitespace-nowrap shrink-0">登出</button>
     </div>
@@ -3520,7 +3520,7 @@ function renderWeather(results){
     const d = r.daily;
     html += '<tr class="border-t border-slate-100">';
     // City name cell
-    html += '<td class="px-3 py-2 sticky left-0 bg-white font-bold text-[#1A365D] text-sm" style="min-width:60px">📍 ' + r.city + '</td>';
+    html += '<td class="px-3 py-2 sticky left-0 bg-white font-bold text-[#1A365D] text-sm" style="min-width:60px">' + r.city + '</td>';
     if (!d) {
       html += '<td colspan="' + dates.length + '" class="text-center text-xs text-red-400 py-2">無資料</td>';
     } else {
@@ -3881,28 +3881,7 @@ function generateInvoice(storeName, monthYM) {
       <div><b>旅乘確認</b><div class="box">旅乘用印</div></div>
     </div>
     <div style="text-align:center;margin-top:30px"><button onclick="window.print()" style="padding:10px 30px;background:#1A365D;color:white;border:none;font-size:14px;cursor:pointer;border-radius:6px;letter-spacing:0.2em">列印 / Save PDF</button></div>
-    
-<!-- v2.4.40: 教學導覽 overlay -->
-<div id="tour-overlay" class="hidden fixed inset-0" style="z-index:9998">
-  <div id="tour-highlight"></div>
-  <div id="tour-tooltip" data-position="bottom">
-    <div class="flex justify-between items-start mb-2">
-      <div class="text-xs text-amber-600 font-bold" id="tour-step-num">第 1 / 1 步</div>
-      <button onclick="endAdminTour()" class="text-slate-300 hover:text-slate-600 text-lg leading-none">×</button>
-    </div>
-    <h3 id="tour-title" class="text-lg font-bold text-[#1A365D] mb-2">標題</h3>
-    <p id="tour-body" class="text-sm text-slate-600 leading-relaxed mb-4">內容</p>
-    <div class="flex justify-between items-center">
-      <button onclick="endAdminTour()" class="text-xs text-slate-400 hover:text-slate-600 font-sans">略過教學</button>
-      <div class="flex gap-2">
-        <button id="tour-prev" onclick="tourPrev()" class="px-3 py-1.5 border-2 border-slate-200 hover:border-slate-400 rounded text-sm font-bold text-slate-600">← 上一步</button>
-        <button id="tour-next" onclick="tourNext()" class="px-3 py-1.5 bg-[#1A365D] hover:bg-blue-900 text-white rounded text-sm font-bold">下一步 →</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-</body></html>`;
+    </body></html>`;
 
   const w = window.open('', '_blank');
   w.document.write(invHtml);
@@ -4244,6 +4223,16 @@ window.applyRolePermissions = function() {
 // ============================================================
 // v2.4.40: 教學導覽 (Admin Tour)
 // ============================================================
+
+// v2.4.40: 合併重整按鈕 = 清快取 + 重整
+function fullReload() {
+  if ('caches' in window) {
+    caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).finally(() => location.reload());
+  } else {
+    location.reload();
+  }
+}
+
 const ADMIN_TOUR_VERSION = 'v440';
 const TOUR_STEPS = [
   { center: true, title: '👋 歡迎使用旅乘和服後台',
@@ -4587,6 +4576,27 @@ function maybeAutoStartTour() {
     </div>
   </div>
 </div>
+
+<!-- v2.4.40: 教學導覽 overlay -->
+<div id="tour-overlay" class="hidden fixed inset-0" style="z-index:9998">
+  <div id="tour-highlight"></div>
+  <div id="tour-tooltip" data-position="bottom">
+    <div class="flex justify-between items-start mb-2">
+      <div class="text-xs text-amber-600 font-bold" id="tour-step-num">第 1 / 1 步</div>
+      <button onclick="endAdminTour()" class="text-slate-300 hover:text-slate-600 text-lg leading-none">×</button>
+    </div>
+    <h3 id="tour-title" class="text-lg font-bold text-[#1A365D] mb-2">標題</h3>
+    <p id="tour-body" class="text-sm text-slate-600 leading-relaxed mb-4">內容</p>
+    <div class="flex justify-between items-center">
+      <button onclick="endAdminTour()" class="text-xs text-slate-400 hover:text-slate-600 font-sans">略過教學</button>
+      <div class="flex gap-2">
+        <button id="tour-prev" onclick="tourPrev()" class="px-3 py-1.5 border-2 border-slate-200 hover:border-slate-400 rounded text-sm font-bold text-slate-600">← 上一步</button>
+        <button id="tour-next" onclick="tourNext()" class="px-3 py-1.5 bg-[#1A365D] hover:bg-blue-900 text-white rounded text-sm font-bold">下一步 →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
                                                                                                 
