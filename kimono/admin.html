@@ -1109,6 +1109,12 @@ function applyRolePermissions() {
     const dashTab = document.querySelector('[data-sec="dashboard"]');
     if (dashTab && typeof switchSection === 'function') switchSection('dashboard', dashTab);
   }
+  // v2.4.40g: 整合 Walk-in FAB 切換進原函數 (修 lexical scope 找不到 wrapper 的 bug)
+  if (isStore) {
+    if (typeof showWalkInFab === 'function') showWalkInFab();
+  } else {
+    if (typeof hideWalkInFab === 'function') hideWalkInFab();
+  }
 }
 
 (function() {
@@ -4215,12 +4221,7 @@ async function wiSubmit() {
 // Show FAB after successful login
 // (loadOrders is defined elsewhere in admin)
 
-// v2.5: 整合到 applyRolePermissions — store role 顯示 FAB
-const __origApplyRolePerms = typeof applyRolePermissions === 'function' ? applyRolePermissions : null;
-window.applyRolePermissions = function() {
-  if (__origApplyRolePerms) __origApplyRolePerms();
-  if (currentRole === 'store') showWalkInFab(); else hideWalkInFab();
-};
+// v2.4.40g: 舊的 wrapper 已整合進原 applyRolePermissions (line 1082)
 
 
 
