@@ -4312,7 +4312,7 @@ async function wiSubmit() {
   err.classList.add('hidden');
 
   if (!name) { err.textContent = '請填客人姓名'; err.classList.remove('hidden'); return; }
-  if (!plan) { err.textContent = '請填和服款式'; err.classList.remove('hidden'); return; }
+  // v2.4.42d: removed 請填和服款式 validation since 每人選和服款式 UI is hidden
   if (pp <= 0) { err.textContent = '請填和服原價'; err.classList.remove('hidden'); return; }
 
   const btn = document.getElementById('wiSubmitBtn');
@@ -6228,7 +6228,7 @@ function maybeAutoStartTour() {
 
       <!-- 和服款式（依人數動態產生） -->
       <div>
-        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">每人選和服款式 <span class="text-pink-500">*</span></label>
+        <la<div style="display:none">lass="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">每人選和服款式 <span class="text-pink-500">*</span></label>
         <div id="wi-plan-rows" class="space-y-2"></div>
         <p class="text-[11px] text-slate-500 mt-1 font-sans">※ 大人和小孩會自動帶入對應款式</p>
       </div>
