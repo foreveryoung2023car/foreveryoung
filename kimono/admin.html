@@ -882,7 +882,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
         <div class="md:col-span-2"><div class="section-label">Email</div><input id="e-email" class="input-field" type="email"></div>
         <div><div class="section-label">體驗預約日</div><input id="e-booking-date" class="input-field" type="date"></div>
         <div><div class="section-label">人數說明</div><input id="e-pax" class="input-field" placeholder="例：2大1小"></div>
-        <div><div class="section-label">和服款式 / 方案</div><input id="e-plan" class="input-field" placeholder="例：精緻和服、素雅和服"></div>
+        <div style="display:none"><div class="section-label">和服款式 / 方案</div><input id="e-plan" class="input-field" placeholder="例：精緻和服、素雅和服"></div>
         <div><div class="section-label">聯繫來源</div><input id="e-platform" class="input-field" placeholder="LINE、Instagram…"></div>
         <div><div class="section-label">妝髮造型</div><select id="e-hair" class="input-field"><option value="true">✅ 有妝髮</option><option value="false">❌ 無妝髮</option></select></div>
         <div><div class="section-label">攝影服務</div><select id="e-photo" class="input-field"><option value="true">✅ 有攝影</option><option value="false">❌ 無攝影</option></select></div>
@@ -1689,17 +1689,7 @@ function renderTodos(){
     }
   });
 
-  // 5) 明日預約
-  const tomorrow = new Date(now); tomorrow.setDate(now.getDate()+1);
-  visible.forEach(o => {
-    const d = new Date(o.bookingDate);
-    if (!isNaN(d) && d.toDateString() === tomorrow.toDateString()) {
-      items.push({type:'warn', icon:'📅', orderId:o.orderId, name:o.name||'—',
-        text:'明日體驗 '+(o.adults||o.pax||'')+' '+(o.plan||''),
-        extra:'(建議發行前提醒)',
-        time: o.bookingDate || ''});
-    }
-  });
+  // v2.4.42f: 5) 明日預約 移除 — 重複「即將到店」 widget 不再重複進「提醒注意」
 
   // 6) 訂單資料不完整
   visible.forEach(o => {
