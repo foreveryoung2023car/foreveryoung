@@ -230,26 +230,25 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 #tour-overlay.tour-center-mode { background: rgba(15, 23, 42, 0.7); }
 #tour-highlight {
   position: absolute;
-  border-radius: 10px;
+  border-radius: 4px;
   box-shadow:
-    0 0 0 4px rgba(251, 191, 36, 1),                /* 內框琥珀色 */
-    0 0 0 8px rgba(245, 158, 11, 0.6),              /* 外框較淡的琥珀 halo */
-    0 0 0 9999px rgba(15, 23, 42, 0.7);             /* 9999px 黑色 spread = 框外整片變暗 */
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    0 0 0 2px #1A365D,
+    0 0 0 9999px rgba(15, 23, 42, 0.6);
+  transition: all 0.25s ease;
   pointer-events: none;
   z-index: 9999;
 }
 #tour-tooltip {
   position: absolute;
   background: #FFFFFF;
-  border-radius: 12px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-  padding: 20px;
-  width: min(560px, calc(100vw - 32px));
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  padding: 18px;
+  width: min(520px, calc(100vw - 32px));
   max-height: calc(100vh - 40px);
   overflow-y: auto;
   z-index: 10000;
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.25s ease;
 }
 #tour-tooltip #tour-body { font-size: 13px; line-height: 1.6; }
 #tour-tooltip #tour-body ul { margin: 4px 0 8px 18px; padding: 0; }
@@ -258,11 +257,11 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 #tour-tooltip #tour-body ol li { margin-bottom: 4px; list-style: decimal; }
 #tour-tooltip #tour-body b, #tour-tooltip #tour-body strong { color: #1A365D; }
 #tour-tooltip #tour-body code { background: #F1F5F9; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; color: #DB2777; }
-#tour-tooltip #tour-body .info-box { background:#FEF3C7; border-left:3px solid #F59E0B; padding:8px 12px; margin:8px 0; border-radius:4px; font-size:12px; }
-#tour-tooltip #tour-body .danger-box { background:#FEE2E2; border-left:3px solid #DC2626; padding:8px 12px; margin:8px 0; border-radius:4px; font-size:12px; }
-#tour-tooltip #tour-body .example-box { background:#F0F9FF; border-left:3px solid #0EA5E9; padding:8px 12px; margin:8px 0; border-radius:4px; font-size:12px; }
-#tour-tooltip #tour-body .formula { background:#F8FAFC; border:1px dashed #CBD5E1; padding:8px 12px; margin:6px 0; border-radius:4px; font-family:monospace; font-size:12px; text-align:center; }
-#tour-tooltip #tour-body .mock-card { background:#FFFFFF; border:2px solid #E2E8F0; border-radius:8px; padding:10px; margin:8px 0; font-size:11px; box-shadow:0 1px 3px rgba(0,0,0,0.05); }
+#tour-tooltip #tour-body .info-box { background:#F8FAFC; border-left:2px solid #94A3B8; padding:6px 10px; margin:6px 0; font-size:12px; color:#475569; }
+#tour-tooltip #tour-body .danger-box { background:#F8FAFC; border-left:2px solid #1A365D; padding:6px 10px; margin:6px 0; font-size:12px; color:#475569; }
+#tour-tooltip #tour-body .example-box { background:#F8FAFC; border-left:2px solid #94A3B8; padding:6px 10px; margin:6px 0; font-size:12px; color:#475569; }
+#tour-tooltip #tour-body .formula { background:#F8FAFC; padding:6px 10px; margin:6px 0; font-family:monospace; font-size:12px; color:#1A365D; text-align:left; }
+#tour-tooltip #tour-body .mock-card { background:#FAFAFA; border:1px solid #E2E8F0; border-radius:4px; padding:10px; margin:6px 0; font-size:11px; }
 #tour-tooltip #tour-body .mock-card .mc-header { display:flex; justify-content:space-between; margin-bottom:6px; gap:6px; flex-wrap:wrap; }
 #tour-tooltip #tour-body .mock-card .mc-name { font-weight:bold; color:#1A365D; font-size:13px; }
 #tour-tooltip #tour-body .mock-card .mc-id { font-family:monospace; color:#94A3B8; font-size:10px; }
@@ -274,7 +273,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 #tour-tooltip #tour-body .mock-table th, #tour-tooltip #tour-body .mock-table td { padding:4px 6px; border:1px solid #E2E8F0; }
 #tour-tooltip #tour-body .mock-table th { background:#F1F5F9; color:#475569; font-weight:bold; text-align:left; }
 #tour-tooltip #tour-body .label { display:inline-block; padding:1px 6px; border-radius:3px; font-size:10px; font-weight:bold; vertical-align:middle; }
-#tour-tooltip #tour-body h4 { color:#1A365D; font-weight:bold; margin: 10px 0 4px 0; font-size:13px; }
+#tour-tooltip #tour-body h4 { color:#1A365D; font-weight:bold; margin: 8px 0 4px 0; font-size:12px; text-transform:uppercase; letter-spacing:0.5px; }
 #tour-tooltip::before {
   content: '';
   position: absolute;
@@ -5569,18 +5568,21 @@ function openScenarioPicker(isAuto) {
               '<div class="font-bold text-[#1A365D] text-sm">' + lbl.name + '</div>' +
               '<div class="text-xs text-slate-400">' + lbl.desc + '</div>' +
               '</div>';
-      html += grouped[cat].map(s =>
-        '<button onclick="startScenario(\'' + s.id + '\')" class="text-left p-3 bg-slate-50 hover:bg-amber-50 border-2 border-slate-100 hover:border-amber-400 rounded-xl transition-all">' +
+      const seen = (function(){ try { return JSON.parse(localStorage.getItem('admin_seen_scenarios') || '[]'); } catch(e){ return []; } })();
+      html += grouped[cat].map(s => {
+        const isSeen = seen.indexOf(s.id) >= 0;
+        const seenMark = isSeen ? '<span class="text-emerald-600 text-xs ml-1">✓</span>' : '';
+        return '<button onclick="startScenario(\'' + s.id + '\')" class="text-left p-3 bg-white hover:bg-slate-50 border border-slate-200 hover:border-[#1A365D] rounded transition-colors">' +
         '<div class="flex items-start gap-2">' +
-          '<div class="text-2xl shrink-0">' + s.icon + '</div>' +
+          '<div class="text-xl shrink-0">' + s.icon + '</div>' +
           '<div class="flex-1 min-w-0">' +
-            '<div class="font-bold text-[#1A365D] text-sm mb-0.5">' + s.title + '</div>' +
+            '<div class="font-bold text-[#1A365D] text-sm mb-0.5">' + s.title + seenMark + '</div>' +
             '<div class="text-[11px] text-slate-500 leading-tight mb-1">' + s.desc + '</div>' +
-            '<div class="text-[10px] text-amber-700 font-bold">' + s.steps.length + ' 步 · 約 ' + Math.max(2, Math.ceil(s.steps.length / 1.5)) + ' 分</div>' +
+            '<div class="text-[10px] text-slate-400">' + s.steps.length + ' 步 · 約 ' + Math.max(2, Math.ceil(s.steps.length / 1.5)) + ' 分</div>' +
           '</div>' +
         '</div>' +
-        '</button>'
-      ).join('');
+        '</button>';
+      }).join('');
     });
     list.innerHTML = html;
   }
@@ -5600,6 +5602,7 @@ function startScenario(id) {
   _activeTourSteps = scenario.steps;
   _tourStep = 0;
   _tourActive = true;
+  _currentScenarioId = id;  // v2.4.40q: 紀錄目前場景
   document.getElementById('tour-overlay').classList.remove('hidden');
   renderTourStep();
   try { localStorage.setItem('admin_tour_seen_' + ADMIN_TOUR_VERSION, '1'); } catch(e){}
@@ -5699,6 +5702,7 @@ const STORE_TOUR_STEPS = [
 
 let _tourStep = 0;
 let _tourActive = false;
+let _currentScenarioId = null;
 let _activeTourSteps = TOUR_STEPS;  // v2.4.40i: 動態指向 STORE_TOUR_STEPS 或 TOUR_STEPS
 
 function startAdminTour(forceManual) {
@@ -5713,12 +5717,27 @@ function startAdminTour(forceManual) {
 function endAdminTour() {
   _tourActive = false;
   document.getElementById('tour-overlay').classList.add('hidden');
-  // 標記已看過（首次自動跳就不會再出現）
   try { localStorage.setItem('admin_tour_seen_' + ADMIN_TOUR_VERSION, '1'); } catch(e){}
 }
 
+// v2.4.40q: 完成單元時不直接關，而是顯示「下一單元 →」
+function completeAndNext() {
+  // 紀錄此場景已完成
+  try {
+    const seen = JSON.parse(localStorage.getItem('admin_seen_scenarios') || '[]');
+    if (_currentScenarioId && seen.indexOf(_currentScenarioId) < 0) {
+      seen.push(_currentScenarioId);
+      localStorage.setItem('admin_seen_scenarios', JSON.stringify(seen));
+    }
+  } catch(e){}
+  // 關掉現有 tour overlay，跳回 picker
+  document.getElementById('tour-overlay').classList.add('hidden');
+  _tourActive = false;
+  openScenarioPicker();
+}
+
 function tourNext() {
-  if (_tourStep >= _activeTourSteps.length - 1) { endAdminTour(); return; }
+  if (_tourStep >= _activeTourSteps.length - 1) { completeAndNext(); return; }
   _tourStep++;
   renderTourStep();
 }
@@ -5746,7 +5765,7 @@ function renderTourStep() {
   document.getElementById('tour-title').textContent = step.title;
   document.getElementById('tour-body').innerHTML = step.body;
   document.getElementById('tour-prev').style.visibility = _tourStep === 0 ? 'hidden' : 'visible';
-  document.getElementById('tour-next').textContent = (_tourStep === _activeTourSteps.length - 1) ? '完成 ✓' : '下一步 →';
+  document.getElementById('tour-next').textContent = (_tourStep === _activeTourSteps.length - 1) ? '完成，下一單元 →' : '下一步 →';
 
   // Center mode：tooltip 置中、無 highlight、整個 overlay 變暗
   const tip = document.getElementById('tour-tooltip');
@@ -5999,7 +6018,7 @@ function maybeAutoStartTour() {
     <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full p-6 my-8" style="max-height:90vh;overflow-y:auto">
       <div class="flex justify-between items-start mb-4">
         <div>
-          <h2 class="text-2xl font-bold text-[#1A365D]">📚 訓練教室</h2>
+          <h2 class="text-xl font-bold text-[#1A365D]">訓練教室</h2>
           <p class="text-sm text-slate-500 mt-1">點下方場景，系統會帶您 step-by-step 完整走過實際工作流程</p>
         </div>
         <button onclick="closeScenarioPicker()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">×</button>
