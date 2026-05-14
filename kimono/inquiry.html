@@ -1,4 +1,4 @@
-<!-- inquiry.html v2.4.38: RWD 手機平板優化 -->
+<!-- inquiry.html v2.4.40: 客人自助報到功能 + RWD 手機平板優化 -->
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -239,6 +239,19 @@ input[type="text"], input[type="email"], input[type="tel"], select, textarea { f
           <div id="feeTable" class="rounded-sm overflow-hidden border border-slate-100"></div>
         </div>
 
+        <!-- v2.4.40: 客人自助報到按鈕（只在 confirmed + 體驗日今天 顯示） -->
+        <div id="selfCheckInSection" class="hidden">
+          <div class="bg-amber-50 border-2 border-amber-300 rounded-sm p-5 text-center">
+            <p class="text-amber-700 text-xs font-sans tracking-wider mb-3">🎌 您今天有體驗預約</p>
+            <p class="text-[#1A365D] font-bold text-base font-sans mb-4">到店後請點下方按鈕報到</p>
+            <button id="selfCheckInBtn" onclick="doSelfCheckIn()"
+              class="w-full max-w-xs inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#1A365D] hover:bg-[#0F1F38] text-white rounded-sm text-sm font-bold font-sans tracking-widest transition-all shadow-lg">
+              🎌 我已到店報到
+            </button>
+            <p class="text-slate-400 text-[10px] font-sans mt-3">點擊後將通知門市，請出示成功畫面給店員</p>
+          </div>
+        </div>
+
         <!-- 現場應付 -->
         <div class="bg-[#1A365D] rounded-sm p-6 text-center relative overflow-hidden">
           <div class="absolute inset-0 opacity-[0.06]" style="background-image:radial-gradient(circle,#FFB7C5 1px,transparent 1px);background-size:24px 24px"></div>
@@ -367,6 +380,52 @@ input[type="text"], input[type="email"], input[type="tel"], select, textarea { f
   </div>
 
   <!-- 退款成功 -->
+  <!-- v2.4.40: 客人自助報到成功畫面（請出示給店員） -->
+  <div id="checkInSuccessCard" class="hidden fade-up">
+    <div class="bg-white shadow-2xl rounded-sm border-4 border-emerald-400 overflow-hidden">
+      <div class="bg-gradient-to-br from-emerald-500 to-emerald-700 px-7 py-8 text-center relative overflow-hidden">
+        <div class="absolute inset-0 opacity-[0.10]" style="background-image:radial-gradient(circle,#FFFFFF 1px,transparent 1px);background-size:24px 24px"></div>
+        <div class="text-[60px] mb-2 relative z-10">🎌</div>
+        <p class="text-white font-bold text-2xl font-sans tracking-[0.2em] relative z-10">已成功報到</p>
+        <p class="text-white/80 text-xs font-sans tracking-widest mt-2 relative z-10">CHECK-IN SUCCESS</p>
+      </div>
+      <div class="p-8 space-y-6">
+        <!-- 大字提示 -->
+        <div class="bg-amber-50 border-2 border-amber-400 rounded-sm p-5 text-center">
+          <p class="text-amber-700 text-sm font-bold font-sans tracking-wider">📱 請出示這個畫面給店員</p>
+          <p class="text-amber-600 text-[11px] font-sans mt-1">門市人員確認後即可開始體驗</p>
+        </div>
+        <!-- 訂單摘要（讓店員一眼看到關鍵資訊） -->
+        <div class="bg-[#1A365D] rounded-sm p-6 text-center relative overflow-hidden">
+          <div class="absolute inset-0 opacity-[0.06]" style="background-image:radial-gradient(circle,#FFB7C5 1px,transparent 1px);background-size:24px 24px"></div>
+          <p class="text-white/40 text-[9px] uppercase tracking-[0.4em] font-sans mb-2 relative z-10">BOOKING NO.</p>
+          <p id="ci-orderId" class="text-white font-bold text-3xl tracking-[0.15em] font-sans relative z-10">—</p>
+        </div>
+        <div class="bg-[#FDFCF8] border border-slate-100 rounded-sm p-6 space-y-4">
+          <div class="flex justify-between items-center">
+            <span class="text-slate-500 text-xs font-sans tracking-wider">客人姓名</span>
+            <span id="ci-name" class="text-[#1A365D] font-bold text-base font-sans">—</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-500 text-xs font-sans tracking-wider">體驗日期</span>
+            <span id="ci-bookingDate" class="text-[#1A365D] font-bold text-base font-sans">—</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-500 text-xs font-sans tracking-wider">和服款式</span>
+            <span id="ci-plan" class="text-[#1A365D] font-bold text-base font-sans">—</span>
+          </div>
+          <div class="flex justify-between items-center pt-3 border-t border-slate-200">
+            <span class="text-emerald-600 text-xs font-sans tracking-wider font-bold">報到時間</span>
+            <span id="ci-checkInAt" class="text-emerald-700 font-bold text-base font-sans">—</span>
+          </div>
+        </div>
+        <div class="text-center text-[11px] text-slate-400 font-sans">
+          🎌 旅乘 x 和服　Foreveryoung x Ouka Kimono
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="refundSuccessCard" class="hidden fade-up">
     <div class="bg-white shadow-2xl rounded-sm border border-slate-50 overflow-hidden">
       <div class="bg-[#1A365D] px-7 py-6 relative overflow-hidden">
@@ -487,7 +546,9 @@ async function doQuery() {
     const data = await res.json();
     hideLoading();
     if (data.status !== 'success') { showForm(); return showError(data.message || '查無此訂單，請確認資料是否正確'); }
-    currentOrder = { orderId: data.orderId, email: data.email||'', phone: data.phone||'' };
+    // v2.4.40: 也記下姓名（如果是 byNamePhone 模式，從 form 拿；否則用 data.name 若 GAS 有回）
+    const formName = (queryMode === 'bynamephone') ? document.getElementById('qNamePhoneName').value.trim() : '';
+    currentOrder = { orderId: data.orderId, email: data.email||'', phone: data.phone||'', name: data.name || formName || '' };
     renderResult(data);
   } catch(err) {
     console.error(err); hideLoading(); showForm();
@@ -549,111 +610,29 @@ function renderResult(d) {
   // 退款區塊只有 confirmed 才顯示
   document.getElementById('refundSection').classList.toggle('hidden', !d.canRefund);
 
+  // v2.4.40: 客人自助報到按鈕：confirmed + 體驗日今天 (JST) 才顯示
+  const ciSec = document.getElementById('selfCheckInSection');
+  if (d.statusCode === 'confirmed' && isBookingToday(d.bookingDate)) {
+    ciSec.classList.remove('hidden');
+    // 把訂單細節暫存以便報到後顯示（保留 doQuery 已存的 name）
+    currentOrder.name = d.name || currentOrder.name || '客人';
+    currentOrder.bookingDate = d.bookingDate || '';
+    currentOrder.plan = d.plan || '';
+  } else {
+    ciSec.classList.add('hidden');
+  }
+
   showResult();
   window.scrollTo({ top:0, behavior:'smooth' });
 }
 
-function toggleRefundPanel() {
-  refundPanelOpen = !refundPanelOpen;
-  document.getElementById('refundPanel').classList.toggle('open', refundPanelOpen);
-  document.getElementById('refundTrigger').style.display = refundPanelOpen ? 'none' : 'block';
-  if (refundPanelOpen) setTimeout(() => document.getElementById('refundPanel').scrollIntoView({ behavior:'smooth', block:'start' }), 100);
-  else document.getElementById('refundError').classList.add('hidden');
-}
-
-document.getElementById('refundForm').onsubmit = async (e) => {
-  e.preventDefault();
-  const errBox = document.getElementById('refundError');
-  const btn    = document.getElementById('refundSubmitBtn');
-  const reason      = document.getElementById('rf-reason').value;
-  const note        = document.getElementById('rf-note').value.trim();
-  const bankCode    = document.getElementById('rf-bankCode').value.trim();
-  const bankName    = document.getElementById('rf-bankName').value.trim();
-  const account     = document.getElementById('rf-account').value.trim();
-  const accountName = document.getElementById('rf-accountName').value.trim();
-  const phone       = document.getElementById('rf-phone').value.trim();
-  const agreed      = document.getElementById('rf-agree').checked;
-
-  if (!reason||!bankCode||!bankName||!account||!accountName||!phone||!agreed) {
-    errBox.textContent='請填寫所有必填欄位並勾選確認聲明。'; errBox.classList.remove('hidden'); return;
-  }
-  if (account.length < 8) { document.getElementById('err-account').classList.add('show'); return; }
-
-  btn.textContent='送出中...'; btn.disabled=true;
-  errBox.classList.add('hidden');
-
-  const submitDate = new Date(Date.now()+8*60*60*1000).toISOString().slice(0,10);
-
+// v2.4.40: 判斷 bookingDate 是否為今天（用 JST UTC+9 比對）
+function isBookingToday(bookingDateStr) {
+  if (!bookingDateStr) return false;
   try {
-    await fetch(GAS_URL, {
-      method:'POST', mode:'no-cors',
-      headers:{ 'Content-Type':'text/plain' },
-      body:JSON.stringify({
-        action:'refund',
-        orderId:currentOrder.orderId,
-        email:currentOrder.email,
-        submitDate, reason, note,
-        bankCode, bankName, account, accountName, phone
-      })
-    });
-
-    document.getElementById('rs-orderId').textContent = currentOrder.orderId;
-    document.getElementById('rs-summary').innerHTML = `
-      <div class="flex justify-between text-white/80"><span class="text-white/40">預約編號</span><span class="font-bold tracking-widest">${currentOrder.orderId}</span></div>
-      <div class="flex justify-between text-white/80"><span class="text-white/40">退款原因</span><span>${reason}</span></div>
-      <div class="flex justify-between text-white/80"><span class="text-white/40">收款銀行</span><span>${bankCode} ${bankName}</span></div>
-      <div class="flex justify-between text-white/80"><span class="text-white/40">收款帳號</span><span class="tracking-widest">${account}</span></div>
-      <div class="flex justify-between text-white/80"><span class="text-white/40">戶名</span><span>${accountName}</span></div>
-      <div class="flex justify-between text-white/80"><span class="text-white/40">申請日期</span><span>${submitDate}</span></div>`;
-
-    document.getElementById('resultCard').classList.add('hidden');
-    document.getElementById('refundSuccessCard').classList.remove('hidden');
-    window.scrollTo({ top:0, behavior:'smooth' });
-  } catch(err) {
-    errBox.textContent='網路異常，請稍後再試或直接聯繫 LINE 客服。'; errBox.classList.remove('hidden');
-  } finally {
-    btn.textContent='送出退款申請'; btn.disabled=false;
-  }
-};
-
-function showLoading() {
-  ['formCard','resultCard','refundSuccessCard'].forEach(id=>document.getElementById(id).classList.add('hidden'));
-  document.getElementById('loadingCard').classList.remove('hidden');
-}
-function hideLoading() { document.getElementById('loadingCard').classList.add('hidden'); }
-function showForm() {
-  document.getElementById('formCard').classList.remove('hidden');
-  ['loadingCard','resultCard','refundSuccessCard'].forEach(id=>document.getElementById(id).classList.add('hidden'));
-}
-function showResult() { document.getElementById('resultCard').classList.remove('hidden'); }
-function goBack() {
-  showForm(); hideError();
-  currentOrder=null; refundPanelOpen=false;
-  document.getElementById('refundPanel').classList.remove('open');
-  document.getElementById('refundTrigger').style.display='block';
-}
-function showError(m) { const el=document.getElementById('errorMsg'); el.textContent=m; el.classList.remove('hidden'); }
-function hideError()  { document.getElementById('errorMsg').classList.add('hidden'); }
-
-document.addEventListener('keydown', e => {
-  if (e.key==='Enter' && !document.getElementById('formCard').classList.contains('hidden')) doQuery();
-});
-window.addEventListener('scroll', () => {
-  const btn=document.getElementById('topBtn');
-  btn.style.opacity=window.scrollY>300?'1':'0';
-  btn.style.pointerEvents=window.scrollY>300?'auto':'none';
-});
-window.addEventListener('load', () => {
-  const c=document.getElementById('sakura-container');
-  for(let i=0;i<6;i++){
-    const p=document.createElement('div'); p.className='sakura';
-    p.style.width=(Math.random()*7+6)+'px'; p.style.height=p.style.width;
-    p.style.left=Math.random()*100+'vw';
-    p.style.animationDuration=(Math.random()*10+20)+'s';
-    p.style.animationDelay=(Math.random()*15)+'s';
-    c.appendChild(p);
-  }
-});
-</script>
-</body>
-</html>
+    const bd = new Date(bookingDateStr);
+    if (isNaN(bd)) return false;
+    // 取得 JST 的今天 yyyy-mm-dd
+    const now = new Date();
+    const jstNow = new Date(now.getTime() + (now.getTimezoneOffset() + 540) * 60000);
+   
