@@ -245,10 +245,24 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
   border-radius: 12px;
   box-shadow: 0 20px 50px rgba(0,0,0,0.3);
   padding: 20px;
-  max-width: 340px;
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
   z-index: 10000;
   transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
+#tour-tooltip #tour-body { font-size: 13px; line-height: 1.6; }
+#tour-tooltip #tour-body ul { margin: 4px 0 8px 18px; padding: 0; }
+#tour-tooltip #tour-body ul li { margin-bottom: 4px; list-style: disc; }
+#tour-tooltip #tour-body ol { margin: 4px 0 8px 20px; padding: 0; }
+#tour-tooltip #tour-body ol li { margin-bottom: 4px; list-style: decimal; }
+#tour-tooltip #tour-body b, #tour-tooltip #tour-body strong { color: #1A365D; }
+#tour-tooltip #tour-body code { background: #F1F5F9; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; color: #DB2777; }
+#tour-tooltip #tour-body .info-box { background:#FEF3C7; border-left:3px solid #F59E0B; padding:8px 12px; margin:8px 0; border-radius:4px; font-size:12px; }
+#tour-tooltip #tour-body .danger-box { background:#FEE2E2; border-left:3px solid #DC2626; padding:8px 12px; margin:8px 0; border-radius:4px; font-size:12px; }
+#tour-tooltip #tour-body .example-box { background:#F0F9FF; border-left:3px solid #0EA5E9; padding:8px 12px; margin:8px 0; border-radius:4px; font-size:12px; }
+#tour-tooltip #tour-body .formula { background:#F8FAFC; border:1px dashed #CBD5E1; padding:8px 12px; margin:6px 0; border-radius:4px; font-family:monospace; font-size:12px; text-align:center; }
+#tour-tooltip #tour-body h4 { color:#1A365D; font-weight:bold; margin: 10px 0 4px 0; font-size:13px; }
 #tour-tooltip::before {
   content: '';
   position: absolute;
@@ -4257,125 +4271,483 @@ const ADMIN_TOUR_VERSION = 'v440';
 // ============================================================
 
 const TRAINING_SCENARIOS = [
-  // ========== 場景 1：📬 新預約進來 ==========
+  // ========== 場景 1：📬 新預約進來（agent / Jun） ==========
   {
-    id: 'new_booking',
-    icon: '📬',
-    title: '新預約進來',
-    desc: '客人 inquiry 填表 → admin 出現「待確認」 → 確認 → 自動寄信',
+    id: 'new_booking', icon: '📬', title: '新預約進來',
+    desc: '客人前台 inquiry 填表 → admin 待確認 → 檢查 → 確認 → 自動寄信',
     roles: ['agent', 'jun'],
     steps: [
-      { center: true, title: '📬 情境：新預約進來',
-        body: '客人「王小明」剛在前台 inquiry.html 填了預約表單：7/5 體驗、1 大人、和服 1 人方案、Email guest5@example.com。送出後系統會做什麼？接下來幾步帶您看完整流程。' },
-      { center: true, title: '前台：客人那邊發生什麼',
-        body: '客人按「送出」後，系統會：\n1. 寄一封「我們收到您的預約」確認信給他\n2. 在 Sheet 新增一筆訂單，狀態先設「待確認」\n3. 客人再來 inquiry.html 查訂單會看到「核對中」黃色 badge' },
+      { center: true, title: '📬 情境：客人下了新預約',
+        body: '客人「<b>王小明</b>」剛在前台 <code>inquiry.html</code> 填了預約：' +
+              '<ul><li>體驗日：<b>2026/07/05 14:00</b></li><li>人數：<b>1 大人</b></li><li>方案：<b>1 人和服</b>（不加妝髮、不加攝影）</li><li>Email：<code>guest5@example.com</code></li><li>聯絡電話：<b>0931xxx234</b></li><li>平台：<b>LINE</b></li></ul>' +
+              '送出後系統會做什麼？接下來幾步帶您看完整流程。<br><br><b>這個流程每天會跑數十次，是後台最常用的功能。</b>' },
+
+      { center: true, title: '前台：客人送出後系統的自動動作',
+        body: '<h4>1. 系統會自動寄信</h4>客人會收到主旨「我們收到您的預約 #K260514001」的信，內容含預約資料 + 「我們會在 24 小時內確認」<br>' +
+              '<h4>2. Sheet 新增訂單</h4>Sheet 會新增一筆，欄位包含預約編號、姓名、體驗日、人數、Email、電話、訂金（暫時為 0）<br>' +
+              '<h4>3. 訂單狀態 = 「待確認」</h4>客人再來 inquiry.html 查訂單會看到黃色 badge「核對中」' +
+              '<div class="info-box">⚠ 注意：這時候<b>還沒收訂金</b>。客人需要另外按確認信裡的連結匯訂金。</div>' },
+
       { tab: 'orders', selector: '[data-sec="orders"]', position: 'bottom',
-        title: '後台：先到「訂單管理」',
-        body: '訂單會出現在這個 tab。預設按建單時間排序，最新的在上面。' },
+        title: '後台：訂單管理 tab',
+        body: '訂單都在這個 tab。tab 旁邊的數字顯示<b>總訂單數</b>（如 73）。' +
+              '<br><br>預設按建單時間排序，<b>最新的在最上面</b>。' +
+              '<div class="example-box">📌 訂單管理是每天打開後台的<b>第一站</b>。今天有幾筆新單、幾筆要處理，一眼看到。</div>' },
+
       { tab: 'orders', selector: '#sec-orders .flex.flex-wrap.gap-2.items-center',
-        title: '篩選「待確認」訂單',
-        body: '點上面的「待確認」tab 就只看到需要處理的訂單。每天打開後台第一件事。' },
-      { center: true, title: '檢查重點',
-        body: '進訂單卡前，先檢查 3 件事：\n✓ 體驗日期不在過去\n✓ Email 格式正確、平台來源有填\n✓ 訂金已收到（看訂金欄是否有數字）\n\n有問題的訂單留著，先別確認。' },
-      { center: true, title: '確認訂單前的計算',
-        body: '訂金預期金額 = 人數 × 1000\n例：1 大人 = ¥1000\n如果折扣碼是 8 折，方案會自動折 20%\n\n比對訂金欄看 OK，就可以確認了。' },
+        title: '篩選「待確認」',
+        body: '點 tab 列上的「<b>待確認</b>」 → 只看到還沒確認的訂單。' +
+              '<h4>常用 filter</h4>' +
+              '<ul><li><b>今天</b>：今天體驗的客人（報到前一天先看）</li><li><b>待確認</b>：每天起床第一件事</li><li><b>已確認</b>：已對好帳的，看歷史</li><li><b>退款</b>：要處理退款的</li><li><b>異常</b>：金額對不上、訂金超收等</li></ul>' },
+
+      { center: true, title: '訂單卡上的所有欄位',
+        body: '訂單卡會顯示：<br>' +
+              '<ul>' +
+              '<li><b>編號</b>：如 K260514001，K = Kimono、後面是日期序號</li>' +
+              '<li><b>姓名 + 平台 badge</b>：LINE / FB / IG / walk-in@osaka1 等</li>' +
+              '<li><b>剩 X 天</b>：距體驗日剩多少天（紅色 = 已過、橘色 = 7 天內）</li>' +
+              '<li><b>體驗日期</b>：客人想體驗的日期+時間</li>' +
+              '<li><b>電話</b>：注意去除 +886、空格、－ 等才比對</li>' +
+              '<li><b>人數</b>：1 大、2 大 + 1 小 等</li>' +
+              '<li><b>和服款式</b>：1 人方案、2 人方案、親子套裝...</li>' +
+              '<li><b>訂金</b>：客人實際匯入的金額（NT$）</li>' +
+              '<li><b>總價</b>：和服費 + 妝髮 + 攝影 - 訂金折抵</li>' +
+              '<li><b>Email</b>：寄信用，<b>必須正確</b>否則自動信全部失敗</li>' +
+              '</ul>' },
+
+      { center: true, title: '✅ 確認前的檢查清單',
+        body: '<h4>必檢查 5 件事</h4>' +
+              '<ol>' +
+              '<li><b>體驗日期合理</b>：不在過去、不超過 6 個月後</li>' +
+              '<li><b>Email 格式對</b>：要有 @ 跟 .com / .tw 等</li>' +
+              '<li><b>平台來源有填</b>：LINE / FB / IG / 官網 至少一個</li>' +
+              '<li><b>電話有填且看起來像電話</b>（9-15 位數字）</li>' +
+              '<li><b>訂金已收到</b>：看訂金欄是不是 ≥ 預期金額</li>' +
+              '</ol>' +
+              '<div class="danger-box">❌ 如果有任何一項不對，<b>不要確認</b>。可以先點「📝 編輯」幫客人補上，或寄信問客人。</div>' },
+
+      { center: true, title: '訂金金額怎麼算（重要！）',
+        body: '<h4>訂金公式</h4><div class="formula">訂金 (NT$) = 人數 × 1000</div>' +
+              '<h4>範例</h4>' +
+              '<ul>' +
+              '<li>1 大人 = 1 × 1000 = <b>NT$1,000</b></li>' +
+              '<li>2 大人 + 1 小孩 = 3 × 1000 = <b>NT$3,000</b></li>' +
+              '<li>5 人團 = 5 × 1000 = <b>NT$5,000</b></li>' +
+              '</ul>' +
+              '<div class="info-box">💡 訂金的目的是<b>確認預約意願</b>。剩下的尾款（妝髮、攝影、和服費差額）<b>客人到店現場結算</b>。</div>' },
+
+      { center: true, title: '折扣碼怎麼套用',
+        body: '客人在 inquiry 表單上填了「折扣碼」欄位（如 <code>EARLY8</code>）：' +
+              '<h4>系統會自動：</h4>' +
+              '<ol><li>到 Sheet「折扣碼分頁」找該碼</li><li>套用對應折數（5-10 折）</li><li>實收方案費 = 方案原價 × (折數/10)</li></ol>' +
+              '<h4>範例</h4>' +
+              '<div class="formula">原價 ¥10,000 + 折扣碼 EARLY8 (8 折)<br>= 實收 ¥10,000 × 8/10 = <b>¥8,000</b></div>' +
+              '<div class="info-box">⚠ 折扣只折和服費，<b>妝髮費和攝影費不折</b>，店家全收。</div>' },
+
       { tab: 'orders', selector: '#sec-orders',
-        title: '點訂單卡上的「✅ 快速確認」',
-        body: '每張卡都有「✅ 快速確認」按鈕。按下去 badge 立刻變綠色「已確認」。' },
-      { center: true, title: '確認後系統自動做什麼',
-        body: '按下「確認」之後，系統會：\n1. Sheet 該行 confirmed 欄變 TRUE\n2. 自動寄「預約已確認」信給客人（含體驗時間、門市地址、注意事項）\n3. 客人 inquiry.html 重新查會看到「已確認」綠色 badge\n4. 在「報到中心」tab 出現該訂單（如體驗日是 ±1 天）\n\n完成！每天會跑 N 次這個流程。' }
+        title: '點「✅ 快速確認」',
+        body: '每張訂單卡底下有「✅ 快速確認」按鈕（藍色）。<br><br>按下去 → 系統 prompt「確定要確認 王小明 的預約？」→ 點確定。' +
+              '<div class="info-box">💡 也可以點「📝 編輯」進去填補欄位後再確認（用於資料不完整的訂單）。</div>' },
+
+      { center: true, title: '🎉 確認後系統自動做什麼',
+        body: '<ol>' +
+              '<li>Sheet <code>confirmed</code> 欄變 <code>TRUE</code></li>' +
+              '<li>自動寄「<b>預約已確認</b>」信給客人（含體驗時間、門市地址、注意事項、現場應付金額）</li>' +
+              '<li>客人 inquiry 重新查會看到「✓ 已確認」綠色 badge</li>' +
+              '<li>「對帳」tab 開始追蹤這筆訂單</li>' +
+              '<li>「報到中心」tab 在體驗日 ±1 天時自動顯示這筆</li>' +
+              '<li>「客戶名單」tab 新增/更新這個客人的累計次數</li>' +
+              '</ol>' },
+
+      { center: true, title: '⚠️ 常見錯誤',
+        body: '<div class="danger-box">' +
+              '<b>1. 訂金沒到就確認</b><br>客人沒匯款，按了確認 → 客人爽爽地不付錢、不出現。<b>務必先看訂金欄有數字</b>。' +
+              '</div>' +
+              '<div class="danger-box">' +
+              '<b>2. 體驗日填錯</b><br>體驗日 ≠ 下單日。下單日是「<code>submitDate</code>」、體驗日是「<code>bookingDate</code>」。報到中心 / 行事曆都看 bookingDate。' +
+              '</div>' +
+              '<div class="danger-box">' +
+              '<b>3. 平台來源沒填</b><br>沒填來源 → 月底跟店家分潤不知道分給誰 → 月結會少給人家錢。<b>客人 IG 來的就填 IG，FB 來的就填 FB</b>。' +
+              '</div>' }
     ]
   },
 
-  // ========== 場景 2：💰 客人要退款 ==========
+  // ========== 場景 2：💰 退款處理（agent / Jun） ==========
   {
-    id: 'refund',
-    icon: '💰',
-    title: '客人要退款',
-    desc: '客人 inquiry 申請退款 → admin 出現「申請退款」→ 按政策算退多少 → 轉帳 → 標完成',
+    id: 'refund', icon: '💰', title: '客人要退款',
+    desc: '客人 inquiry 申請退款 → admin 出現申請 → 按退改政策計算 → 轉帳 → 標記完成',
     roles: ['agent', 'jun'],
     steps: [
       { center: true, title: '💰 情境：客人申請退款',
-        body: '客人「王小明」前幾天訂了 7/5 的預約，但行程變更無法去。他在前台 inquiry.html 查訂單 → 點「申請退款 / 取消預約」→ 填了銀行帳號、退款原因。系統怎麼處理？' },
-      { center: true, title: '前台：客人填了什麼',
-        body: '客人在退款表單填：\n• 退款原因（行程變更/簽證問題/身體不適/天災/其他）\n• 銀行代碼（如 008）\n• 銀行名稱、帳號、戶名\n• 聯繫電話\n• 勾選「我同意退改政策」\n\n送出後 admin 後台會立刻看到。' },
+        body: '客人「王小明」訂了 7/5 預約、訂金已付 NT$1000。但他臨時行程變更想取消。' +
+              '<h4>客人怎麼操作：</h4>' +
+              '<ol><li>他到 inquiry.html 用姓名+末3碼 / 訂單號+Email 找到訂單</li>' +
+              '<li>點訂單卡下方「<b>申請退款 / 取消預約</b>」</li>' +
+              '<li>填表單：退款原因、銀行代碼、銀行名稱、帳號、戶名、聯繫電話</li>' +
+              '<li>勾「我同意退改政策」→ 送出</li></ol>' +
+              '送出後 admin 後台會立刻有反應。' },
+
+      { center: true, title: '前台：客人填的資料長這樣',
+        body: '<h4>退款表單欄位</h4>' +
+              '<ul>' +
+              '<li><b>退款原因</b>：行程變更 / 簽證問題 / 身體不適 / 天災 / 其他</li>' +
+              '<li><b>補充說明</b>：選填，客人可以寫詳情</li>' +
+              '<li><b>銀行代碼</b>：3 位數（如 008 華南銀行）</li>' +
+              '<li><b>銀行名稱</b>：如「華南銀行」</li>' +
+              '<li><b>帳號</b>：8-14 位數字</li>' +
+              '<li><b>戶名</b>：跟訂單姓名最好一致</li>' +
+              '<li><b>聯繫電話</b>：方便我們確認用</li>' +
+              '</ul>' +
+              '<div class="info-box">客人也會收到「退款申請已收到」自動回信。</div>' },
+
       { tab: 'orders', selector: '[data-sec="orders"]', position: 'bottom',
         title: '後台：訂單管理 → 退款 filter',
-        body: '進訂單管理 tab，點上面「退款」filter 看所有要處理的退款申請。badge 是橘紅色「申請退款」。' },
-      { center: true, title: '⚠️ 重要：按退改政策算退多少',
-        body: '不是客人付多少就退多少！按「體驗日距今」決定：\n🟢 7 天前以上 → 退 100%\n🟡 2-6 天前 → 退 50%\n🔴 前一日 / 當日 → 不退費\n\n體驗日是 7/5 → 今天 5/14 → 還有 52 天 → 退 100%' },
+        body: '進「訂單管理」tab → 點 tab 列的「<b>退款</b>」filter。<br><br>只會看到狀態為「申請退款」或「退款處理中」的訂單。橘色 badge。' },
+
+      { center: true, title: '⚠️ 重要：退多少要按政策算',
+        body: '<div class="danger-box"><b>不是客人付多少就退多少！</b></div>' +
+              '<h4>退改政策（看體驗日距今）</h4>' +
+              '<ul>' +
+              '<li>🟢 <b>7 天前以上取消</b> → 退 <b>100%</b></li>' +
+              '<li>🟡 <b>2-6 天前取消</b> → 退 <b>50%</b></li>' +
+              '<li>🔴 <b>前一日 / 當日取消</b> → <b>不退費</b></li>' +
+              '</ul>' +
+              '<h4>範例計算</h4>' +
+              '<div class="formula">今天 5/14、體驗日 7/5<br>距離 = 52 天 → 7 天以上 → 退 100%<br>已付訂金 NT$1000 → 退 <b>NT$1000</b></div>' +
+              '<div class="formula">今天 7/3、體驗日 7/5<br>距離 = 2 天 → 2-6 天 → 退 50%<br>已付訂金 NT$1000 → 退 <b>NT$500</b></div>' },
+
       { tab: 'orders', selector: '#sec-orders',
-        title: '檢查訂單卡的退款資料',
-        body: '訂單卡會顯示：退款原因、銀行代碼+名稱+帳號、戶名、聯繫電話。檢查資料完整、戶名跟訂單姓名是否一致。' },
+        title: '檢查退款資料',
+        body: '訂單卡會展開顯示客人填的退款資料：' +
+              '<ul><li>退款原因</li>' +
+              '<li>銀行代碼 + 名稱（核對是否真的存在 → 008 是華南、004 是台銀...）</li>' +
+              '<li>帳號（看位數合理嗎）</li>' +
+              '<li>戶名（跟訂單姓名是否一致 → 不一致可能要退到自己帳戶？要再確認）</li>' +
+              '</ul>' +
+              '<div class="danger-box">戶名跟訂單姓名不同時，<b>務必先用 LINE 或電話問客人</b>，避免錢轉到別人手上。</div>' },
+
       { center: true, title: '⚠️ 操作順序：先轉帳，再標記',
-        body: '正確流程：\n1. 開銀行 App\n2. 用客人填的銀行代碼+帳號+戶名，轉退款金額\n3. ⚠️ 轉帳成功後，再回後台標記\n\n如果先標記再轉帳，會失憶忘記轉。' },
+        body: '<div class="danger-box"><b>正確順序：</b>' +
+              '<ol><li>開銀行 App 或網銀</li>' +
+              '<li>用客人填的銀行代碼+帳號+戶名，轉「按政策算出的退款金額」</li>' +
+              '<li>⚠️ <b>確認轉帳成功</b>（截圖留底）後</li>' +
+              '<li>再回後台標記</li></ol>' +
+              '</div>' +
+              '<div class="info-box">如果先標記再轉帳：很容易隔幾天忘記轉、客人來追問才發現 → 信任度暴跌。</div>' },
+
       { tab: 'orders', selector: '#sec-orders',
         title: '回後台填退款金額 + 時間',
-        body: '點訂單卡「📝 編輯」→ 找「退款金額」欄填實際轉的金額 → 找「退款時間」填今天日期 → 儲存。' },
-      { center: true, title: '完成後系統會...',
-        body: '標記退款後：\n• Badge 變紅色「已退款」\n• 客人 inquiry.html 那邊也會看到「已退款」狀態\n• 對帳 tab 的該筆會排除（不再算 unmatched）\n\n⚠️ 退多退少都會出事，務必按政策。' }
+        body: '點訂單卡「📝 編輯」按鈕 → 找到：' +
+              '<ul><li><b>退款金額</b> (refundAmount)：填您實際轉的 NT$ 金額</li>' +
+              '<li><b>退款時間</b> (refundTime)：填轉帳成功的當天日期（如 2026-05-14）</li>' +
+              '<li><b>退款原因</b> (refundReason)：之前客人填的，這時可以微調或加註</li>' +
+              '</ul>儲存。' +
+              '<div class="example-box">退款金額填 <code>1000</code>，退款時間填 <code>2026-05-14</code>，儲存。</div>' },
+
+      { center: true, title: '🎉 標記後系統自動做什麼',
+        body: '<ol>' +
+              '<li>訂單 badge 變紅色「<b>已退款</b>」</li>' +
+              '<li>客人 inquiry.html 那邊也會看到「已退款」狀態 + 退款金額</li>' +
+              '<li>對帳 tab 的該筆會排除（不再算 unmatched）</li>' +
+              '<li>客戶名單該客人「退款次數」+1</li>' +
+              '<li>歷史檔案會永久保留這筆紀錄</li>' +
+              '</ol>' +
+              '<div class="info-box">客人收不到自動信？退款這部分目前是<b>手動處理 + 系統標記</b>，不自動寄退款確認信。如需告知客人，請用 LINE / 電話通知。</div>' },
+
+      { center: true, title: '⚠️ 常見錯誤',
+        body: '<div class="danger-box"><b>1. 退太多 / 退太少</b><br>對著政策表算清楚再轉。不要憑感覺。</div>' +
+              '<div class="danger-box"><b>2. 戶名跟訂單姓名不符照轉</b><br>有可能是親友代訂 → 沒問題；但有可能是詐騙 → 先問清楚。</div>' +
+              '<div class="danger-box"><b>3. 已退款但忘記標記</b><br>對帳 tab 還顯示這筆未處理、客人來信沒進度 → 信任崩盤。</div>' +
+              '<div class="danger-box"><b>4. 銀行 fee 算錯</b><br>跨行轉帳會扣手續費（NT$15-30）。退款金額是退「客人收到的數字」還是「我們轉出的數字」？目前慣例是退完整金額、手續費我們吸收。</div>' }
     ]
   },
 
-  // ========== 場景 3：🎌 客人到店報到 ==========
+  // ========== 場景 3：🎌 客人到店報到（三種角色都看） ==========
   {
-    id: 'checkin',
-    icon: '🎌',
-    title: '客人到店報到',
+    id: 'checkin', icon: '🎌', title: '客人到店報到',
     desc: '客人到店 → 自助報到 or 代客報到 → Sheet 寫 AL/AM/AN',
     roles: ['agent', 'jun', 'store'],
     steps: [
       { center: true, title: '🎌 情境：客人到店',
-        body: '客人「王小明」約了今天下午 2 點到店家體驗和服。下午 1:50 進門，到櫃台。報到有兩種方式：\n\nA. 客人掏手機自己 inquiry.html → 點「我已到店報到」（v2.4.40 新功能）\nB. 店員代客在 admin 報到\n\n下面看 B 流程。' },
+        body: '客人「王小明」7/5 下午 2 點預約，1:50 進門。' +
+              '<h4>兩種報到方式</h4>' +
+              '<ol><li><b>A. 客人自助</b>（v2.4.40 新功能）：客人掏手機 → 開 inquiry.html → 找到自己訂單 → 點「🎌 我已到店報到」→ 出示成功畫面給店員</li>' +
+              '<li><b>B. 店員代客</b>：客人忘記怎麼操作 / 沒手機 → 店員 / 客服在 admin 幫他報到</li></ol>' +
+              '<br>下面看 <b>B 代客報到流程</b>。' },
+
       { tab: 'checkin', selector: '[data-sec="checkin"]', position: 'bottom',
         title: '進「🎌 報到中心」tab',
-        body: '今日 ±1 天所有訂單都在這。按體驗時間排序，最早的在上面。' },
+        body: '今日 ±1 天所有確認過的訂單都在這。<br><br>按體驗時間排序（最早的在上面）。' +
+              '<h4>看到的內容</h4>' +
+              '<ul><li>tab 標題：🎌 報到中心 X（X = 今日訂單數）</li>' +
+              '<li>三個統計：⏳ 待報到 / 🎌 客人自助 / ✅ 已代客</li>' +
+              '<li>下方訂單卡網格</li>' +
+              '</ul>' },
+
       { tab: 'checkin', selector: '#checkin-search',
-        title: '末碼搜尋找客人',
-        body: '客人說：「我手機末3碼是 999」→ 在搜尋框輸入 999 → 卡片即時 filter 跳出來。比翻完整訂單列表快 10 倍。' },
+        title: '末碼搜尋（超實用）',
+        body: '客人說：「我手機末3碼是 999」→ 在右上搜尋框輸入 <code>999</code> → 卡片即時 filter。' +
+              '<div class="example-box">📌 為什麼用末3碼不用全電話？<br>客人可能跟你說手機是 0912-345-<b>999</b>，3 碼足夠定位、又快又準。</div>' +
+              '<div class="info-box">支援 3-5 碼，輸入 <b>3 碼以上才開始 filter</b>。</div>' },
+
       { tab: 'checkin', selector: '#checkin-list',
-        title: '檢查卡片資料',
-        body: '卡片顯示客人姓名、訂單號、體驗時間、和服款式、人數、末3碼。跟客人本人確認是否一致（怕你叫錯名字或弄錯訂單）。' },
+        title: '檢查訂單卡資料',
+        body: '卡片顯示：' +
+              '<ul><li><b>客人姓名 + 訂單號</b></li>' +
+              '<li><b>狀態 badge</b>：⏳ 待報到 / 🎌 客人自助 / ✅ 已代客</li>' +
+              '<li><b>體驗時間</b>：如 7/5 14:00</li>' +
+              '<li><b>末3碼</b>：再次跟客人確認</li>' +
+              '<li><b>和服款式</b>：客人有訂什麼</li>' +
+              '<li><b>人數</b>：1 大 / 2 大 + 1 小 等</li>' +
+              '</ul>跟客人本人對話確認（怕你叫錯名字、弄錯訂單）。' },
+
       { tab: 'checkin', selector: '#checkin-list',
         title: '點「🎌 為客人報到」按鈕',
-        body: '卡片下方的綠色按鈕。點下去 → 系統 prompt 確認訊息「確定為 王小明 辦理報到？」→ 確定。' },
-      { center: true, title: '報到完成後',
-        body: '系統會：\n• 卡片 badge 變綠色「已代客報到」\n• Sheet 寫入 AL（報到時間）、AM（報到門市）、AN（報到來源 = storeKey）\n• admin 重整還是看到綠色（不會跑掉）\n• 已報到的卡片按鈕變灰色「已報到」（防你重複按）' },
-      { center: true, title: '客人自己報到的情況',
-        body: '如果客人自己在 inquiry.html 點過「我已到店報到」了：\n• 報到中心卡片 badge 是琥珀色「客人自助」\n• AN 欄寫 "self"\n• 您不用再代客報到\n\n好處：客人在門外排隊時就先報到，店員不用人工確認。' }
+        body: '卡片下方的綠色按鈕。' +
+              '<h4>按下去後：</h4>' +
+              '<ol><li>系統 prompt「確定為 王小明 辦理報到？」</li>' +
+              '<li>點確定 → 完成</li>' +
+              '<li>卡片 badge 變綠色「已代客報到」</li>' +
+              '<li>按鈕變灰色「已報到」（防您重複點）</li>' +
+              '</ol>' },
+
+      { center: true, title: '📋 Sheet 那邊寫了什麼',
+        body: '報到完成後 Sheet 自動寫入：' +
+              '<ul><li><b>AL 欄 = 報到時間</b>：如 2026-07-05T14:05:23+09:00</li>' +
+              '<li><b>AM 欄 = 報到門市</b>：如 osaka1 / kyoto1 / tokyo1（從您登入身份判斷）</li>' +
+              '<li><b>AN 欄 = 報到來源</b>：<code>self</code>（客人自助）或 <code>osaka1</code> 等（代客報到的店家代號）</li>' +
+              '</ul>' +
+              '<div class="info-box">⚡ admin 重整還是看到綠色（不會跑掉），下次來看仍是「已報到」狀態。</div>' },
+
+      { center: true, title: '🟡 客人自助報到的情況',
+        body: '如果客人自己在 inquiry.html 點過「我已到店報到」了：' +
+              '<ul><li>報到中心卡片 badge 是<b>琥珀色「客人自助」</b></li>' +
+              '<li>Sheet AN 欄寫 <code>self</code></li>' +
+              '<li>您不用再代客報到</li>' +
+              '</ul>' +
+              '<h4>好處</h4>' +
+              '<ol><li>客人在門外排隊時就先報到，店員不用人工一個個問</li>' +
+              '<li>客人有自助 = 系統知道客人真的到店了</li>' +
+              '<li>減少櫃台壓力</li>' +
+              '</ol>' +
+              '<div class="info-box">⚠️ 客人自助後仍要店員確認本人 + 對訂單號（看「請出示給店員」畫面）。畫面上有訂單號 + 姓名 + 體驗時間，跟卡片資料對得起來就 OK。</div>' }
     ]
   },
 
-  // ========== 場景 4：🧾 對帳作業 ==========
+  // ========== 場景 4：🧾 對帳作業（agent / Jun） ==========
   {
-    id: 'reconcile',
-    icon: '🧾',
-    title: '對帳作業',
-    desc: '銀行入帳金額 → 找對應訂單 → 註記訂金 → 狀態變 matched',
+    id: 'reconcile', icon: '🧾', title: '對帳作業',
+    desc: '銀行入帳 → 找對應訂單 → 註記訂金金額 → 狀態變 matched',
     roles: ['agent', 'jun'],
     steps: [
-      { center: true, title: '🧾 情境：客人匯款進來',
-        body: '客人「王小明」訂金 NT$330（按匯率算）匯款到我們戶頭。銀行系統只看到「2026/05/13 來自 王小明 NT$330」— 不知道是哪筆訂單。要靠客服去 Sheet 找對應訂單，填訂金欄。\n\n月底所有訂單訂金都要對好，不然關不了帳。' },
+      { center: true, title: '🧾 情境：對帳是什麼？為什麼要做？',
+        body: '客人「王小明」付了 NT$1000 訂金到我們戶頭。<br><br>銀行系統只看到：「2026/05/13 來自 王小明 +NT$1000」— <b>不知道是哪筆訂單</b>。' +
+              '<h4>客服要做的事</h4>' +
+              '<ol><li>看銀行對帳單，知道有人匯了 NT$1000 進來</li>' +
+              '<li>去 admin 對帳 tab 找「王小明」的訂單</li>' +
+              '<li>在訂單卡填「訂金 = 1000、付款時間 = 5/13」</li>' +
+              '<li>系統自動算狀態變 matched 🟢</li>' +
+              '</ol>' +
+              '<div class="info-box">💡 月底所有訂單訂金都要對好，<b>不然關不了帳</b>。</div>' },
+
       { tab: 'reconcile', selector: '[data-sec="reconcile"]', position: 'bottom',
         title: '進「🧾 對帳」tab',
-        body: '預設顯示本月。可以看每筆訂單對帳狀態。' },
-      { center: true, title: '四種對帳狀態',
-        body: '🟢 matched：訂金已收到、金額 ≥ 預期（正常）\n🟡 partial：訂金收了一部分（客人會到店補尾款，OK）\n🔴 overpaid：客人付太多（要退超收的）\n⚪ unmatched：訂金還沒收（要查銀行）' },
+        body: '預設顯示<b>本月</b>體驗的訂單。' +
+              '<h4>頂部統計</h4>' +
+              '<ul><li><b>對帳完成率</b>：matched 數 / 總數（目標 100%）</li>' +
+              '<li><b>應收</b>：所有訂單預期訂金加總</li>' +
+              '<li><b>實收</b>：所有訂單實際收到的訂金加總</li>' +
+              '<li><b>差額</b>：應收 - 實收（正 = 還沒收完、負 = 收太多）</li>' +
+              '</ul>' },
+
+      { center: true, title: '🚦 四種對帳狀態',
+        body: '<table style="width:100%; font-size:12px"><tr><td><b>🟢 matched</b></td><td>訂金 ≥ 預期。正常，已收完訂金。</td></tr>' +
+              '<tr><td><b>🟡 partial</b></td><td>訂金 < 預期。客人少匯了 → 通常到店補尾款。</td></tr>' +
+              '<tr><td><b>🔴 overpaid</b></td><td>訂金 > 體驗總額。客人付太多 → <b>要退超收的</b>。</td></tr>' +
+              '<tr><td><b>⚪ unmatched</b></td><td>還沒有訂金記錄。待客人匯入 / 待客服 fill。</td></tr></table>' +
+              '<div class="info-box">⚪ Walk-in 訂單比較特別：訂金 = 0 但 confirmed 也算 matched（因為現場結清，沒有訂金概念）。</div>' },
+
       { tab: 'reconcile', selector: '#recon-status',
-        title: '先看 unmatched 的訂單',
-        body: '點狀態下拉選「未對帳」→ 列出所有還沒對到的訂單。對照銀行對帳單，看哪筆是這筆訂單（看姓名、金額、時間）。' },
+        title: '看 unmatched 找待處理',
+        body: '把上面狀態下拉切到「<b>未對帳</b>」 → 只列出沒收到訂金的訂單。' +
+              '<br><br>每天早上看銀行對帳單，把昨晚進來的款項一筆筆配進對應訂單。' },
+
       { center: true, title: '比對銀行入帳',
-        body: '銀行對帳單顯示：\n• 2026/05/13 王小明 NT$330\n\n後台對帳列表找姓名「王小明」、體驗日期 7/5 的訂單（最像）。確認 Email/電話也吻合。' },
+        body: '<h4>銀行對帳單長這樣（範例）</h4>' +
+              '<div class="example-box"><b>2026/05/13 09:23  王小明  +NT$1,000</b><br>' +
+              '2026/05/13 14:11  Lee Min Soo  +NT$2,000<br>' +
+              '2026/05/13 17:45  陳大華  +NT$3,000</div>' +
+              '<h4>找對應訂單的判斷</h4>' +
+              '<ul><li><b>姓名</b>：精確比對（注意中英文、有無中間空格）</li>' +
+              '<li><b>金額</b>：人數 × 1000 對得上嗎？</li>' +
+              '<li><b>時間</b>：客人下單後幾天內？</li>' +
+              '</ul>' +
+              '<div class="danger-box">遇到匯款人姓名跟訂單姓名不同（如老公幫老婆訂）→ 找不到對應、放到「異常」filter 處理。可以發 LINE 問客人「您剛剛匯款的姓名是 ___ 嗎」。</div>' },
+
       { tab: 'reconcile', selector: '#sec-reconcile',
         title: '找到後點訂單編輯',
-        body: '點訂單卡的「📝 編輯」→ 在「訂金」欄填實際入帳的 NT$330 → 在「付款時間」填銀行入帳日（5/13）→ 儲存。' },
-      { center: true, title: '系統自動算狀態',
-        body: '存檔後系統自動：\n• 訂金 ≥ 預期 → 狀態變 matched 🟢\n• 訂金 < 預期 → 狀態變 partial 🟡\n• 訂金 > 體驗總額 → 變 overpaid 🔴（要退款）\n\n上面的對帳完成率會 +1，月底前要把所有訂單做完。' },
+        body: '在對帳列表找到「王小明」的訂單 → 點「<b>📝 編輯</b>」' +
+              '<h4>要填的欄位</h4>' +
+              '<ul><li><b>訂金 (M 欄)</b>：填 <code>1000</code>（實際入帳的 NT$）</li>' +
+              '<li><b>付款時間 (Z 欄)</b>：填 <code>2026-05-13</code>（銀行入帳日）</li>' +
+              '</ul>儲存。' +
+              '<div class="info-box">💡 訂金欄是「NT$ 金額」，系統會自動算 JPY、自動算對帳狀態。</div>' },
+
+      { center: true, title: '🎯 系統自動算狀態',
+        body: '存檔後系統會比對：' +
+              '<div class="formula">已收訂金 (got) vs 預期訂金 (expect)</div>' +
+              '<ul><li>got ≥ expect → 變 <b>🟢 matched</b></li>' +
+              '<li>got < expect → 變 <b>🟡 partial</b></li>' +
+              '<li>got > 體驗總額 → 變 <b>🔴 overpaid</b>（要退款處理）</li>' +
+              '</ul>' +
+              '<div class="info-box">儲存後上方的「對帳完成率」會自動 +1。月底前要把所有訂單對到 matched 或 partial（partial = 客人會到店補錢，OK）。</div>' },
+
       { center: true, title: 'Jun 限定：自動配對',
-        body: '只有 Jun 看得到右上角「🤖 自動配對銀行入帳」按鈕。Jun 把銀行匯出的 CSV 貼到 Sheet「収款辨識」分頁，按這個按鈕系統會自動配對所有未對帳訂單。Agent 看不到這個按鈕。' }
+        body: '只有 Jun 看得到右上角「<b>🤖 自動配對銀行入帳</b>」按鈕。' +
+              '<h4>怎麼用</h4>' +
+              '<ol><li>Jun 從銀行匯出當月對帳單 CSV</li>' +
+              '<li>貼到 Sheet「<b>収款辨識</b>」分頁的 A-E 欄</li>' +
+              '<li>回 admin 對帳 tab，按「🤖 自動配對」</li>' +
+              '<li>系統自動掃描所有未對帳訂單，配對姓名 + 金額</li>' +
+              '<li>matched 的訂單自動填訂金、變 matched 狀態</li>' +
+              '<li>對不上的訂單留下 → 客服手動處理</li>' +
+              '</ol>' +
+              '<div class="info-box">store / agent 沒有這個按鈕，看不到這個功能。</div>' },
+
+      { center: true, title: '⚠️ 常見錯誤',
+        body: '<div class="danger-box"><b>1. 訂金欄填 JPY 金額</b><br>訂金欄是「NT$」不是「日圓」。1000 NT 不是 1000 ¥。</div>' +
+              '<div class="danger-box"><b>2. 把「已付台幣訂金」填到體驗總價欄</b><br>各有各的欄位，看清楚。</div>' +
+              '<div class="danger-box"><b>3. 月底還有 unmatched</b><br>關帳時 unmatched 訂單會被算進「異常」、客戶名單會少算「實際成交」次數。月底前盡量清掉。</div>' }
+    ]
+  },
+
+  // ========== 場景 5：🏪 Walk-in 現場開單（店家 + agent + Jun） ==========
+  {
+    id: 'walkin', icon: '🏪', title: 'Walk-in 現場開單',
+    desc: '客人沒預約直接走進店家 → 用「＋ 現場新增」開單 → 結算費用 → 客人現場付清',
+    roles: ['agent', 'jun', 'store'],
+    steps: [
+      { center: true, title: '🏪 情境：客人沒預約直接走進店',
+        body: '一個遊客逛到您的店家門口，看到櫥窗的和服很美，臨時決定要體驗。她沒在 inquiry.html 預約過、沒匯訂金。' +
+              '<h4>店家要做的事</h4>' +
+              '<ol><li>用「<b>＋ 現場新增</b>」按鈕開一筆 Walk-in 訂單</li>' +
+              '<li>選方案（要不要加妝髮 / 攝影）</li>' +
+              '<li>算總價</li>' +
+              '<li>跟客人收現金 / 信用卡</li>' +
+              '<li>儲存 → 月底跟旅乘對帳</li>' +
+              '</ol>' +
+              '<div class="info-box">💡 Walk-in 跟一般預約最大差別：<b>訂金 = 0，現場結清全部費用</b>。</div>' },
+
+      { tab: 'orders', selector: '#walkInFab', position: 'left',
+        title: '右下藍色 FAB：＋ 現場新增',
+        body: '只有店家身份才看得到的<b>浮動按鈕</b>（FAB = Floating Action Button），<b>右下角</b>。' +
+              '<br><br>客服 / Jun 看不到（因為他們不在現場、不會收錢）。' +
+              '<div class="info-box">客人現場跟你要體驗 → 點這顆按鈕 → 彈出開單表單。</div>' },
+
+      { center: true, title: 'Walk-in 開單表單欄位',
+        body: '<h4>必填欄位</h4>' +
+              '<ul><li><b>客人姓名</b>：用客人證件上的（之後對帳要用）</li>' +
+              '<li><b>聯繫電話</b>：客人有問題我們才聯絡得到</li>' +
+              '<li><b>大人數 / 小孩數</b>：用 +/- 按鈕加減</li>' +
+              '<li><b>和服方案費 (PP)</b>：客人選的方案總價（¥），手動輸入</li>' +
+              '<li><b>妝髮費 (HF)</b>：有加 = 填金額，沒加 = 留空或 0</li>' +
+              '<li><b>攝影費 (PF)</b>：同上</li>' +
+              '<li><b>備註</b>：選填，記特殊情況（如客人沒帶日幣，刷卡）</li>' +
+              '</ul>' +
+              '<h4>系統自動帶</h4>' +
+              '<ul><li><b>體驗日期</b>：自動填今天</li>' +
+              '<li><b>平台</b>：自動填 <code>walk-in@osaka1</code>（依您登入身份）</li>' +
+              '<li><b>店家代號</b>：自動帶您的門市</li>' +
+              '</ul>' },
+
+      { center: true, title: '怎麼填和服方案費 (PP)？',
+        body: '<h4>和服方案有 4-5 種</h4>' +
+              '<ul><li>1 人經典款 → ¥3,500</li>' +
+              '<li>2 人經典款 → ¥6,000</li>' +
+              '<li>1 人振袖 → ¥5,000</li>' +
+              '<li>親子套裝（1 大 1 小）→ ¥4,500</li>' +
+              '</ul>' +
+              '<div class="info-box">📌 各分店價格可能不同 → 看您門市的價目表，<b>不要憑感覺填</b>。</div>' +
+              '<h4>範例</h4>' +
+              '<div class="example-box">客人是 2 大人選經典款 → 填 ¥6,000</div>' +
+              '<div class="example-box">客人是 1 大 + 1 小選親子套裝 → 填 ¥4,500</div>' },
+
+      { center: true, title: '妝髮費 (HF) 怎麼填？',
+        body: '客人有加妝髮服務才填，沒加就留空 / 0。' +
+              '<h4>各分店妝髮價</h4>' +
+              '<ul><li>大阪日本橋店：¥2,000 / 人</li>' +
+              '<li>京都清水寺店：¥1,800 / 人</li>' +
+              '<li>京都祇園店：¥2,500 / 人</li>' +
+              '<li>東京淺草寺店：¥2,200 / 人</li>' +
+              '</ul>' +
+              '<h4>範例</h4>' +
+              '<div class="example-box">2 大人都要妝髮、大阪店 → 填 ¥4,000（2 × ¥2,000）</div>' +
+              '<div class="example-box">1 大要妝髮、京都祇園 → 填 ¥2,500</div>' +
+              '<div class="info-box">💡 妝髮費 100% 是店家保留的，<b>旅乘不抽成</b>。</div>' },
+
+      { center: true, title: '攝影費 (PF) 怎麼填？',
+        body: '客人有加旅拍攝影才填。<br>' +
+              '<h4>各分店攝影價（範例）</h4>' +
+              '<ul><li>1 人組 30 分鐘 → ¥5,000</li>' +
+              '<li>1 人組 1 小時 → ¥8,000</li>' +
+              '<li>多人組 1 小時 → ¥12,000</li>' +
+              '</ul>' +
+              '<div class="info-box">💡 攝影費跟妝髮一樣，<b>100% 是店家收，旅乘不抽</b>。</div>' +
+              '<h4>範例</h4>' +
+              '<div class="example-box">客人 2 大選 1 小時旅拍 → 填 ¥12,000</div>' },
+
+      { center: true, title: '客人現場應付金額怎麼算',
+        body: '<h4>公式</h4>' +
+              '<div class="formula">客人現場付 = PP + HF + PF</div>' +
+              '<h4>範例</h4>' +
+              '<div class="example-box">2 大經典款 + 妝髮 + 旅拍<br>= ¥6,000 (方案) + ¥4,000 (妝髮) + ¥12,000 (攝影)<br>= <b>¥22,000</b></div>' +
+              '<div class="info-box">系統會自動算出來顯示在表單下方，您只要核對數字、跟客人確認。</div>' +
+              '<h4>付款方式</h4>' +
+              '<ul><li>現金日幣：直接收</li><li>信用卡：刷卡機跑一下</li><li>掃 QR Code：客人用 Line Pay / 街口 等付台幣</li></ul>' },
+
+      { center: true, title: '🎯 旅乘跟店家怎麼分潤',
+        body: '<h4>分潤規則</h4>' +
+              '<table style="width:100%; font-size:12px">' +
+              '<tr><td><b>項目</b></td><td><b>店家收</b></td><td><b>旅乘收</b></td></tr>' +
+              '<tr><td>和服方案 (PP, 無折)</td><td>50%</td><td>50%</td></tr>' +
+              '<tr><td>和服方案 (PP, 有折)</td><td>50%（按原價算）</td><td>50% - 折扣由旅乘吸收</td></tr>' +
+              '<tr><td>妝髮費 (HF)</td><td>100%</td><td>0</td></tr>' +
+              '<tr><td>攝影費 (PF)</td><td>100%</td><td>0</td></tr>' +
+              '</table>' +
+              '<h4>範例</h4>' +
+              '<div class="example-box">客人 2 大經典款 + 妝髮 ¥4,000 + 攝影 ¥12,000，無折<br>店家收：¥6,000 × 50% + ¥4,000 + ¥12,000 = <b>¥19,000</b><br>旅乘應收：¥6,000 × 50% = <b>¥3,000</b></div>' +
+              '<div class="info-box">這就是月底「店家月結」要對的數字。店家收了客人 ¥22,000，月底匯 ¥3,000 給旅乘即可。</div>' },
+
+      { center: true, title: '儲存後系統自動做什麼',
+        body: '<ol><li>Sheet 新增訂單，標 <code>WALK_IN</code> 平台</li>' +
+              '<li>confirmed 立刻為 TRUE（不用客服確認）</li>' +
+              '<li>訂單出現在「店家月結」tab 的本月清單</li>' +
+              '<li>客人姓名 +1 累計次數到「客戶名單」</li>' +
+              '<li>不會自動寄信給客人（因為客人沒留 Email）</li>' +
+              '</ol>' +
+              '<div class="info-box">💡 客人想要訊息證明？可以拍訂單畫面給客人。</div>' },
+
+      { tab: 'walkin', selector: '#walkin-stores-grid',
+        title: '月底跟旅乘對帳',
+        body: '每月最後一天 / 隔月初，進「<b>💴 店家月結</b>」tab。' +
+              '<br><br>會看到您門市本月的：' +
+              '<ul><li>walk-in 訂單明細（每筆姓名、日期、金額）</li>' +
+              '<li>總收入 = ΣPP + ΣHF + ΣPF</li>' +
+              '<li>店家保留 = 50%PP + ΣHF + ΣPF</li>' +
+              '<li>應收旅乘 = 50%PP（這是要匯給旅乘的）</li>' +
+              '</ul>' +
+              '<div class="info-box">📄 右上角「請款單」按鈕可以下載 PDF / 列印給會計核帳。</div>' },
+
+      { center: true, title: '⚠️ 常見錯誤',
+        body: '<div class="danger-box"><b>1. 妝髮 / 攝影費漏填</b><br>客人有加但您忘記輸入 → 系統算出來的金額會少 → 月底對不上。</div>' +
+              '<div class="danger-box"><b>2. PP 填錯方案</b><br>客人選 ¥6,000 您打成 ¥3,500 → 少收一半、月底虧錢。<b>務必核對價目表</b>。</div>' +
+              '<div class="danger-box"><b>3. 不收訂金硬給體驗</b><br>客人說「我等下再付」→ 千萬不要！沒收錢就讓他體驗 = 100% 機率收不到錢。</div>' +
+              '<div class="danger-box"><b>4. 收完錢忘了開單</b><br>有人就是太忙忘記輸入後台 → 月底跟旅乘對帳對不到 → 旅乘以為您詐欺。<b>收一筆就開一筆</b>，不要等到下班統一輸入。</div>' }
     ]
   }
 ];
+
+
 
 function openScenarioPicker(isAuto) {
   // 依角色 filter
@@ -4560,7 +4932,7 @@ function renderTourStep() {
   // 更新內容
   document.getElementById('tour-step-num').textContent = '第 ' + (_tourStep + 1) + ' / ' + _activeTourSteps.length + ' 步';
   document.getElementById('tour-title').textContent = step.title;
-  document.getElementById('tour-body').textContent = step.body;
+  document.getElementById('tour-body').innerHTML = step.body;
   document.getElementById('tour-prev').style.visibility = _tourStep === 0 ? 'hidden' : 'visible';
   document.getElementById('tour-next').textContent = (_tourStep === _activeTourSteps.length - 1) ? '完成 ✓' : '下一步 →';
 
