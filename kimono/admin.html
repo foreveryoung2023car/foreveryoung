@@ -4285,7 +4285,7 @@ const ADMIN_TOUR_VERSION = 'v440';
 const TRAINING_SCENARIOS = [
   // ========== 1. 📬 新預約進來 ==========
   {
-    id: 'new_booking', icon: '📬', title: '新預約進來',
+    id: 'new_booking', category: 'daily', icon: '📬', title: '新預約進來',
     desc: '客人 inquiry 填表 → admin 待確認 → 檢查 → 確認 → 自動寄信',
     roles: ['agent', 'jun'],
     steps: [
@@ -4356,7 +4356,7 @@ const TRAINING_SCENARIOS = [
 
   // ========== 2. 💰 退款處理 ==========
   {
-    id: 'refund', icon: '💰', title: '客人要退款',
+    id: 'refund', category: 'daily', icon: '💰', title: '客人要退款',
     desc: '客人 inquiry 申請退款 → admin 出現申請 → 按政策算 → 轉帳 → 標完成',
     roles: ['agent', 'jun'],
     steps: [
@@ -4425,7 +4425,7 @@ const TRAINING_SCENARIOS = [
 
   // ========== 3. 🎌 客人到店報到 ==========
   {
-    id: 'checkin', icon: '🎌', title: '客人到店報到',
+    id: 'checkin', category: 'daily', icon: '🎌', title: '客人到店報到',
     desc: '客人到店 → 自助 or 代客報到 → Sheet 寫 AL/AM/AN',
     roles: ['agent', 'jun', 'store'],
     steps: [
@@ -4479,7 +4479,7 @@ const TRAINING_SCENARIOS = [
 
   // ========== 4. 🧾 對帳作業 ==========
   {
-    id: 'reconcile', icon: '🧾', title: '對帳作業',
+    id: 'reconcile', category: 'daily', icon: '🧾', title: '對帳作業',
     desc: '銀行入帳 → 找對應訂單 → 註記訂金 → 狀態變 matched',
     roles: ['agent', 'jun'],
     steps: [
@@ -4544,7 +4544,7 @@ const TRAINING_SCENARIOS = [
 
   // ========== 5. 🏪 Walk-in 現場開單 ==========
   {
-    id: 'walkin', icon: '🏪', title: 'Walk-in 現場開單',
+    id: 'walkin', category: 'daily', icon: '🏪', title: 'Walk-in 現場開單',
     desc: '客人沒預約直接走進店 → ＋現場新增 → 結算 → 現場付清',
     roles: ['agent', 'jun', 'store'],
     steps: [
@@ -4639,7 +4639,7 @@ const TRAINING_SCENARIOS = [
 
   // ========== 6. 📊 儀表板 ==========
   {
-    id: 'dashboard', icon: '📊', title: '儀表板總覽',
+    id: 'dashboard', category: 'tabs', icon: '📊', title: '儀表板總覽',
     desc: '每天打開後台的第一站，看今日營運、快速跳轉',
     roles: ['agent', 'jun', 'store'],
     steps: [
@@ -4679,7 +4679,7 @@ const TRAINING_SCENARIOS = [
 
   // ========== 7. 📅 行事曆 ==========
   {
-    id: 'calendar', icon: '📅', title: '行事曆視圖',
+    id: 'calendar', category: 'tabs', icon: '📅', title: '行事曆視圖',
     desc: '月曆視角看所有體驗預約，點日期看當天訂單',
     roles: ['agent', 'jun', 'store'],
     steps: [
@@ -4708,7 +4708,7 @@ const TRAINING_SCENARIOS = [
 
   // ========== 8. 👥 客戶名單 ==========
   {
-    id: 'customers', icon: '👥', title: '客戶名單',
+    id: 'customers', category: 'tabs', icon: '👥', title: '客戶名單',
     desc: '看客人累計來店次數、判斷 VIP、看退款紀錄',
     roles: ['agent', 'jun'],
     steps: [
@@ -4744,7 +4744,7 @@ const TRAINING_SCENARIOS = [
 
   // ========== 9. 💰 財務報表 ==========
   {
-    id: 'finance', icon: '💰', title: '財務報表',
+    id: 'finance', category: 'tabs', icon: '💰', title: '財務報表',
     desc: '看每月收入、毛利、退款率、各分店分潤',
     roles: ['agent', 'jun'],
     steps: [
@@ -4785,7 +4785,7 @@ const TRAINING_SCENARIOS = [
 
   // ========== 10. 📁 歷史檔案 ==========
   {
-    id: 'archive', icon: '📁', title: '歷史檔案',
+    id: 'archive', category: 'tabs', icon: '📁', title: '歷史檔案',
     desc: '已關帳月份的訂單存檔（唯讀），需要查歷史時用',
     roles: ['agent', 'jun'],
     steps: [
@@ -4819,7 +4819,7 @@ const TRAINING_SCENARIOS = [
 
   // ========== 11. 🔐 權限總表 ==========
   {
-    id: 'permissions', icon: '🔐', title: '權限總表',
+    id: 'permissions', category: 'tabs', icon: '🔐', title: '權限總表',
     desc: '看每個角色（Jun / agent / store）能做什麼、不能做什麼',
     roles: ['agent', 'jun', 'store'],
     steps: [
@@ -4856,23 +4856,735 @@ const TRAINING_SCENARIOS = [
               '<li>還是不行 → 找 Jun 看 console error</li></ol>' }
     ]
   }
-];
+,
+
+  // ========== 🌱 入門關 ==========
+  {
+    id: 'intro_login', category: 'intro', icon: '🔑', title: '登入與帳號管理',
+    desc: '怎麼登入後台、密碼忘記怎麼辦、團隊帳號共用規則',
+    roles: ['agent', 'jun', 'store'],
+    steps: [
+      { center: true, title: '🔑 第一次登入後台',
+        body: '<h4>三種帳號類型</h4>' +
+              '<ul><li>👤 <b>客服 (agent)</b>：如 Jun / Amy / Ren — 用「姓名 + 密碼」登入</li>' +
+              '<li>🏪 <b>店家 (store)</b>：osaka1 / kyoto1 / kyoto2 / tokyo1 — 用「門市代號 + 密碼」登入</li>' +
+              '<li>🌟 <b>Jun</b>：超級管理者，所有權限</li></ul>' +
+              '<div class="info-box">店家帳號是<b>整個門市共用</b>（osaka1 大家用同一組）。客服帳號是<b>個人專屬</b>。</div>' },
+      { center: true, title: '登入畫面長這樣',
+        body: '<div class="mock-card">' +
+              '<div style="font-weight:bold;margin-bottom:8px">🔐 客服後台登入</div>' +
+              '<div style="margin-bottom:8px;background:#F8FAFC;padding:6px;border-radius:4px"><span class="mc-label">姓名/門市</span>：<code>Jun</code> or <code>osaka1</code></div>' +
+              '<div style="margin-bottom:8px;background:#F8FAFC;padding:6px;border-radius:4px"><span class="mc-label">密碼</span>：****</div>' +
+              '<button style="width:100%;padding:8px;background:#1A365D;color:#FFF;border:none;border-radius:4px">登入後台</button>' +
+              '</div>' +
+              '<div class="info-box">記得密碼 → 瀏覽器幫您存。<b>記住身份 30 天</b>（localStorage）。</div>' },
+      { center: true, title: '⚠️ 忘記密碼怎麼辦',
+        body: '<ol><li>找 <b>Jun</b>（他是唯一能改/重設密碼的人）</li>' +
+              '<li>說明您的角色（客服 Jun / 店家 osaka1 等）</li>' +
+              '<li>Jun 會給您新密碼（一次性）</li>' +
+              '<li>登入後第一次<b>立刻改成自己記得的</b></li></ol>' +
+              '<div class="danger-box">⚠ 不要把密碼貼在便條紙上！店家帳號共用、被偷看到全部完蛋。</div>' },
+      { center: true, title: '客服多人 vs 店家共用',
+        body: '<h4>客服</h4>每個客服一個帳號（Jun / Amy / Ren）。所有操作會記到 audit log，誰改了什麼都有紀錄。' +
+              '<h4>店家</h4>整個門市共用一組（osaka1 全員工都用同個密碼）。雖然方便但<b>無法追究是誰操作的</b>。' +
+              '<div class="info-box">店家如果想分開記錄是誰操作，可以在備註欄寫名字（如 「osaka1-小林 開單」）。</div>' },
+      { center: true, title: '登出 / 切換帳號',
+        body: '右上角「<b>登出</b>」按鈕 → 清掉 localStorage → 跳回登入頁。<br>' +
+              '<h4>什麼時候要登出</h4>' +
+              '<ul><li>不是您本人的電腦 / 手機（公用機）</li>' +
+              '<li>要切換到另一個帳號</li>' +
+              '<li>下班</li></ul>' +
+              '<div class="info-box">您自己的電腦不必每次登出 → 30 天內自動保持登入狀態。</div>' }
+    ]
+  },
+
+  {
+    id: 'intro_tour', category: 'intro', icon: '🧭', title: '介面全覽 - 9 個 tab',
+    desc: '5 分鐘快速看一遍所有 tab 是什麼、我什麼時候會進',
+    roles: ['agent', 'jun', 'store'],
+    steps: [
+      { center: true, title: '🧭 為什麼要先看這個',
+        body: '後台有 <b>9 個 tab</b>，每個 tab 對應一種工作。先了解整體輪廓，知道「我這件事該去哪 tab」，後續不會卡關。' },
+      { tab: 'dashboard', selector: '.nav-tab[data-sec="dashboard"]', position: 'bottom',
+        title: '📊 儀表板 (Dashboard)',
+        body: '每天打開後台第一站。看今日營運、本月營收、快速跳轉。<br><b>進來時機：</b>每次登入。' },
+      { tab: 'orders', selector: '.nav-tab[data-sec="orders"]', position: 'bottom',
+        title: '📋 訂單管理 (Orders)',
+        body: '所有訂單列表。最常用的 tab。<br><b>進來時機：</b>處理新預約、退款、查單筆。' },
+      { tab: 'checkin', selector: '.nav-tab[data-sec="checkin"]', position: 'bottom',
+        title: '🎌 報到中心 (Check-in)',
+        body: '今日 ±1 天訂單看板，幫客人報到用。<br><b>進來時機：</b>客人到店時。' },
+      { tab: 'calendar', selector: '.nav-tab[data-sec="calendar"]', position: 'bottom',
+        title: '📅 行事曆 (Calendar)',
+        body: '月曆視角看訂單分佈。<br><b>進來時機：</b>看下週/下月哪天比較忙、規劃班表。' },
+      { tab: 'customers', selector: '.nav-tab[data-sec="customers"]', position: 'bottom',
+        title: '👥 客戶名單 (Customers)',
+        body: '所有客人累計來店次數、VIP 標籤、退款歷史。<br><b>進來時機：</b>客人來電問訂單、判斷是不是 VIP。' },
+      { tab: 'finance', selector: '.nav-tab[data-sec="finance"]', position: 'bottom',
+        title: '💰 財務報表 (Finance)',
+        body: '本月營收、毛利、退款率、分店表現。<br><b>進來時機：</b>月底/月初看績效。<b>店家看不到</b>。' },
+      { tab: 'reconcile', selector: '.nav-tab[data-sec="reconcile"]', position: 'bottom',
+        title: '🧾 對帳 (Reconcile)',
+        body: '把銀行入帳配對到訂單。<br><b>進來時機：</b>每天看銀行 → 配 1-2 小時。<b>店家看不到</b>。' },
+      { tab: 'walkin', selector: '.nav-tab[data-sec="walkin"]', position: 'bottom',
+        title: '💴 店家月結 (Walk-in 結算)',
+        body: '各分店本月 walk-in 訂單 + 應收旅乘。<br><b>進來時機：</b>月底跟店家對帳、生請款單。' },
+      { tab: 'archive', selector: '.nav-tab[data-sec="archive"]', position: 'bottom',
+        title: '📁 歷史檔案 (Archive)',
+        body: '已關帳月份的訂單存檔（唯讀）。<br><b>進來時機：</b>客人事後申訴、追溯歷史紀錄。' },
+      { center: true, title: '其他 tab',
+        body: '<ul><li>🔐 <b>權限總表</b>：各角色能做什麼</li>' +
+              '<li>📜 <b>操作紀錄</b>（Jun only）：audit log，誰改了什麼</li></ul>' +
+              '<div class="info-box">這兩個 tab 比較少用，但有需要時很關鍵。</div>' }
+    ]
+  },
+
+  {
+    id: 'intro_lifecycle', category: 'intro', icon: '🔄', title: '訂單生命週期 + 狀態變化',
+    desc: '一筆訂單從建立到結案的完整 7 個狀態與轉換規則',
+    roles: ['agent', 'jun', 'store'],
+    steps: [
+      { center: true, title: '🔄 為什麼要懂狀態',
+        body: '不懂狀態 → 不知道每筆能做什麼操作 → 走結森林。<br>例：「已退款」的訂單不能再改、「核對中」的訂單還沒收訂金、「已確認」的訂單體驗日 ±1 天才會出現在報到中心。' },
+      { center: true, title: '7 個狀態 vs 顏色',
+        body: '<table class="mock-table"><tr><th>狀態</th><th>badge 顏色</th><th>意義</th></tr>' +
+              '<tr><td>🟡 核對中</td><td>黃色</td><td>客人剛下單，還沒確認</td></tr>' +
+              '<tr><td>🟢 已確認</td><td>綠色</td><td>訂金已收，等體驗日</td></tr>' +
+              '<tr><td>🎌 已報到</td><td>琥珀</td><td>客人到店了</td></tr>' +
+              '<tr><td>✅ 已體驗</td><td>深綠</td><td>體驗完成（過了體驗日）</td></tr>' +
+              '<tr><td>🟠 申請退款</td><td>橘色</td><td>客人申請退款，待處理</td></tr>' +
+              '<tr><td>🔴 已退款</td><td>紅色</td><td>退款處理完</td></tr>' +
+              '<tr><td>⚪ 已關帳</td><td>灰色</td><td>進歷史檔案，唯讀</td></tr></table>' },
+      { center: true, title: '🌳 正常流程（happy path）',
+        body: '<div class="formula">核對中 → 已確認 → 已報到 → 已體驗 → 已關帳</div>' +
+              '<ol><li><b>核對中</b>：客人剛下單。客服看訂金欄、確認資料。</li>' +
+              '<li><b>已確認</b>：客服按確認 → 自動寄信、Sheet confirmed=TRUE。</li>' +
+              '<li><b>已報到</b>：體驗當天客人到店 → 報到中心點按鈕。</li>' +
+              '<li><b>已體驗</b>：過了體驗日，自動轉狀態。</li>' +
+              '<li><b>已關帳</b>：月底 Jun 關帳，搬到歷史檔案。</li></ol>' },
+      { center: true, title: '🌿 異常分支',
+        body: '<h4>退款分支</h4><div class="formula">核對中 / 已確認 → 申請退款 → 已退款</div>' +
+              '<ul><li>客人 inquiry 點「申請退款」→ 狀態變申請退款</li>' +
+              '<li>客服按政策退錢、標記 → 變已退款</li></ul>' +
+              '<h4>異常分支</h4><div class="formula">已確認 → 申請改期 → 已確認（新日期）</div>' +
+              '<ul><li>客人想換日期不退款 → 改期</li>' +
+              '<li>免費還是收手續費，看政策</li></ul>' },
+      { center: true, title: '🚪 不可逆操作',
+        body: '<div class="danger-box"><b>1. 已關帳的訂單</b><br>進歷史檔案後唯讀。要改需 Jun「解凍」整個月份。' +
+              '</div>' +
+              '<div class="danger-box"><b>2. 已退款的訂單</b><br>不能再改成「已確認」。錢已經退了沒辦法回頭。如果客人後悔想再來，請他重新預約一張新單。' +
+              '</div>' +
+              '<div class="danger-box"><b>3. 已體驗的訂單</b><br>不能改回未體驗。事實已發生。</div>' },
+      { center: true, title: '💡 看狀態判斷下一步動作',
+        body: '<table class="mock-table"><tr><th>看到狀態</th><th>下一步</th></tr>' +
+              '<tr><td>核對中</td><td>看訂金 → 確認或寄信問客人</td></tr>' +
+              '<tr><td>已確認</td><td>等體驗日 / 體驗日當天進報到中心</td></tr>' +
+              '<tr><td>已報到</td><td>體驗中 / 體驗完不用動</td></tr>' +
+              '<tr><td>申請退款</td><td>看政策 → 算金額 → 轉帳 → 標記</td></tr>' +
+              '<tr><td>已退款</td><td>結案，不用再動</td></tr></table>' }
+    ]
+  },
+
+  // ========== ⏰ 每日 SOP ==========
+  {
+    id: 'sop_morning', category: 'workflow', icon: '🌅', title: '上班第一件事',
+    desc: '早上補班第一個小時 SOP - 25 分鐘把昨晚 + 今天事處理好',
+    roles: ['agent', 'jun'],
+    steps: [
+      { center: true, title: '🌅 25 分鐘 morning routine',
+        body: '客服每天上班的最佳節奏：<b>25 分鐘完成 5 件事</b>，然後可以好好處理客人來訊。<br><br>下面 5 步是建議順序，您可依自己習慣調。' },
+      { tab: 'dashboard', selector: '#sec-dashboard',
+        title: 'Step 1 (3 分鐘)：看儀表板',
+        body: '進儀表板看：' +
+              '<ul><li>今天有幾筆體驗？</li>' +
+              '<li>本月營收進度如何？</li>' +
+              '<li>有沒有異常數字（如退款率突然飆高）？</li></ul>' +
+              '<div class="info-box">大概有底就好，不深究細節。</div>' },
+      { tab: 'orders', selector: '#sec-orders',
+        title: 'Step 2 (5 分鐘)：處理待確認',
+        body: '訂單管理 → 待確認 filter。<br>逐筆檢查 → 訂金有到的快速確認 → 訂金沒到的標記 / 寄信問客人。' +
+              '<div class="info-box">⏰ 旅乘服務承諾是 24 小時內確認，所以昨晚進來的單上午要清掉。</div>' },
+      { tab: 'reconcile', selector: '#sec-reconcile',
+        title: 'Step 3 (10 分鐘)：銀行入帳對帳',
+        body: '<ol><li>登入網銀，看昨晚進來的款項</li>' +
+              '<li>對帳 tab → unmatched filter</li>' +
+              '<li>把每筆銀行入帳配進對應訂單</li>' +
+              '<li>填訂金欄、付款時間 → 變 matched</li></ol>' +
+              '<div class="info-box">10 分鐘配完，後續客人問訂單狀態時答得出。</div>' },
+      { tab: 'orders', selector: '#sec-orders',
+        title: 'Step 4 (5 分鐘)：處理退款申請',
+        body: '訂單管理 → 退款 filter。<br>逐筆按退改政策算金額 → 轉帳 → 標記。' +
+              '<div class="danger-box">沒處理的退款超過 24 小時 → 客人會在 LINE 抱怨。儘早處理。</div>' },
+      { center: true, title: 'Step 5 (2 分鐘)：看異常',
+        body: '訂單管理 → 異常 filter（金額對不上、訂金超收等）。<br>有的話拉出來個別檢查。' +
+              '<div class="info-box">異常通常需要 Jun 確認，截圖丟群組。</div>' },
+      { center: true, title: '🎯 完成後',
+        body: '25 分鐘做完五件事，接下來就是處理 LINE 來訊、新預約、客人問題。<br><br>下午 4-5 點再做一次同樣流程「清下班」，下班前桌面乾乾淨淨。' }
+    ]
+  },
+
+  {
+    id: 'sop_month_end', category: 'workflow', icon: '📅', title: '月底關帳完整流程',
+    desc: '28-30 號要做什麼 → 31 號關帳 → 連結到店家月結',
+    roles: ['agent', 'jun'],
+    steps: [
+      { center: true, title: '📅 月底為什麼要關帳',
+        body: '一個月結束 → 把該月所有訂單金額對齊銀行入帳 → 算出店家分潤 → 收/付錢 → 進歷史檔案。<br>關帳不做：店家拿不到錢、Jun 不知道賺多少、月度報表錯亂。' },
+      { center: true, title: '⏰ 時間軸',
+        body: '<table class="mock-table"><tr><th>日期</th><th>動作</th></tr>' +
+              '<tr><td>每天</td><td>對帳 + 退款處理</td></tr>' +
+              '<tr><td>25-27 號</td><td>把當月 unmatched 清光，催客人補款</td></tr>' +
+              '<tr><td>28-30 號</td><td>檢查 walk-in 月結、生請款單</td></tr>' +
+              '<tr><td>30 號晚 / 月初</td><td><b>Jun 關帳</b></td></tr>' +
+              '<tr><td>月初 5 號前</td><td>店家匯款給旅乘</td></tr></table>' },
+      { tab: 'reconcile', selector: '#sec-reconcile',
+        title: '步驟 1：對帳 tab 清光 unmatched',
+        body: '<ol><li>看本月 unmatched 訂單</li>' +
+              '<li>催客人補款（LINE / Email）</li>' +
+              '<li>客人不打算來 → 處理退款</li>' +
+              '<li>對帳完成率達 100% 或可接受</li></ol>' +
+              '<div class="info-box">目標：本月所有訂單都是 matched / partial / refunded，沒有 unmatched。</div>' },
+      { tab: 'walkin', selector: '#sec-walkin',
+        title: '步驟 2：店家月結 tab 看 walk-in',
+        body: '<ol><li>選本月份</li>' +
+              '<li>看各分店本月 walk-in 訂單</li>' +
+              '<li>確認總收入、應收旅乘分潤</li>' +
+              '<li>點右上「📄 請款單」生成請款單</li>' +
+              '<li>請款單 PDF 寄給店家</li></ol>' },
+      { center: true, title: '步驟 3：跟店家確認金額',
+        body: '<ol><li>LINE 群組丟請款單 PDF</li>' +
+              '<li>店家對自家的 walk-in 訂單明細</li>' +
+              '<li>店家確認沒問題 → 安排匯款時間</li>' +
+              '<li>店家有異議 → 對單檢查、可能要補開單或退款</li></ol>' +
+              '<div class="info-box">店家通常 5 號前匯款。沒匯款的提醒。</div>' },
+      { center: true, title: '步驟 4 (Jun)：關帳',
+        body: '<ol><li>對帳 tab 確認本月所有訂單狀態 OK</li>' +
+              '<li>點「<b>📦 關帳並歸檔</b>」按鈕（Jun only）</li>' +
+              '<li>系統把該月訂單搬到歷史檔案</li>' +
+              '<li>本月份不能再編輯（要改要解凍）</li>' +
+              '<li>新月份從 1 號開始累計</li></ol>' +
+              '<div class="danger-box">關帳是<b>不可逆操作</b>。確認都對才能按。</div>' },
+      { center: true, title: '步驟 5：等店家匯款',
+        body: '<ol><li>店家應該月初 5 號前匯款給旅乘</li>' +
+              '<li>網銀看到入帳 → 截圖留底</li>' +
+              '<li>沒收到的店家 → LINE 提醒、寄催繳信</li>' +
+              '<li>金額有誤 → 找對方對單</li></ol>' +
+              '<div class="info-box">這部分目前是手動追，沒有系統自動催。</div>' },
+      { center: true, title: '⚠️ 常見錯誤',
+        body: '<div class="danger-box">關帳後發現有筆訂單忘記改 → 找 Jun 解凍 → 改 → 再關帳。不要直接到 Sheet 改（會繞過系統紀錄）。</div>' +
+              '<div class="danger-box">店家匯款金額跟請款單不符 → 可能店家算錯、可能 walk-in 漏報。打電話對單，不要默默接受差額。</div>' }
+    ]
+  },
+
+  {
+    id: 'sop_peak', category: 'workflow', icon: '🌊', title: '連假浪潮應對',
+    desc: '連假/櫻花季客人暴增怎麼處理？預防客訴、確保品質',
+    roles: ['agent', 'jun', 'store'],
+    steps: [
+      { center: true, title: '🌊 為什麼連假是地獄模式',
+        body: '一般日：每天 5-10 筆新預約。<br><b>連假 / 櫻花季 / 楓葉季</b>：可能單日 30-50 筆，是平時的 5-10 倍。' +
+              '<ul><li>客服處理不及</li>' +
+              '<li>店家人手不夠</li>' +
+              '<li>客人沒收到回信開始嫌</li>' +
+              '<li>店家忙到 walk-in 漏開單 → 對帳出包</li></ul>' },
+      { center: true, title: '🔭 預先看到浪潮',
+        body: '<h4>每月 1 號看下個月連假</h4>' +
+              '<ul><li>5 月：黃金週（5/3-5/5 連假）</li>' +
+              '<li>7 月：海之日</li>' +
+              '<li>9 月：敬老日 / 秋分</li>' +
+              '<li>11 月：紅葉季</li>' +
+              '<li>3-4 月：櫻花季（最瘋）</li></ul>' +
+              '<h4>檢查方法</h4>' +
+              '<ol><li>進<b>📅 行事曆</b>看下月</li>' +
+              '<li>看哪些日子訂單數 &gt; 8（紅色）</li>' +
+              '<li>提前 2 週開始預備</li></ol>' },
+      { center: true, title: '⚙️ 預備措施',
+        body: '<h4>客服側</h4>' +
+              '<ul><li>連假前 1 週開始加班（早 1 小時上班）</li>' +
+              '<li>準備好罐頭回信模板（確認信、退款信）</li>' +
+              '<li>分工：A 處理新預約、B 處理退款 + 對帳</li></ul>' +
+              '<h4>店家側</h4>' +
+              '<ul><li>加派工讀生（妝髮 / 攝影 / 接待）</li>' +
+              '<li>備好和服庫存（大小尺碼夠不夠）</li>' +
+              '<li>每筆 walk-in <b>當下立刻開單</b>，不要等下班統一輸入</li></ul>' },
+      { center: true, title: '🚨 即時應對',
+        body: '<h4>客人爆量訊息</h4>' +
+              '<ul><li>LINE / FB 設自動回覆「連假期間訊息回覆較慢，48 小時內處理」</li>' +
+              '<li>急件用「<b>緊急</b>」標籤，優先處理</li></ul>' +
+              '<h4>店家忙到爆</h4>' +
+              '<ul><li>店家用 LINE 群組同步狀況：「現場排隊 20 人、預計等 40 分鐘」</li>' +
+              '<li>客服據此通知還在路上的客人，給延遲到店的彈性</li></ul>' +
+              '<div class="info-box">事前準備好就不會亂。最怕的是<b>事到臨頭沒備案</b>。</div>' },
+      { center: true, title: '💡 浪潮過後',
+        body: '<ol><li>把當期所有訂單對帳清完（再忙也要 3 天內）</li>' +
+              '<li>店家補開漏掉的 walk-in 訂單</li>' +
+              '<li>檢查退款率 / 客訴量</li>' +
+              '<li>跟團隊 retro：哪邊出狀況？怎麼改善？</li></ol>' }
+    ]
+  },
+
+  {
+    id: 'sop_handoff', category: 'workflow', icon: '🔄', title: '門市交接班 + 下班關機',
+    desc: '下班前最後一小時 SOP + 交接給下一班 / 隔天的注意事項',
+    roles: ['store'],
+    steps: [
+      { center: true, title: '🔄 為什麼要正式交接',
+        body: '店家通常一天兩班（上午班/下午班）。沒交接 → 下一班不知道現場狀況、漏處理客訴、隔天打開後台一團亂。' +
+              '<div class="info-box"><b>5 分鐘交接</b> 省下後續 30 分鐘扯皮。</div>' },
+      { center: true, title: '下班前 30 分鐘',
+        body: '<ol><li><b>把今日 walk-in 都開單</b> — 不要說「等下班再輸入」</li>' +
+              '<li><b>報到中心檢查</b> — 今日有客人沒報到嗎？（可能沒來、可能您忘記點）</li>' +
+              '<li><b>清桌</b> — 還沒結算的訂單寫便條，給下一班</li>' +
+              '<li><b>備品檢查</b> — 和服有沒有歸位、有沒有要洗的</li></ol>' },
+      { center: true, title: '下班前 10 分鐘 - 交接訊息',
+        body: '<h4>給下一班的訊息（LINE 群組丟）</h4>' +
+              '<div class="example-box"><b>下午班交接</b><br>• 今日完成 8 筆訂單<br>• 客人 王小明 (K260514005) 中午找不到位置，後來請他改下午 4 點，請晚班幫忙留意<br>• 振袖庫存只剩 2 件，要洗 3 件<br>• 客人投訴的事我跟 Jun 講過了，回頭看 LINE</div>' +
+              '<div class="info-box">不用很正式，但<b>重點寫清楚</b>。</div>' },
+      { center: true, title: '關店流程（最後一班）',
+        body: '<ol><li>確認所有客人都報到完了 / 體驗結束了</li>' +
+              '<li>對今日收款（現金 + 信用卡 + QR Code）</li>' +
+              '<li>當日 walk-in 訂單清單對一次（沒漏）</li>' +
+              '<li>歸位、清掃</li>' +
+              '<li>LINE 群組丟「<b>X 月 X 日打烊</b>」</li>' +
+              '<li>關電燈、鎖門</li></ol>' },
+      { center: true, title: '⚠️ 常見交接 fail',
+        body: '<div class="danger-box"><b>1. 忘記跟下一班說有客訴</b><br>下一班完全不知道，客人來追時答非所問 → 客訴升級。</div>' +
+              '<div class="danger-box"><b>2. walk-in 沒輸入</b><br>下一班看後台沒紀錄，以為客人沒結，硬要重收一次 → 客人爆怒。</div>' +
+              '<div class="danger-box"><b>3. 收款數字沒對</b><br>下班沒對現金 → 隔天少了 ¥3000 不知道是誰收到。</div>' }
+    ]
+  },
+
+  // ========== 🔧 特殊 / 異常場景 ==========
+  {
+    id: 'special_reschedule', category: 'special', icon: '🔁', title: '客人要改期',
+    desc: '不是退款，是換體驗日期 - 怎麼操作、是否收手續費',
+    roles: ['agent', 'jun'],
+    steps: [
+      { center: true, title: '🔁 情境：客人想換日期',
+        body: '客人「王小明」訂 7/5，臨時行程變更，想改成 7/12。<b>不是退款</b>，只是換日期。' +
+              '<h4>改期 vs 退款的差別</h4>' +
+              '<ul><li><b>改期</b>：訂金保留 → 換一個日期 → 不用重新匯款</li>' +
+              '<li><b>退款</b>：錢退回客人 → 訂單作廢 → 想再來要重新預約</li></ul>' +
+              '<div class="info-box">改期對雙方都好：客人不用重匯款、我們不損失訂單。</div>' },
+      { center: true, title: '改期政策',
+        body: '<table class="mock-table"><tr><th>距體驗日</th><th>能改嗎</th><th>手續費</th></tr>' +
+              '<tr><td>7 天前+</td><td>✓ 自由改</td><td>免費</td></tr>' +
+              '<tr><td>2-6 天前</td><td>✓ 改 1 次</td><td>免費（首次）/ NT$200（第二次）</td></tr>' +
+              '<tr><td>前一日 / 當日</td><td>❌ 不能改</td><td>只能退費或損失</td></tr></table>' +
+              '<div class="danger-box">每筆訂單<b>最多改 2 次</b>。第 3 次要請示 Jun。</div>' },
+      { tab: 'orders', selector: '#sec-orders',
+        title: '操作步驟',
+        body: '<ol><li>訂單管理找到該訂單</li>' +
+              '<li>點「📝 編輯」</li>' +
+              '<li>找到「<b>體驗預約日 (C 欄)</b>」修改為新日期</li>' +
+              '<li>備註欄加註「改期 1 次，原 7/5 → 7/12」</li>' +
+              '<li>儲存</li></ol>' +
+              '<div class="info-box">系統不自動寄改期確認信，要手動 LINE / Email 通知客人新日期確認。</div>' },
+      { center: true, title: '通知客人',
+        body: '<h4>建議訊息</h4>' +
+              '<div class="example-box">「王先生您好，您的預約已經改成 7/12 14:00。原訂金 NT$1000 已保留，當天直接到店即可。如有問題請告知。」</div>' +
+              '<h4>提醒事項</h4>' +
+              '<ul><li>新日期該門市有沒有人手能接</li>' +
+              '<li>客人是否原本選的店家還在營業</li>' +
+              '<li>季節性方案是否還適用（例：櫻花季方案在 5 月後就沒了）</li></ul>' },
+      { center: true, title: '收手續費的情況',
+        body: '<h4>什麼時候收</h4>' +
+              '<ul><li>客人第 2 次改期</li>' +
+              '<li>客人改到櫻花季 / 連假等漲價時段（補價差）</li></ul>' +
+              '<h4>怎麼收</h4>' +
+              '<ol><li>跟客人說明，取得同意</li>' +
+              '<li>讓客人匯手續費 NT$200 到旅乘戶頭</li>' +
+              '<li>確認到帳後再改日期</li>' +
+              '<li>備註欄記「補手續費 NT$200，5/15 已收到」</li></ol>' },
+      { center: true, title: '⚠️ 常見錯誤',
+        body: '<div class="danger-box"><b>1. 改太多次沒提示</b><br>客人改第 5 次了還在免費改 → 之後變慣性。第 2 次就要提手續費。</div>' +
+              '<div class="danger-box"><b>2. 改到價差不同的時段</b><br>客人本來訂淡季 ¥3500，改成櫻花季 ¥4500，沒補差 → 自己吃虧。</div>' +
+              '<div class="danger-box"><b>3. 忘記 LINE 通知</b><br>系統不會自動寄改期確認信，客人不知道改成功了，當天還去原日期。</div>' }
+    ]
+  },
+
+  {
+    id: 'special_not_found', category: 'special', icon: '🔍', title: '客人到門口但找不到訂單',
+    desc: '排查步驟：訂單號錯 / Email 拼錯 / 跑錯店 / 已關帳？',
+    roles: ['agent', 'jun', 'store'],
+    steps: [
+      { center: true, title: '🔍 情境：客人說「我有訂啊」但找不到',
+        body: '客人「王小明」站在櫃台說：「我有預約啊！」<br>您搜尋客戶名單、訂單管理…完全找不到。' +
+              '<h4>可能原因（排查順序）</h4>' +
+              '<ol><li>訂單號客人記錯（換一個搜法）</li>' +
+              '<li>Email / 電話拼錯</li>' +
+              '<li>他訂的是別家店</li>' +
+              '<li>訂單已關帳（搬到歷史檔案）</li>' +
+              '<li>他根本沒訂過</li></ol>' },
+      { center: true, title: 'Step 1：用不同關鍵字找',
+        body: '<ol><li><b>姓名</b>：訂單管理 → 進階搜尋 → 輸入姓名</li>' +
+              '<li><b>電話末3碼</b>：客人手機末 3 碼通常記得</li>' +
+              '<li><b>Email</b>：完整 Email 找</li>' +
+              '<li><b>體驗日期</b>：請客人說大概哪天 → 行事曆 view 找</li></ol>' +
+              '<div class="info-box">客人通常記得「我下訂前後幾天」、「金額是多少」這類資訊，多問。</div>' },
+      { center: true, title: 'Step 2：問客人「您訂的是哪家店？」',
+        body: '客人可能：' +
+              '<ul><li>大阪訂的跑到京都來體驗</li>' +
+              '<li>清水寺店訂的跑到祇園店</li>' +
+              '<li>東京淺草訂的當地以為日本只有一家</li></ul>' +
+              '<h4>處理</h4>' +
+              '<ol><li>問清楚是「哪一家旅乘 x 和服」</li>' +
+              '<li>跟客人說：「您預約的是 XX 店，但這裡是 YY 店」</li>' +
+              '<li>看 YY 店今天還有沒有空位</li>' +
+              '<li>有 → 幫他在 YY 店現場 walk-in 開單</li>' +
+              '<li>沒 → 道歉、請他去 XX 店或退費</li></ol>' },
+      { center: true, title: 'Step 3：歷史檔案找',
+        body: '如果客人說「我幾個月前訂的」：' +
+              '<ol><li>進「📁 歷史檔案」tab</li>' +
+              '<li>下拉選那個月份</li>' +
+              '<li>Ctrl+F 搜尋姓名</li></ol>' +
+              '<div class="info-box">如果客人說的月份還沒關帳 → 在訂單管理 tab。已關帳的才在歷史檔案。</div>' },
+      { center: true, title: 'Step 4：客人根本沒訂',
+        body: '<h4>客人是不是搞混跟別家店</h4>' +
+              '<ul><li>跟客人說：「我們系統真的沒有您的訂單，請問訂單確認信還在嗎？」</li>' +
+              '<li>客人翻 Email → 可能是「ABC 和服體驗」不是旅乘</li></ul>' +
+              '<h4>客人堅持是這家</h4>' +
+              '<ol><li>客人講話可疑或激動 → 通知 Jun</li>' +
+              '<li>客人就是想白嫖 → 客氣回絕</li>' +
+              '<li>客人真心想體驗 → 看現場能不能接 walk-in</li></ol>' },
+      { center: true, title: 'Step 5：補救方案',
+        body: '客人氣到要走人，怎麼留？' +
+              '<ul><li><b>能接</b>：walk-in 開單，給個小折扣 (如 5%) 安撫</li>' +
+              '<li><b>不能接</b>：道歉 → 給折扣碼下次來用（如 EARLY8）→ 客人通常會原諒</li></ul>' +
+              '<div class="info-box">客人到門口都是想體驗的。最好不要把他空手送走。</div>' }
+    ]
+  },
+
+  {
+    id: 'special_complaint', category: 'special', icon: '😤', title: '客訴處理 SOP',
+    desc: '客人不滿意服務 / 品質怎麼處理 - 語氣、權限邊界、何時抓 Jun',
+    roles: ['agent', 'jun', 'store'],
+    steps: [
+      { center: true, title: '😤 客訴是必然的',
+        body: '一個月處理 200+ 客人，<b>1-2 個客訴是常態</b>。處理得好 → 客人變死忠粉絲。處理得爛 → Google Map / IG 留負評，影響後續 100+ 客人。' +
+              '<div class="info-box">關鍵：<b>第一句話定基調</b>。客人氣的不是事情本身，是覺得沒被聽見。</div>' },
+      { center: true, title: '🎯 第一原則：先聽、後處理',
+        body: '<h4>客人剛開始發火時</h4>' +
+              '<ul><li>❌ 不要：「我們公司規定是...」「您應該要...」「這是您自己沒看清楚...」</li>' +
+              '<li>✅ 要：「謝謝您告訴我」「您的感受很重要」「我幫您看一下」</li></ul>' +
+              '<div class="info-box">先讓客人說完整件事，不要打斷、不要解釋。<b>客人講完心氣消一半</b>。</div>' },
+      { center: true, title: '💬 推薦話術',
+        body: '<h4>客訴開頭</h4>' +
+              '<div class="example-box">「<b>非常抱歉造成您的困擾</b>，我可以了解您現在的感受。可以再請您告訴我詳細經過嗎？我幫您看怎麼解決。」</div>' +
+              '<h4>客人質問退費</h4>' +
+              '<div class="example-box">「我了解，我們的退改政策是 [說明]。以您的情況我會 [具體方案]，這樣可以嗎？」</div>' +
+              '<h4>客人不接受</h4>' +
+              '<div class="example-box">「我們真的希望幫您處理，這部分超出我的權限，我幫您聯繫主管 Jun，最晚 24 小時內回覆您可以嗎？」</div>' },
+      { center: true, title: '⚖️ 權限邊界',
+        body: '<h4>客服可決定（在預算內）</h4>' +
+              '<ul><li>退 50% 訂金（即使政策不該退）</li>' +
+              '<li>給折扣碼下次來</li>' +
+              '<li>升級和服款式</li>' +
+              '<li>加贈攝影（價值 ¥3000 以內）</li></ul>' +
+              '<h4>必須轉 Jun</h4>' +
+              '<ul><li>客人要全額退費（高於政策的）</li>' +
+              '<li>客人威脅要法律行動</li>' +
+              '<li>客人提到具體賠償金額（&gt; ¥10,000）</li>' +
+              '<li>媒體 / KOL（影響力）</li></ul>' },
+      { center: true, title: '📝 紀錄客訴',
+        body: '<h4>哪裡記</h4>' +
+              '<ol><li>該客人的訂單卡備註欄寫「[客訴] 客人投訴 XX，我方處理 YY，5/14」</li>' +
+              '<li>客戶名單那位客人的標籤加「客訴」</li>' +
+              '<li>嚴重的 → LINE 群組 + 通知 Jun</li></ol>' +
+              '<div class="info-box">下次客人來，下一個客服能看到備註，<b>不會踩同個地雷</b>。</div>' },
+      { center: true, title: '🚨 哪些客訴一定要抓 Jun',
+        body: '<div class="danger-box">' +
+              '<ul><li>客人說要去消基會 / 公平交易委員會</li>' +
+              '<li>客人說要在 Google / IG / 旅遊論壇寫負評</li>' +
+              '<li>客人錄影 / 錄音威脅</li>' +
+              '<li>客人受傷（妝髮過敏、和服繩太緊等）</li>' +
+              '<li>客人未滿 18 歲或有家長代訴</li>' +
+              '<li>單筆損失預估 &gt; NT$1萬</li></ul>' +
+              '</div>不要嘗試自己處理這些，<b>馬上抓 Jun</b>。' }
+    ]
+  },
+
+  {
+    id: 'special_refund_error', category: 'special', icon: '⚠️', title: '退款轉錯帳戶 / 金額',
+    desc: '人為失誤怎麼補救、怎麼避免下次再犯',
+    roles: ['agent', 'jun'],
+    steps: [
+      { center: true, title: '⚠️ 情境：剛剛轉錯了',
+        body: '兩種失誤：' +
+              '<ol><li><b>轉錯帳戶</b>：A 客人的退款轉到 B 客人帳號</li>' +
+              '<li><b>轉錯金額</b>：應該退 NT$1000 結果轉了 NT$10000</li></ol>' +
+              '<div class="danger-box">⚠ 兩種都是可怕的失誤，但有補救方法。<b>越早處理越好</b>。</div>' },
+      { center: true, title: 'Case 1：轉錯帳戶',
+        body: '<h4>立即動作（10 分鐘內）</h4>' +
+              '<ol><li>⚠ 通知 Jun（必須）</li>' +
+              '<li>截圖轉帳紀錄</li>' +
+              '<li>確認對方帳戶是不是自己人 / 公司另一個帳戶</li></ol>' +
+              '<h4>是自己人 → 內部調回</h4>' +
+              '<h4>是真陌生人</h4>' +
+              '<ol><li>用「<b>誤匯撤回</b>」找銀行（盡早，最好 30 分鐘內）</li>' +
+              '<li>留下對方帳號資料 → Jun 報案</li>' +
+              '<li>同時通知原本該收錢的客人「退款延遲，會在 X 天內處理」</li>' +
+              '<li>用<b>自己錢</b>先補退給該客人，避免延誤</li></ol>' +
+              '<div class="info-box">銀行誤匯撤回成功率約 50%，超過 24 小時就很難了。</div>' },
+      { center: true, title: 'Case 2：轉錯金額（少轉）',
+        body: '<h4>例：應退 NT$1000，轉了 NT$100</h4>' +
+              '<ol><li>立刻補轉差額 NT$900</li>' +
+              '<li>後台「<b>退款金額</b>」欄重新填正確總額 NT$1000</li>' +
+              '<li>備註欄寫「補轉 NT$900，5/14」</li>' +
+              '<li>LINE 跟客人解釋並道歉</li></ol>' +
+              '<div class="info-box">客人通常會諒解這種「漏一個零」的小失誤。</div>' },
+      { center: true, title: 'Case 3：轉錯金額（多轉）',
+        body: '<h4>例：應退 NT$1000，轉了 NT$10000</h4>' +
+              '<ol><li>⚠ 立刻通知 Jun</li>' +
+              '<li>LINE 客戶「不好意思，剛剛系統失誤多匯 NT$9000，可否請您幫忙退回」</li>' +
+              '<li>客人配合退回 → 後台金額改正</li>' +
+              '<li>客人不配合 → Jun 評估法律途徑</li></ol>' +
+              '<div class="danger-box">客人不一定願意退多收的錢。<b>客戶通常會看到帳戶多錢直接花掉</b>。要趕快聯繫。</div>' },
+      { center: true, title: '🛡️ 預防再犯',
+        body: '<h4>SOP 改進</h4>' +
+              '<ol><li>轉帳前<b>大聲念出來</b>：「轉給 王小明 NT$ 一千元」</li>' +
+              '<li>金額欄填完<b>暫停 3 秒</b>，再點確認</li>' +
+              '<li>單筆超過 NT$5000 → 截圖給 Jun 看過再轉</li>' +
+              '<li>用銀行 App「<b>常用帳戶</b>」功能，把高頻退款客人加最愛</li></ol>' +
+              '<h4>系統面</h4>' +
+              '<ul><li>後台「退款金額」欄加 confirmation：「您確定退款 NT$10,000？」</li>' +
+              '<li>單筆超過 NT$5000 自動 highlight 紅色</li></ul>' }
+    ]
+  },
+
+  // ========== 🎓 Jun 管理者進階 ==========
+  {
+    id: 'jun_coupon', category: 'jun_advanced', icon: '🎟️', title: '折扣碼新增 / 修改',
+    desc: '怎麼建新折扣碼、設定有效期 / 限定門市',
+    roles: ['jun'],
+    steps: [
+      { center: true, title: '🎟️ Jun 限定：折扣碼管理',
+        body: '只有 Jun 能新增 / 修改折扣碼。客服 / 店家看不到這個能力。' +
+              '<h4>什麼時候建</h4>' +
+              '<ul><li>行銷活動（雙 11、櫻花季）</li>' +
+              '<li>特定 KOL 合作（KOL 自帶折扣碼）</li>' +
+              '<li>單一客戶補償（客訴後給）</li></ul>' },
+      { center: true, title: '直接到 Sheet 編輯',
+        body: '<ol><li>打開 Sheet 「<b>折扣碼分頁</b>」</li>' +
+              '<li>新增一行</li>' +
+              '<li>填欄位：折扣碼、折數 (5-10)、有效期、限定門市、備註</li>' +
+              '<li>儲存</li></ol>' +
+              '<h4>欄位範例</h4>' +
+              '<table class="mock-table"><tr><th>折扣碼</th><th>折數</th><th>有效期</th><th>限定</th></tr>' +
+              '<tr><td>EARLY8</td><td>8</td><td>2026-05-31</td><td>全店</td></tr>' +
+              '<tr><td>OSAKA10</td><td>9</td><td>2026-12-31</td><td>osaka1</td></tr>' +
+              '<tr><td>VIPSPECIAL</td><td>7</td><td>2026-06-30</td><td>VIP only</td></tr></table>' },
+      { center: true, title: '折扣碼怎麼運作',
+        body: '客人在 inquiry.html 表單填「折扣碼」欄 → 系統：' +
+              '<ol><li>到 Sheet 折扣碼分頁找該碼</li>' +
+              '<li>檢查有效期（過期不算）</li>' +
+              '<li>檢查限定門市（如限 osaka1 但客人選 kyoto1 → 不算）</li>' +
+              '<li>取得折數</li>' +
+              '<li>實收方案 = 原價 × (折數/10)</li></ol>' },
+      { center: true, title: '常用折扣碼設計',
+        body: '<h4>命名規則</h4>' +
+              '<ul><li><code>EARLY8</code>：早鳥 8 折</li>' +
+              '<li><code>LATE7</code>：當週 7 折（降價清庫存）</li>' +
+              '<li><code>VIP5</code>：VIP 半價（特殊情況）</li>' +
+              '<li><code>KOL_AYANO</code>：跟 KOL 綾乃合作（KOL 自帶）</li></ul>' +
+              '<div class="info-box">命名要直覺，客人輸入順手。<b>不要</b> <code>asd9f8</code> 這種看不懂的。</div>' },
+      { center: true, title: '⚠️ 注意事項',
+        body: '<div class="danger-box"><b>1. 折扣只折 PP（和服費）</b><br>不折妝髮、攝影。寫明，客人預期才不會錯。</div>' +
+              '<div class="danger-box"><b>2. 折扣由旅乘吸收</b><br>店家照原價收 50%，差額是旅乘虧。所以不能亂發大折扣（會虧錢）。</div>' +
+              '<div class="danger-box"><b>3. 過期不寫期限</b><br>「永久有效」很危險，1 年後忘記它存在會亂套用。<b>都要有有效期</b>。</div>' }
+    ]
+  },
+
+  {
+    id: 'jun_staff', category: 'jun_advanced', icon: '👨‍💼', title: '新增 / 刪除員工帳號',
+    desc: 'agent 新人進來怎麼建帳號 / 離職怎麼撤帳號',
+    roles: ['jun'],
+    steps: [
+      { center: true, title: '👨‍💼 員工帳號管理',
+        body: '所有員工帳號（含 token、密碼、權限）都在 GAS Script Properties。<br>只有 Jun 能改。' +
+              '<h4>什麼時候要動</h4>' +
+              '<ul><li>新人入職</li>' +
+              '<li>員工離職</li>' +
+              '<li>員工請假代理（暫時授權）</li>' +
+              '<li>密碼洩漏要重發</li></ul>' },
+      { center: true, title: '新增 agent 帳號',
+        body: '<h4>Sheet 端</h4>' +
+              '<ol><li>打開 Sheet「<b>系統設定</b>」分頁</li>' +
+              '<li>找「員工密碼」區</li>' +
+              '<li>新增一行：姓名、密碼 (8 位以上)、角色 (agent)、Email</li></ol>' +
+              '<h4>GAS 端（可選）</h4>' +
+              '<ol><li>如果是用 token 認證，到 Script Properties 加 <code>ADM_xxxxxxx</code> 屬性</li>' +
+              '<li>值是 JSON：<code>{"name":"Amy","role":"agent","exp":1735689600000}</code></li>' +
+              '<li>exp = 過期時間（毫秒 Unix timestamp）</li></ol>' +
+              '<div class="info-box">新人進系統後第一次登入會自動生 token，token 存在 Sheet 系統設定。</div>' },
+      { center: true, title: '新增 store 帳號',
+        body: '<h4>步驟</h4>' +
+              '<ol><li>選店家代號（不能跟現有重複）：osaka1 / osaka2 / kyoto1 / kyoto2 / tokyo1 / tokyo2</li>' +
+              '<li>到 Sheet「<b>系統設定</b>」加新行：代號、密碼、role=store、所在城市</li>' +
+              '<li>把密碼<b>面交</b>店家負責人，不要丟群組</li></ol>' +
+              '<div class="info-box">store 帳號是整店共用，密碼是門市秘密。</div>' },
+      { center: true, title: '員工離職',
+        body: '<ol><li>該員工的密碼<b>立刻改</b>（先把人鎖在外面）</li>' +
+              '<li>Sheet 系統設定加備註「已離職 2026-05-14」</li>' +
+              '<li>檢查最近 30 天他的 audit log，有沒有可疑操作</li>' +
+              '<li>Script Properties 對應的 ADM_token 屬性<b>刪掉</b></li>' +
+              '<li>該員工的客人交接給其他客服（看備註欄客人有沒有特殊需求）</li></ol>' },
+      { center: true, title: '臨時授權代理',
+        body: '<h4>例：Amy 請假 1 週，Ren 代理</h4>' +
+              '<ol><li>不用建新帳號，Ren 用自己的就好</li>' +
+              '<li>Sheet 系統設定加備註「Ren 代理 Amy 客人，5/14-5/21」</li>' +
+              '<li>客戶 LINE 來訊 Ren 都先接</li>' +
+              '<li>大狀況決定先擱置等 Amy 回來，或請示 Jun</li></ol>' +
+              '<div class="info-box">代理期間 Ren 的 audit log 會混進 Amy 的客人，要備註清楚。</div>' }
+    ]
+  },
+
+  {
+    id: 'jun_invoice', category: 'jun_advanced', icon: '💸', title: '店家請款單 + 匯款流程',
+    desc: '月底生請款單給店家、追店家匯款、處理差異',
+    roles: ['jun'],
+    steps: [
+      { center: true, title: '💸 月底跟店家對帳',
+        body: '旅乘的營利模式：店家收客人錢 → 月底匯給旅乘分潤。<br><b>每個月跑一次</b>。' +
+              '<div class="formula">店家收 ¥100,000 walk-in → 店家保留 ¥80,000 + 應匯旅乘 ¥20,000</div>' },
+      { tab: 'walkin', selector: '#walkin-stores-grid',
+        title: '生請款單',
+        body: '<ol><li>進「<b>💴 店家月結</b>」tab</li>' +
+              '<li>選上個月份</li>' +
+              '<li>每家店一張卡片，顯示本月 walk-in 訂單數、總金額、應收旅乘</li>' +
+              '<li>點卡片右上「📄 請款單」</li>' +
+              '<li>系統開新分頁生成 PDF 格式請款單</li>' +
+              '<li>Ctrl+P 列印 / Save PDF</li></ol>' },
+      { center: true, title: '請款單格式',
+        body: '請款單包含：' +
+              '<ul><li>店家名稱、月份</li>' +
+              '<li>本月 walk-in 訂單明細（日期、姓名、金額、分潤）</li>' +
+              '<li>應收旅乘總金額</li>' +
+              '<li>旅乘銀行戶頭（給店家匯款用）</li>' +
+              '<li>付款期限（每月 5 號前）</li></ul>' +
+              '<div class="info-box">PDF 寄給店家負責人 + LINE 群組通知。</div>' },
+      { center: true, title: '追蹤店家匯款',
+        body: '<ol><li>每月 1-5 號每天看公司戶頭</li>' +
+              '<li>店家匯款進帳 → Sheet「<b>月結追蹤</b>」表打勾</li>' +
+              '<li>5 號還沒收到的店家 → 個別 LINE 提醒</li>' +
+              '<li>10 號還沒收 → 電話催收</li>' +
+              '<li>15 號還沒收 → 列為「異常」店家</li></ol>' +
+              '<div class="info-box">99% 的店家會準時匯款。不準時的通常是新合作或有狀況。</div>' },
+      { center: true, title: '處理差異',
+        body: '<h4>店家匯款金額跟請款單對不上</h4>' +
+              '<ol><li>看請款單明細，店家可能算錯</li>' +
+              '<li>對方有沒有用其他方式付（如抵扣下月或對方代墊）</li>' +
+              '<li>聯繫店家對單，找出差異原因</li>' +
+              '<li>差異 &lt; ¥500 接受、&gt;¥500 找出帳</li></ol>' +
+              '<h4>店家漏報 walk-in</h4>' +
+              '<ol><li>店家忘了輸入幾筆 walk-in → 應收旅乘少算</li>' +
+              '<li>請店家補開單（要解凍）</li>' +
+              '<li>下個月補請款</li></ol>' },
+      { center: true, title: '⚠️ 常見糾紛',
+        body: '<div class="danger-box"><b>1. 店家認為「妝髮也要分潤」</b><br>合約寫明妝髮 100% 店家收。如果忘記跟店家解釋，會有反彈。</div>' +
+              '<div class="danger-box"><b>2. 店家私下接訂單沒輸入</b><br>客人爆料才知道。需要明察暗訪、看 Google 評論的客人是不是在 admin 找得到。</div>' +
+              '<div class="danger-box"><b>3. 店家拖欠匯款</b><br>合約寫每月 5 號前。連續 3 個月晚匯款 → 評估是否中止合作。</div>' }
+    ]
+  },
+
+  {
+    id: 'jun_audit', category: 'jun_advanced', icon: '📜', title: '操作紀錄 audit log',
+    desc: 'Jun 限定 tab，查誰在何時改了什麼（責任 / 補救 / 審計）',
+    roles: ['jun'],
+    steps: [
+      { center: true, title: '📜 audit log 是什麼',
+        body: '系統會把每個重要動作記下來：' +
+              '<ul><li>誰</li>' +
+              '<li>什麼時候</li>' +
+              '<li>對哪筆訂單做了什麼</li>' +
+              '<li>原值 → 新值（如把金額從 1000 改成 5000）</li></ul>' +
+              '<div class="info-box">Jun 限定 tab，其他人看不到。</div>' },
+      { center: true, title: '📌 用途',
+        body: '<h4>1. 查責任</h4>有筆訂單金額被改了 → 看是誰改的、什麼時候改的<br>' +
+              '<h4>2. 補救</h4>客人投訴「我訂的不是這樣」→ 看當初下訂時的原始值<br>' +
+              '<h4>3. 審計 / 法規</h4>稅務查 / 公司年度審計時要提供操作紀錄' },
+      { tab: 'audit', selector: '[data-sec="audit"]', position: 'bottom',
+        title: '進「📜 操作紀錄」 tab',
+        body: '只有 Jun 看得到。其他角色 nav 上根本不顯示這個 tab。' },
+      { center: true, title: '怎麼搜尋',
+        body: '<h4>頂部 filter</h4>' +
+              '<ul><li><b>日期範圍</b>：限定查詢時段</li>' +
+              '<li><b>操作者</b>：誰做的（Jun / Amy / Ren / osaka1...）</li>' +
+              '<li><b>動作類型</b>：booking / confirm / refund / checkin / edit</li>' +
+              '<li><b>訂單號</b>：找特定訂單的所有操作</li></ul>' +
+              '<h4>搜尋範例</h4>' +
+              '<div class="example-box">想查：王小明訂單 K260514001 過去做過什麼<br>→ 訂單號搜尋 K260514001 → 看所有操作紀錄</div>' },
+      { center: true, title: '紀錄格式',
+        body: '每行紀錄包含：' +
+              '<table class="mock-table"><tr><th>時間</th><th>操作者</th><th>動作</th><th>訂單</th><th>細節</th></tr>' +
+              '<tr><td>5/14 09:23</td><td>Jun</td><td>confirm</td><td>K260514001</td><td>狀態變 confirmed</td></tr>' +
+              '<tr><td>5/14 10:11</td><td>Amy</td><td>edit</td><td>K260514001</td><td>訂金 0 → 1000</td></tr>' +
+              '<tr><td>5/14 14:30</td><td>osaka1</td><td>checkin</td><td>K260514001</td><td>AL/AM/AN 寫入</td></tr></table>' },
+      { center: true, title: '⚠️ 注意',
+        body: '<h4>1. 紀錄不能刪除</h4>就算 Jun 也不能刪。這是設計來防止「事後修改紀錄」。' +
+              '<h4>2. 大量紀錄</h4>系統運作久了會有幾千筆紀錄。<b>用 filter 才不會卡</b>。' +
+              '<h4>3. 隱私</h4>紀錄會留個人操作軌跡，<b>不要外流</b>給非授權的人看。' }
+    ]
+  }];
 
 
 
 
 
 function openScenarioPicker(isAuto) {
-  // 依角色 filter
   const isJun = currentAgent === 'Jun';
   const role = isJun ? 'jun' : currentRole;
   const available = TRAINING_SCENARIOS.filter(s => s.roles.indexOf(role) >= 0);
-  // Render cards
   const list = document.getElementById('scenario-list');
   if (available.length === 0) {
     list.innerHTML = '<div class="col-span-2 text-center py-8 text-slate-400">您的角色目前沒有可用的訓練場景</div>';
   } else {
-    list.innerHTML = available.map(s =>
+    // Group by category
+    const CAT_ORDER = ['intro', 'daily', 'workflow', 'special', 'jun_advanced', 'tabs'];
+    const CAT_LABELS = {
+      intro: { name: '🌱 入門必看', desc: '第一週新人先看這個' },
+      daily: { name: '📋 日常操作', desc: '每天會用到的核心場景' },
+      workflow: { name: '⏰ 每日 SOP / 流程', desc: '時間軸式工作流程' },
+      special: { name: '🔧 特殊 / 異常處理', desc: '碰到狀況時怎麼辦' },
+      jun_advanced: { name: '🎓 Jun 管理者進階', desc: '只有 Jun 看得到' },
+      tabs: { name: '📚 各 tab 詳細導覽', desc: '單獨想複習某個 tab' }
+    };
+    const grouped = {};
+    CAT_ORDER.forEach(c => grouped[c] = []);
+    available.forEach(s => {
+      const c = s.category || 'tabs';
+      if (!grouped[c]) grouped[c] = [];
+      grouped[c].push(s);
+    });
+    let html = '';
+    CAT_ORDER.forEach(cat => {
+      if (grouped[cat].length === 0) return;
+      const lbl = CAT_LABELS[cat];
+      html += '<div class="col-span-1 md:col-span-2 mt-2 mb-1">' +
+              '<div class="font-bold text-[#1A365D] text-sm">' + lbl.name + '</div>' +
+              '<div class="text-xs text-slate-400">' + lbl.desc + '</div>' +
+              '</div>';
+      html += grouped[cat].map(s =>
+        '<button onclick="startScenario(\'' + s.id + '\')" class="text-left p-3 bg-slate-50 hover:bg-amber-50 border-2 border-slate-100 hover:border-amber-400 rounded-xl transition-all">' +
+        '<div class="flex items-start gap-2">' +
+          '<div class="text-2xl shrink-0">' + s.icon + '</div>' +
+          '<div class="flex-1 min-w-0">' +
+            '<div class="font-bold text-[#1A365D] text-sm mb-0.5">' + s.title + '</div>' +
+            '<div class="text-[11px] text-slate-500 leading-tight mb-1">' + s.desc + '</div>' +
+            '<div class="text-[10px] text-amber-700 font-bold">' + s.steps.length + ' 步 · 約 ' + Math.max(2, Math.ceil(s.steps.length / 1.5)) + ' 分</div>' +
+          '</div>' +
+        '</div>' +
+        '</button>'
+      ).join('');
+    });
+    list.innerHTML = html;
+  }
+  document.getElementById('scenario-picker').classList.remove('hidden');
+}
+
+function __old_picker_unused(isAuto) {
+  // (kept for reference, unused)
+  const a = 0; const b = TRAINING_SCENARIOS.map(s =>
       '<button onclick="startScenario(\'' + s.id + '\')" class="text-left p-4 bg-slate-50 hover:bg-slate-100 border-2 border-slate-100 hover:border-[#1A365D] rounded-xl transition-all">' +
       '<div class="flex items-start gap-3">' +
         '<div class="text-3xl shrink-0">' + s.icon + '</div>' +
