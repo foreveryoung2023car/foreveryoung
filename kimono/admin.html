@@ -1406,6 +1406,26 @@ function showErr(msg) {
   document.getElementById('orders-list').innerHTML = '<div class="text-center py-10 text-red-600 font-semibold"><div class="text-2xl mb-2">⚠️</div>' + msg + '</div>';
 }
 
+// v2.4.42g: robust bookingDate parser - handles 上午/下午 + ISO + slash formats
+function parseBookingDate(s){
+  if(!s) return null;
+  const str = String(s);
+  // Chinese 12h: 2026/06/30 上午 10:00 or 2026-05-15 下午1:30
+  const m = str.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})\s*(上午|下午|中午)?\s*(\d{1,2}):(\d{2})/);
+  if(m){
+    let h = parseInt(m[5]);
+    if(m[4]==='下午' && h<12) h+=12;
+    if(m[4]==='上午' && h===12) h=0;
+    return new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3]), h, parseInt(m[6]));
+  }
+  // Date-only: 2026/6/27 or 2026-05-15
+  const md = str.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+  if(md) return new Date(parseInt(md[1]), parseInt(md[2])-1, parseInt(md[3]));
+  // Fallback to native parser
+  const d = new Date(str);
+  return isNaN(d) ? null : d;
+}
+
 function fmtBookingDateTime(s){
   // Customer chose date+time at submit; bookingDate may be 'YYYY/M/D 上午H:MM' or ISO
   if(!s) return '—';
@@ -1872,7 +1892,7 @@ function renderUpcoming(){
   else if(range==='tomorrow') { start.setDate(today0.getDate()+1); endDate.setDate(today0.getDate()+2); }
   else if(range==='3days') endDate.setDate(today0.getDate()+3);
   else endDate.setDate(today0.getDate()+7);
-  const upcoming = visible.filter(o=>{const d=new Date(o.bookingDate); return !isNaN(d) && d>=start && d<endDate;}).sort((a,b)=>new Date(a.bookingDate)-new Date(b.bookingDate));
+  const upcoming = visible.filter(o=>{const d=parseBookingDate(o.bookingDate); return d && d>=start && d<endDate;}).sort((a,b)=>{const da=parseBookingDate(a.bookingDate)||0;const db=parseBookingDate(b.bookingDate)||0;return da-db;});
   if(!upcoming.length){ list.innerHTML='<div class="text-center text-slate-500 py-4 font-semibold">此期間無預約</div>'; return; }
   list.innerHTML = upcoming.map(o=>{
     const d = new Date(o.bookingDate);
@@ -1881,7 +1901,7 @@ function renderUpcoming(){
     const badge = o.confirmed? '<span class="badge badge-confirmed">已確認</span>' : '<span class="badge badge-pending">待確認</span>';
     return '<div class="flex items-center justify-between p-2 hover:bg-slate-50 rounded cursor-pointer border border-slate-100" onclick="openEdit(\''+(o.orderId||'')+'\')">'+
       '<div class="flex-1 min-w-0"><div class="font-bold text-sm truncate">'+(o.name||'—')+' <span class="text-[10px] text-slate-500 font-mono font-normal">'+(o.orderId||'')+'</span></div>'+
-      '<div class="text-[11px] text-slate-700">'+fmtDate(o.bookingDate)+' · '+(o.adults||o.pax||'—')+' · '+(o.plan||'').slice(0,15)+'</div></div>'+
+      '<div class="text-[11px] text-slate-700">'+fmtDate(o.bookingDate)+' · '+(o.adults||o.pax||'—')+' 人</div></div>'+
       '<div class="flex flex-col items-end gap-0.5 ml-2">'+badge+'<span class="text-[10px] font-bold text-[#C9A961]">'+dayLabel+'</span></div></div>';
   }).join('');
 }
@@ -3696,8 +3716,8 @@ function renderCheckIn() {
   let orders = (window.allOrders || []).filter(o => {
     if (!o.confirmed) return false;
     if (!o.bookingDate) return false;
-    const bd = new Date(o.bookingDate);
-    if (isNaN(bd)) return false;
+    const bd = parseBookingDate(o.bookingDate);  // v2.4.42g
+    if (!bd) return false;
     const bdYMD = bd.getUTCFullYear() + '-' + String(bd.getUTCMonth()+1).padStart(2,'0') + '-' + String(bd.getUTCDate()).padStart(2,'0');
     // ±1 天 = 昨天 / 今天 / 明天
     const diff = Math.round((Date.UTC(bd.getUTCFullYear(), bd.getUTCMonth(), bd.getUTCDate()) - Date.UTC(jstNow.getFullYear(), jstNow.getMonth(), jstNow.getDate())) / ms);
