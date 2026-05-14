@@ -5582,24 +5582,6 @@ function openScenarioPicker(isAuto) {
   document.getElementById('scenario-picker').classList.remove('hidden');
 }
 
-function __old_picker_unused(isAuto) {
-  // (kept for reference, unused)
-  const a = 0; const b = TRAINING_SCENARIOS.map(s =>
-      '<button onclick="startScenario(\'' + s.id + '\')" class="text-left p-4 bg-slate-50 hover:bg-slate-100 border-2 border-slate-100 hover:border-[#1A365D] rounded-xl transition-all">' +
-      '<div class="flex items-start gap-3">' +
-        '<div class="text-3xl shrink-0">' + s.icon + '</div>' +
-        '<div class="flex-1 min-w-0">' +
-          '<div class="font-bold text-[#1A365D] text-base mb-1">' + s.title + '</div>' +
-          '<div class="text-xs text-slate-500 leading-relaxed mb-2">' + s.desc + '</div>' +
-          '<div class="text-[10px] text-amber-700 font-bold">' + s.steps.length + ' 步 · 約 ' + Math.max(2, Math.ceil(s.steps.length / 1.5)) + ' 分鐘</div>' +
-        '</div>' +
-      '</div>' +
-      '</button>'
-    ).join('');
-  }
-  document.getElementById('scenario-picker').classList.remove('hidden');
-}
-
 function closeScenarioPicker() {
   document.getElementById('scenario-picker').classList.add('hidden');
   // 標記已看過（首次自動跳就不會再出現）
