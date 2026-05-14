@@ -258,6 +258,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
     <div class="flex gap-1">
       <div class="nav-tab active" data-sec="dashboard" onclick="switchSection('dashboard',this)">📊 儀表板</div>
       <div class="nav-tab" data-sec="orders" onclick="switchSection('orders',this)">📋 訂單管理 <span id="tab-count-orders" class="bg-white/25 px-1.5 rounded text-[11px]">0</span></div>
+      <div class="nav-tab" data-sec="checkin" onclick="switchSection('checkin',this)">🎌 報到中心 <span id="tab-count-checkin" class="bg-white/25 px-1.5 rounded text-[11px]">0</span></div>
       <div class="nav-tab" data-sec="calendar" onclick="switchSection('calendar',this)">📅 行事曆</div>
       <div class="nav-tab" data-sec="customers" onclick="switchSection('customers',this)">👥 客戶名單 <span id="tab-count-customers" class="bg-white/25 px-1.5 rounded text-[11px]">0</span></div>
       <div class="nav-tab" data-sec="finance" onclick="switchSection('finance',this)">💰 財務報表</div>
@@ -455,6 +456,33 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
     <div id="orders-empty" class="text-center py-12 text-slate-500 hidden font-semibold"><div class="text-3xl mb-2">🔍</div>查無符合訂單</div>
     <!-- v2.4.35: 訂單卡左右並排 — ≥600 (小平板/橫向) 2 欄，≥1280 桌機 3 欄 -->
     <div id="orders-list" class="smart-3col"></div>
+  </section>
+
+  <!-- v2.4.40: 報到中心 — 今日 ±1 天訂單看板 -->
+  <section id="sec-checkin" class="section">
+    <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
+      <div>
+        <h2 class="text-2xl font-bold text-[#1A365D] title-serif">🎌 報到中心</h2>
+        <p class="text-sm text-slate-600 mt-1 font-semibold">今日 ±1 天的體驗訂單，依時間排序</p>
+      </div>
+      <div class="flex gap-2 flex-wrap items-center">
+        <input id="checkin-search" type="text" inputmode="numeric" maxlength="5" placeholder="搜尋手機末 3-5 碼"
+          oninput="renderCheckIn()" class="input-field !w-40 font-mono">
+        <button onclick="renderCheckIn()" class="btn-outline px-3 py-2 rounded-xl text-sm">↻ 重整</button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+      <div class="stat-card"><div class="section-label">待報到</div><div id="ci-stat-pending" class="stat-num" style="color:#94A3B8">0</div></div>
+      <div class="stat-card"><div class="section-label">已自助報到</div><div id="ci-stat-self" class="stat-num" style="color:#F59E0B">0</div></div>
+      <div class="stat-card"><div class="section-label">已店家代客</div><div id="ci-stat-agent" class="stat-num" style="color:#10B981">0</div></div>
+    </div>
+
+    <div id="checkin-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+    <div id="checkin-empty" class="hidden text-center py-12 text-slate-400">
+      <div class="text-5xl mb-3">🌸</div>
+      <p class="text-base font-bold">今日 ±1 天沒有需要報到的訂單</p>
+    </div>
   </section>
 
   <section id="sec-calendar" class="section">
@@ -1101,6 +1129,7 @@ function switchSection(sec, el){
   }
   else if(sec==='walkin' && typeof renderWalkinMonth==='function') { if(typeof buildWalkinMonthSelect==='function') buildWalkinMonthSelect(); renderWalkinMonth(); }
   else if(sec==='orders' && typeof filterOrders==='function') filterOrders();
+  else if(sec==='checkin' && typeof renderCheckIn==='function') renderCheckIn();
   else if(sec==='archive' && typeof loadArchivedList==='function') loadArchivedList();
   else if(sec==='permissions' && typeof renderPermissions==='function') renderPermissions();
 }
@@ -3488,6 +3517,97 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
+
+
+// ============================================================
+// v2.4.40: 報到中心 (今日 ±1 天訂單看板)
+// ============================================================
+function renderCheckIn() {
+  const list = document.getElementById('checkin-list');
+  const empty = document.getElementById('checkin-empty');
+  if (!list) return;
+  // 算今天 JST
+  const now = new Date();
+  const jstNow = new Date(now.getTime() + (now.getTimezoneOffset() + 540) * 60000);
+  const toJstYMD = (d) => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  const todayYMD = toJstYMD(jstNow);
+  const ms = 24*3600*1000;
+  // 收集 ±1 天訂單
+  let orders = (window.allOrders || []).filter(o => {
+    if (!o.confirmed) return false;
+    if (!o.bookingDate) return false;
+    const bd = new Date(o.bookingDate);
+    if (isNaN(bd)) return false;
+    const bdYMD = bd.getUTCFullYear() + '-' + String(bd.getUTCMonth()+1).padStart(2,'0') + '-' + String(bd.getUTCDate()).padStart(2,'0');
+    // ±1 天 = 昨天 / 今天 / 明天
+    const diff = Math.round((Date.UTC(bd.getUTCFullYear(), bd.getUTCMonth(), bd.getUTCDate()) - Date.UTC(jstNow.getFullYear(), jstNow.getMonth(), jstNow.getDate())) / ms);
+    return diff >= -1 && diff <= 1;
+  });
+  // 店家身份只看自家
+  if (currentRole === 'store' && currentStoreKey) {
+    orders = orders.filter(o => orderBelongsToStore(o, currentStoreKey));
+  }
+  // 末碼搜尋
+  const qInput = document.getElementById('checkin-search');
+  const q = (qInput ? qInput.value : '').replace(/\D/g, '').slice(0, 5);
+  if (q.length >= 3) {
+    orders = orders.filter(o => {
+      const phoneTail = String(o.phone || '').replace(/\D/g, '').slice(-5);
+      return phoneTail.endsWith(q);
+    });
+  }
+  // 排序：先按體驗日 + 時間 (asc)
+  orders.sort((a, b) => new Date(a.bookingDate) - new Date(b.bookingDate));
+
+  // 統計
+  let cntPending = 0, cntSelf = 0, cntAgent = 0;
+  orders.forEach(o => {
+    if (!o.checkedInAt) cntPending++;
+    else if ((o.checkedInBy || '').toString() === 'self' || (o.checkedInSource || '').toString() === 'self') cntSelf++;
+    else cntAgent++;
+  });
+  document.getElementById('ci-stat-pending').textContent = cntPending;
+  document.getElementById('ci-stat-self').textContent = cntSelf;
+  document.getElementById('ci-stat-agent').textContent = cntAgent;
+  const tabCount = document.getElementById('tab-count-checkin');
+  if (tabCount) tabCount.textContent = orders.length;
+
+  // 卡片
+  if (orders.length === 0) {
+    list.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+  list.innerHTML = orders.map(o => {
+    const bd = new Date(o.bookingDate);
+    const hh = String(bd.getUTCHours()).padStart(2,'0');
+    const mm = String(bd.getUTCMinutes()).padStart(2,'0');
+    const md = (bd.getUTCMonth()+1) + '/' + bd.getUTCDate();
+    const phoneTail = String(o.phone || '').replace(/\D/g, '').slice(-3);
+    let stateBadge, stateColor;
+    const checkedSource = (o.checkedInBy || '').toString();
+    if (!o.checkedInAt) { stateBadge = '⏳ 待報到'; stateColor = 'bg-slate-100 text-slate-600'; }
+    else if (checkedSource === 'self') { stateBadge = '🎌 客人自助'; stateColor = 'bg-amber-100 text-amber-700'; }
+    else { stateBadge = '✅ 已代客報到'; stateColor = 'bg-emerald-100 text-emerald-700'; }
+    const btnDisabled = o.checkedInAt ? 'disabled style="opacity:0.5;cursor:not-allowed"' : '';
+    const btnText = o.checkedInAt ? '已報到' : '🎌 為客人報到';
+    return '<div class="bg-white border-2 border-slate-100 hover:border-[#1A365D] rounded-lg p-4 transition-all">' +
+      '<div class="flex justify-between items-start mb-2">' +
+        '<div><div class="text-lg font-bold text-[#1A365D]">' + (o.name || '—') + '</div>' +
+        '<div class="text-xs text-slate-400 font-mono">' + (o.orderId || '') + '</div></div>' +
+        '<span class="text-xs px-2 py-1 rounded ' + stateColor + ' font-bold">' + stateBadge + '</span>' +
+      '</div>' +
+      '<div class="grid grid-cols-2 gap-2 text-sm mb-3">' +
+        '<div><span class="text-slate-400 text-xs">體驗時間</span><div class="font-bold">' + md + ' ' + hh + ':' + mm + '</div></div>' +
+        '<div><span class="text-slate-400 text-xs">末3碼</span><div class="font-bold font-mono">' + phoneTail + '</div></div>' +
+        '<div><span class="text-slate-400 text-xs">和服款式</span><div class="font-bold text-xs">' + (o.plan || '—') + '</div></div>' +
+        '<div><span class="text-slate-400 text-xs">人數</span><div class="font-bold">' + (o.adults || '—') + '</div></div>' +
+      '</div>' +
+      '<button onclick="checkInOrder(\'' + o.orderId + '\')" ' + btnDisabled + ' class="w-full py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold rounded text-sm transition-colors">' + btnText + '</button>' +
+    '</div>';
+  }).join('');
+}
 
 // ============================================================
 // v2.4 Walk-in 月結對帳
