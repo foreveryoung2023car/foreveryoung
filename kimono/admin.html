@@ -238,7 +238,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
       <div class="min-w-0 hidden xs:block sm:block">
         <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
-        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.38</div>
+        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.40</div>
       </div>
     </div>
     <div id="global-search-wrap" class="md:flex flex-1 max-w-md" style="display:none">
@@ -299,11 +299,6 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 <div id="dashboard" class="hidden max-w-[1500px] mx-auto px-4 py-6">
 
   <section id="sec-dashboard" class="section active">
-    <!-- v2.4.21 部署驗證橫幅（確認新版有上線） -->
-    <div class="mb-3 px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between text-sm">
-      <span class="font-bold text-emerald-800">✅ 目前版本：v2.4.38 報到功能</span>
-      <span class="text-emerald-700 text-xs">部署時間：2026-05-08 · 趨勢/天氣全寬展開 + data-table td 預設 nowrap (修對帳/退款斷字)</span>
-    </div>
     <div class="flex justify-between items-end mb-5 flex-wrap gap-2">
       <div>
         <h2 class="text-2xl font-bold text-[#1A365D] title-serif">營運概覽</h2>
@@ -988,6 +983,8 @@ function enterDashboard(name, token, role, storeKey) {
   document.getElementById('nav-agent').textContent = roleEmoji + ' ' + name + roleSuffix;
   applyRolePermissions();   // v2.5: hide/show UI based on role
   loadOrders();
+  // v2.4.40: 登入後重新載入天氣，依角色 (agent 全部 / store 自家城市) 抓對的城市
+  if (typeof loadWeather === 'function') loadWeather(true);
 }
 
 
@@ -2291,6 +2288,10 @@ function renderReconcile(){
   const month = document.getElementById('recon-month').value;
   const status = document.getElementById('recon-status').value;
   let list = allOrders.slice();
+  // v2.4.40: 店家身份只看自己門市的對帳，agent 看全部
+  if (currentRole === 'store' && currentStoreKey) {
+    list = list.filter(o => orderBelongsToStore(o, currentStoreKey));
+  }
   if(month && month!=='all') list = list.filter(o=>bookingMonth(o)===month);
 
   // 計算對帳狀態
@@ -4218,3 +4219,4 @@ window.applyRolePermissions = function() {
 </div>
 </body>
 </html>
+                                                                                                
