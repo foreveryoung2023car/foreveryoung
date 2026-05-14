@@ -285,7 +285,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
     </div>
     <div class="flex items-center gap-3 flex-shrink-0">
       
-      <button onclick="startAdminTour(true)" class="text-white/80 hover:text-white text-base font-bold mr-1" title="使用教學導覽">?</button><button onclick="fullReload()" class="text-white/80 hover:text-white text-base" title="清快取 + 重新載入訂單">↻</button>
+      <button onclick="openScenarioPicker()" class="text-white/80 hover:text-white text-base font-bold mr-1" title="訓練教室">?</button><button onclick="fullReload()" class="text-white/80 hover:text-white text-base" title="清快取 + 重新載入訂單">↻</button>
       <span id="nav-agent" class="text-white text-sm hidden md:block font-semibold cursor-pointer hover:underline" onclick="showMyPermissions()" title="點看我的權限"></span>
       <button onclick="showLogin()" id="logout-btn" class="text-white hover:bg-white/10 text-xs border border-white/30 px-2 py-1 md:px-3 md:py-1.5 md:text-sm rounded-lg hidden font-semibold whitespace-nowrap shrink-0">登出</button>
     </div>
@@ -4250,6 +4250,182 @@ function fullReload() {
 }
 
 const ADMIN_TOUR_VERSION = 'v440';
+
+// ============================================================
+// v2.4.40j: 訓練教室情境式教學 (Scenario-based Training)
+// 4 個場景 × 5-8 步，依登入身份過濾
+// ============================================================
+
+const TRAINING_SCENARIOS = [
+  // ========== 場景 1：📬 新預約進來 ==========
+  {
+    id: 'new_booking',
+    icon: '📬',
+    title: '新預約進來',
+    desc: '客人 inquiry 填表 → admin 出現「待確認」 → 確認 → 自動寄信',
+    roles: ['agent', 'jun'],
+    steps: [
+      { center: true, title: '📬 情境：新預約進來',
+        body: '客人「王小明」剛在前台 inquiry.html 填了預約表單：7/5 體驗、1 大人、和服 1 人方案、Email guest5@example.com。送出後系統會做什麼？接下來幾步帶您看完整流程。' },
+      { center: true, title: '前台：客人那邊發生什麼',
+        body: '客人按「送出」後，系統會：\n1. 寄一封「我們收到您的預約」確認信給他\n2. 在 Sheet 新增一筆訂單，狀態先設「待確認」\n3. 客人再來 inquiry.html 查訂單會看到「核對中」黃色 badge' },
+      { tab: 'orders', selector: '[data-sec="orders"]', position: 'bottom',
+        title: '後台：先到「訂單管理」',
+        body: '訂單會出現在這個 tab。預設按建單時間排序，最新的在上面。' },
+      { tab: 'orders', selector: '#sec-orders .flex.flex-wrap.gap-2.items-center',
+        title: '篩選「待確認」訂單',
+        body: '點上面的「待確認」tab 就只看到需要處理的訂單。每天打開後台第一件事。' },
+      { center: true, title: '檢查重點',
+        body: '進訂單卡前，先檢查 3 件事：\n✓ 體驗日期不在過去\n✓ Email 格式正確、平台來源有填\n✓ 訂金已收到（看訂金欄是否有數字）\n\n有問題的訂單留著，先別確認。' },
+      { center: true, title: '確認訂單前的計算',
+        body: '訂金預期金額 = 人數 × 1000\n例：1 大人 = ¥1000\n如果折扣碼是 8 折，方案會自動折 20%\n\n比對訂金欄看 OK，就可以確認了。' },
+      { tab: 'orders', selector: '#sec-orders',
+        title: '點訂單卡上的「✅ 快速確認」',
+        body: '每張卡都有「✅ 快速確認」按鈕。按下去 badge 立刻變綠色「已確認」。' },
+      { center: true, title: '確認後系統自動做什麼',
+        body: '按下「確認」之後，系統會：\n1. Sheet 該行 confirmed 欄變 TRUE\n2. 自動寄「預約已確認」信給客人（含體驗時間、門市地址、注意事項）\n3. 客人 inquiry.html 重新查會看到「已確認」綠色 badge\n4. 在「報到中心」tab 出現該訂單（如體驗日是 ±1 天）\n\n完成！每天會跑 N 次這個流程。' }
+    ]
+  },
+
+  // ========== 場景 2：💰 客人要退款 ==========
+  {
+    id: 'refund',
+    icon: '💰',
+    title: '客人要退款',
+    desc: '客人 inquiry 申請退款 → admin 出現「申請退款」→ 按政策算退多少 → 轉帳 → 標完成',
+    roles: ['agent', 'jun'],
+    steps: [
+      { center: true, title: '💰 情境：客人申請退款',
+        body: '客人「王小明」前幾天訂了 7/5 的預約，但行程變更無法去。他在前台 inquiry.html 查訂單 → 點「申請退款 / 取消預約」→ 填了銀行帳號、退款原因。系統怎麼處理？' },
+      { center: true, title: '前台：客人填了什麼',
+        body: '客人在退款表單填：\n• 退款原因（行程變更/簽證問題/身體不適/天災/其他）\n• 銀行代碼（如 008）\n• 銀行名稱、帳號、戶名\n• 聯繫電話\n• 勾選「我同意退改政策」\n\n送出後 admin 後台會立刻看到。' },
+      { tab: 'orders', selector: '[data-sec="orders"]', position: 'bottom',
+        title: '後台：訂單管理 → 退款 filter',
+        body: '進訂單管理 tab，點上面「退款」filter 看所有要處理的退款申請。badge 是橘紅色「申請退款」。' },
+      { center: true, title: '⚠️ 重要：按退改政策算退多少',
+        body: '不是客人付多少就退多少！按「體驗日距今」決定：\n🟢 7 天前以上 → 退 100%\n🟡 2-6 天前 → 退 50%\n🔴 前一日 / 當日 → 不退費\n\n體驗日是 7/5 → 今天 5/14 → 還有 52 天 → 退 100%' },
+      { tab: 'orders', selector: '#sec-orders',
+        title: '檢查訂單卡的退款資料',
+        body: '訂單卡會顯示：退款原因、銀行代碼+名稱+帳號、戶名、聯繫電話。檢查資料完整、戶名跟訂單姓名是否一致。' },
+      { center: true, title: '⚠️ 操作順序：先轉帳，再標記',
+        body: '正確流程：\n1. 開銀行 App\n2. 用客人填的銀行代碼+帳號+戶名，轉退款金額\n3. ⚠️ 轉帳成功後，再回後台標記\n\n如果先標記再轉帳，會失憶忘記轉。' },
+      { tab: 'orders', selector: '#sec-orders',
+        title: '回後台填退款金額 + 時間',
+        body: '點訂單卡「📝 編輯」→ 找「退款金額」欄填實際轉的金額 → 找「退款時間」填今天日期 → 儲存。' },
+      { center: true, title: '完成後系統會...',
+        body: '標記退款後：\n• Badge 變紅色「已退款」\n• 客人 inquiry.html 那邊也會看到「已退款」狀態\n• 對帳 tab 的該筆會排除（不再算 unmatched）\n\n⚠️ 退多退少都會出事，務必按政策。' }
+    ]
+  },
+
+  // ========== 場景 3：🎌 客人到店報到 ==========
+  {
+    id: 'checkin',
+    icon: '🎌',
+    title: '客人到店報到',
+    desc: '客人到店 → 自助報到 or 代客報到 → Sheet 寫 AL/AM/AN',
+    roles: ['agent', 'jun', 'store'],
+    steps: [
+      { center: true, title: '🎌 情境：客人到店',
+        body: '客人「王小明」約了今天下午 2 點到店家體驗和服。下午 1:50 進門，到櫃台。報到有兩種方式：\n\nA. 客人掏手機自己 inquiry.html → 點「我已到店報到」（v2.4.40 新功能）\nB. 店員代客在 admin 報到\n\n下面看 B 流程。' },
+      { tab: 'checkin', selector: '[data-sec="checkin"]', position: 'bottom',
+        title: '進「🎌 報到中心」tab',
+        body: '今日 ±1 天所有訂單都在這。按體驗時間排序，最早的在上面。' },
+      { tab: 'checkin', selector: '#checkin-search',
+        title: '末碼搜尋找客人',
+        body: '客人說：「我手機末3碼是 999」→ 在搜尋框輸入 999 → 卡片即時 filter 跳出來。比翻完整訂單列表快 10 倍。' },
+      { tab: 'checkin', selector: '#checkin-list',
+        title: '檢查卡片資料',
+        body: '卡片顯示客人姓名、訂單號、體驗時間、和服款式、人數、末3碼。跟客人本人確認是否一致（怕你叫錯名字或弄錯訂單）。' },
+      { tab: 'checkin', selector: '#checkin-list',
+        title: '點「🎌 為客人報到」按鈕',
+        body: '卡片下方的綠色按鈕。點下去 → 系統 prompt 確認訊息「確定為 王小明 辦理報到？」→ 確定。' },
+      { center: true, title: '報到完成後',
+        body: '系統會：\n• 卡片 badge 變綠色「已代客報到」\n• Sheet 寫入 AL（報到時間）、AM（報到門市）、AN（報到來源 = storeKey）\n• admin 重整還是看到綠色（不會跑掉）\n• 已報到的卡片按鈕變灰色「已報到」（防你重複按）' },
+      { center: true, title: '客人自己報到的情況',
+        body: '如果客人自己在 inquiry.html 點過「我已到店報到」了：\n• 報到中心卡片 badge 是琥珀色「客人自助」\n• AN 欄寫 "self"\n• 您不用再代客報到\n\n好處：客人在門外排隊時就先報到，店員不用人工確認。' }
+    ]
+  },
+
+  // ========== 場景 4：🧾 對帳作業 ==========
+  {
+    id: 'reconcile',
+    icon: '🧾',
+    title: '對帳作業',
+    desc: '銀行入帳金額 → 找對應訂單 → 註記訂金 → 狀態變 matched',
+    roles: ['agent', 'jun'],
+    steps: [
+      { center: true, title: '🧾 情境：客人匯款進來',
+        body: '客人「王小明」訂金 NT$330（按匯率算）匯款到我們戶頭。銀行系統只看到「2026/05/13 來自 王小明 NT$330」— 不知道是哪筆訂單。要靠客服去 Sheet 找對應訂單，填訂金欄。\n\n月底所有訂單訂金都要對好，不然關不了帳。' },
+      { tab: 'reconcile', selector: '[data-sec="reconcile"]', position: 'bottom',
+        title: '進「🧾 對帳」tab',
+        body: '預設顯示本月。可以看每筆訂單對帳狀態。' },
+      { center: true, title: '四種對帳狀態',
+        body: '🟢 matched：訂金已收到、金額 ≥ 預期（正常）\n🟡 partial：訂金收了一部分（客人會到店補尾款，OK）\n🔴 overpaid：客人付太多（要退超收的）\n⚪ unmatched：訂金還沒收（要查銀行）' },
+      { tab: 'reconcile', selector: '#recon-status',
+        title: '先看 unmatched 的訂單',
+        body: '點狀態下拉選「未對帳」→ 列出所有還沒對到的訂單。對照銀行對帳單，看哪筆是這筆訂單（看姓名、金額、時間）。' },
+      { center: true, title: '比對銀行入帳',
+        body: '銀行對帳單顯示：\n• 2026/05/13 王小明 NT$330\n\n後台對帳列表找姓名「王小明」、體驗日期 7/5 的訂單（最像）。確認 Email/電話也吻合。' },
+      { tab: 'reconcile', selector: '#sec-reconcile',
+        title: '找到後點訂單編輯',
+        body: '點訂單卡的「📝 編輯」→ 在「訂金」欄填實際入帳的 NT$330 → 在「付款時間」填銀行入帳日（5/13）→ 儲存。' },
+      { center: true, title: '系統自動算狀態',
+        body: '存檔後系統自動：\n• 訂金 ≥ 預期 → 狀態變 matched 🟢\n• 訂金 < 預期 → 狀態變 partial 🟡\n• 訂金 > 體驗總額 → 變 overpaid 🔴（要退款）\n\n上面的對帳完成率會 +1，月底前要把所有訂單做完。' },
+      { center: true, title: 'Jun 限定：自動配對',
+        body: '只有 Jun 看得到右上角「🤖 自動配對銀行入帳」按鈕。Jun 把銀行匯出的 CSV 貼到 Sheet「収款辨識」分頁，按這個按鈕系統會自動配對所有未對帳訂單。Agent 看不到這個按鈕。' }
+    ]
+  }
+];
+
+function openScenarioPicker(isAuto) {
+  // 依角色 filter
+  const isJun = currentAgent === 'Jun';
+  const role = isJun ? 'jun' : currentRole;
+  const available = TRAINING_SCENARIOS.filter(s => s.roles.indexOf(role) >= 0);
+  // Render cards
+  const list = document.getElementById('scenario-list');
+  if (available.length === 0) {
+    list.innerHTML = '<div class="col-span-2 text-center py-8 text-slate-400">您的角色目前沒有可用的訓練場景</div>';
+  } else {
+    list.innerHTML = available.map(s =>
+      '<button onclick="startScenario(\'' + s.id + '\')" class="text-left p-4 bg-slate-50 hover:bg-slate-100 border-2 border-slate-100 hover:border-[#1A365D] rounded-xl transition-all">' +
+      '<div class="flex items-start gap-3">' +
+        '<div class="text-3xl shrink-0">' + s.icon + '</div>' +
+        '<div class="flex-1 min-w-0">' +
+          '<div class="font-bold text-[#1A365D] text-base mb-1">' + s.title + '</div>' +
+          '<div class="text-xs text-slate-500 leading-relaxed mb-2">' + s.desc + '</div>' +
+          '<div class="text-[10px] text-amber-700 font-bold">' + s.steps.length + ' 步 · 約 ' + Math.max(2, Math.ceil(s.steps.length / 1.5)) + ' 分鐘</div>' +
+        '</div>' +
+      '</div>' +
+      '</button>'
+    ).join('');
+  }
+  document.getElementById('scenario-picker').classList.remove('hidden');
+}
+
+function closeScenarioPicker() {
+  document.getElementById('scenario-picker').classList.add('hidden');
+  // 標記已看過（首次自動跳就不會再出現）
+  try { localStorage.setItem('admin_tour_seen_' + ADMIN_TOUR_VERSION, '1'); } catch(e){}
+}
+
+function startScenario(id) {
+  const scenario = TRAINING_SCENARIOS.find(s => s.id === id);
+  if (!scenario) return;
+  document.getElementById('scenario-picker').classList.add('hidden');
+  _activeTourSteps = scenario.steps;
+  _tourStep = 0;
+  _tourActive = true;
+  document.getElementById('tour-overlay').classList.remove('hidden');
+  renderTourStep();
+  try { localStorage.setItem('admin_tour_seen_' + ADMIN_TOUR_VERSION, '1'); } catch(e){}
+}
+
+function startOverviewTour() {
+  document.getElementById('scenario-picker').classList.add('hidden');
+  startAdminTour(true);
+}
+
 const TOUR_STEPS = [
   { center: true, title: '👋 歡迎使用旅乘和服後台',
     body: '快速導覽帶您認識 4 個主要功能。約 2-3 分鐘。隨時可按右上角「?」重看。' },
@@ -4464,12 +4640,12 @@ function renderTourStep() {
   }, 350);  // wait for tab switch animation
 }
 
-// 首次登入自動跳
+// 首次登入自動跳 scenario picker
 function maybeAutoStartTour() {
   try {
     const seen = localStorage.getItem('admin_tour_seen_' + ADMIN_TOUR_VERSION);
     if (!seen) {
-      setTimeout(() => startAdminTour(false), 1500);
+      setTimeout(() => openScenarioPicker(true), 1500);
     }
   } catch(e){}
 }
@@ -4624,6 +4800,25 @@ function maybeAutoStartTour() {
       <div id="wiErr" class="hidden bg-red-50 border-l-4 border-red-400 text-red-700 px-3 py-2 text-sm font-sans rounded"></div>
 
       <button id="wiSubmitBtn" onclick="wiSubmit()" class="w-full py-4 bg-[#1A365D] text-white font-bold text-base font-sans rounded-lg shadow-lg hover:bg-blue-900 active:scale-[0.99]">確認建單</button>
+    </div>
+  </div>
+</div>
+
+<!-- v2.4.40j: 訓練教室情境選單 -->
+<div id="scenario-picker" class="hidden fixed inset-0" style="z-index:9997;background:rgba(15,23,42,0.8)">
+  <div class="absolute inset-0 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full p-6 my-8" style="max-height:90vh;overflow-y:auto">
+      <div class="flex justify-between items-start mb-4">
+        <div>
+          <h2 class="text-2xl font-bold text-[#1A365D]">📚 訓練教室</h2>
+          <p class="text-sm text-slate-500 mt-1">點下方場景，系統會帶您 step-by-step 完整走過實際工作流程</p>
+        </div>
+        <button onclick="closeScenarioPicker()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">×</button>
+      </div>
+      <div id="scenario-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+      <div class="mt-4 pt-4 border-t border-slate-100 text-center">
+        <button onclick="startOverviewTour()" class="text-sm text-slate-500 hover:text-[#1A365D] underline">想看功能總覽？點這裡</button>
+      </div>
     </div>
   </div>
 </div>
