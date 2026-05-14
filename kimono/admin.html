@@ -482,6 +482,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
           <div><div class="section-label">關鍵字</div><input id="f-search" name="orders_search_kimono" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="input-field" placeholder="姓名/電話/訂單號/Email" oninput="filterOrders()"></div>
           <div><div class="section-label">日期區間（從）</div><input id="f-date-from" class="input-field" type="date" onchange="filterOrders()"></div>
           <div><div class="section-label">日期區間（到）</div><input id="f-date-to" class="input-field" type="date" onchange="filterOrders()"></div>
+          <div><div class="section-label">門市</div><select id="f-store" class="input-field" onchange="filterOrders()"><option value="">全部門市</option><option value="kyoto1">京都清水寺店 (kyoto1)</option><option value="kyoto2">京都嵐山店 (kyoto2)</option><option value="osaka1">大阪心齋橋店 (osaka1)</option><option value="tokyo1">東京淺草店 (tokyo1)</option></select></div>
           <div><div class="section-label">和服款式</div><select id="f-plan" class="input-field" onchange="filterOrders()"><option value="">全部款式</option></select></div>
           <div><div class="section-label">聯繫來源</div><select id="f-platform" class="input-field" onchange="filterOrders()"><option value="">全部來源</option></select></div>
           <div><div class="section-label">妝髮</div><select id="f-hair" class="input-field" onchange="filterOrders()"><option value="">全部</option><option value="true">有妝髮</option><option value="false">無妝髮</option></select></div>
@@ -1170,6 +1171,8 @@ function enterDashboard(name, token, role, storeKey) {
 function orderBelongsToStore(o, storeKey) {
   if (!storeKey) return false;
   const sk = String(storeKey).toLowerCase();
+  // v2.4.42e: 直接比對 o.storeKey (客人自助下單時走這欄)
+  if (String(o.storeKey || '').toLowerCase() === sk) return true;
   const plat = String(o.platform || '').toLowerCase();
   const src = String(o.source || '').toLowerCase();
   const intro = String(o.introducer || '').toLowerCase();
@@ -1935,6 +1938,7 @@ function filterOrders(){
   const dTo = document.getElementById('f-date-to').value;
   // v2.5: store role only sees their own orders
   const fPlan = document.getElementById('f-plan').value;
+  const fStore = (document.getElementById('f-store') || {}).value || '';
   const fPlatform = document.getElementById('f-platform').value;
   const fHair = document.getElementById('f-hair').value;
   const fPhoto = document.getElementById('f-photo').value;
@@ -1970,6 +1974,7 @@ function filterOrders(){
   if(dFrom) list = list.filter(o=>{const d=new Date(o.bookingDate); return !isNaN(d) && d>=new Date(dFrom);});
   if(dTo) list = list.filter(o=>{const d=new Date(o.bookingDate); const dt=new Date(dTo); dt.setHours(23,59,59); return !isNaN(d) && d<=dt;});
   if(fPlan) list = list.filter(o=>(o.plan||'').includes(fPlan));
+  if(fStore) list = list.filter(o=>orderBelongsToStore(o, fStore));
   if(fPlatform) list = list.filter(o=>(o.platform||'')===fPlatform);
   if(fHair!=='') list = list.filter(o=>String(o.hair===true||o.hair==='true')===fHair);
   if(fPhoto!=='') list = list.filter(o=>String(o.photo===true||o.photo==='true')===fPhoto);
@@ -2061,6 +2066,7 @@ function renderOrders(orders){
               '<span class="font-bold text-[#1A365D] text-base md:text-lg">'+(o.name||'—')+'</span>'+
               '<span class="text-slate-600 text-xs md:text-sm font-mono">'+(o.orderId||'')+'</span>'+(o.submitDate? '<span class="text-[11px] text-slate-500 ml-1 hidden xl:inline">下單 '+fmtJST(o.submitDate)+'</span>':'')+
               (o.platform? '<span class="pill bg-blue-100 text-blue-800">📱 '+o.platform+'</span>':'')+
+              (o.storeKey? '<span class="pill bg-purple-100 text-purple-800">🏪 '+o.storeKey+'</span>':'')+
               daysTag+
             '</div>'+
           '<div class="order-grid-inner text-sm bg-slate-50 p-2.5 md:p-3 rounded-lg mb-2">'+
