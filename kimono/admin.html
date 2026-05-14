@@ -320,6 +320,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="nav-tab active" data-sec="dashboard" onclick="switchSection('dashboard',this)">📊 儀表板</div>
       <div class="nav-tab" data-sec="orders" onclick="switchSection('orders',this)">📋 訂單管理 <span id="tab-count-orders" class="bg-white/25 px-1.5 rounded text-[11px]">0</span></div>
       <div class="nav-tab" data-sec="checkin" onclick="switchSection('checkin',this)">🎌 報到中心 <span id="tab-count-checkin" class="bg-white/25 px-1.5 rounded text-[11px]">0</span></div>
+      <div class="nav-tab" data-sec="employees" data-store-admin-only="1" onclick="switchSection('employees',this)" style="display:none">👥 員工管理</div>
       <div class="nav-tab" data-sec="calendar" onclick="switchSection('calendar',this)">📅 行事曆</div>
       <div class="nav-tab" data-sec="customers" onclick="switchSection('customers',this)">👥 客戶名單 <span id="tab-count-customers" class="bg-white/25 px-1.5 rounded text-[11px]">0</span></div>
       <div class="nav-tab" data-sec="finance" onclick="switchSection('finance',this)">💰 財務報表</div>
@@ -342,7 +343,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <p class="text-slate-500 text-sm mt-2">請輸入您的姓名與密碼</p>
     </div>
     <div class="space-y-4">
-      <div><div class="section-label">客服姓名</div><input id="login-name" class="input-field" placeholder="例：Jun、Ren、Amy" autocomplete="off"></div>
+      <div><div class="section-label">客服姓名</div><input id="login-name" class="input-field" placeholder="姓名 / 員工 osaka1/小林" autocomplete="off"></div>
       <div><div class="section-label">密碼</div><input id="login-pass" type="password" class="input-field" placeholder="請輸入密碼" onkeydown="if(event.key==='Enter')doLogin()"></div>
       <div id="login-err" class="text-red-600 text-sm hidden text-center py-1 font-semibold"></div>
       <button onclick="doLogin()" class="btn-navy w-full py-3 rounded-xl text-base">登入後台</button>
@@ -543,6 +544,63 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
     <div id="checkin-empty" class="hidden text-center py-12 text-slate-400">
       <div class="text-5xl mb-3">🌸</div>
       <p class="text-base font-bold">今日 ±1 天沒有需要報到的訂單</p>
+    </div>
+  </section>
+
+  <!-- v2.4.41: 員工管理 (限店家管理者 + Jun) -->
+  <section id="sec-employees" class="section">
+    <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
+      <div>
+        <h2 class="text-2xl font-bold text-[#1A365D] title-serif">👥 員工管理</h2>
+        <p class="text-sm text-slate-600 mt-1 font-semibold">管理本門市員工帳號 - 新增/停用/重設密碼</p>
+      </div>
+      <button onclick="openAddEmployeeModal()" class="btn-navy px-4 py-2 rounded-xl text-sm">+ 新增員工</button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+      <div class="stat-card"><div class="section-label">員工數</div><div id="emp-stat-total" class="stat-num">—</div></div>
+      <div class="stat-card"><div class="section-label">啟用中</div><div id="emp-stat-active" class="stat-num" style="color:#10B981">—</div></div>
+      <div class="stat-card"><div class="section-label">已停用</div><div id="emp-stat-disabled" class="stat-num" style="color:#94A3B8">—</div></div>
+    </div>
+
+    <div class="panel">
+      <div id="employees-list" class="overflow-x-auto"></div>
+    </div>
+
+    <!-- 新增員工 Modal -->
+    <div id="add-emp-modal" class="hidden fixed inset-0 z-[9990]" style="background:rgba(15,23,42,0.7)">
+      <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl p-6 max-w-md w-full">
+          <div class="flex justify-between items-start mb-4">
+            <h3 class="text-lg font-bold text-[#1A365D]">新增員工</h3>
+            <button onclick="closeAddEmployeeModal()" class="text-slate-400 hover:text-slate-700 text-xl">×</button>
+          </div>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">員工姓名</label>
+              <input id="new-emp-name" class="input-field w-full" placeholder="例：小林">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">初始密碼</label>
+              <input id="new-emp-pass" type="text" class="input-field w-full" placeholder="8 碼以上">
+              <p class="text-[10px] text-slate-400 mt-1">員工登入後請他自己改密碼</p>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">角色</label>
+              <select id="new-emp-role" class="input-field w-full">
+                <option value="staff">店員 (staff)</option>
+                <option value="admin">店家管理者 (admin)</option>
+              </select>
+              <p class="text-[10px] text-slate-400 mt-1">管理者可新增/停用其他員工，店員不行</p>
+            </div>
+            <div id="emp-err" class="hidden text-red-600 text-sm"></div>
+            <div class="flex gap-2 pt-3">
+              <button onclick="closeAddEmployeeModal()" class="flex-1 py-2 border-2 border-slate-200 hover:border-slate-400 rounded font-bold text-sm text-slate-600">取消</button>
+              <button onclick="submitNewEmployee()" id="emp-submit-btn" class="flex-1 py-2 bg-[#1A365D] hover:bg-blue-900 text-white rounded font-bold text-sm">新增</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1039,9 +1097,26 @@ async function doLogin() {
   if (!name || !pass) { err.textContent='請填入姓名與密碼'; err.classList.remove('hidden'); return; }
   err.classList.add('hidden');
   try {
-    const res = await fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'adminLogin', name:name, password:pass }) });
+    // v2.4.41: 自動偵測員工子帳號登入。格式：storeKey/姓名 或 storeKey.姓名
+    let payload;
+    const sep = name.match(/[./]/);
+    if (sep) {
+      const [storeKey, empName] = name.split(/[./]/, 2);
+      payload = { action:'employeeLogin', storeKey: storeKey.trim().toLowerCase(), name: empName.trim(), password: pass };
+    } else {
+      payload = { action:'adminLogin', name:name, password:pass };
+    }
+    const res = await fetch(GAS_URL, { method:'POST', body: JSON.stringify(payload) });
     const data = await res.json();
     if (data && data.status === 'success' && data.token) {
+      // v2.4.41: 員工登入回傳 employeeId 跟 isAdmin 旗標
+      if (data.employeeId) {
+        localStorage.setItem('admin_employeeId', data.employeeId);
+        localStorage.setItem('admin_isStoreAdmin', data.isAdmin ? '1' : '');
+      } else {
+        localStorage.removeItem('admin_employeeId');
+        localStorage.removeItem('admin_isStoreAdmin');
+      }
       enterDashboard(data.agent || data.storeName || name, data.token, data.role || 'agent', data.storeKey || '');
     } else {
       err.textContent = (data && data.message) || '密碼錯誤，請再試一次';
@@ -1145,6 +1220,13 @@ function applyRolePermissions() {
   } else {
     if (typeof hideWalkInFab === 'function') hideWalkInFab();
   }
+  // v2.4.41: 員工管理 tab 限店家管理者 + Jun 看
+  const empTab = document.querySelector('.nav-tab[data-sec="employees"]');
+  if (empTab) {
+    const isStoreAdmin = isStore && (localStorage.getItem('admin_isStoreAdmin') === '1' || !localStorage.getItem('admin_employeeId'));
+    const canSee = currentAgent === 'Jun' || isStoreAdmin;
+    empTab.style.display = canSee ? '' : 'none';
+  }
 }
 
 (function() {
@@ -1204,6 +1286,7 @@ function switchSection(sec, el){
   else if(sec==='walkin' && typeof renderWalkinMonth==='function') { if(typeof buildWalkinMonthSelect==='function') buildWalkinMonthSelect(); renderWalkinMonth(); }
   else if(sec==='orders' && typeof filterOrders==='function') filterOrders();
   else if(sec==='checkin' && typeof renderCheckIn==='function') renderCheckIn();
+  else if(sec==='employees' && typeof renderEmployees==='function') renderEmployees();
   else if(sec==='archive' && typeof loadArchivedList==='function') loadArchivedList();
   else if(sec==='permissions' && typeof renderPermissions==='function') renderPermissions();
 }
@@ -4264,6 +4347,144 @@ async function wiSubmit() {
 
 // v2.4.40g: 舊的 wrapper 已整合進原 applyRolePermissions (line 1082)
 
+
+
+
+// ============================================================
+// v2.4.41: 員工管理 (Phase 1)
+// ============================================================
+async function renderEmployees() {
+  const list = document.getElementById('employees-list');
+  if (!list) return;
+  list.innerHTML = '<div class="text-center py-6 text-slate-400">載入中...</div>';
+  try {
+    const res = await fetch(GAS_URL, { method:'POST', body: JSON.stringify({
+      action: 'listEmployees',
+      agent: currentAgent,
+      token: adminToken,
+      storeKey: currentStoreKey
+    })});
+    const data = await res.json();
+    if (data.status !== 'success') {
+      list.innerHTML = '<div class="text-center py-6 text-red-500">' + (data.message || '載入失敗') + '</div>';
+      return;
+    }
+    const emps = data.employees || [];
+    const active = emps.filter(e => e.active).length;
+    const disabled = emps.length - active;
+    document.getElementById('emp-stat-total').textContent = emps.length;
+    document.getElementById('emp-stat-active').textContent = active;
+    document.getElementById('emp-stat-disabled').textContent = disabled;
+    if (emps.length === 0) {
+      list.innerHTML = '<div class="text-center py-8 text-slate-400">尚無員工，點上方「+ 新增員工」開始</div>';
+      return;
+    }
+    let html = '<table class="w-full text-sm"><thead><tr class="bg-slate-100 text-slate-600">';
+    html += '<th class="p-2 text-left">員工 ID</th><th class="p-2 text-left">門市</th><th class="p-2 text-left">姓名</th><th class="p-2 text-left">角色</th><th class="p-2 text-left">狀態</th><th class="p-2 text-left">最後登入</th><th class="p-2 text-right">操作</th></tr></thead><tbody>';
+    emps.forEach(e => {
+      const lastLogin = e.lastLogin ? new Date(e.lastLogin).toLocaleString('zh-TW', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
+      const roleLabel = e.role === 'admin' ? '<span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-bold">管理者</span>' : '<span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs">店員</span>';
+      const statusLabel = e.active ? '<span class="text-emerald-600 font-bold">啟用</span>' : '<span class="text-slate-400">已停用</span>';
+      const toggleBtn = e.active
+        ? '<button onclick="disableEmployee(\'' + e.id + '\',\'' + e.name + '\')" class="text-red-600 hover:underline text-xs">停用</button>'
+        : '<button onclick="enableEmployee(\'' + e.id + '\')" class="text-emerald-600 hover:underline text-xs">啟用</button>';
+      html += '<tr class="border-b border-slate-100">';
+      html += '<td class="p-2 font-mono text-xs">' + e.id + '</td>';
+      html += '<td class="p-2">' + e.storeKey + '</td>';
+      html += '<td class="p-2 font-bold">' + e.name + '</td>';
+      html += '<td class="p-2">' + roleLabel + '</td>';
+      html += '<td class="p-2">' + statusLabel + '</td>';
+      html += '<td class="p-2 text-xs text-slate-500">' + lastLogin + '</td>';
+      html += '<td class="p-2 text-right">' + toggleBtn + ' <button onclick="resetEmployeePass(\'' + e.id + '\',\'' + e.name + '\')" class="text-blue-600 hover:underline text-xs ml-2">重設密碼</button></td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    list.innerHTML = html;
+  } catch(err) {
+    list.innerHTML = '<div class="text-center py-6 text-red-500">網路錯誤</div>';
+  }
+}
+
+function openAddEmployeeModal() {
+  document.getElementById('new-emp-name').value = '';
+  document.getElementById('new-emp-pass').value = '';
+  document.getElementById('new-emp-role').value = 'staff';
+  document.getElementById('emp-err').classList.add('hidden');
+  document.getElementById('add-emp-modal').classList.remove('hidden');
+}
+function closeAddEmployeeModal() { document.getElementById('add-emp-modal').classList.add('hidden'); }
+
+async function submitNewEmployee() {
+  const name = document.getElementById('new-emp-name').value.trim();
+  const pass = document.getElementById('new-emp-pass').value;
+  const role = document.getElementById('new-emp-role').value;
+  const err = document.getElementById('emp-err');
+  if (!name || !pass) { err.textContent = '姓名 + 密碼必填'; err.classList.remove('hidden'); return; }
+  if (pass.length < 6) { err.textContent = '密碼至少 6 碼'; err.classList.remove('hidden'); return; }
+  err.classList.add('hidden');
+  const btn = document.getElementById('emp-submit-btn');
+  btn.disabled = true; btn.textContent = '處理中...';
+  try {
+    const res = await fetch(GAS_URL, { method:'POST', body: JSON.stringify({
+      action: 'addEmployee',
+      agent: currentAgent,
+      token: adminToken,
+      storeKey: currentStoreKey,
+      name: name,
+      password: pass,
+      role: role
+    })});
+    const data = await res.json();
+    if (data.status === 'success') {
+      toast('已新增員工 ' + name);
+      closeAddEmployeeModal();
+      renderEmployees();
+    } else {
+      err.textContent = data.message || '新增失敗'; err.classList.remove('hidden');
+    }
+  } catch(e) {
+    err.textContent = '網路錯誤'; err.classList.remove('hidden');
+  } finally {
+    btn.disabled = false; btn.textContent = '新增';
+  }
+}
+
+async function disableEmployee(empId, empName) {
+  if (!confirm('確定停用員工「' + empName + '」？\n停用後該員工無法登入。')) return;
+  try {
+    const res = await fetch(GAS_URL, { method:'POST', body: JSON.stringify({
+      action: 'disableEmployee', agent: currentAgent, token: adminToken, employeeId: empId
+    })});
+    const data = await res.json();
+    if (data.status === 'success') { toast('已停用 ' + empName); renderEmployees(); }
+    else alert(data.message || '操作失敗');
+  } catch(e) { alert('網路錯誤'); }
+}
+
+async function enableEmployee(empId) {
+  try {
+    const res = await fetch(GAS_URL, { method:'POST', body: JSON.stringify({
+      action: 'enableEmployee', agent: currentAgent, token: adminToken, employeeId: empId
+    })});
+    const data = await res.json();
+    if (data.status === 'success') { toast('已啟用'); renderEmployees(); }
+    else alert(data.message || '操作失敗');
+  } catch(e) { alert('網路錯誤'); }
+}
+
+async function resetEmployeePass(empId, empName) {
+  const newPass = prompt('重設「' + empName + '」的新密碼（至少 6 碼）：');
+  if (!newPass) return;
+  if (newPass.length < 6) { alert('密碼至少 6 碼'); return; }
+  try {
+    const res = await fetch(GAS_URL, { method:'POST', body: JSON.stringify({
+      action: 'updateEmployeePassword', agent: currentAgent, token: adminToken, employeeId: empId, password: newPass
+    })});
+    const data = await res.json();
+    if (data.status === 'success') { toast('密碼已重設'); renderEmployees(); }
+    else alert(data.message || '操作失敗');
+  } catch(e) { alert('網路錯誤'); }
+}
 
 
 // ============================================================
