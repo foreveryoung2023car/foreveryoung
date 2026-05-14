@@ -1895,8 +1895,9 @@ function renderUpcoming(){
   const upcoming = visible.filter(o=>{const d=parseBookingDate(o.bookingDate); return d && d>=start && d<endDate;}).sort((a,b)=>{const da=parseBookingDate(a.bookingDate)||0;const db=parseBookingDate(b.bookingDate)||0;return da-db;});
   if(!upcoming.length){ list.innerHTML='<div class="text-center text-slate-500 py-4 font-semibold">此期間無預約</div>'; return; }
   list.innerHTML = upcoming.map(o=>{
-    const d = new Date(o.bookingDate);
-    const days = Math.ceil((d-today0)/(86400000));
+    const d = parseBookingDate(o.bookingDate) || new Date(o.bookingDate);
+    const dDay = d ? new Date(d.getFullYear(), d.getMonth(), d.getDate()) : null;  // v2.4.42h: zero out hours
+    const days = dDay ? Math.round((dDay-today0)/(86400000)) : 0;
     const dayLabel = days<=0?'今天':days===1?'明天':'剩 '+days+' 天';
     const badge = o.confirmed? '<span class="badge badge-confirmed">已確認</span>' : '<span class="badge badge-pending">待確認</span>';
     return '<div class="flex items-center justify-between p-2 hover:bg-slate-50 rounded cursor-pointer border border-slate-100" onclick="openEdit(\''+(o.orderId||'')+'\')">'+
