@@ -311,7 +311,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
     </div>
     <div class="flex items-center gap-3 flex-shrink-0">
       
-      <button onclick="openScenarioPicker()" class="text-white/80 hover:text-white text-base font-bold mr-1" title="訓練教室">?</button><button onclick="fullReload()" class="text-white/80 hover:text-white text-base" title="清快取 + 重新載入訂單">↻</button>
+      <button id="tour-btn" onclick="openScenarioPicker()" class="hidden text-white/80 hover:text-white text-base font-bold mr-1" title="訓練教室">?</button><button onclick="fullReload()" class="text-white/80 hover:text-white text-base" title="清快取 + 重新載入訂單">↻</button>
       <span id="nav-agent" class="text-white text-sm hidden md:block font-semibold cursor-pointer hover:underline" onclick="showMyPermissions()" title="點看我的權限"></span>
       <button onclick="showLogin()" id="logout-btn" class="text-white hover:bg-white/10 text-xs border border-white/30 px-2 py-1 md:px-3 md:py-1.5 md:text-sm rounded-lg hidden font-semibold whitespace-nowrap shrink-0">登出</button>
     </div>
@@ -1018,6 +1018,8 @@ function toast(msg, type){
 }
 
 function showLogin() {
+  // v2.4.40p: 登出時隱藏「?」按鈕
+  const tbtn = document.getElementById('tour-btn'); if (tbtn) tbtn.classList.add('hidden');
   document.getElementById('login-screen').classList.remove('hidden');
   document.getElementById('dashboard').classList.add('hidden');
   document.getElementById('logout-btn').classList.add('hidden');
@@ -1065,6 +1067,8 @@ function enterDashboard(name, token, role, storeKey) {
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('dashboard').classList.remove('hidden');
   document.getElementById('logout-btn').classList.remove('hidden');
+  // v2.4.40p: 登入後才顯示「?」訓練教室按鈕
+  const tbtn = document.getElementById('tour-btn'); if (tbtn) tbtn.classList.remove('hidden');
   document.getElementById('section-tabs').classList.remove('hidden');
   document.getElementById('global-search-wrap').style.display = '';
   // Visible role badge in nav
@@ -5770,6 +5774,11 @@ function renderTourStep() {
       // optional step 找不到就跳下一步
       tourNext();
       return;
+    }
+    // v2.4.40p: 元素存在但被 display:none 隱藏（如店家看不到的 tab）→ 跳過
+    if (target && target.offsetParent === null && !target.classList.contains('section')) {
+      // section 元素本身被隱藏是正常（active section 才顯示），不能拿來判斷
+      if (step.optional !== false) { tourNext(); return; }
     }
     if (!target) {
       // 找不到 → fallback 置中
