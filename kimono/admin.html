@@ -312,7 +312,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       
       <button id="tour-btn" onclick="openScenarioPicker()" class="hidden text-white/80 hover:text-white text-base font-bold mr-1" title="訓練教室">?</button><button onclick="fullReload()" class="text-white/80 hover:text-white text-base" title="清快取 + 重新載入訂單">↻</button>
       <span id="nav-agent" class="text-white text-sm hidden md:block font-semibold cursor-pointer hover:underline" onclick="showMyPermissions()" title="點看我的權限"></span>
-      <button onclick="showLogin()" id="logout-btn" class="text-white hover:bg-white/10 text-xs border border-white/30 px-2 py-1 md:px-3 md:py-1.5 md:text-sm rounded-lg hidden font-semibold whitespace-nowrap shrink-0">登出</button>
+      <button id="change-pw-btn" onclick="openChangePassword()" class="text-white hover:bg-white/10 text-xs border border-white/30 px-2 py-1 md:px-3 md:py-1.5 md:text-sm rounded-lg hidden font-semibold whitespace-nowrap shrink-0 mr-1" title="改密碼">🔑 改密碼</button><button onclick="showLogin()" id="logout-btn" class="text-white hover:bg-white/10 text-xs border border-white/30 px-2 py-1 md:px-3 md:py-1.5 md:text-sm rounded-lg hidden font-semibold whitespace-nowrap shrink-0">登出</button>
     </div>
   </div>
   <div id="section-tabs" class="max-w-[1500px] mx-auto px-4 hidden overflow-x-auto">
@@ -1077,6 +1077,7 @@ function toast(msg, type){
 function showLogin() {
   // v2.4.40p: 登出時隱藏「?」按鈕
   const tbtn = document.getElementById('tour-btn'); if (tbtn) tbtn.classList.add('hidden');
+  const cpwBtn = document.getElementById('change-pw-btn'); if (cpwBtn) cpwBtn.classList.add('hidden');
   document.getElementById('login-screen').classList.remove('hidden');
   document.getElementById('dashboard').classList.add('hidden');
   document.getElementById('logout-btn').classList.add('hidden');
@@ -1143,6 +1144,12 @@ function enterDashboard(name, token, role, storeKey) {
   document.getElementById('logout-btn').classList.remove('hidden');
   // v2.4.40p: 登入後才顯示「?」訓練教室按鈕
   const tbtn = document.getElementById('tour-btn'); if (tbtn) tbtn.classList.remove('hidden');
+  // v2.4.41: 員工帳號才顯示改密碼按鈕
+  const cpwBtn = document.getElementById('change-pw-btn');
+  if (cpwBtn) {
+    if (localStorage.getItem('admin_employeeId')) cpwBtn.classList.remove('hidden');
+    else cpwBtn.classList.add('hidden');
+  }
   document.getElementById('section-tabs').classList.remove('hidden');
   document.getElementById('global-search-wrap').style.display = '';
   // Visible role badge in nav
@@ -4487,6 +4494,52 @@ async function resetEmployeePass(empId, empName) {
 }
 
 
+
+// v2.4.41: 員工自助改密碼
+function openChangePassword() {
+  document.getElementById('cpw-old').value = '';
+  document.getElementById('cpw-new').value = '';
+  document.getElementById('cpw-new2').value = '';
+  document.getElementById('cpw-err').classList.add('hidden');
+  document.getElementById('change-pw-modal').classList.remove('hidden');
+}
+function closeChangePassword() {
+  document.getElementById('change-pw-modal').classList.add('hidden');
+}
+async function submitChangePassword() {
+  const oldPw = document.getElementById('cpw-old').value;
+  const newPw = document.getElementById('cpw-new').value;
+  const newPw2 = document.getElementById('cpw-new2').value;
+  const err = document.getElementById('cpw-err');
+  if (!oldPw || !newPw) { err.textContent = '請填寫所有欄位'; err.classList.remove('hidden'); return; }
+  if (newPw.length < 6) { err.textContent = '新密碼至少 6 碼'; err.classList.remove('hidden'); return; }
+  if (newPw !== newPw2) { err.textContent = '兩次新密碼不一致'; err.classList.remove('hidden'); return; }
+  if (newPw === oldPw) { err.textContent = '新密碼不能跟舊密碼一樣'; err.classList.remove('hidden'); return; }
+  err.classList.add('hidden');
+  const btn = document.getElementById('cpw-submit-btn');
+  btn.disabled = true; btn.textContent = '處理中...';
+  try {
+    const res = await fetch(GAS_URL, { method:'POST', body: JSON.stringify({
+      action: 'changeMyPassword',
+      token: adminToken,
+      oldPassword: oldPw,
+      newPassword: newPw
+    })});
+    const data = await res.json();
+    if (data.status === 'success') {
+      toast('密碼已修改');
+      closeChangePassword();
+    } else {
+      err.textContent = data.message || '修改失敗'; err.classList.remove('hidden');
+    }
+  } catch(e) {
+    err.textContent = '網路錯誤'; err.classList.remove('hidden');
+  } finally {
+    btn.disabled = false; btn.textContent = '確定修改';
+  }
+}
+
+
 // ============================================================
 // v2.4.40: 教學導覽 (Admin Tour)
 // ============================================================
@@ -6298,6 +6351,37 @@ function maybeAutoStartTour() {
   </div>
 </div>
 
+
+<!-- v2.4.41: 自助改密碼 modal -->
+<div id="change-pw-modal" class="hidden fixed inset-0 z-[9990]" style="background:rgba(15,23,42,0.7)">
+  <div class="absolute inset-0 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl p-6 max-w-md w-full">
+      <div class="flex justify-between items-start mb-4">
+        <h3 class="text-lg font-bold text-[#1A365D]">🔑 修改密碼</h3>
+        <button onclick="closeChangePassword()" class="text-slate-400 hover:text-slate-700 text-xl">×</button>
+      </div>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">舊密碼</label>
+          <input id="cpw-old" type="password" class="input-field w-full">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">新密碼（至少 6 碼）</label>
+          <input id="cpw-new" type="password" class="input-field w-full">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">再次輸入新密碼</label>
+          <input id="cpw-new2" type="password" class="input-field w-full">
+        </div>
+        <div id="cpw-err" class="hidden text-red-600 text-sm"></div>
+        <div class="flex gap-2 pt-3">
+          <button onclick="closeChangePassword()" class="flex-1 py-2 border-2 border-slate-200 hover:border-slate-400 rounded font-bold text-sm text-slate-600">取消</button>
+          <button onclick="submitChangePassword()" id="cpw-submit-btn" class="flex-1 py-2 bg-[#1A365D] hover:bg-blue-900 text-white rounded font-bold text-sm">確定修改</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
                                                                                                 
