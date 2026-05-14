@@ -4455,12 +4455,21 @@ const TRAINING_SCENARIOS = [
               '<li>底下「🎌 為客人報到」按鈕</li></ul>' +
               '跟客人本人對話確認資料一致再操作。' },
       { tab: 'checkin', selector: '#checkin-list',
-        title: '點「🎌 為客人報到」',
-        body: '卡片底下綠色按鈕。' +
-              '<h4>按下去</h4>' +
+        title: '點「為客人報到」',
+        body: '<h4>卡片長這樣</h4>' +
+              '<div class="mock-card">' +
+              '<div class="mc-header">' +
+              '<div><span class="mc-name">王小明</span> <span class="mc-id">K260514001</span></div>' +
+              '<span class="mc-badge" style="background:#F1F5F9;color:#475569">待報到</span>' +
+              '</div>' +
+              '<div class="mc-row"><span class="mc-label">體驗時間</span><span class="mc-val">7/5 14:00</span></div>' +
+              '<div class="mc-row"><span class="mc-label">末3碼</span><span class="mc-val" style="font-family:monospace">999</span></div>' +
+              '<div style="margin-top:8px"><button style="width:100%;padding:6px;background:#FEF3C7;color:#92400E;border:none;border-radius:4px;font-weight:bold;font-size:11px">🎌 為客人報到</button></div>' +
+              '</div>' +
+              '<h4>按下底下按鈕後</h4>' +
               '<ol><li>系統 prompt「確定為 王小明 辦理報到？」</li>' +
               '<li>點確定 → 完成</li>' +
-              '<li>卡片 badge 變綠色「已代客報到」</li>' +
+              '<li>badge 變綠色「已代客報到」</li>' +
               '<li>按鈕變灰「已報到」（防您重複點）</li></ol>' },
       { center: true, title: '📋 Sheet 寫入',
         body: '報到完成後 Sheet 自動寫：' +
@@ -5539,6 +5548,20 @@ function openScenarioPicker(isAuto) {
   const isJun = currentAgent === 'Jun';
   const role = isJun ? 'jun' : currentRole;
   const available = TRAINING_SCENARIOS.filter(s => s.roles.indexOf(role) >= 0);
+  // v2.4.40r: 進度條
+  const seenForProgress = (function(){ try { return JSON.parse(localStorage.getItem('admin_seen_scenarios') || '[]'); } catch(e){ return []; } })();
+  const seenCount = available.filter(s => seenForProgress.indexOf(s.id) >= 0).length;
+  const pct = available.length > 0 ? Math.round(seenCount / available.length * 100) : 0;
+  const progressEl = document.getElementById('picker-progress');
+  if (progressEl) {
+    progressEl.innerHTML = '<div class="flex items-center gap-3">' +
+      '<div class="text-xs font-bold text-[#1A365D]">學習進度：' + seenCount + ' / ' + available.length + '</div>' +
+      '<div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">' +
+        '<div class="h-full bg-emerald-500 transition-all" style="width:' + pct + '%"></div>' +
+      '</div>' +
+      '<div class="text-xs font-bold text-emerald-600">' + pct + '%</div>' +
+      '</div>' + (seenCount === available.length && available.length > 0 ? '<div class="text-xs text-emerald-600 mt-1">🎉 全部看完了！</div>' : '');
+  }
   const list = document.getElementById('scenario-list');
   if (available.length === 0) {
     list.innerHTML = '<div class="col-span-2 text-center py-8 text-slate-400">您的角色目前沒有可用的訓練場景</div>';
@@ -5571,12 +5594,14 @@ function openScenarioPicker(isAuto) {
       const seen = (function(){ try { return JSON.parse(localStorage.getItem('admin_seen_scenarios') || '[]'); } catch(e){ return []; } })();
       html += grouped[cat].map(s => {
         const isSeen = seen.indexOf(s.id) >= 0;
-        const seenMark = isSeen ? '<span class="text-emerald-600 text-xs ml-1">✓</span>' : '';
-        return '<button onclick="startScenario(\'' + s.id + '\')" class="text-left p-3 bg-white hover:bg-slate-50 border border-slate-200 hover:border-[#1A365D] rounded transition-colors">' +
+        const cardClass = isSeen ? 'p-3 bg-emerald-50 border border-emerald-300 rounded' : 'p-3 bg-white hover:bg-slate-50 border border-slate-200 hover:border-[#1A365D] rounded transition-colors';
+        const seenBadge = isSeen ? '<span style="background:#10B981;color:#FFF;font-size:9px;padding:1px 6px;border-radius:8px;font-weight:bold;margin-left:6px">已看完</span>' : '';
+        const titleColor = isSeen ? '#059669' : '#1A365D';
+        return '<button onclick="startScenario(\'' + s.id + '\')" class="text-left ' + cardClass + '">' +
         '<div class="flex items-start gap-2">' +
           '<div class="text-xl shrink-0">' + s.icon + '</div>' +
           '<div class="flex-1 min-w-0">' +
-            '<div class="font-bold text-[#1A365D] text-sm mb-0.5">' + s.title + seenMark + '</div>' +
+            '<div class="font-bold text-sm mb-0.5" style="color:' + titleColor + '">' + s.title + seenBadge + '</div>' +
             '<div class="text-[11px] text-slate-500 leading-tight mb-1">' + s.desc + '</div>' +
             '<div class="text-[10px] text-slate-400">' + s.steps.length + ' 步 · 約 ' + Math.max(2, Math.ceil(s.steps.length / 1.5)) + ' 分</div>' +
           '</div>' +
@@ -6017,9 +6042,10 @@ function maybeAutoStartTour() {
   <div class="absolute inset-0 flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full p-6 my-8" style="max-height:90vh;overflow-y:auto">
       <div class="flex justify-between items-start mb-4">
-        <div>
+        <div class="flex-1">
           <h2 class="text-xl font-bold text-[#1A365D]">訓練教室</h2>
-          <p class="text-sm text-slate-500 mt-1">點下方場景，系統會帶您 step-by-step 完整走過實際工作流程</p>
+          <p class="text-sm text-slate-500 mt-1">點下方場景，系統會帶您 step-by-step 走過實際工作流程</p>
+          <div id="picker-progress" class="mt-3"></div>
         </div>
         <button onclick="closeScenarioPicker()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">×</button>
       </div>
