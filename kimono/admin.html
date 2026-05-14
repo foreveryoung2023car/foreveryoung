@@ -3754,8 +3754,19 @@ function renderWalkinMonth() {
   });
 
   // v2.6: 即使該店家本月無資料，也要顯示空白卡片
-  const ALL_STORES = ['京都清水寺店', '大阪日本橋店', '京都祇園店', '東京淺草寺店'];
-  ALL_STORES.forEach(s => { if (!byStore[s]) byStore[s] = { orders: [], pp: 0, due: 0, ours: 0 }; });
+  // v2.4.40: 店家身份只看自家店家卡片，agent / Jun 看 4 家
+  const STORE_KEY_TO_NAME = { kyoto1: '京都清水寺店', osaka1: '大阪日本橋店', kyoto2: '京都祇園店', tokyo1: '東京淺草寺店' };
+  if (currentRole === 'store' && currentStoreKey) {
+    const ownName = STORE_KEY_TO_NAME[currentStoreKey];
+    if (ownName) {
+      // 清掉非自家 (包含「未分類」)
+      Object.keys(byStore).forEach(s => { if (s !== ownName) delete byStore[s]; });
+      if (!byStore[ownName]) byStore[ownName] = { orders: [], pp: 0, due: 0, ours: 0 };
+    }
+  } else {
+    const ALL_STORES = ['京都清水寺店', '大阪日本橋店', '京都祇園店', '東京淺草寺店'];
+    ALL_STORES.forEach(s => { if (!byStore[s]) byStore[s] = { orders: [], pp: 0, due: 0, ours: 0 }; });
+  }
 
   const storeGrid = document.getElementById('walkin-stores-grid');
   {
@@ -4289,9 +4300,9 @@ const TOUR_STEPS = [
   { tab: 'walkin', selector: '#walkin-month, #sec-walkin select',
     title: '選月份',
     body: '選要結算的月份，下面會列出該月所有 walk-in 訂單，自動算總收入、店家收的、我們應收的。' },
-  { tab: 'walkin', selector: '#sec-walkin button[onclick*="export"], #sec-walkin button:last-of-type', optional: true,
-    title: '匯出 CSV',
-    body: '匯出該月明細給會計核帳。' },
+  { tab: 'walkin', selector: '#walkin-stores-grid', optional: true,
+    title: '各店家請款卡片',
+    body: '依門市分類顯示當月 walk-in 收入。每張卡片右上「📄 請款單」可下載該店家的明細請款單給會計。' },
 
   // 結尾
   { center: true, title: '🎉 教學完成！',
