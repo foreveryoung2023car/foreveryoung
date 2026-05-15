@@ -225,7 +225,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 }
 
 
-/* v2.4.40e: 教學導覽 spotlight (修：overlay 透明，靠 highlight 的 box-shadow 做暗化避免重疊雙重變暗) */
+/* v2.5e: 教學導覽 spotlight (修：overlay 透明，靠 highlight 的 box-shadow 做暗化避免重疊雙重變暗) */
 #tour-overlay { background: transparent; }
 #tour-overlay.tour-center-mode { background: rgba(15, 23, 42, 0.7); }
 #tour-highlight {
@@ -299,7 +299,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
       <div class="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center text-white font-bold border border-white/20 title-serif text-base">旅</div>
       <div class="min-w-0 hidden xs:block sm:block">
         <div class="text-white font-bold text-sm tracking-wide title-serif truncate">旅乘 x 和服</div>
-        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.4.40</div>
+        <div class="text-white/80 text-[11px] tracking-[0.2em] font-bold">ADMIN PORTAL · v2.5</div>
       </div>
     </div>
     <div id="global-search-wrap" class="md:flex flex-1 max-w-md" style="display:none">
@@ -521,7 +521,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
     <div id="orders-list" class="smart-3col"></div>
   </section>
 
-  <!-- v2.4.40: 報到中心 — 今日 ±1 天訂單看板 -->
+  <!-- v2.5: 報到中心 — 今日 ±1 天訂單看板 -->
   <section id="sec-checkin" class="section">
     <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
       <div>
@@ -1076,7 +1076,7 @@ function toast(msg, type){
 }
 
 function showLogin() {
-  // v2.4.40p: 登出時隱藏「?」按鈕
+  // v2.5p: 登出時隱藏「?」按鈕
   const tbtn = document.getElementById('tour-btn'); if (tbtn) tbtn.classList.add('hidden');
   const cpwBtn = document.getElementById('change-pw-btn'); if (cpwBtn) cpwBtn.classList.add('hidden');
   document.getElementById('login-screen').classList.remove('hidden');
@@ -1143,7 +1143,7 @@ function enterDashboard(name, token, role, storeKey) {
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('dashboard').classList.remove('hidden');
   document.getElementById('logout-btn').classList.remove('hidden');
-  // v2.4.40p: 登入後才顯示「?」訓練教室按鈕
+  // v2.5p: 登入後才顯示「?」訓練教室按鈕
   const tbtn = document.getElementById('tour-btn'); if (tbtn) tbtn.classList.remove('hidden');
   // v2.4.41: 員工帳號才顯示改密碼按鈕
   const cpwBtn = document.getElementById('change-pw-btn');
@@ -1159,10 +1159,10 @@ function enterDashboard(name, token, role, storeKey) {
   document.getElementById('nav-agent').textContent = roleEmoji + ' ' + name + roleSuffix;
   applyRolePermissions();   // v2.5: hide/show UI based on role
   loadOrders();
-  // v2.4.40: 登入後重新載入天氣，依角色 (agent 全部 / store 自家城市) 抓對的城市
-  // v2.4.40n: setTimeout 包起來避免 IIFE 自動登入時 TDZ error (KIMONO_WX_ALL_CITIES 尚未初始化)
+  // v2.5: 登入後重新載入天氣，依角色 (agent 全部 / store 自家城市) 抓對的城市
+  // v2.5n: setTimeout 包起來避免 IIFE 自動登入時 TDZ error (KIMONO_WX_ALL_CITIES 尚未初始化)
   setTimeout(() => { if (typeof loadWeather === 'function') loadWeather(true); }, 100);
-  // v2.4.40: 首次登入自動跳教學
+  // v2.5: 首次登入自動跳教學
   if (typeof maybeAutoStartTour === 'function') maybeAutoStartTour();
 }
 
@@ -1224,7 +1224,7 @@ function applyRolePermissions() {
     const dashTab = document.querySelector('[data-sec="dashboard"]');
     if (dashTab && typeof switchSection === 'function') switchSection('dashboard', dashTab);
   }
-  // v2.4.40g: 整合 Walk-in FAB 切換進原函數 (修 lexical scope 找不到 wrapper 的 bug)
+  // v2.5g: 整合 Walk-in FAB 切換進原函數 (修 lexical scope 找不到 wrapper 的 bug)
   if (isStore) {
     if (typeof showWalkInFab === 'function') showWalkInFab();
   } else {
@@ -1774,7 +1774,7 @@ function renderTodos(){
         ? '<button onclick="openTodoModal(\''+g.color+'\')" class="w-full mt-2 py-1.5 bg-white border border-' + g.color + '-300 hover:bg-' + g.color + '-100 text-' + g.color + '-700 text-[11px] rounded font-bold">查看全部 ' + total + ' 筆 →</button>'
         : '';
       return '<details' + expanded + ' class="p-3 bg-' + g.color + '-50 rounded-lg border border-' + g.color + '-200">' +
-        '<summary class="font-bold text-sm mb-2 text-' + g.color + '-700 cursor-pointer select-none">' + g.label + ' <span class="text-xs">(' + total + ')</span> <span class="text-[10px] font-normal text-slate-400">點擊展開</span></summary>' +
+        '<summary class="font-bold text-sm mb-2 text-' + g.color + '-700 cursor-pointer select-none">' + g.label + ' <span class="text-xs">(' + total + ')</span> </summary>' +
         shown.map((it, i) => renderItem(it, i, g.color)).join('') +
         moreBtn +
       '</details>';
@@ -2498,7 +2498,7 @@ function renderReconcile(){
   const month = document.getElementById('recon-month').value;
   const status = document.getElementById('recon-status').value;
   let list = allOrders.slice();
-  // v2.4.40: 店家身份只看自己門市的對帳，agent 看全部
+  // v2.5: 店家身份只看自己門市的對帳，agent 看全部
   if (currentRole === 'store' && currentStoreKey) {
     list = list.filter(o => orderBelongsToStore(o, currentStoreKey));
   }
@@ -3701,7 +3701,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // ============================================================
-// v2.4.40: 報到中心 (今日 ±1 天訂單看板)
+// v2.5: 報到中心 (今日 ±1 天訂單看板)
 // ============================================================
 function renderCheckIn() {
   const list = document.getElementById('checkin-list');
@@ -3715,7 +3715,7 @@ function renderCheckIn() {
   const ms = 24*3600*1000;
   // 收集 ±1 天訂單
   let orders = (window.allOrders || []).filter(o => {
-    if (!o.confirmed) return false;
+    // v2.5: 不再用 o.confirmed 過濾, 讓未確認的也顯示（會用顏色標記）
     if (!o.bookingDate) return false;
     const bd = parseBookingDate(o.bookingDate);  // v2.4.42g
     if (!bd) return false;
@@ -3760,10 +3760,10 @@ function renderCheckIn() {
   }
   empty.classList.add('hidden');
   list.innerHTML = orders.map(o => {
-    const bd = new Date(o.bookingDate);
-    const hh = String(bd.getUTCHours()).padStart(2,'0');
-    const mm = String(bd.getUTCMinutes()).padStart(2,'0');
-    const md = (bd.getUTCMonth()+1) + '/' + bd.getUTCDate();
+    const bd = parseBookingDate(o.bookingDate) || new Date(o.bookingDate);  // v2.5
+    const hh = String(bd.getHours()).padStart(2,'0');
+    const mm = String(bd.getMinutes()).padStart(2,'0');
+    const md = (bd.getMonth()+1) + '/' + bd.getDate();
     const phoneTail = String(o.phone || '').replace(/\D/g, '').slice(-3);
     let stateBadge, stateColor;
     const checkedSource = (o.checkedInBy || '').toString();
@@ -3890,7 +3890,7 @@ function renderWalkinMonth() {
   });
 
   // v2.6: 即使該店家本月無資料，也要顯示空白卡片
-  // v2.4.40: 店家身份只看自家店家卡片，agent / Jun 看 4 家
+  // v2.5: 店家身份只看自家店家卡片，agent / Jun 看 4 家
   const STORE_KEY_TO_NAME = { kyoto1: '京都清水寺店', osaka1: '大阪日本橋店', kyoto2: '京都祇園店', tokyo1: '東京淺草寺店' };
   if (currentRole === 'store' && currentStoreKey) {
     const ownName = STORE_KEY_TO_NAME[currentStoreKey];
@@ -4368,7 +4368,7 @@ async function wiSubmit() {
 // Show FAB after successful login
 // (loadOrders is defined elsewhere in admin)
 
-// v2.4.40g: 舊的 wrapper 已整合進原 applyRolePermissions (line 1082)
+// v2.5g: 舊的 wrapper 已整合進原 applyRolePermissions (line 1082)
 
 
 
@@ -4557,10 +4557,10 @@ async function submitChangePassword() {
 
 
 // ============================================================
-// v2.4.40: 教學導覽 (Admin Tour)
+// v2.5: 教學導覽 (Admin Tour)
 // ============================================================
 
-// v2.4.40: 合併重整按鈕 = 清快取 + 重整
+// v2.5: 合併重整按鈕 = 清快取 + 重整
 function fullReload() {
   if ('caches' in window) {
     caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).finally(() => location.reload());
@@ -4572,7 +4572,7 @@ function fullReload() {
 const ADMIN_TOUR_VERSION = 'v440';
 
 // ============================================================
-// v2.4.40j: 訓練教室情境式教學 (Scenario-based Training)
+// v2.5j: 訓練教室情境式教學 (Scenario-based Training)
 // 4 個場景 × 5-8 步，依登入身份過濾
 // ============================================================
 
@@ -5838,7 +5838,7 @@ function openScenarioPicker(isAuto) {
   const isJun = currentAgent === 'Jun';
   const role = isJun ? 'jun' : currentRole;
   const available = TRAINING_SCENARIOS.filter(s => s.roles.indexOf(role) >= 0);
-  // v2.4.40r: 進度條
+  // v2.5r: 進度條
   const seenForProgress = (function(){ try { return JSON.parse(localStorage.getItem('admin_seen_scenarios') || '[]'); } catch(e){ return []; } })();
   const seenCount = available.filter(s => seenForProgress.indexOf(s.id) >= 0).length;
   const pct = available.length > 0 ? Math.round(seenCount / available.length * 100) : 0;
@@ -5917,7 +5917,7 @@ function startScenario(id) {
   _activeTourSteps = scenario.steps;
   _tourStep = 0;
   _tourActive = true;
-  _currentScenarioId = id;  // v2.4.40q: 紀錄目前場景
+  _currentScenarioId = id;  // v2.5q: 紀錄目前場景
   document.getElementById('tour-overlay').classList.remove('hidden');
   renderTourStep();
   try { localStorage.setItem('admin_tour_seen_' + ADMIN_TOUR_VERSION, '1'); } catch(e){}
@@ -6018,12 +6018,12 @@ const STORE_TOUR_STEPS = [
 let _tourStep = 0;
 let _tourActive = false;
 let _currentScenarioId = null;
-let _activeTourSteps = TOUR_STEPS;  // v2.4.40i: 動態指向 STORE_TOUR_STEPS 或 TOUR_STEPS
+let _activeTourSteps = TOUR_STEPS;  // v2.5i: 動態指向 STORE_TOUR_STEPS 或 TOUR_STEPS
 
 function startAdminTour(forceManual) {
   _tourStep = 0;
   _tourActive = true;
-  // v2.4.40i: 依角色選擇導覽內容 — 店家用簡化版 (約 5-6 步)，agent 用完整版 (16 步)
+  // v2.5i: 依角色選擇導覽內容 — 店家用簡化版 (約 5-6 步)，agent 用完整版 (16 步)
   _activeTourSteps = (currentRole === 'store') ? STORE_TOUR_STEPS : TOUR_STEPS;
   document.getElementById('tour-overlay').classList.remove('hidden');
   renderTourStep();
@@ -6035,7 +6035,7 @@ function endAdminTour() {
   try { localStorage.setItem('admin_tour_seen_' + ADMIN_TOUR_VERSION, '1'); } catch(e){}
 }
 
-// v2.4.40q: 完成單元時不直接關，而是顯示「下一單元 →」
+// v2.5q: 完成單元時不直接關，而是顯示「下一單元 →」
 function completeAndNext() {
   // 紀錄此場景已完成
   try {
@@ -6109,7 +6109,7 @@ function renderTourStep() {
       tourNext();
       return;
     }
-    // v2.4.40p: 元素存在但被 display:none 隱藏（如店家看不到的 tab）→ 跳過
+    // v2.5p: 元素存在但被 display:none 隱藏（如店家看不到的 tab）→ 跳過
     if (target && target.offsetParent === null && !target.classList.contains('section')) {
       // section 元素本身被隱藏是正常（active section 才顯示），不能拿來判斷
       if (step.optional !== false) { tourNext(); return; }
@@ -6327,7 +6327,7 @@ function maybeAutoStartTour() {
   </div>
 </div>
 
-<!-- v2.4.40j: 訓練教室情境選單 -->
+<!-- v2.5j: 訓練教室情境選單 -->
 <div id="scenario-picker" class="hidden fixed inset-0" style="z-index:9997;background:rgba(15,23,42,0.8)">
   <div class="absolute inset-0 flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full p-6 my-8" style="max-height:90vh;overflow-y:auto">
@@ -6347,7 +6347,7 @@ function maybeAutoStartTour() {
   </div>
 </div>
 
-<!-- v2.4.40: 教學導覽 overlay -->
+<!-- v2.5: 教學導覽 overlay -->
 <div id="tour-overlay" class="hidden fixed inset-0" style="z-index:9998">
   <div id="tour-highlight"></div>
   <div id="tour-tooltip" data-position="bottom">
