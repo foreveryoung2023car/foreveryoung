@@ -882,7 +882,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
         <div><div class="section-label">姓名</div><input id="e-name" class="input-field"></div>
         <div><div class="section-label">電話</div><input id="e-phone" class="input-field"></div>
         <div class="md:col-span-2"><div class="section-label">Email</div><input id="e-email" class="input-field" type="email"></div>
-        <div><div class="section-label">體驗預約日</div><input id="e-booking-date" class="input-field" type="date"></div>
+        <div><div class="section-label">體驗預約日</div><input id="e-booking-date" class="input-field" type="datetime-local" step="1800"></div>
         <div><div class="section-label">人數說明</div><input id="e-pax" class="input-field" placeholder="例：2大1小"></div>
         <div style="display:none"><div class="section-label">和服款式 / 方案</div><input id="e-plan" class="input-field" placeholder="例：精緻和服、素雅和服"></div>
         <div><div class="section-label">聯繫來源</div><input id="e-platform" class="input-field" placeholder="LINE、Instagram…"></div>
@@ -1235,9 +1235,9 @@ function applyRolePermissions() {
   // v2.4.41: 員工管理 tab 限店家管理者 + Jun 看
   const empTab = document.querySelector('.nav-tab[data-sec="employees"]');
   if (empTab) {
+    // v2.5f: 員工管理只店家管理者可見, 客服(agent)不需要管
     const isStoreAdmin = isStore && (localStorage.getItem('admin_isStoreAdmin') === '1' || !localStorage.getItem('admin_employeeId'));
-    const canSee = currentAgent === 'Jun' || isStoreAdmin;
-    empTab.style.display = canSee ? '' : 'none';
+    empTab.style.display = isStoreAdmin ? '' : 'none';
   }
 }
 
@@ -2773,7 +2773,7 @@ function openEdit(orderId) {
   document.getElementById('e-name').value = o.name || '';
   document.getElementById('e-phone').value = o.phone || '';
   document.getElementById('e-email').value = o.email || '';
-  document.getElementById('e-booking-date').value = (o.bookingDate || '').slice(0,10);
+  document.getElementById('e-booking-date').value = (function(bd){ if(!bd) return ''; const d=parseBookingDate(bd); if(!d||isNaN(d)) return String(bd).slice(0,10); const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes()); })(o.bookingDate);
   document.getElementById('e-pax').value = o.adults || o.pax || '';
   document.getElementById('e-plan').value = o.plan || '';
   document.getElementById('e-platform').value = o.platform || '';
@@ -3410,7 +3410,7 @@ function saveOrder() {
   const payload = {
     action: 'adminUpdate', agent: currentAgent, token: adminToken, orderId: editingOrder.orderId,
     name: document.getElementById('e-name').value, phone: document.getElementById('e-phone').value, email: document.getElementById('e-email').value,
-    bookingDate: document.getElementById('e-booking-date').value, pax: document.getElementById('e-pax').value,
+    bookingDate: (function(){ const v=document.getElementById('e-booking-date').value; if(!v) return ''; const m=v.match(/^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/); if(!m) return v; return m[1]+'/'+m[2]+'/'+m[3]+(m[4]?(' '+m[4]+':'+m[5]):''); })(), pax: document.getElementById('e-pax').value,
     plan: document.getElementById('e-plan').value, platform: document.getElementById('e-platform').value,
     hair: document.getElementById('e-hair').value, photo: document.getElementById('e-photo').value, confirmed: (document.getElementById('e-confirmed').value === 'true' ? 'TRUE' : 'FALSE'),
     deposit: document.getElementById('e-deposit').value, kimonoPrice: document.getElementById('e-price').value,
