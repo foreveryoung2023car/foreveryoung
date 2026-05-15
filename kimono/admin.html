@@ -2118,7 +2118,7 @@ function renderOrders(orders){
           '<div class="flex-1 min-w-0">'+
             '<div class="flex items-center gap-2 mb-2 flex-wrap">'+
               badge+
-              '<span class="font-bold text-[#1A365D] text-base md:text-lg">'+(o.name||'—')+'</span>'+
+              '<span class="font-bold text-[#1A365D] text-base md:text-lg">'+(o.name||'—')+'</span>' + (function(){const ph=String(o.phone||'').replace(/\D/g,'');if(!ph) return '';const arr=(typeof allOrders!=='undefined'?allOrders:[]);const cnt=arr.filter(x=>String(x.phone||'').replace(/\D/g,'')===ph).length;return cnt>=3?'<span class="text-[11px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded ml-1">⭐'+cnt+'</span>':(cnt>=2?'<span class="text-[11px] text-slate-500 ml-1">'+cnt+'訪</span>':'');})()+
               '<span class="text-slate-600 text-xs md:text-sm font-mono">'+(o.orderId||'')+'</span>'+(o.submitDate? '<span class="text-[11px] text-slate-500 ml-1 hidden xl:inline">下單 '+fmtJST(o.submitDate)+'</span>':'')+
               (o.platform? '<span class="pill bg-blue-100 text-blue-800">📱 '+o.platform+'</span>':'')+
               (o.storeKey? '<span class="pill bg-purple-100 text-purple-800">🏪 '+o.storeKey+'</span>':'')+
@@ -3854,7 +3854,7 @@ function renderCheckIn() {
     const btnText = o.checkedInAt ? '已報到' : '🎌 為客人報到';
     return '<div class="bg-white border-2 border-slate-100 hover:border-[#1A365D] rounded-lg p-4 transition-all">' +
       '<div class="flex justify-between items-start mb-2">' +
-        '<div><div class="text-lg font-bold text-[#1A365D]">' + (o.name || '—') + '</div>' +
+        '<div><div class="text-3xl font-bold text-[#1A365D] mb-1">' + hh + ':' + mm + '</div>' + '<div class="text-base font-bold text-[#1A365D]">' + (o.name || '—') + '</div>' +
         '<div class="text-xs text-slate-400 font-mono">' + (o.orderId || '') + '</div></div>' +
         '<span class="text-xs px-2 py-1 rounded ' + stateColor + ' font-bold">' + stateBadge + '</span>' +
       '</div>' +
