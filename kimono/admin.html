@@ -1499,6 +1499,29 @@ function fmtDate(s){
   const jst = new Date(utc + 9 * 3600000);
   return jst.getFullYear()+'/'+String(jst.getMonth()+1).padStart(2,'0')+'/'+String(jst.getDate()).padStart(2,'0');
 }
+// v2.5k: 已收尾款 (用 note 欄位塞 [PAID-YYYYMMDD] tag, 免改 GAS schema)
+function isPaidFull(o){ return /\[PAID-\d{8}\]/.test(String(o.note||'')); }
+async function markPaidFull(orderId, name){
+  if(!confirm('確認「'+name+'」已收齊尾款？')) return;
+  const o = allOrders.find(x=>x.orderId===orderId);
+  if(!o) return alert('找不到訂單');
+  const today = new Date();
+  const tag = '[PAID-'+today.getFullYear()+String(today.getMonth()+1).padStart(2,'0')+String(today.getDate()).padStart(2,'0')+']';
+  const newNote = (o.note||'') + (o.note?' ':'') + tag;
+  try {
+    await saveOrderQuick(o, {note: newNote});
+    toast('已標記收齊尾款 ✓');
+  } catch(e){ alert('儲存失敗：'+e.message); }
+}
+async function unmarkPaidFull(orderId, name){
+  if(!confirm('「'+name+'」標記為「未收齊」？')) return;
+  const o = allOrders.find(x=>x.orderId===orderId);
+  if(!o) return;
+  const newNote = String(o.note||'').replace(/\s*\[PAID-\d{8}\]/g, '').trim();
+  try { await saveOrderQuick(o, {note: newNote}); toast('已取消標記'); }
+  catch(e){ alert('失敗：'+e.message); }
+}
+
 function isAnomaly(o){ return !o.name || !o.phone || !o.bookingDate; }
 function totalAmount(o){ return (Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0); }
 // v2.4.20: 客人本次體驗應付總額（不含訂金重複計入）
@@ -2022,7 +2045,7 @@ function filterOrders(){
   if(currentFilter==='confirmed') list = list.filter(o=>o.confirmed);
   if(currentFilter==='refund') list = list.filter(o=>Number(o.refundAmount)>0);
   if(currentFilter==='anomaly') list = list.filter(isAnomaly);
-  if(currentFilter==='duebalance') list = list.filter(o=>{const tot=(Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0); const due=tot-(Number(o.deposit)||0); return due > 0 && (o.confirmed===true||o.confirmed==='true'||o.confirmed==='TRUE') && !(Number(o.refundAmount)>0);});
+  if(currentFilter==='duebalance') list = list.filter(o=>{const tot=(Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0); const due=tot-(Number(o.deposit)||0); return due > 0 && (o.confirmed===true||o.confirmed==='true'||o.confirmed==='TRUE') && !(Number(o.refundAmount)>0) && !isPaidFull(o);});
 
   if(q) list = list.filter(o=>(o.name||'').toLowerCase().includes(q)||(o.phone||'').includes(q)||(o.orderId||'').toLowerCase().includes(q)||(o.email||'').toLowerCase().includes(q));
   if(dFrom) list = list.filter(o=>{const d=new Date(o.bookingDate); return !isNaN(d) && d>=new Date(dFrom);});
@@ -2168,7 +2191,7 @@ function renderOrders(orders){
             /* v2.4.42j: hide 和服款式 */ ''+
             '<div><div class="text-xs text-slate-600 font-semibold">訂金</div><div class="font-bold">'+fmtY(o.deposit)+'</div></div>'+
             '<div><div class="text-xs text-slate-600 font-semibold">總價</div><div class="font-bold">'+fmtY(total)+'</div></div>'+
-            '<div><div class="text-xs text-slate-600 font-semibold">待收尾款</div><div class="font-bold '+(due>0?'text-amber-700':'text-emerald-700')+'">'+fmtY(due)+'</div></div>'+
+            '<div><div class="text-xs text-slate-600 font-semibold">待收尾款</div><div class="font-bold '+(isPaidFull(o)?'text-emerald-700 line-through':(due>0?'text-amber-700':'text-emerald-700'))+'">'+(isPaidFull(o)?'¥0 ✓':fmtY(due))+'</div></div>'+
             '<div><div class="text-xs text-slate-600 font-semibold">Email</div><div class="font-bold truncate text-xs" title="'+(o.email||'')+'">'+(o.email||'—')+'</div></div>'+
           '</div>'+
           '<div class="flex flex-wrap gap-1">'+
@@ -2186,7 +2209,7 @@ function renderOrders(orders){
           (!o.confirmed && !anomaly ? '<button onclick="quickConfirm(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-emerald-400 text-emerald-700 rounded-lg text-sm hover:bg-emerald-50 font-semibold flex-1">✅ 快速確認</button>' : '')+
           /* v2.4.38: 報到按鈕，只在「已確認 + 未報到 + 體驗日 ±1 天內」顯示 */
           (o.confirmed && !o.checkedInAt && days!==null && days>=-1 && days<=1 ? '<button onclick="checkInOrder(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-amber-400 text-amber-700 rounded-lg text-sm hover:bg-amber-50 font-semibold flex-1">🎌 報到</button>' : '')+
-          '<button onclick="copyOrderId(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-slate-300 rounded-lg text-sm hover:bg-slate-50 font-semibold flex-1">📋 複製編號</button>'+
+          (() => { const tot=(Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0); const due=tot-(Number(o.deposit)||0); const conf=(o.confirmed===true||o.confirmed==='true'||o.confirmed==='TRUE'); const paid=isPaidFull(o); if(conf && due>0 && !paid) return '<button onclick="markPaidFull(\''+(o.orderId||'')+'\',\''+(o.name||'').replace(/\'/g,"\\'")+'\')" class="px-3 py-1.5 border-2 border-emerald-500 text-emerald-700 rounded-lg text-sm hover:bg-emerald-50 font-semibold flex-1">💰 已收齊</button>'; if(paid) return '<button onclick="unmarkPaidFull(\''+(o.orderId||'')+'\',\''+(o.name||'').replace(/\'/g,"\\'")+'\')" class="px-3 py-1.5 border-2 border-emerald-200 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-semibold flex-1" title="已收齊 (點擊取消)">✓ 已收</button>'; return ''; })() + '<button onclick="copyOrderId(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-slate-300 rounded-lg text-sm hover:bg-slate-50 font-semibold flex-1">📋 複製編號</button>'+
         '</div>'+
       '</div>'+
     '</div>';
