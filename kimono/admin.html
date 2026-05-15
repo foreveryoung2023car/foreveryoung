@@ -3781,7 +3781,7 @@ function renderCheckIn() {
       '<div class="grid grid-cols-2 gap-2 text-sm mb-3">' +
         '<div><span class="text-slate-400 text-xs">體驗時間</span><div class="font-bold">' + md + ' ' + hh + ':' + mm + '</div></div>' +
         '<div><span class="text-slate-400 text-xs">末3碼</span><div class="font-bold font-mono">' + phoneTail + '</div></div>' +
-        '<div><span class="text-slate-400 text-xs">和服款式</span><div class="font-bold text-xs">' + (o.plan || '—') + '</div></div>' +
+        '<div><span class="text-slate-400 text-xs">加值</span><div class="font-bold text-xs">' + (((o.hair===true||o.hair==='true'||o.hair==='是')?'💆':'')+((o.photo===true||o.photo==='true'||o.photo==='是')?'📷':'')||'—') + '</div></div>' +
         '<div><span class="text-slate-400 text-xs">人數</span><div class="font-bold">' + (o.adults || '—') + '</div></div>' +
       '</div>' +
       '<button onclick="checkInOrder(\'' + o.orderId + '\')" ' + btnDisabled + ' class="w-full py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold rounded text-sm transition-colors">' + btnText + '</button>' +
