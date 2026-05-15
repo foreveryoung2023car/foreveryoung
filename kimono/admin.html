@@ -1499,6 +1499,53 @@ function fmtDate(s){
   const jst = new Date(utc + 9 * 3600000);
   return jst.getFullYear()+'/'+String(jst.getMonth()+1).padStart(2,'0')+'/'+String(jst.getDate()).padStart(2,'0');
 }
+// v2.5l: LINE 訊息範本
+const STORE_ADDRESSES = {
+  osaka1: '大阪市心斎橋筋 2 丁目 X-X (心齋橋店)',
+  osaka2: '大阪市難波 X-X (難波分店)',
+  kyoto1: '京都市東山區清水道 X-X (清水寺店)',
+  kyoto2: '京都市右京區嵐山 X-X (嵐山店)',
+  tokyo1: '東京都台東區淺草 X-X (淺草店)'
+};
+const MSG_TEMPLATES = {
+  confirm: function(o){
+    const addr = STORE_ADDRESSES[o.storeKey] || '請洽詢店家';
+    const total = (Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0);
+    return '您好 '+(o.name||'')+'，您的和服體驗預約已確認 ✅\n\n📋 訂單編號：'+(o.orderId||'')+'\n📅 體驗日期：'+(o.bookingDate||'')+'\n👥 人數：'+(o.adults||o.pax||'1')+' 大\n💰 應付總額：¥'+total.toLocaleString()+'（訂金 ¥'+(Number(o.deposit)||0).toLocaleString()+' 已收）\n📍 體驗地點：'+addr+'\n\n如需任何協助請隨時聯繫我們，期待您的蒞臨！\n— 旅乘 × 和服';
+  },
+  reminder: function(o){
+    return '您好 '+(o.name||'')+' ✨ 提醒您明天有預約和服體驗\n\n📅 '+(o.bookingDate||'')+'\n📋 訂單號：'+(o.orderId||'')+'\n\n注意事項：\n• 建議提前 10 分鐘到店\n• 請穿著輕便衣物方便更衣\n• 攜帶證件 + 身分證明\n\n如需改期請於今日下午前告知，謝謝您！';
+  },
+  arrived: function(o){
+    const addr = STORE_ADDRESSES[o.storeKey] || '';
+    return '您好 '+(o.name||'')+'，您今天的和服已準備好了，請問現在方便到店嗎？\n📍 '+addr+'\n\n如有預計到店時間請告知，我們會先準備您的和服 👘';
+  },
+  paid: function(o){
+    const total = (Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0);
+    return '您好 '+(o.name||'')+'，感謝您今日的光臨 🙏\n\n本次消費已完成結帳 ✓\n📋 訂單號：'+(o.orderId||'')+'\n💰 消費總額：¥'+total.toLocaleString()+'\n\n歡迎您下次再來體驗！如有任何問題請隨時聯繫。';
+  },
+  refund: function(o){
+    return '您好 '+(o.name||'')+'，您的退款申請已處理 ✓\n\n📋 訂單號：'+(o.orderId||'')+'\n💸 退款金額：¥'+(Number(o.refundAmount)||0).toLocaleString()+'\n💳 退款方式：原路退回\n⏱ 到帳時間：3-7 個工作天\n\n如未收到請聯繫我們，感謝您的耐心 🙏';
+  }
+};
+
+function openMsgTemplate(orderId){
+  const o = allOrders.find(x=>x.orderId===orderId);
+  if(!o) return alert('找不到訂單');
+  let html = '<div class="todo-modal-bg" onclick="if(event.target===this)closeMsgTemplate()"><div class="todo-modal-card"><div class="todo-modal-head"><span class="font-bold text-base text-[#1A365D]">📨 訊息範本：'+(o.name||'')+' / '+orderId+'</span><button onclick="closeMsgTemplate()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">×</button></div><div class="todo-modal-body" style="padding:14px 18px">';
+  const titles = {confirm:'✅ 訂單確認', reminder:'⏰ 體驗前一日提醒', arrived:'🎌 已準備好和服', paid:'💰 收尾款 / 結帳完成', refund:'↩ 退款已處理'};
+  Object.keys(MSG_TEMPLATES).forEach(k=>{
+    const txt = MSG_TEMPLATES[k](o);
+    const safeId = 'tpl-'+k;
+    html += '<div class="mb-3 pb-3 border-b border-slate-100"><div class="flex items-center justify-between mb-2"><span class="font-bold text-sm text-[#1A365D]">'+titles[k]+'</span><button onclick="copyTemplate(\''+safeId+'\')" class="px-2 py-1 bg-[#1A365D] text-white text-xs rounded hover:bg-blue-900">📋 複製</button></div><textarea id="'+safeId+'" class="w-full text-xs p-2 border rounded bg-slate-50 font-mono" rows="6" readonly>'+txt+'</textarea></div>';
+  });
+  html += '</div></div></div>';
+  const wrap = document.createElement('div'); wrap.id='msgTemplateModal'; wrap.innerHTML = html;
+  document.body.appendChild(wrap);
+}
+function closeMsgTemplate(){ const x=document.getElementById('msgTemplateModal'); if(x)x.remove(); }
+function copyTemplate(id){ const t=document.getElementById(id); if(!t) return; navigator.clipboard.writeText(t.value).then(()=>toast('已複製訊息範本到剪貼簿 ✓')); }
+
 // v2.5k: 已收尾款 (用 note 欄位塞 [PAID-YYYYMMDD] tag, 免改 GAS schema)
 function isPaidFull(o){ return /\[PAID-\d{8}\]/.test(String(o.note||'')); }
 async function markPaidFull(orderId, name){
@@ -2206,6 +2253,7 @@ function renderOrders(orders){
         '</div>'+ /* close flex items-start (checkbox row) */
         '<div class="flex flex-row gap-1.5 flex-shrink-0 w-full">'+
           '<button onclick="openEdit(\''+(o.orderId||'')+'\')" class="btn-navy px-3 py-1.5 rounded-lg text-sm flex-1">✏️ 編輯</button>'+
+          '<button onclick="openMsgTemplate(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-purple-300 text-purple-700 rounded-lg text-sm hover:bg-purple-50 font-semibold" title="複製訊息範本">📨</button>'+
           (!o.confirmed && !anomaly ? '<button onclick="quickConfirm(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-emerald-400 text-emerald-700 rounded-lg text-sm hover:bg-emerald-50 font-semibold flex-1">✅ 快速確認</button>' : '')+
           /* v2.4.38: 報到按鈕，只在「已確認 + 未報到 + 體驗日 ±1 天內」顯示 */
           (o.confirmed && !o.checkedInAt && days!==null && days>=-1 && days<=1 ? '<button onclick="checkInOrder(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-amber-400 text-amber-700 rounded-lg text-sm hover:bg-amber-50 font-semibold flex-1">🎌 報到</button>' : '')+
