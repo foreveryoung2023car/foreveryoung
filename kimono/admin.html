@@ -2508,14 +2508,14 @@ function renderCustomers(){
       const safeKey = (c.key||'').replace(/'/g,"\\\\'");
       return '<tr onclick="openCustomerDetail(\''+safeKey+'\')">'+
       '<td><div class="font-bold text-base whitespace-nowrap">'+(c.isVip?'<span title="VIP 客戶" class="text-amber-500 mr-1">⭐</span>':'')+c.name+'</div></td>'+
-      '<td class="font-semibold">'+c.phone+'</td>'+
+      '<td class="font-semibold">'+(c.phone?'<a href="tel:'+c.phone+'" onclick="event.stopPropagation()" class="text-[#1A365D] hover:underline">'+c.phone+'</a>':'—')+'</td>'+
       '<td class="text-sm">'+c.email+'</td>'+
       '<td class="num">'+c.count+'</td>'+
       '<td class="num">'+fmtY0(c.totalSpent)+'</td>'+
       '<td class="num">'+fmtY0(c.totalDeposit)+'</td>'+
       '<td>'+(c.firstDate? fmtDate(c.firstDate):'—')+'</td>'+
-      '<td>'+(c.lastDate? fmtDate(c.lastDate):'—')+'</td>'+
-      '<td><button onclick="event.stopPropagation();openCustomerDetail(\''+safeKey+'\')" class="btn-navy px-3 py-1 rounded text-xs">詳情</button></td>'+
+      '<td>'+(c.lastDate? (fmtDate(c.lastDate)+(function(){const d=new Date(c.lastDate);const n=new Date();const diff=Math.floor((n-d)/(86400000));return diff>=0?'<span class="text-[10px] text-slate-500 ml-1">('+diff+' 天前)</span>':'<span class="text-[10px] text-emerald-600 ml-1">('+Math.abs(diff)+' 天後)</span>';})()):'—')+'</td>'+
+      '<td><button onclick="event.stopPropagation();const latestOrder=c.orders.sort((a,b)=>new Date(b.bookingDate||0)-new Date(a.bookingDate||0))[0]; if(latestOrder) openMsgTemplate(latestOrder.orderId)" class="px-2 py-0.5 mr-1 text-purple-700 border border-purple-300 hover:bg-purple-50 rounded text-xs font-bold">📨</button><button onclick="event.stopPropagation();openCustomerDetail(\''+safeKey+'\')" class="btn-navy px-3 py-1 rounded text-xs">詳情</button></td>'+
     '</tr>';}).join('')+'</tbody></table>';
 }
 
