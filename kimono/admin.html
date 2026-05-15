@@ -499,6 +499,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
           <button class="tab-btn active" onclick="setFilter('pending',this)">待確認 <span id="cnt-pending" class="ml-1 opacity-80">0</span></button>
           <button class="tab-btn" onclick="setFilter('confirmed',this)">已確認 <span id="cnt-confirmed" class="ml-1 opacity-80">0</span></button>
           <button class="tab-btn" onclick="setFilter('refund',this)">有退款 <span id="cnt-refund" class="ml-1 opacity-80">0</span></button>
+          <button class="tab-btn" onclick="setFilter('duebalance',this)">💰 待收尾款 <span id="cnt-duebalance" class="ml-1 opacity-80">0</span></button>
           <button class="tab-btn" onclick="setFilter('anomaly',this)">⚠ 異常 <span id="cnt-anomaly" class="ml-1 opacity-80">0</span></button>
         </div>
         <div class="text-sm text-slate-700 font-semibold">顯示 <b id="showing-count" class="text-[#1A365D] text-base">0</b> / <span id="total-count">0</span> 筆</div>
@@ -1904,7 +1905,7 @@ function renderUpcoming(){
     const badge = o.confirmed? '<span class="badge badge-confirmed">已確認</span>' : '<span class="badge badge-pending">待確認</span>';
     return '<div class="flex items-center justify-between p-2 hover:bg-slate-50 rounded cursor-pointer border border-slate-100" onclick="openEdit(\''+(o.orderId||'')+'\')">'+
       '<div class="flex-1 min-w-0"><div class="font-bold text-sm truncate">'+(o.name||'—')+' <span class="text-[10px] text-slate-500 font-mono font-normal">'+(o.orderId||'')+'</span></div>'+
-      '<div class="text-[11px] text-slate-700">'+fmtDate(o.bookingDate)+' · '+(o.adults||o.pax||'—')+' 人</div></div>'+
+      '<div class="text-[11px] text-slate-700">'+fmtDate(o.bookingDate)+' '+(function(){const dd=parseBookingDate(o.bookingDate);return dd? (String(dd.getHours()).padStart(2,'0')+':'+String(dd.getMinutes()).padStart(2,'0')):'';})()+' · '+(o.adults||o.pax||'—')+' 人 '+((o.hair===true||o.hair==='true'||o.hair==='是')?'💆':'')+((o.photo===true||o.photo==='true'||o.photo==='是')?'📷':'')+'</div></div>'+
       '<div class="flex flex-col items-end gap-0.5 ml-2">'+badge+'<span class="text-[10px] font-bold text-[#C9A961]">'+dayLabel+'</span></div></div>';
   }).join('');
 }
@@ -1964,6 +1965,8 @@ function filterOrders(){
   document.getElementById('cnt-confirmed').textContent = list.filter(o=>o.confirmed).length;
   document.getElementById('cnt-refund').textContent = list.filter(o=>Number(o.refundAmount)>0).length;
   document.getElementById('cnt-anomaly').textContent = list.filter(isAnomaly).length;
+  // v2.5g: 待收尾款 count
+  (function(){const el=document.getElementById('cnt-duebalance');if(!el)return;const n=list.filter(o=>{const t=(Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0); const d=t-(Number(o.deposit)||0); return d>0 && (o.confirmed===true||o.confirmed==='true'||o.confirmed==='TRUE') && !(Number(o.refundAmount)>0);}).length; el.textContent=n;})();
   // Today count
   (function(){
     const today0=new Date(); today0.setHours(0,0,0,0);
@@ -1982,6 +1985,7 @@ function filterOrders(){
   if(currentFilter==='confirmed') list = list.filter(o=>o.confirmed);
   if(currentFilter==='refund') list = list.filter(o=>Number(o.refundAmount)>0);
   if(currentFilter==='anomaly') list = list.filter(isAnomaly);
+  if(currentFilter==='duebalance') list = list.filter(o=>{const tot=(Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0); const due=tot-(Number(o.deposit)||0); return due > 0 && (o.confirmed===true||o.confirmed==='true'||o.confirmed==='TRUE') && !(Number(o.refundAmount)>0);});
 
   if(q) list = list.filter(o=>(o.name||'').toLowerCase().includes(q)||(o.phone||'').includes(q)||(o.orderId||'').toLowerCase().includes(q)||(o.email||'').toLowerCase().includes(q));
   if(dFrom) list = list.filter(o=>{const d=new Date(o.bookingDate); return !isNaN(d) && d>=new Date(dFrom);});
