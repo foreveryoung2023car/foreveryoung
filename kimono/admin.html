@@ -3714,7 +3714,7 @@ function renderCheckIn() {
   const todayYMD = toJstYMD(jstNow);
   const ms = 24*3600*1000;
   // 收集 ±1 天訂單
-  let orders = (window.allOrders || []).filter(o => {
+  let orders = (typeof allOrders !== 'undefined' ? allOrders : []).filter(o => {
     // v2.5: 不再用 o.confirmed 過濾, 讓未確認的也顯示（會用顏色標記）
     if (!o.bookingDate) return false;
     const bd = parseBookingDate(o.bookingDate);  // v2.4.42g
