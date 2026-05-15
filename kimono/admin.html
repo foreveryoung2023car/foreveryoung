@@ -526,6 +526,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
     <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
       <div>
         <h2 class="text-2xl font-bold text-[#1A365D] title-serif">🎌 報到中心</h2>
+        <div class="inline-flex gap-1 ml-3"><button id="ci-view-card" onclick="setCheckinView('card')" class="px-2 py-1 text-xs border border-slate-200 rounded bg-[#1A365D] text-white">🎴 卡片</button><button id="ci-view-list" onclick="setCheckinView('list')" class="px-2 py-1 text-xs border border-slate-200 rounded bg-white text-slate-600">📋 列表</button></div>
         <p class="text-sm text-slate-600 mt-1 font-semibold">今日 ±1 天的體驗訂單，依時間排序</p>
       </div>
       <div class="flex gap-2 flex-wrap items-center">
@@ -3703,6 +3704,19 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================================
 // v2.5: 報到中心 (今日 ±1 天訂單看板)
 // ============================================================
+// v2.5c: 報到中心 列表/卡片 view mode
+function setCheckinView(mode){
+  try{ localStorage.setItem('checkin_view', mode); }catch(e){}
+  document.querySelectorAll('#ci-view-card, #ci-view-list').forEach(b=>{
+    b.classList.remove('bg-[#1A365D]','text-white');
+    b.classList.add('bg-white','text-slate-600');
+  });
+  const active = document.getElementById('ci-view-' + mode);
+  if(active){ active.classList.remove('bg-white','text-slate-600'); active.classList.add('bg-[#1A365D]','text-white'); }
+  if(typeof renderCheckIn==='function') renderCheckIn();
+}
+function getCheckinView(){ try{ return localStorage.getItem('checkin_view') || 'card'; }catch(e){ return 'card'; } }
+
 function renderCheckIn() {
   const list = document.getElementById('checkin-list');
   const empty = document.getElementById('checkin-empty');
@@ -3759,6 +3773,29 @@ function renderCheckIn() {
     return;
   }
   empty.classList.add('hidden');
+  if (getCheckinView() === 'list') {
+    list.className = '';
+    list.innerHTML = '<div class="overflow-x-auto bg-white rounded-lg border border-slate-200"><table class="w-full text-sm"><thead class="bg-slate-50"><tr><th class="p-2 text-left">時間</th><th class="p-2 text-left">姓名</th><th class="p-2 text-left">末3碼</th><th class="p-2 text-center">人</th><th class="p-2 text-center">加值</th><th class="p-2 text-center">狀態</th><th class="p-2 text-right">動作</th></tr></thead><tbody>' + orders.map(o => {
+      const bd = parseBookingDate(o.bookingDate) || new Date(o.bookingDate);
+      const md = (bd.getMonth()+1) + '/' + bd.getDate();
+      const hm = String(bd.getHours()).padStart(2,'0') + ':' + String(bd.getMinutes()).padStart(2,'0');
+      const tail = String(o.phone || '').replace(/\D/g, '').slice(-3);
+      const hair = (o.hair===true||o.hair==='true'||o.hair==='是') ? '💆' : '';
+      const photo = (o.photo===true||o.photo==='true'||o.photo==='是') ? '📷' : '';
+      const cs = (o.checkedInBy || '').toString();
+      let sb;
+      if (!o.checkedInAt) sb = '<span class="px-2 py-0.5 bg-slate-100 rounded text-xs">⏳待</span>';
+      else if (cs==='self') sb = '<span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs">🎌自助</span>';
+      else sb = '<span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-xs">✅代客</span>';
+      const dis = o.checkedInAt ? 'disabled style="opacity:0.5;cursor:not-allowed"' : '';
+      const txt = o.checkedInAt ? '已報到' : '🎌 報到';
+      return '<tr class="border-t hover:bg-slate-50"><td class="p-2 font-bold whitespace-nowrap">' + md + ' ' + hm + '</td><td class="p-2 font-bold">' + (o.name||'—') + '</td><td class="p-2 font-mono">' + tail + '</td><td class="p-2 text-center">' + (o.adults||'—') + '</td><td class="p-2 text-center text-base">' + (hair+photo||'—') + '</td><td class="p-2 text-center">' + sb + '</td><td class="p-2 text-right"><button onclick="checkInOrder(\'' + o.orderId + '\')" ' + dis + ' class="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded text-xs font-bold whitespace-nowrap">' + txt + '</button></td></tr>';
+    }).join('') + '</tbody></table></div>';
+    const tabCount = document.getElementById('tab-count-checkin');
+    if (tabCount) tabCount.textContent = orders.length;
+    return;
+  }
+  list.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3';
   list.innerHTML = orders.map(o => {
     const bd = parseBookingDate(o.bookingDate) || new Date(o.bookingDate);  // v2.5
     const hh = String(bd.getHours()).padStart(2,'0');
