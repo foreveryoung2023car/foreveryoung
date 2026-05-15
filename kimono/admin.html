@@ -489,7 +489,10 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
           <div><div class="section-label">聯繫來源</div><select id="f-platform" class="input-field" onchange="filterOrders()"><option value="">全部來源</option></select></div>
           <div><div class="section-label">妝髮</div><select id="f-hair" class="input-field" onchange="filterOrders()"><option value="">全部</option><option value="true">有妝髮</option><option value="false">無妝髮</option></select></div>
           <div><div class="section-label">攝影</div><select id="f-photo" class="input-field" onchange="filterOrders()"><option value="">全部</option><option value="true">有攝影</option><option value="false">無攝影</option></select></div>
-          <div><div class="section-label">排序</div><select id="f-sort" class="input-field" onchange="filterOrders()"><option value="booking-asc">體驗日期 ↑</option><option value="booking-desc" selected>體驗日期 ↓</option><option value="amount-desc">金額 ↓</option></select></div>
+          <div><div class="section-label">排序</div><select id="f-sort" class="input-field" onchange="filterOrders()"><option value="booking-asc">體驗日期 ↑</option><option value="booking-desc" selected>體驗日期 ↓</option><option value="amount-desc">金額 ↓</option>
+                <option value="due-desc">💰 待收尾款 ↓</option>
+                <option value="recent-submit">📅 最近下單</option>
+                <option value="visits-desc">⭐ 訪次 ↓</option></select></div>
         </div>
       </details>
 
@@ -1501,9 +1504,14 @@ function fmtDate(s){
 }
 // v2.5n: 退款工作流 — 標記已匯款
 async function markRefundPaid(orderId, name){
-  if(!confirm('確認已完成退款給「'+name+'」的匯款？')) return;
   const o = allOrders.find(x=>x.orderId===orderId);
   if(!o) return alert('找不到訂單');
+  // v2.5o: 強制要先填退款原因
+  if(!o.refundReason || !String(o.refundReason).trim()){
+    if(!confirm('「'+name+'」的退款原因尚未填寫，請先到編輯訂單填好原因再來標記匯款。\n\n要立即跳到編輯嗎？')) return;
+    return openEdit(orderId);
+  }
+  if(!confirm('確認已完成退款給「'+name+'」的匯款？\n退款原因：'+o.refundReason)) return;
   const today = new Date();
   const refundDate = today.getFullYear()+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+String(today.getDate()).padStart(2,'0');
   try {
@@ -1537,6 +1545,9 @@ const MSG_TEMPLATES = {
     const total = (Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0);
     return '您好 '+(o.name||'')+'，感謝您今日的光臨 🙏\n\n本次消費已完成結帳 ✓\n📋 訂單號：'+(o.orderId||'')+'\n💰 消費總額：¥'+total.toLocaleString()+'\n\n歡迎您下次再來體驗！如有任何問題請隨時聯繫。';
   },
+  winback: function(o){
+    return '您好 '+(o.name||'')+' ✨\n好久不見了！我們最近推出了新的和服款式，許多老客戶回來都很喜歡呢 👘\n\n如果您最近有來日本的計畫，誠摯邀請您再次蒞臨體驗：\n• VIP 老客戶專屬 9 折優惠\n• 預約優先服務\n• 新款和服優先試穿\n\n回覆此訊息即可預約，期待再次為您服務！\n— 旅乘 × 和服';
+  },
   refund: function(o){
     return '您好 '+(o.name||'')+'，您的退款申請已處理 ✓\n\n📋 訂單號：'+(o.orderId||'')+'\n💸 退款金額：¥'+(Number(o.refundAmount)||0).toLocaleString()+'\n💳 退款方式：原路退回\n⏱ 到帳時間：3-7 個工作天\n\n如未收到請聯繫我們，感謝您的耐心 🙏';
   }
@@ -1546,7 +1557,7 @@ function openMsgTemplate(orderId){
   const o = allOrders.find(x=>x.orderId===orderId);
   if(!o) return alert('找不到訂單');
   let html = '<div class="todo-modal-bg" onclick="if(event.target===this)closeMsgTemplate()"><div class="todo-modal-card"><div class="todo-modal-head"><span class="font-bold text-base text-[#1A365D]">📨 訊息範本：'+(o.name||'')+' / '+orderId+'</span><button onclick="closeMsgTemplate()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">×</button></div><div class="todo-modal-body" style="padding:14px 18px">';
-  const titles = {confirm:'✅ 訂單確認', reminder:'⏰ 體驗前一日提醒', arrived:'🎌 已準備好和服', paid:'💰 收尾款 / 結帳完成', refund:'↩ 退款已處理'};
+  const titles = {confirm:'✅ 訂單確認', reminder:'⏰ 體驗前一日提醒', arrived:'🎌 已準備好和服', paid:'💰 收尾款 / 結帳完成', winback:'✨ 喚醒老客戶 (久未回訪)', refund:'↩ 退款已處理'};
   Object.keys(MSG_TEMPLATES).forEach(k=>{
     const txt = MSG_TEMPLATES[k](o);
     const safeId = 'tpl-'+k;
@@ -2146,6 +2157,9 @@ function filterOrders(){
   if(fSort==='booking-asc') list.sort((a,b)=>new Date(a.bookingDate||0)-new Date(b.bookingDate||0));
   if(fSort==='booking-desc') list.sort((a,b)=>new Date(b.bookingDate||0)-new Date(a.bookingDate||0));
   if(fSort==='amount-desc') list.sort((a,b)=>totalAmount(b)-totalAmount(a));
+  if(fSort==='due-desc') list.sort((a,b)=>{const td=function(o){const t=(Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0);return t-(Number(o.deposit)||0);};return td(b)-td(a);});
+  if(fSort==='recent-submit') list.sort((a,b)=>new Date(b.submitDate||b.createdAt||0)-new Date(a.submitDate||a.createdAt||0));
+  if(fSort==='visits-desc') list.sort((a,b)=>{const cnt=function(o){const ph=String(o.phone||'').replace(/\D/g,'');return ph?allOrders.filter(x=>String(x.phone||'').replace(/\D/g,'')===ph).length:0;};return cnt(b)-cnt(a);});
 
   document.getElementById('showing-count').textContent = list.length;
   document.getElementById('total-count').textContent = allOrders.length;
@@ -2518,7 +2532,15 @@ function renderCustomers(){
   const cAll = document.getElementById('cust-cnt-all'); if(cAll) cAll.textContent = totalCust;
   const cVip = document.getElementById('cust-cnt-vip'); if(cVip) cVip.textContent = vipCust;
   const cRep = document.getElementById('cust-cnt-repeat'); if(cRep) cRep.textContent = repeatCust;
+  // v2.5o: lapsed count
+  const ninetyAgo = Date.now() - 90*24*3600*1000;
+  const lapsedCust = arr.filter(c => c.lastDate && new Date(c.lastDate).getTime() < ninetyAgo).length;
+  const cLapsed = document.getElementById('cust-cnt-lapsed'); if(cLapsed) cLapsed.textContent = lapsedCust;
   // v2.6: 套用分類過濾
+  if(currentCustFilter === 'lapsed'){
+    const ninety = Date.now() - 90*24*3600*1000;
+    arr = arr.filter(c => c.lastDate && new Date(c.lastDate).getTime() < ninety);
+  }
   if(currentCustFilter === 'vip') arr = arr.filter(c=>c.isVip);
   else if(currentCustFilter === 'repeat') arr = arr.filter(c=>c.count>=2);
   const allSpent = arr.reduce((s,c)=>s+c.totalSpent,0);
