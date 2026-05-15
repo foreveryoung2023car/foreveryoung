@@ -648,6 +648,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
           <button class="tab-btn active" data-cust-filter="all" onclick="setCustFilter('all',this)">全部 <span id="cust-cnt-all" class="ml-1 opacity-80">0</span></button>
           <button class="tab-btn" data-cust-filter="vip" onclick="setCustFilter('vip',this)">⭐ VIP <span id="cust-cnt-vip" class="ml-1 opacity-80">0</span></button>
           <button class="tab-btn" data-cust-filter="repeat" onclick="setCustFilter('repeat',this)">🔁 回頭客 <span id="cust-cnt-repeat" class="ml-1 opacity-80">0</span></button>
+          <button class="tab-btn" data-cust-filter="lapsed" onclick="setCustFilter('lapsed',this)">💤 久未回訪 <span id="cust-cnt-lapsed" class="ml-1 opacity-80">0</span></button>
         </div>
         <input id="cust-search" name="cust_search_kimono" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="input-field !w-64" placeholder="🔍 搜尋姓名 / 電話 / Email" oninput="renderCustomers()">
         <select id="cust-sort" class="input-field !w-auto" onchange="renderCustomers()">
