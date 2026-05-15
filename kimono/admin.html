@@ -466,6 +466,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
   <section id="sec-orders" class="section">
     <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
       <h2 class="text-2xl font-bold text-[#1A365D] title-serif">訂單管理</h2>
+      <div class="inline-flex gap-1 ml-3"><button id="orders-view-card" onclick="setOrderView('card')" class="px-2 py-1 text-xs border border-slate-200 rounded bg-[#1A365D] text-white">🎴 卡片</button><button id="orders-view-list" onclick="setOrderView('list')" class="px-2 py-1 text-xs border border-slate-200 rounded bg-white text-slate-600">📋 列表</button></div>
       <div class="flex gap-2 flex-wrap">
         <button onclick="exportCSV()" class="btn-outline px-4 py-2 rounded-xl text-sm">📥 匯出 CSV</button>
         <button onclick="loadOrders()" class="btn-navy px-4 py-2 rounded-xl text-sm">↻ 重新載入</button>
@@ -2002,8 +2003,46 @@ function filterOrders(){
   renderOrders(list);
 }
 
+// v2.5d: 訂單管理 列表/卡片 view mode
+function setOrderView(mode){
+  try{ localStorage.setItem('orders_view', mode); }catch(e){}
+  document.querySelectorAll('#orders-view-card, #orders-view-list').forEach(b=>{
+    b.classList.remove('bg-[#1A365D]','text-white');
+    b.classList.add('bg-white','text-slate-600');
+  });
+  const active = document.getElementById('orders-view-' + mode);
+  if(active){ active.classList.remove('bg-white','text-slate-600'); active.classList.add('bg-[#1A365D]','text-white'); }
+  if(typeof filterOrders==='function') filterOrders();
+}
+function getOrderView(){ try{ return localStorage.getItem('orders_view') || 'card'; }catch(e){ return 'card'; } }
+
 function renderOrders(orders){
   const el = document.getElementById('orders-list');
+  // v2.5d: 列表 view
+  if (getOrderView() === 'list' && orders.length > 0) {
+    const empty = document.getElementById('orders-empty');
+    if (empty) empty.classList.add('hidden');
+    el.className = '';
+    el.innerHTML = '<div class="overflow-x-auto bg-white rounded-lg border border-slate-200"><table class="w-full text-sm"><thead class="bg-slate-50 text-xs"><tr><th class="p-2 text-left">編號</th><th class="p-2 text-left">姓名</th><th class="p-2 text-left">門市</th><th class="p-2 text-left">體驗日</th><th class="p-2 text-center">人</th><th class="p-2 text-center">加值</th><th class="p-2 text-right">總價</th><th class="p-2 text-right">尾款</th><th class="p-2 text-center">狀態</th><th class="p-2 text-right">動作</th></tr></thead><tbody>' + orders.map(o => {
+      const bd = parseBookingDate(o.bookingDate) || new Date(o.bookingDate);
+      const bdStr = bd && !isNaN(bd) ? ((bd.getMonth()+1) + '/' + bd.getDate() + ' ' + String(bd.getHours()).padStart(2,'0') + ':' + String(bd.getMinutes()).padStart(2,'0')) : '—';
+      const hair = (o.hair===true||o.hair==='true'||o.hair==='是') ? '💆' : '';
+      const photo = (o.photo===true||o.photo==='true'||o.photo==='是') ? '📷' : '';
+      const total = (Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0);
+      const due = total - (Number(o.deposit)||0);
+      const conf = (o.confirmed===true||o.confirmed==='true'||o.confirmed==='TRUE');
+      const ref = Number(o.refundAmount)||0;
+      let stBadge;
+      if (ref > 0) stBadge = '<span class="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs">退款</span>';
+      else if (conf) stBadge = '<span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-xs">已確認</span>';
+      else stBadge = '<span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs">待確認</span>';
+      return '<tr class="border-t hover:bg-slate-50"><td class="p-2 font-mono text-xs">' + (o.orderId||'') + '</td><td class="p-2 font-bold">' + (o.name||'—') + '</td><td class="p-2">' + (o.storeKey||'—') + '</td><td class="p-2 whitespace-nowrap">' + bdStr + '</td><td class="p-2 text-center">' + (o.adults||o.pax||'—') + '</td><td class="p-2 text-center">' + (hair+photo||'—') + '</td><td class="p-2 text-right font-bold">¥' + total.toLocaleString() + '</td><td class="p-2 text-right ' + (due>0?'text-amber-700 font-bold':'text-slate-400') + '">' + (due>0?'¥'+due.toLocaleString():'—') + '</td><td class="p-2 text-center">' + stBadge + '</td><td class="p-2 text-right whitespace-nowrap"><button onclick="openEdit(\'' + o.orderId + '\')" class="px-2 py-1 bg-[#1A365D] text-white text-xs rounded mr-1">✏️</button>' + (!conf ? '<button onclick="quickConfirm(\'' + o.orderId + '\')" class="px-2 py-1 border-2 border-emerald-400 text-emerald-700 text-xs rounded">✅</button>' : '') + '</td></tr>';
+    }).join('') + '</tbody></table></div>';
+    document.getElementById('showing-count').textContent = orders.length;
+    return;
+  }
+  // Restore grid class for card view
+  el.className = 'order-grid-inner';
   const empty = document.getElementById('orders-empty');
   if(!orders.length){
     el.innerHTML='';
