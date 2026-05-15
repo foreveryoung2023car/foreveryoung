@@ -2448,41 +2448,88 @@ function renderCalendar(){
     if(cnt>=5) cls += ' full';
     else if(cnt>=3) cls += ' busy';
     else if(cnt>0) cls += ' has-orders';
-    const peek = dayOrders.slice(0,2).map(o=>'<div class="text-[11px] truncate font-semibold" title="'+(o.name||'')+'">'+(o.name||'').slice(0,5)+'</div>').join('');
-    html += '<div class="calendar-day'+cls+'" onclick="showDayOrders(\''+y+'-'+(m+1)+'-'+d+'\')"><div class="font-bold text-sm">'+d+'</div>'+(cnt? '<div class="text-xs font-bold mt-0.5" style="color:'+(cnt>=5?'#7F1D1D':cnt>=3?'#B91C1C':'#1E40AF')+'">'+cnt+' 組</div>'+peek : '')+'</div>';
+    // v2.5p: 日格升級 — 加值/報到/收齊統計
+    const hairCnt = dayOrders.filter(o=>o.hair===true||o.hair==='true'||o.hair==='是').length;
+    const photoCnt = dayOrders.filter(o=>o.photo===true||o.photo==='true'||o.photo==='是').length;
+    const checkedCnt = dayOrders.filter(o=>o.checkedInAt).length;
+    const isToday = (dt.toDateString()===today.toDateString());
+    const isPast = dt < today;
+    const peek = dayOrders.slice(0,2).map(o=>{
+      const isVip = (function(){var ph=String(o.phone||'').replace(/\D/g,'');if(!ph)return false;return allOrders.filter(x=>String(x.phone||'').replace(/\D/g,'')===ph).length>=3;})();
+      return '<div class="text-[11px] truncate font-semibold" title="'+(o.name||'')+'">'+(isVip?'⭐':'')+(o.name||'').slice(0,5)+'</div>';
+    }).join('');
+    const stats = cnt ? ('<div class="flex items-center gap-1 text-[10px] mt-0.5">' +
+      '<span class="font-bold" style="color:'+(cnt>=5?'#7F1D1D':cnt>=3?'#B91C1C':'#1E40AF')+'">'+cnt+'組</span>' +
+      (hairCnt?'<span class="text-pink-600">💆'+hairCnt+'</span>':'') +
+      (photoCnt?'<span class="text-blue-600">📷'+photoCnt+'</span>':'') +
+      ((isToday||isPast)&&cnt>0 ? '<span class="ml-auto '+(checkedCnt===cnt?'text-emerald-600 font-bold':'text-amber-600')+'">'+(checkedCnt===cnt?'✓':checkedCnt+'/'+cnt)+'</span>':'') +
+    '</div>') : '';
+    html += '<div class="calendar-day'+cls+'" onclick="showDayOrders(\''+y+'-'+(m+1)+'-'+d+'\')"><div class="flex items-baseline justify-between"><div class="font-bold text-sm">'+d+'</div>'+(isToday?'<div class="text-[9px] text-amber-600 font-bold">今日</div>':'')+'</div>'+stats+peek+'</div>';
   }
   const remaining = (7 - (startDay+daysInMonth)%7) % 7;
   for(let i=1;i<=remaining;i++) html += '<div class="calendar-day other-month"><div>'+i+'</div></div>';
   grid.innerHTML = html;
 }
 function showDayOrders(dateStr){
-  // v2.4.29: store 角色 popup 只看自家
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  const dayStr = y+'/'+String(m).padStart(2,'0')+'/'+String(d).padStart(2,'0');
   const visible = filterOrdersForRole(allOrders);
-  const dt = new Date(dateStr);
-  const dayOrders = visible.filter(o=>{const od=new Date(o.bookingDate); return !isNaN(od) && od.toDateString()===dt.toDateString();});
-  if(!dayOrders.length){ toast('該日無預約','warning'); return; }
-  // Show inline popup instead of jumping to orders list
-  let pop = document.getElementById('day-orders-popup');
-  if(!pop){
-    pop = document.createElement('div');
-    pop.id = 'day-orders-popup';
-    pop.className = 'modal-overlay';
-    pop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px';
-    pop.onclick = (e)=>{ if(e.target===pop) pop.remove(); };
-    document.body.appendChild(pop);
-  }
-  const yyyy = dt.getFullYear(); const mm = String(dt.getMonth()+1).padStart(2,'0'); const dd = String(dt.getDate()).padStart(2,'0');
-  pop.innerHTML = '<div style="background:white;border-radius:12px;max-width:640px;width:100%;max-height:85vh;overflow:auto;padding:20px"><div class="flex justify-between items-center mb-3"><h3 class="font-bold text-lg text-[#1A365D]">📅 '+yyyy+'/'+mm+'/'+dd+' 預約清單（'+dayOrders.length+' 筆）</h3><button onclick="document.getElementById(\'day-orders-popup\').remove()" class="text-2xl text-slate-400 hover:text-slate-700">×</button></div>'+
-    dayOrders.map(o=>'<div class="border border-slate-200 rounded-lg p-3 mb-2 hover:bg-slate-50 cursor-pointer" onclick="document.getElementById(\'day-orders-popup\').remove();openEdit(\''+o.orderId+'\')">'+
-      '<div class="flex justify-between items-start gap-2"><div class="flex-1 min-w-0"><div class="font-bold text-[#1A365D]">'+(o.name||'—')+' <span class="text-xs text-slate-600 font-mono">'+(o.orderId||'')+'</span></div>'+
-      '<div class="text-sm text-slate-700 mt-1">👥 '+(o.adults||o.pax||'—')+' ｜ 👘 '+(o.plan||'—')+'</div>'+
-      '<div class="text-xs text-slate-600 mt-1">📞 '+(o.phone||'—')+(o.platform?' ｜ 📱 '+o.platform:'')+'</div></div>'+
-      '<div class="flex flex-col gap-1 flex-shrink-0">'+(o.confirmed?'<span class="badge badge-confirmed">已確認</span>':'<span class="badge badge-pending">待確認</span>')+'</div></div></div>'
-    ).join('')+
-    '<div class="text-center mt-3"><button onclick="document.getElementById(\'day-orders-popup\').remove();switchSection(\'orders\',document.querySelector(\'[data-sec=orders]\'));currentFilter=\'all\';document.querySelectorAll(\'#sec-orders .tab-btn\').forEach(function(b){b.classList.remove(\'active\');});var ab=document.querySelectorAll(\'#sec-orders .tab-btn\')[0];if(ab)ab.classList.add(\'active\');document.getElementById(\'f-search\').value=\'\';document.getElementById(\'f-plan\').value=\'\';document.getElementById(\'f-platform\').value=\'\';document.getElementById(\'f-hair\').value=\'\';document.getElementById(\'f-photo\').value=\'\';document.getElementById(\'f-date-from\').value=\''+yyyy+'-'+mm+'-'+dd+'\';document.getElementById(\'f-date-to\').value=\''+yyyy+'-'+mm+'-'+dd+'\';filterOrders();" class="text-sm text-[#1A365D] underline">在訂單管理中以日期 filter 開啟 →</button></div></div>';
-}
+  const orders = visible.filter(o=>{
+    const od = parseBookingDate(o.bookingDate);
+    return od && od.getFullYear()===y && od.getMonth()===m-1 && od.getDate()===d;
+  }).sort((a,b)=>parseBookingDate(a.bookingDate)-parseBookingDate(b.bookingDate));
 
-// ── CUSTOMERS（從訂單聚合） ──
+  const old = document.getElementById('cal-day-modal');
+  if (old) old.remove();
+  const wk = ['週日','週一','週二','週三','週四','週五','週六'][dt.getDay()];
+  let html = '<div class="todo-modal-bg" id="cal-day-modal" onclick="if(event.target.id===\'cal-day-modal\')closeCalDayModal()"><div class="todo-modal-card" style="max-width:720px"><div class="todo-modal-head"><span class="font-bold text-lg text-[#1A365D]">📅 '+dayStr+' '+wk+' ('+orders.length+' 單)</span><button onclick="closeCalDayModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">×</button></div><div class="todo-modal-body" style="padding:14px 18px">';
+
+  if (!orders.length) {
+    html += '<div class="text-center text-slate-400 py-8">此日無預約</div>';
+  } else {
+    // Stats bar
+    const hairCnt = orders.filter(o=>o.hair===true||o.hair==='true'||o.hair==='是').length;
+    const photoCnt = orders.filter(o=>o.photo===true||o.photo==='true'||o.photo==='是').length;
+    const checkedCnt = orders.filter(o=>o.checkedInAt).length;
+    const totalPax = orders.reduce((s,o)=>s+(Number(o.adults)||Number(o.pax)||0), 0);
+    html += '<div class="flex items-center gap-3 mb-3 pb-3 border-b border-slate-100 text-xs flex-wrap">';
+    html += '<span class="font-bold text-[#1A365D]">總計 '+orders.length+' 單 / '+totalPax+' 人</span>';
+    if (hairCnt) html += '<span class="bg-pink-100 text-pink-700 px-2 py-0.5 rounded">💆 '+hairCnt+'</span>';
+    if (photoCnt) html += '<span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded">📷 '+photoCnt+'</span>';
+    html += '<span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">✓ '+checkedCnt+'/'+orders.length+'</span>';
+    html += '</div>';
+    html += orders.map(o=>{
+      const bd = parseBookingDate(o.bookingDate);
+      const hh = String(bd.getHours()).padStart(2,'0');
+      const mm = String(bd.getMinutes()).padStart(2,'0');
+      const phoneTail = String(o.phone||'').replace(/\D/g, '').slice(-3);
+      const hair = (o.hair===true||o.hair==='true'||o.hair==='是')?'💆':'';
+      const photo = (o.photo===true||o.photo==='true'||o.photo==='是')?'📷':'';
+      const conf = (o.confirmed===true||o.confirmed==='true'||o.confirmed==='TRUE');
+      const checked = !!o.checkedInAt;
+      const isVip = (function(){var ph=String(o.phone||'').replace(/\D/g,'');if(!ph)return false;return allOrders.filter(x=>String(x.phone||'').replace(/\D/g,'')===ph).length>=3;})();
+      let st = '⏳待確認';
+      if (checked) st = '✅已報到';
+      else if (conf) st = '✓已確認';
+      const dotColor = checked?'bg-emerald-500':(conf?'bg-amber-400':'bg-slate-300');
+      return '<div class="flex items-center gap-3 py-2 border-b border-slate-50 hover:bg-slate-50 cursor-pointer rounded px-2" onclick="closeCalDayModal();openEdit(\''+o.orderId+'\')">' +
+        '<span class="font-mono font-bold text-xl text-[#1A365D] w-16">'+hh+':'+mm+'</span>' +
+        '<span class="inline-block w-2 h-2 rounded-full '+dotColor+'"></span>' +
+        '<div class="flex-1 min-w-0">' +
+          '<div class="font-bold">'+(isVip?'⭐':'')+(o.name||'—')+' <span class="text-xs text-slate-500 font-mono ml-1">'+(o.orderId||'')+'</span></div>' +
+          '<div class="text-xs text-slate-600">末'+phoneTail+' · '+(o.adults||o.pax||'—')+' 人 '+hair+photo+(o.storeKey?' · 🏪'+o.storeKey:'')+'</div>' +
+        '</div>' +
+        '<span class="text-xs text-slate-600">'+st+'</span>' +
+        '</div>';
+    }).join('');
+  }
+  html += '</div></div></div>';
+  const wrap = document.createElement('div'); wrap.innerHTML = html;
+  document.body.appendChild(wrap.firstChild);
+}
+function closeCalDayModal(){ const x = document.getElementById('cal-day-modal'); if (x) x.remove(); }
+
 function buildCustomers(){
   const map = {};
   allOrders.forEach(o=>{
