@@ -2064,7 +2064,7 @@ function renderOrders(orders){
 
     const total = totalAmount(o);
     const due = total - (Number(o.deposit)||0);
-    const days = o.bookingDate ? Math.ceil((new Date(o.bookingDate)-now)/(86400000)) : null;
+    const days = (function(){if(!o.bookingDate)return null;const d=parseBookingDate(o.bookingDate);if(!d)return null;const t=new Date();t.setHours(0,0,0,0);const dd=new Date(d.getFullYear(),d.getMonth(),d.getDate());return Math.round((dd-t)/86400000);})();
     const daysTag = days!==null && !isNaN(days) ? (days<0? '<span class="pill bg-slate-200 text-slate-700">已過 '+Math.abs(days)+' 天</span>' : days===0? '<span class="pill bg-amber-100 text-amber-800">📍 今天到店</span>' : days<=3? '<span class="pill bg-amber-100 text-amber-800">⏰ 剩 '+days+' 天</span>' : '<span class="pill bg-blue-100 text-blue-800">剩 '+days+' 天</span>') : '';
 
     return '<div class="order-card '+cls+' '+sel+' p-3 md:p-4" style="margin-bottom:0">'+
@@ -2084,7 +2084,7 @@ function renderOrders(orders){
             '<div><div class="text-xs text-slate-600 font-semibold">體驗日期</div><div class="font-bold text-[#1A365D]">'+fmtBookingDateTime(o.bookingDate)+'</div></div>'+
             '<div><div class="text-xs text-slate-600 font-semibold">電話</div><div class="font-bold">'+(o.phone||'—')+'</div></div>'+
             '<div><div class="text-xs text-slate-600 font-semibold">人數</div><div class="font-bold">'+(o.adults||o.pax||'—')+'</div></div>'+
-            '<div><div class="text-xs text-slate-600 font-semibold">和服款式</div><div class="font-bold truncate" title="'+(o.plan||'')+'">'+(o.plan||'—')+'</div></div>'+
+            /* v2.4.42j: hide 和服款式 */ ''+
             '<div><div class="text-xs text-slate-600 font-semibold">訂金</div><div class="font-bold">'+fmtY(o.deposit)+'</div></div>'+
             '<div><div class="text-xs text-slate-600 font-semibold">總價</div><div class="font-bold">'+fmtY(total)+'</div></div>'+
             '<div><div class="text-xs text-slate-600 font-semibold">待收尾款</div><div class="font-bold '+(due>0?'text-amber-700':'text-emerald-700')+'">'+fmtY(due)+'</div></div>'+
@@ -3719,9 +3719,8 @@ function renderCheckIn() {
     if (!o.bookingDate) return false;
     const bd = parseBookingDate(o.bookingDate);  // v2.4.42g
     if (!bd) return false;
-    const bdYMD = bd.getUTCFullYear() + '-' + String(bd.getUTCMonth()+1).padStart(2,'0') + '-' + String(bd.getUTCDate()).padStart(2,'0');
-    // ±1 天 = 昨天 / 今天 / 明天
-    const diff = Math.round((Date.UTC(bd.getUTCFullYear(), bd.getUTCMonth(), bd.getUTCDate()) - Date.UTC(jstNow.getFullYear(), jstNow.getMonth(), jstNow.getDate())) / ms);
+    // v2.4.42j: timezone-safe local get*()
+    const diff = Math.round((new Date(bd.getFullYear(), bd.getMonth(), bd.getDate()) - new Date(jstNow.getFullYear(), jstNow.getMonth(), jstNow.getDate())) / ms);
     return diff >= -1 && diff <= 1;
   });
   // 店家身份只看自家
