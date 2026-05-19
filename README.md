@@ -21,7 +21,7 @@ foreveryoung/
 
 ## 📞 聯絡
 
-- Email: designbyjun@gmail.com
+- Email: foreveryoung2023car@gmail.com
 - LINE: @230cbycd
 - FB: 旅乘-日本自由行包車
 - IG: @foreveryoung2023car
@@ -31,4 +31,4 @@ foreveryoung/
 - 這些頁面是 Meta App Review 必須的法律文件，**請勿刪除**
 - 內容變更時請保持 URL 不變
 
-© 2026 foreveryoung 旅乘日本包車
+© 2026 foreveryoung 旅乘日�
