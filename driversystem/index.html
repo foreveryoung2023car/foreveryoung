@@ -1249,20 +1249,16 @@
       grid-template-columns: repeat(3, 1fr);
     }
   }
-  /* v21: 超寬桌機 4 欄 */
+  /* v21: 超寬桌機 4 欄 + 卡片內距更寬 */
   @media (min-width: 1400px) {
     .orders {
       grid-template-columns: repeat(4, 1fr);
       gap: 14px;
     }
   }
-  /* v21: 訂單卡內容更舒服 */
   @media (min-width: 768px) {
-    .order-card {
-      padding: 14px 16px !important;
-    }
+    .order-card { padding: 14px 16px !important; }
     .order-card .order-route { line-height: 1.5; }
-    .order-card .order-remark { padding: 6px 8px; line-height: 1.45; }
   }
 
   /* ====== v15 localStorage 提示 ====== */
@@ -1782,7 +1778,6 @@ async function loadRealData() {
   const end = new Date(today.getTime() + 60 * 86400000);
   const fmt = d => d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0');
 
-  // v21: 改用 driverName (leader 名字) 過濾，而不是 region
   const [drivers, vehicles, orders] = await Promise.all([
     api.getDrivers(region),
     api.getVehicles(region),
@@ -1873,26 +1868,21 @@ function adaptOrderFromApi(o) {
     });
   }
 
-  // v21: 從 L 欄 (startTime) 取出發時間
-  const startStr = String(o.startTime || '').trim();
-  const startTime = startStr || '時段未定';
-  // 依時數推估結束時間（如有 hours 數字）
-  let endTime = '';
-  if (startStr && o.hours) {
-    const hoursNum = parseInt(o.hours);
-    if (!isNaN(hoursNum) && hoursNum > 0) {
-      const m = startStr.match(/^(\d{1,2}):(\d{2})/);
-      if (m) {
-        const eh = (parseInt(m[1]) + hoursNum) % 24;
-        endTime = String(eh).padStart(2,'0') + ':' + m[2];
-      }
-    }
-  }
-
   return {
     no: o.no || '',
     date: dateNorm,
-    start: startTime, end: endTime || '',  // v21: L 欄出發時間
+    // v21: 從 L 欄 (API.startTime) 取出發時間，再用 hours 推結束
+    start: (o.startTime || '時段未定'),
+    end: (function(){
+      if (!o.startTime || !o.hours) return '';
+      const h = parseInt(o.hours);
+      const m = String(o.startTime).match(/^(\d{1,2}):(\d{2})/);
+      if (!isNaN(h) && h>0 && m) {
+        const eh = (parseInt(m[1]) + h) % 24;
+        return String(eh).padStart(2,'0') + ':' + m[2];
+      }
+      return '';
+    })(),
     tripType: tripType,
     priorityType: '',
     requireLang: [],
@@ -2876,7 +2866,7 @@ function renderOrderCard(o, idx) {
       </div>
       ${o.status !== 'pending' && o.status !== 'cancelled' ? renderStatusMiniFlow(o) : ''}
       <div class="order-time">
-        ${!o.start || o.start === '時段未定' ? '<span style="color:var(--muted-2);">時段未定</span>' : (o.end ? `${o.start} – ${o.end}` : `${o.start} 出發`)}${o.tripType === 'daytrip' ? '<span class="uncertain">結束時間可能延後</span>' : ''}${o.tripType === 'multiday' ? '<span class="multiday-range">' + o.multidayInfo.dayCount + ' 天連續</span>' : ''}
+        ${(!o.start || o.start === '時段未定') ? '<span style="color:var(--muted-2);">時段未定</span>' : (o.end ? `${o.start} – ${o.end}` : `${o.start} 出發`)}${o.tripType === 'daytrip' ? '<span class="uncertain">結束時間可能延後</span>' : ''}${o.tripType === 'multiday' ? '<span class="multiday-range">' + o.multidayInfo.dayCount + ' 天連續</span>' : ''}
       </div>
       <div class="order-route">${getRouteDisplay(o)}</div>
       <div class="order-tags">
@@ -3881,4 +3871,38 @@ function switchPage(page) {
   const btn = document.querySelector(`.nav-btn[data-page="${page}"]`);
   if (btn) btn.classList.add('active');
   if (page === 'schedule') renderScheduleGrid();
-  if (page === 'drivers') { renderTagFilterBar();
+  if (page === 'drivers') { renderTagFilterBar(); renderDriversList(); }
+  if (page === 'vehicles') renderVehiclesList();
+  if (page === 'search') { document.getElementById('searchInput').focus(); renderSearchResults(); renderSearchDriverChips(); }
+  if (page === 'notify-history') renderNotifyHistory();
+  if (page === 'stats') renderStatsDriverRank();
+}
+
+function doLogin() {
+  doLoginReal();
+}
+function doLoginMock() {
+  document.getElementById('loginMask').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+}
+function logoutConfirm() {
+  if (confirm('確定要登出？')) {
+    document.getElementById('loginMask').style.display = 'flex';
+    document.getElementById('mainApp').style.display = 'none';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.filter-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      if (t.classList.contains('disabled')) return;
+      setFilter(t.dataset.filter);
+    });
+  });
+  renderDateStrip();
+  renderNotifyBanner();
+  renderOrders();
+});
+</script>
+</body>
+</html>
