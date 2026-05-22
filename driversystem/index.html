@@ -1495,7 +1495,7 @@
       <span class="sect-link" onclick="switchPage('schedule')">查看排班表 →</span>
     </div>
     <div class="date-quick-nav">
-      <button class="dq-btn" onclick="selectDate('2026-05-22')" id="dqToday">回今日</button>
+      <button class="dq-btn" onclick="selectDate(new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0')+'-'+String(new Date().getDate()).padStart(2,'0'))" id="dqToday">回今日</button>
       <button class="dq-btn" onclick="selectDate('2026-05-23')" id="dqTomorrow">明日</button>
       <button class="dq-btn" onclick="selectDate('2026-05-29')" id="dqNextWeek">下週</button>
       <button class="dq-btn" onclick="toggleDateStripAll()" id="dqHistory">⊲ 歷史</button>
@@ -1610,7 +1610,7 @@
   </section>
 
   <!-- ============ 統計分析頁 ============ -->
-  <section class="page" id="page-stats">
+  <section class="page" id="page-stats"><div style="background:#FEF3C7;border:1px solid #F59E0B;color:#92400E;padding:10px 14px;border-radius:8px;margin:14px 16px;font-size:12px;line-height:1.5;">🚧 統計頁全部為示範資料，待派車紀錄真實 sync 後才會反映實際派車數字</div>
     <div class="search-page-bar">
       <div style="font-size:15px;font-weight:700;flex:1;">統計分析</div>
       <span class="search-cancel" onclick="switchPage('settings')">關閉</span>
@@ -1644,7 +1644,7 @@
   </section>
 
   <!-- ============ 設定頁 ============ -->
-  <section class="page" id="page-settings">
+  <section class="page" id="page-settings"><div style="background:#FEF3C7;border:1px solid #F59E0B;color:#92400E;padding:10px 14px;border-radius:8px;margin:14px 16px;font-size:12px;line-height:1.5;">🚧 設定頁部分功能尚未連通（個人資料 / 資料同步 皆為示意）</div>
     <div class="sect-head"><div class="sect-title">個人</div></div>
     <div class="list-card">
       <div class="settings-item">
@@ -1684,7 +1684,7 @@
         <div class="settings-icon">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
         </div>
-        <div class="settings-text"><div class="t1">關於系統</div><div class="t2">v5.0</div></div>
+        <div class="settings-text"><div class="t1">關於系統</div><div class="t2">v27</div></div>
         <span style="color:var(--muted-2);">›</span>
       </div>
     </div>
@@ -1826,7 +1826,8 @@ async function loadRealData() {
   if (!currentUser) return;
   // v22: 先清空 mock data，避免閃現
   ORDERS.tomorrow.length = 0;
-  document.getElementById('ordersList').innerHTML = '<div class="empty" style="padding:40px 20px;"><div class="loading-spin" style="width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;margin:0 auto;animation:spin 0.8s linear infinite;"></div><div style="margin-top:10px;color:var(--muted);font-size:12px;">第一批訂單（近 3 天）載入中...</div></div>';
+  const ol = document.getElementById('ordersList');
+  if (ol) ol.innerHTML = '<div class="empty" style="padding:40px 20px;"><div class="loading-spin" style="width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;margin:0 auto;animation:spin 0.8s linear infinite;"></div><div style="margin-top:10px;color:var(--muted);font-size:12px;">第一批訂單（近 3 天）載入中...</div></div>';
   const region = currentUser.regionCode;
   console.log('[loadRealData] region =', region);
 
@@ -2470,170 +2471,11 @@ const NOTIFICATIONS = [];
 
 /* ============ 訂單 ============ */
 const ORDERS = {
-  'tomorrow':[
-    {
-      no:'#26052301', date:'2026-05-23', start:'10:00', end:'18:00',
-      tripType:'roundtrip', priorityType:'富士山', requireLang:['zh'],
-      from:'淺草雷門飯店', to:'富士山',
-      routeBrief:'淺草雷門飯店 往返 富士山一日遊',
-      pax:{adult:3, child:1}, carSeatCount:1, carType:'7座 Alphard', carCount:1,
-      remarks:'客人指定多停大石公園 30 分鐘拍照，回程經御殿場 Outlet 採購 1 小時。需要汽座 x1。',
-      status:'pending', assignments:[],
-      lifecycle:[{state:'pending', at:'2026-05-20 10:00', by:'系統'}],
-      lastModified:'2026-05-22 14:32', isModified:true,
-      modifyLog:'客人改出發時間 09:00 → 10:00（14:32）',
-      rawMessage:`#26052301
-日期：2026/05/23
-時間：10:00 AM（原 09:00，客人改）
-起始：淺草雷門飯店
-行程：淺草飯店 ⇆ 河口湖 → 大石公園 → 新倉淺間公園 → 御殿場Outlet → 飯店
-人數：3 大 + 1 小
-車款：7 座舒適款 Alphard
-特殊需求：汽座 x1
-備註：拍照景點多停 30 分；經 Outlet 採購 1 小時`
-    },
-    {
-      no:'#26052308', date:'2026-05-23', start:'13:00', end:'16:00',
-      tripType:'oneway', priorityType:'機場接送', requireLang:['zh','ja'],
-      from:'成田機場 T1', to:'新宿希爾頓',
-      routeBrief:'成田 T1 → 新宿希爾頓（多車）',
-      pax:{adult:12, child:2}, carSeatCount:2, carType:'10座海獅 + 7座Alphard', carCount:2,
-      remarks:'14 位旅客 + 18 件大行李，需要 2 台車。班機 NH828 抵達 12:55。汽座 x2',
-      status:'pending', assignments:[],
-      lifecycle:[{state:'pending', at:'2026-05-21 09:30', by:'系統'}],
-      rawMessage:`#26052308\n日期：2026/05/23\n時間：13:00 (NH828 抵達 12:55)\n起始：成田機場 T1\n行程：T1 → 新宿希爾頓\n人數：12 大 + 2 小\n車款：10座海獅 x 1 + 7座Alphard x 1`
-    },
-    {
-      no:'#26052302', date:'2026-05-23', start:'08:30', end:'11:00',
-      tripType:'oneway', priorityType:'機場接送', requireLang:['zh'],
-      from:'成田機場 T1', to:'銀座蒙特利酒店',
-      routeBrief:'成田機場 T1 → 銀座蒙特利酒店',
-      pax:{adult:2, child:1}, carSeatCount:1, carType:'7座舒適款', carCount:1,
-      remarks:'T1 入境大廳舉牌「黃先生」，班機 CI100 抵達 08:30。需汽座 x1',
-      status:'pending', assignments:[],
-      lifecycle:[{state:'pending', at:'2026-05-21 11:00', by:'系統'}],
-      rawMessage:`#26052302\n日期：2026/05/23\n時間：08:30 AM\n起始：東京成田T1 / CI100 / 抵達 08:30\n行程：成田機場 → 銀座蒙特利酒店\n人數：2 大 + 1 小`
-    },
-    {
-      no:'#26052303', date:'2026-05-23', start:'07:00', end:'19:00',
-      tripType:'roundtrip', priorityType:'一日遊', requireLang:['zh'],
-      from:'上野東橫INN', to:'鎌倉',
-      routeBrief:'上野 往返 鎌倉一日遊',
-      pax:{adult:7, child:0}, carSeatCount:0, carType:'10座 海獅', carCount:1,
-      remarks:'拍照景點較多：江之島、鎌倉高校前、鶴岡八幡宮、小町通、大佛',
-      status:'pending', assignments:[],
-      lifecycle:[{state:'pending', at:'2026-05-20 14:00', by:'系統'}],
-      rawMessage:`#26052303\n日期：2026/05/23\n時間：07:00 AM\n起始：上野東橫INN\n行程：飯店 ⇆ 江之島 → 鎌倉高校前 → 八幡宮 → 大佛\n人數：7 大`
-    },
-    {
-      no:'#26052304', date:'2026-05-23', start:'14:00', end:'17:00',
-      tripType:'oneway', priorityType:'機場接送', requireLang:['zh'],
-      from:'品川王子飯店', to:'羽田 T3',
-      routeBrief:'品川王子飯店 → 羽田 T3',
-      pax:{adult:2, child:0}, carSeatCount:0, carType:'7座 Alphard', carCount:1,
-      remarks:'2 大人 + 4 件大行李',
-      status:'assigned',
-      assignments:[{driverId:'TK-001', vehicleId:'VTK-001', fee:30000, status:'active', assignedAt:'2026-05-22 10:30', adjustments:[{type:'deduct', amount:3000, reason:'前次服務（#26052290）遲到 30 分鐘導致客人險些錯過班機', at:'2026-05-22 11:00', by:'林小姐'}]}],
-      lifecycle:[
-        {state:'pending', at:'2026-05-20 09:00', by:'系統'},
-        {state:'assigned', at:'2026-05-22 10:30', by:'林小姐'}
-      ],
-      rawMessage:`#26052304\n日期：2026/05/23\n時間：14:00\n起始：品川王子飯店\n行程：品川王子 → 羽田 T3\n人數：2 大`
-    },
-    {
-      no:'#26052305', date:'2026-05-23', start:'10:00', end:'20:00',
-      tripType:'daytrip', priorityType:'迪士尼接送', requireLang:['zh'],
-      from:'新宿京王廣場', to:'迪士尼樂園',
-      routeBrief:'新宿 ⇆ 迪士尼接送+園區等候',
-      pax:{adult:3, child:2}, carSeatCount:1, carType:'7座 Alphard', carCount:1,
-      remarks:'司機需在園區附近停車場等候至 19:30',
-      status:'confirmed',
-      assignments:[
-        {driverId:'TK-002', vehicleId:'VTK-005', fee:32000, status:'cancelled',
-         cancelReason:'客人改成下午出發，原司機已有其他班次', cancelledAt:'2026-05-22 09:15',
-         changeType:'客人要求', notifiedCustomer:true, notifiedDriver:true},
-        {driverId:'TK-005', vehicleId:'VTK-008', fee:35000, status:'active', assignedAt:'2026-05-22 09:20'}
-      ],
-      lifecycle:[
-        {state:'pending', at:'2026-05-20 11:00', by:'系統'},
-        {state:'assigned', at:'2026-05-21 14:30', by:'林小姐'},
-        {state:'confirmed', at:'2026-05-22 09:22', by:'郭海峰'}
-      ],
-      lastModified:'2026-05-22 09:20',
-      rawMessage:`#26052305\n日期：2026/05/23\n時間：10:00\n起始：新宿京王廣場\n行程：新宿 → 迪士尼樂園 → 新宿\n人數：3 大 + 2 小`
-    },
-    {
-      no:'#26052306', date:'2026-05-23 → 05-24', start:'09:00', end:'18:00',
-      tripType:'multiday', priorityType:'多日行程', requireLang:['ja'],
-      from:'池袋大都會', to:'富士山',
-      routeBrief:'池袋出發 富士山兩天一夜',
-      pax:{adult:4, child:2}, carSeatCount:1, carType:'10座 海獅', carCount:1,
-      multidayInfo:{startDate:'2026-05-23', endDate:'2026-05-24', dayCount:2, nights:1},
-      remarks:'兩天一夜行程：Day1 富士山周邊 + 河口湖民宿過夜，Day2 御殿場 Outlet → 返池袋',
-      status:'in-progress',
-      assignments:[{driverId:'TK-020', vehicleId:'VTK-023', fee:80000, status:'active', assignedAt:'2026-05-21 16:30'}],
-      lifecycle:[
-        {state:'pending', at:'2026-05-19 10:00', by:'系統'},
-        {state:'assigned', at:'2026-05-21 16:30', by:'林小姐'},
-        {state:'confirmed', at:'2026-05-21 17:00', by:'湯村浩'},
-        {state:'in-progress', at:'2026-05-23 09:00', by:'湯村浩'}
-      ],
-      rawMessage:`#26052306\n日期：2026/05/23 - 05/24\n時間：Day1 09:00 出發\n起始：池袋大都會\n行程：Day1 池袋 → 河口湖民宿\n　　　Day2 民宿 → 御殿場Outlet → 池袋\n人數：4 大 + 2 小`
-    },
-    {
-      no:'#26052307', date:'2026-05-23', start:'16:00', end:'19:00',
-      tripType:'oneway', priorityType:'機場接送', requireLang:['zh'],
-      from:'東京站JR飯店', to:'成田 T2',
-      routeBrief:'東京站JR飯店 → 成田 T2',
-      pax:{adult:4, child:0}, carSeatCount:0, carType:'7座 Alphard', carCount:1,
-      remarks:'',
-      status:'assigned',
-      assignments:[{driverId:'TK-004', vehicleId:'VTK-006', fee:30000, status:'active', assignedAt:'2026-05-21 11:00'}],
-      lifecycle:[
-        {state:'pending', at:'2026-05-20 15:00', by:'系統'},
-        {state:'assigned', at:'2026-05-21 11:00', by:'林小姐'}
-      ],
-      rawMessage:`#26052307\n日期：2026/05/23\n時間：16:00\n起始：東京站JR飯店\n行程：東京站 → 成田 T2`
-    },
-    // 已完成示範（含評分）
-    {
-      no:'#26052289', date:'2026-05-22', start:'09:00', end:'17:00',
-      tripType:'daytrip', priorityType:'富士山', requireLang:['zh'],
-      from:'新宿', to:'富士山',
-      routeBrief:'新宿 ⇆ 富士山一日遊',
-      pax:{adult:4, child:0}, carSeatCount:0, carType:'7座 Alphard', carCount:1,
-      remarks:'',
-      status:'completed',
-      assignments:[{driverId:'TK-001', vehicleId:'VTK-001', fee:30000, status:'active', assignedAt:'2026-05-20 14:00', adjustments:[{type:'bonus', amount:1000, reason:'客人指定加給（行程結束額外感謝）', at:'2026-05-22 18:30', by:'林小姐'}]}],
-      lifecycle:[
-        {state:'pending', at:'2026-05-19 10:00', by:'系統'},
-        {state:'assigned', at:'2026-05-20 14:00', by:'林小姐'},
-        {state:'confirmed', at:'2026-05-20 15:00', by:'劉備'},
-        {state:'in-progress', at:'2026-05-22 09:00', by:'劉備'},
-        {state:'completed', at:'2026-05-22 17:20', by:'劉備'}
-      ],
-      rating:{score:5, comment:'司機很親切，景點都有妥善安排，孩子很開心！', ratedAt:'2026-05-22 18:00', ratedBy:'客人 LINE 回覆'},
-      rawMessage:`#26052289\n日期：2026/05/22\n富士山一日遊`
-    },
-    // 已取消示範
-    {
-      no:'#26052310', date:'2026-05-25', start:'10:00', end:'14:00',
-      tripType:'oneway', priorityType:'機場接送', requireLang:['zh'],
-      from:'新宿', to:'成田 T1',
-      routeBrief:'新宿 → 成田 T1',
-      pax:{adult:3, child:0}, carSeatCount:0, carType:'7座 Alphard', carCount:1,
-      remarks:'客人原訂送機，因班機改期取消',
-      status:'cancelled',
-      assignments:[],
-      lifecycle:[
-        {state:'pending', at:'2026-05-20 12:00', by:'系統'},
-        {state:'cancelled', at:'2026-05-22 13:48', by:'客人', reason:'班機改期，整個行程延後一週'}
-      ],
-      cancelInfo:{at:'2026-05-22 13:48', by:'客人', reason:'班機改期，整個行程延後一週'},
-      rawMessage:`#26052310\n（客人取消）`
-    }
-  ]
-};
+  // v27: 完全空，等 loadRealData 從 API 填入
+  'tomorrow': [],
+  'upcoming': [],
+  'past': []
+};;
 
 // v9: 自動生成 -30 至 +14 天的日期清單（含過去/未來）
 // v23: DATE_LIST 改成只含日期骨架，count 由 ORDERS.tomorrow 動態計算
@@ -2688,7 +2530,7 @@ function recomputeDateCounts() {
 }
 
 let state = {
-  page:'dispatch', currentDate:'2026-05-22', filter:'all', listView:false,
+  page:'dispatch', currentDate:(new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0')+'-'+String(new Date().getDate()).padStart(2,'0')), filter:'all', listView:false,
   editingOrder:null, editingAssignments:[],
   driverFilterTag:'all', driverSearch:'',
   searchFilter:'all', searchQuery:'',
@@ -3650,7 +3492,7 @@ function renderScheduleGrid() {
       `<th>${driver.name}<div class="driver-id-sm">${driver.id}</div></th>` +
       DATE_LIST.map(d => {
         const todayJobs = cells.filter(c => c.date === d.key);
-        if (driver.off && d.key === '2026-05-22') return `<td class="sg-cell off"><div class="sg-cell-content">休</div></td>`;
+        if (driver.off && (d.isToday === true)) return `<td class="sg-cell off"><div class="sg-cell-content">休</div></td>`;
         if (todayJobs.length === 0) return `<td class="sg-cell free"></td>`;
         const hasMultiday = todayJobs.some(j => j.tripType === 'multiday');
         const cls = hasMultiday ? 'multiday' : (todayJobs.length === 1 ? 'light' : todayJobs.length === 2 ? 'med' : 'heavy');
@@ -3779,6 +3621,7 @@ function openAddDriverSheet() {
   document.getElementById('sheet').classList.add('show');
 }
 function saveNewDriver() {
+  alert('⚠ 新增功能尚未接 API：你新增的司機僅暫存本機，重整會消失。\n（之後會接 apiCreateDriver）');
   const name = document.getElementById('newDriverName').value.trim();
   if (!name) { alert('請輸入姓名'); return; }
   const langs = [...document.getElementById('newDriverLangPicker').querySelectorAll('.tag-option.selected')].map(el => el.dataset.lang);
@@ -3880,7 +3723,7 @@ function openDriverDetail(driverId) {
   html += '<div class="dd-stat"><div class="dd-stat-num gold">★ ' + ((driver.avgRating ?? driver.rating) || 0).toFixed(1) + '</div><div class="dd-stat-label">' + (driver.ratingCount || 0) + ' 則評價</div></div>';
   html += '<div class="dd-stat"><div class="dd-stat-num">¥' + (driver.defaultFeeDay ?? driver.defaultFee ?? 0).toLocaleString() + '</div><div class="dd-stat-label">預設日費</div></div></div>';
   html += '<div class="dd-section"><div class="dd-section-title">業務標籤</div><div style="display:flex;flex-wrap:wrap;gap:4px;">' + driver.tags.map(t => '<span class="dt-chip">' + t + '</span>').join('') + '</div></div>';
-  html += '<div class="dd-section"><div class="dd-section-title">本月收益（含獎懲）</div><div class="dd-info-list">';
+  html += '<div class="dd-section"><div class="dd-section-title">本月收益（含獎懲）</div><div class="dd-info-list" style="opacity:0.5;">⚠ 此區為示範數字，等派車紀錄真實 sync 後才顯示真實累積';
   html += '<div class="dd-info-row"><span class="lbl">本月趟次</span><span class="val">28 趟</span></div>';
   html += '<div class="dd-info-row"><span class="lbl">原費總和</span><span class="val">¥856,000</span></div>';
   html += '<div class="dd-info-row"><span class="lbl">累積扣費</span><span class="val" style="color:var(--danger);">−¥' + dT.toLocaleString() + '</span></div>';
@@ -3953,6 +3796,7 @@ function removePhoto() {
   el.src = ''; el.style.display = 'none';
 }
 function saveEditDriver() {
+  alert('⚠ 編輯功能尚未接 API：你的修改僅暫存在本機，重整頁面會還原。\n（之後會接 apiUpdateDriver）');
   const id = document.getElementById('editDriverId').value;
   const driver = DRIVERS.find(d => d.id === id);
   if (!driver) return;
@@ -4048,7 +3892,9 @@ function setNotifyHistoryFilter(f) { notifyHistoryFilter = f; renderNotifyHistor
 function renderStatsMonthNav() {
   const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
   // -3 月 ~ +3 月（共 7 個月，5 月為基準）
-  const baseMonth = 5; const baseYear = 2026;
+  const _now = new Date();
+  const baseMonth = _now.getMonth() + 1;
+  const baseYear = _now.getFullYear();
   const months = [];
   for (let offset = -3; offset <= 3; offset++) {
     let m = baseMonth + offset;
@@ -4110,13 +3956,16 @@ function switchPage(page) {
     renderScheduleGrid();
     // v23: 提示資料尚未接真實
     const sg = document.getElementById('scheduleGrid');
-    if (sg) sg.insertAdjacentHTML('afterbegin', '<div style="background:#FEF3C7;border:1px solid #F59E0B;color:#92400E;padding:10px 14px;border-radius:8px;margin:10px 16px;font-size:12px;line-height:1.5;">🚧 排班表正在串接真實派車紀錄，目前看到的是示範資料。功能尚未完成，預計下一階段完工。</div>');
+    if (sg && !sg.querySelector('.schedule-mock-banner')) sg.insertAdjacentHTML('afterbegin', '<div class="schedule-mock-banner" style="background:#FEF3C7;border:1px solid #F59E0B;color:#92400E;padding:10px 14px;border-radius:8px;margin:10px 16px;font-size:12px;line-height:1.5;">🚧 排班表正在串接真實派車紀錄，目前看到的是示範資料。需要先把派車紀錄分頁 sync 完成後才能跑真實。</div>');
   }
   if (page === 'drivers') { renderTagFilterBar(); renderDriversList(); }
   if (page === 'vehicles') renderVehiclesList();
   if (page === 'search') { document.getElementById('searchInput').focus(); renderSearchResults(); renderSearchDriverChips(); }
   if (page === 'notify-history') renderNotifyHistory();
-  if (page === 'stats') renderStatsDriverRank();
+  if (page === 'stats') {
+    renderStatsDriverRank();
+    // 已加 banner 標示為示範
+  }
 }
 
 function doLogin() {
