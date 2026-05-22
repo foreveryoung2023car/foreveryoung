@@ -1278,15 +1278,16 @@
   .orders { align-items: start; }
   /* v25: 桌機 (≥1100px) 自動套用條列檢視 - 不需要 toggle */
   @media (min-width: 1100px) {
-    .orders { display: block !important; padding: 8px 24px 100px !important; }
-    .orders .order-card { display: grid; grid-template-columns: 92px 1fr 1fr 130px 100px; gap: 12px; align-items: center; padding: 12px 16px !important; margin-bottom: 8px !important; }
+    .orders { display: block !important; padding: 8px 24px 40px !important; }
+    .orders .order-card { display: grid; grid-template-columns: 90px 110px 1fr 180px 110px 100px; gap: 10px; align-items: center; padding: 12px 14px !important; margin-bottom: 8px !important; }
     .orders .order-card .order-row1 { grid-column: 1 / 2; flex-direction: column; align-items: flex-start; gap: 2px; }
-    .orders .order-card .order-time { grid-column: 2 / 3; font-size: 12.5px; -webkit-line-clamp: unset !important; }
+    .orders .order-card .order-time { grid-column: 2 / 3; font-size: 12px; -webkit-line-clamp: unset !important; }
     .orders .order-card .order-route { grid-column: 3 / 4; font-size: 12px; -webkit-line-clamp: 2 !important; }
-    .orders .order-card .order-tags { grid-column: 4 / 5; flex-wrap: wrap; gap: 3px; }
-    .orders .order-card .order-actions { grid-column: 5 / 6; margin-top: 0 !important; }
+    .orders .order-card .order-tags { grid-column: 5 / 6; flex-wrap: wrap; gap: 3px; justify-content: flex-end; }
+    .orders .order-card .order-actions { grid-column: 6 / 7; margin-top: 0 !important; }
     .orders .order-card .order-tags .tag { font-size: 10.5px; padding: 1px 6px; }
-    .orders .order-card .order-remark,
+    .orders .order-card .order-remark { grid-column: 4 / 5; font-size: 11px; padding: 4px 8px; -webkit-line-clamp: 2 !important; margin: 0; background: var(--warning-soft); border: 1px solid var(--warning); border-radius: 5px; line-height: 1.35; }
+    .orders .order-card .order-remark .lbl { display: block; font-size: 9px; opacity: 0.7; margin: 0; }
     .orders .order-card .order-update-log { grid-column: 1 / -1; font-size: 11px; padding: 4px 8px; -webkit-line-clamp: 1 !important; }
     .orders .order-card .order-assigned-info { grid-column: 1 / -1; padding: 4px 8px; font-size: 11px; }
     .orders .order-card .rating-block,
@@ -1330,6 +1331,7 @@
     animation: pulseHint 1.5s;
   }
   .draft-indicator.show { display: block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
   @keyframes pulseHint {
     0% { transform: scale(0.9); opacity: 0; }
     50% { transform: scale(1.05); }
@@ -1340,6 +1342,15 @@
   @media (min-width: 768px) {
     .confirm-modal { display: none !important; }
     .confirm-modal.show { display: flex !important; }
+  }
+  /* v26: 司機詳情 modal 桌機加寬 */
+  @media (min-width: 768px) {
+    .sheet.sheet-driver-detail { max-width: 880px !important; }
+    .sheet.sheet-driver-detail .dd-cover { padding: 32px 24px 20px; }
+    .sheet.sheet-driver-detail .dd-stats-row { gap: 14px; }
+  }
+  @media (min-width: 1200px) {
+    .sheet.sheet-driver-detail { max-width: 1100px !important; }
   }
 
   /* v18 主頁依司機檢視 */
@@ -1815,20 +1826,23 @@ async function loadRealData() {
   if (!currentUser) return;
   // v22: 先清空 mock data，避免閃現
   ORDERS.tomorrow.length = 0;
-  document.getElementById('ordersList').innerHTML = '<div class="empty" style="padding:40px 20px;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><div style="margin-top:8px;color:var(--muted);">載入您負責的訂單中...</div></div>';
+  document.getElementById('ordersList').innerHTML = '<div class="empty" style="padding:40px 20px;"><div class="loading-spin" style="width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;margin:0 auto;animation:spin 0.8s linear infinite;"></div><div style="margin-top:10px;color:var(--muted);font-size:12px;">第一批訂單（近 3 天）載入中...</div></div>';
   const region = currentUser.regionCode;
   console.log('[loadRealData] region =', region);
 
-  // v20: 計算日期區間（過去 7 天 ~ 未來 60 天）
+  // v26: 漸進載入 - 先抓近 3 天，UI 立即可用；其餘背景補
   const today = new Date();
-  const start = new Date(today.getTime() - 7 * 86400000);
-  const end = new Date(today.getTime() + 60 * 86400000);
   const fmt = d => d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0');
+  const near3Start = fmt(today);
+  const near3End = fmt(new Date(today.getTime() + 3 * 86400000));
+  const wideStart = fmt(new Date(today.getTime() - 7 * 86400000));
+  const wideEnd = fmt(new Date(today.getTime() + 60 * 86400000));
 
+  // 第一批：今日 + 未來 3 天
   const [drivers, vehicles, orders] = await Promise.all([
     api.getDrivers(region),
     api.getVehicles(region),
-    api.getOrders({ dateStart: fmt(start), dateEnd: fmt(end), driverName: currentUser.name })
+    api.getOrders({ dateStart: near3Start, dateEnd: near3End, driverName: currentUser.name })
   ]);
   if (drivers && drivers.length > 0) {
     DRIVERS.length = 0;
@@ -1894,6 +1908,38 @@ async function loadRealData() {
   renderDateStrip();
   renderOrders();
   recomputeQuickStats();  // v24: 確保快速統計也跑
+
+  // v26: 背景補拉「過去 7 天 ~ 未來 60 天」其他訂單
+  setTimeout(async () => {
+    try {
+      const more = await api.getOrders({ dateStart: wideStart, dateEnd: wideEnd, driverName: currentUser.name });
+      if (more && more.length > 0) {
+        // 過濾掉已存在的（依 date + no key）
+        const existingKeys = new Set(ORDERS.tomorrow.map(o => o.date + '_' + o.no));
+        const newRaw = more.map(o => adaptOrderFromApi(o)).filter(a => !existingKeys.has(a.date + '_' + a.no));
+        // 同樣合併多列
+        const mergedNew = {};
+        newRaw.forEach(a => {
+          const key = a.date + '_' + a.no;
+          if (!mergedNew[key]) mergedNew[key] = a;
+          else {
+            mergedNew[key].assignments = mergedNew[key].assignments.concat(a.assignments);
+            mergedNew[key].driverFee = (mergedNew[key].driverFee || 0) + (a.driverFee || 0);
+            mergedNew[key].totalJP = (mergedNew[key].totalJP || 0) + (a.totalJP || 0);
+            if (a.carType && !mergedNew[key].carType.includes(a.carType)) {
+              mergedNew[key].carType += ' + ' + a.carType;
+            }
+            mergedNew[key].carCount = (mergedNew[key].carCount || 1) + 1;
+          }
+        });
+        Object.values(mergedNew).forEach(o => ORDERS.tomorrow.push(o));
+        console.log('[Orders+] 補拉', Object.keys(mergedNew).length, '筆');
+        renderDateStrip();
+        renderOrders();
+        recomputeQuickStats();
+      }
+    } catch (err) { console.error('[Orders+] 補拉失敗:', err); }
+  }, 100);
 }
 
 function adaptOrderFromApi(o) {
@@ -3359,6 +3405,7 @@ function toggleRawMsg(e) {
 }
 function escapeHtml(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
 function closeSheet() {
+  document.getElementById('sheet').classList.remove('sheet-driver-detail');  // v26
   document.getElementById('sheetMask').classList.remove('show');
   document.getElementById('sheet').classList.remove('show');
   state.editingOrder = null; state.editingAssignments = [];
@@ -3824,6 +3871,7 @@ function openDriverDetail(driverId) {
   const bT = recentAdj.filter(a => a.type === 'bonus').reduce((s, a) => s + a.amount, 0);
 
   document.getElementById('sheetTitle').textContent = '司機詳情';
+  document.getElementById('sheet').classList.add('sheet-driver-detail');  // v26: 加 RWD wider class
   let html = '<div class="dd-cover"><button class="dd-edit-btn" onclick="openEditDriverSheet(\'' + driver.id + '\')">✎ 編輯</button>';
   html += '<div class="dd-cover-row">' + renderDriverAvatar(driver, 'lg');
   html += '<div><div class="dd-cover-name">' + driver.name + '<span class="dd-cover-id">' + driver.id + '</span>' + renderLangFlags(driver.languages) + '</div>';
