@@ -1276,6 +1276,27 @@
   }
   /* v24: 卡片 grid 對齊頂部，不再拉同列等高 */
   .orders { align-items: start; }
+  /* v24: 條列檢視 */
+  .orders.list-view { display: block !important; padding: 8px 16px !important; }
+  .orders.list-view .order-card { display: grid; grid-template-columns: 80px 1fr 1fr 110px 90px; gap: 12px; align-items: center; padding: 10px 14px !important; margin-bottom: 6px !important; }
+  .orders.list-view .order-card .order-row1 { grid-column: 1 / 2; flex-direction: column; align-items: flex-start; gap: 2px; }
+  .orders.list-view .order-card .order-time { grid-column: 2 / 3; font-size: 12px; -webkit-line-clamp: unset; }
+  .orders.list-view .order-card .order-route { grid-column: 3 / 4; font-size: 11px; -webkit-line-clamp: 2 !important; }
+  .orders.list-view .order-card .order-tags { grid-column: 4 / 5; flex-wrap: wrap; gap: 2px; }
+  .orders.list-view .order-card .order-actions { grid-column: 5 / 6; margin-top: 0 !important; }
+  .orders.list-view .order-card .order-tags .tag { font-size: 10px; padding: 1px 6px; }
+  .orders.list-view .order-card .order-remark,
+  .orders.list-view .order-card .order-assigned-info,
+  .orders.list-view .order-card .rating-block,
+  .orders.list-view .order-card .rating-empty,
+  .orders.list-view .order-card .order-update-log { display: none; }
+  @media (max-width: 767px) {
+    .orders.list-view .order-card { grid-template-columns: 80px 1fr 90px; }
+    .orders.list-view .order-card .order-time { grid-column: 1 / -1; padding-top: 6px; }
+    .orders.list-view .order-card .order-route { grid-column: 1 / -1; padding-top: 4px; }
+    .orders.list-view .order-card .order-tags { grid-column: 1 / -1; padding-top: 4px; }
+    .orders.list-view .order-card .order-actions { grid-column: 1 / -1; }
+  }
 
   /* ====== v15 localStorage 提示 ====== */
   .draft-indicator {
@@ -1436,10 +1457,10 @@
     <div id="notifyBannerWrap"></div>
 
     <div class="quick-stats">
-      <div class="qstat"><div class="qstat-num warn">4</div><div class="qstat-label">明日待派</div></div>
-      <div class="qstat"><div class="qstat-num primary">9</div><div class="qstat-label">明日訂單</div></div>
-      <div class="qstat"><div class="qstat-num danger">1</div><div class="qstat-label">衝突警示</div></div>
-      <div class="qstat"><div class="qstat-num success">28</div><div class="qstat-label">本週服務</div></div>
+      <div class="qstat"><div class="qstat-num warn" id="qsTomorrowPending">-</div><div class="qstat-label">明日待派</div></div>
+      <div class="qstat"><div class="qstat-num primary" id="qsTomorrowTotal">-</div><div class="qstat-label">明日訂單</div></div>
+      <div class="qstat"><div class="qstat-num danger" id="qsConflict">-</div><div class="qstat-label">衝突警示</div></div>
+      <div class="qstat"><div class="qstat-num success" id="qsWeekTotal">-</div><div class="qstat-label">本週服務</div></div>
     </div>
 
     <div class="sect-head">
@@ -1465,6 +1486,7 @@
       <div class="filter-tab" data-filter="pending">待派<span class="pill alert" id="cntPending">0</span></div>
       <div class="filter-tab" data-filter="active">處理中<span class="pill" id="cntActive">0</span></div>
       <div class="filter-tab" data-filter="completed">完成<span class="pill" id="cntDone">0</span></div>
+      <button onclick="toggleListView()" id="viewToggleBtn" style="margin-left:auto;background:none;border:1px solid var(--border-2);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--muted);cursor:pointer;">📋 條列檢視</button>
     </div>
 
     <div class="orders" id="ordersList"></div>
@@ -1843,6 +1865,7 @@ async function loadRealData() {
   }
   renderDateStrip();
   renderOrders();
+  recomputeQuickStats();  // v24: 確保快速統計也跑
 }
 
 function adaptOrderFromApi(o) {
@@ -1932,7 +1955,23 @@ function adaptOrderFromApi(o) {
     status: 'pending',
     assignments: [],  // 沒有真正派車，清空
     rating: null,
-    rawMessage: '',
+    rawMessage: [
+      '訂單編號：' + (o.no || ''),
+      '出車日期：' + (o.date || ''),
+      '預計出車：' + (o.startTime || '(未指定)'),
+      '車款：' + (o.carType || ''),
+      '車牌：' + (o.plate || '(未指定)'),
+      '出發地：' + (o.from || ''),
+      '目的地：' + (o.to || ''),
+      '時數：' + (o.hours || ''),
+      '人數：' + (o.pax?.raw || ''),
+      '小孩年齡：' + (o.childAge || ''),
+      '汽座：' + (o.carSeat || '無'),
+      '行李：' + (o.luggage || ''),
+      '備註：' + (o.remarks || '(無)'),
+      '司機費：¥' + (o.driverFee || 0).toLocaleString(),
+      '日幣總額：¥' + (o.totalJP || 0).toLocaleString()
+    ].join('\n'),
     lifecycle: [],
     // 附加資訊（v20 新增）
     driverFee: o.driverFee || 0,
@@ -1971,10 +2010,8 @@ async function saveDispatchReal() {
     o.status = 'assigned';
     alert('✓ 派車已寫入 Google Sheets');
   } else {
-    alert('⚠️ API 寫入失敗，僅在前端記錄。請查看 console。');
-    const now = new Date().toISOString().slice(0,16).replace('T',' ');
-    o.assignments = state.editingAssignments.map(a => ({...a, status:'active', assignedAt: now}));
-    o.status = 'assigned';
+    // v24: API 失敗不假裝成功
+    alert('⚠️ 派車寫入失敗：派車紀錄分頁尚未接好同步流程。\n\n目前只是看到面板的雛形，真實寫入需等下次架構大改完成。');
   }
   closeSheet();
   renderOrders();
@@ -2534,6 +2571,21 @@ const DATE_LIST = (function() {
   return list;
 })();
 // v23: 動態計算每個日期的 total / pending（依當前 ORDERS.tomorrow）
+function recomputeQuickStats() {
+  const today = new Date();
+  const fmt = (d) => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  const todayKey = fmt(today);
+  const tomorrowKey = fmt(new Date(today.getFullYear(), today.getMonth(), today.getDate()+1));
+  const weekEndKey = fmt(new Date(today.getFullYear(), today.getMonth(), today.getDate()+6));
+  const tomorrowOrders = ORDERS.tomorrow.filter(o => o.date === tomorrowKey);
+  const weekOrders = ORDERS.tomorrow.filter(o => o.date >= todayKey && o.date <= weekEndKey);
+  const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  setText('qsTomorrowPending', tomorrowOrders.filter(o => o.status === 'pending').length);
+  setText('qsTomorrowTotal', tomorrowOrders.length);
+  setText('qsConflict', 0);
+  setText('qsWeekTotal', weekOrders.length);
+}
+
 function recomputeDateCounts() {
   DATE_LIST.forEach(d => { d.total = 0; d.pending = 0; });
   ORDERS.tomorrow.forEach(o => {
@@ -2546,7 +2598,7 @@ function recomputeDateCounts() {
 }
 
 let state = {
-  page:'dispatch', currentDate:'2026-05-22', filter:'all',
+  page:'dispatch', currentDate:'2026-05-22', filter:'all', listView:false,
   editingOrder:null, editingAssignments:[],
   driverFilterTag:'all', driverSearch:'',
   searchFilter:'all', searchQuery:'',
@@ -2726,7 +2778,8 @@ function showNotifyHistory() {
 
 /* ============ 日期 strip ============ */
 function renderDateStrip() {
-  recomputeDateCounts();  // v23: 確保 date count 是最新的
+  recomputeDateCounts();
+  recomputeQuickStats();  // v23: 確保 date count 是最新的
   const todayIdx = DATE_LIST.findIndex(x => x.isToday);
   // 預設顯示「今日前 1 天到後 7 天」(共 9 個)；點歷史展開全部
   const visible = state.dateStripShowAll
@@ -2957,6 +3010,9 @@ function openEditor(idx) {
   document.getElementById('sheetTitle').textContent = o.status === 'pending' ? '派車安排' : '修改派車安排';
 
   document.getElementById('sheetBody').innerHTML = `
+    <div style="background:#FEF3C7;border:1px solid #F59E0B;color:#92400E;padding:10px 14px;border-radius:8px;margin:0 0 12px;font-size:12px;line-height:1.5;">
+      🚧 <strong>派車流程開發中</strong>：可瀏覽訂單詳情、選司機、選車輛、設費用，但「確認派車」尚無法寫入派車紀錄分頁。
+    </div>
     ${o.isModified && o.modifyLog ? `
       <div class="remark-highlight" style="background:var(--warning-soft);border-color:var(--warning);">
         <div class="rh-head" style="color:var(--warning);">⚠ 此訂單最近有修改</div>
@@ -3092,7 +3148,9 @@ function renderCarSlot(order, assignment, slotIdx) {
             <span>選擇司機 <span class="required">*</span></span>
             <span class="hint">${order.priorityType ? `「${order.priorityType}」標籤+評分+趟次排序` : '評分+趟次排序'}</span>
           </label>
-          <div class="driver-picker">
+          <input type="text" class="form-control driver-search-input" placeholder="🔍 搜尋司機姓名 / 編號..." style="margin-bottom:8px;font-size:13px;" oninput="filterDriverPicker(${slotIdx}, this.value)">
+          <div class="driver-picker" id="driverPicker-${slotIdx}">
+            ${assignment.driverId ? (function(){const d=DRIVERS.find(x=>x.id===assignment.driverId);if(!d)return '';return `<div class="driver-group-head" style="background:var(--primary-soft);color:var(--primary);">✓ 已選擇司機</div>${renderDriverRow({d:d,status:'available',tagMatch:false,langMatch:true,jobs:[]},slotIdx,assignment.driverId,false,order)}`;})() : ''}
             ${groups.available.length ? `<div class="driver-group-head"><span class="gh-dot av"></span>可派車（${groups.available.length}）</div>${groups.available.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}` : ''}
             ${groups.partial.length ? `<div class="driver-group-head"><span class="gh-dot partial"></span>同日有班次但時段不衝突（${groups.partial.length}）</div>${groups.partial.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}` : ''}
             ${groups.daytripWarn.length ? `<div class="driver-group-head"><span class="gh-dot daytrip"></span>同日有一日遊/多日（${groups.daytripWarn.length}）</div>${groups.daytripWarn.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}` : ''}
@@ -3164,7 +3222,7 @@ function renderDriverRow(g, slotIdx, selectedId, disabled, order) {
   }).join('');
 
   return `
-    <div class="driver-item ${selected ? 'selected' : ''} ${disabled ? 'disabled' : ''} ${priorityClass}"
+    <div data-driver-name="${driver.name || ''}" data-driver-id="${driver.id || ''}" class="driver-item ${selected ? 'selected' : ''} ${disabled ? 'disabled' : ''} ${priorityClass}"
          onclick="${disabled ? '' : `selectDriverForSlot(${slotIdx}, '${driver.id}')`}">
       <div class="driver-radio"></div>
       ${renderDriverAvatar(driver, 'xs')}
@@ -3182,6 +3240,37 @@ function renderDriverRow(g, slotIdx, selectedId, disabled, order) {
       </div>
       <div class="driver-fee-default">預設<br><strong>¥${(driver.defaultFeeDay ?? driver.defaultFee ?? 0).toLocaleString()}</strong></div>
     </div>`;
+}
+
+// v24: 司機搜尋過濾
+function filterDriverPicker(slotIdx, query) {
+  const picker = document.getElementById('driverPicker-' + slotIdx);
+  if (!picker) return;
+  const q = query.trim().toLowerCase();
+  picker.querySelectorAll('.driver-item').forEach(row => {
+    if (!q) { row.style.display = ''; return; }
+    const name = (row.dataset.driverName || '').toLowerCase();
+    const id = (row.dataset.driverId || '').toLowerCase();
+    row.style.display = (name.includes(q) || id.includes(q)) ? '' : 'none';
+  });
+  picker.querySelectorAll('.driver-group-head').forEach(head => {
+    let next = head.nextElementSibling;
+    let anyVisible = false;
+    while (next && next.classList && next.classList.contains('driver-item')) {
+      if (next.style.display !== 'none') { anyVisible = true; break; }
+      next = next.nextElementSibling;
+    }
+    head.style.display = anyVisible ? '' : 'none';
+  });
+}
+
+// v24: 切換卡片/條列檢視
+function toggleListView() {
+  state.listView = !state.listView;
+  const btn = document.getElementById('viewToggleBtn');
+  if (btn) btn.textContent = state.listView ? '🎴 卡片檢視' : '📋 條列檢視';
+  document.getElementById('ordersList').classList.toggle('list-view', state.listView);
+  renderOrders();
 }
 
 function addCarSlot() { state.editingAssignments.push({driverId:null, vehicleId:null, fee:null, status:'active'}); renderCarSlots(); }
