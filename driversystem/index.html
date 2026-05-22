@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v16</title>
+<title>旅乘派車系統 v18</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -1276,6 +1276,84 @@
     .confirm-modal { display: none !important; }
     .confirm-modal.show { display: flex !important; }
   }
+
+  /* v18 主頁依司機檢視 */
+  .driver-view-bar {
+    padding: 8px 16px;
+    background: var(--primary-soft);
+    border-bottom: 1px solid var(--border);
+    display: flex; gap: 8px; align-items: center;
+  }
+  .driver-view-bar select {
+    flex: 1; padding: 6px 10px;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: white; font-size: 13px;
+  }
+  .driver-view-toggle {
+    padding: 6px 12px;
+    background: white; border: 1px solid var(--primary);
+    color: var(--primary); border-radius: 6px;
+    font-size: 12px; cursor: pointer; font-weight: 500;
+    white-space: nowrap;
+  }
+  .driver-view-toggle.active {
+    background: var(--primary); color: white;
+  }
+  .driver-view-bar.hidden { display: none; }
+
+  /* v18 司機詳情 - 訂單清單 */
+  .dd-orders-loading { text-align: center; padding: 16px; color: var(--muted); font-size: 12px; }
+  .dd-order-row {
+    padding: 10px 12px; border-bottom: 1px dashed var(--border);
+    cursor: pointer; transition: background 0.1s;
+  }
+  .dd-order-row:hover { background: var(--primary-50); }
+  .dd-order-row:last-child { border-bottom: none; }
+  .dd-order-no {
+    font-family: monospace; font-weight: 600;
+    font-size: 12px; color: var(--text);
+  }
+  .dd-order-date {
+    font-size: 11px; color: var(--muted);
+    margin-left: 8px;
+  }
+  .dd-order-fee {
+    float: right; font-family: monospace;
+    font-weight: 700; color: var(--success);
+    font-size: 12px;
+  }
+  .dd-order-route {
+    font-size: 12px; color: var(--text-2);
+    margin-top: 2px; line-height: 1.4;
+  }
+  .dd-stats-mini {
+    display: flex; gap: 12px;
+    padding: 8px 12px;
+    background: var(--bg);
+    border-radius: 6px; margin-bottom: 8px;
+    font-size: 12px;
+  }
+  .dd-stats-mini-item .num {
+    font-weight: 700; font-size: 16px;
+    font-variant-numeric: tabular-nums;
+  }
+  .dd-stats-mini-item .lbl {
+    color: var(--muted); font-size: 10px;
+    margin-left: 2px;
+  }
+
+  /* v18 搜尋頁司機篩選 */
+  .search-driver-chip {
+    padding: 4px 10px;
+    background: white; border: 1px solid var(--primary);
+    color: var(--primary); border-radius: 999px;
+    font-size: 12px; cursor: pointer; white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .search-driver-chip.active {
+    background: var(--primary); color: white; font-weight: 600;
+  }
+  .search-driver-chip svg { margin-right: 4px; }
 </style>
 </head>
 <body>
@@ -1348,6 +1426,12 @@
     </div>
     <div class="date-strip" id="dateStrip"></div>
 
+    <div class="driver-view-bar hidden" id="driverViewBar">
+      <select id="driverViewSelect"><option value="">-- 選擇司機 --</option></select>
+    </div>
+    <div style="padding: 4px 16px;">
+      <button id="driverViewToggle" class="driver-view-toggle" onclick="toggleDriverView()">依司機檢視</button>
+    </div>
     <div class="filter-bar" id="filterBar">
       <div class="filter-tab active" data-filter="all">全部<span class="pill" id="cntAll">0</span></div>
       <div class="filter-tab" data-filter="pending">待派<span class="pill alert" id="cntPending">0</span></div>
@@ -1368,6 +1452,7 @@
       <span class="search-cancel" onclick="switchPage('dispatch')">取消</span>
     </div>
 
+    <div class="tag-filter-bar" id="searchDriverChips" style="border-bottom:none;padding-bottom:0;"></div>
     <div class="tag-filter-bar" id="searchFilterBar">
       <div class="tag-filter-chip active" data-search-filter="all" onclick="setSearchFilter('all')">全部</div>
       <div class="tag-filter-chip" data-search-filter="pending" onclick="setSearchFilter('pending')">待派車</div>
@@ -1750,6 +1835,139 @@ async function saveDispatchReal() {
   renderOrders();
 }
 
+
+
+
+
+/* ====== v18 主頁依司機檢視 ====== */
+let driverViewMode = false; // false=全部, true=依司機篩
+let viewedDriverId = null;
+
+async function toggleDriverView() {
+  driverViewMode = !driverViewMode;
+  const bar = document.getElementById('driverViewBar');
+  const btn = document.getElementById('driverViewToggle');
+  if (driverViewMode) {
+    // 顯示 dropdown 並填入司機選單
+    bar.classList.remove('hidden');
+    btn.classList.add('active');
+    btn.textContent = '✓ 依司機檢視';
+    const sel = document.getElementById('driverViewSelect');
+    sel.innerHTML = '<option value="">-- 選擇司機 --</option>' + 
+      DRIVERS.map(d => `<option value="${d.id}">${d.name} (${d.id})</option>`).join('');
+    sel.onchange = onDriverViewChange;
+    viewedDriverId = null;
+  } else {
+    bar.classList.add('hidden');
+    btn.classList.remove('active');
+    btn.textContent = '依司機檢視';
+    viewedDriverId = null;
+    // 重新載入正常訂單
+    await loadRealData();
+  }
+}
+
+async function onDriverViewChange() {
+  const driverId = document.getElementById('driverViewSelect').value;
+  viewedDriverId = driverId;
+  if (!driverId) return;
+  
+  // 撈該司機所有訂單
+  const orders = await api.call('getOrders', { region: currentUser.regionCode, driverId });
+  if (orders) {
+    ORDERS.tomorrow.length = 0;
+    orders.forEach(o => ORDERS.tomorrow.push(adaptOrderFromApi(o)));
+    
+    // 切到該司機第一筆訂單的日期
+    if (orders.length > 0) {
+      state.currentDate = orders[0].date;
+    }
+    renderDateStrip();
+    renderOrders();
+    alert(`已載入 ${orders.length} 筆訂單`);
+  }
+}
+
+/* ====== v18 司機詳情頁 - 真實訂單清單 ====== */
+async function loadDriverOrders(driverId) {
+  const container = document.getElementById('ddOrdersList');
+  if (!container) return;
+  container.innerHTML = '<div class="dd-orders-loading">⏳ 載入訂單中...</div>';
+  
+  const orders = await api.call('getOrders', { region: currentUser.regionCode, driverId });
+  if (!orders) {
+    container.innerHTML = '<div class="dd-orders-loading">⚠ 撈取失敗</div>';
+    return;
+  }
+  if (orders.length === 0) {
+    container.innerHTML = '<div class="dd-orders-loading">該司機目前無派車紀錄</div>';
+    return;
+  }
+  
+  // 排序：日期由新到舊
+  orders.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  
+  // 統計
+  const total = orders.length;
+  const totalFee = orders.reduce((s, o) => s + (o.fee || 0), 0);
+  const withFee = orders.filter(o => o.fee).length;
+  
+  let html = `<div class="dd-stats-mini">
+    <div class="dd-stats-mini-item"><span class="num">${total}</span><span class="lbl">總趟次</span></div>
+    <div class="dd-stats-mini-item"><span class="num">${withFee}</span><span class="lbl">已填費用</span></div>
+    <div class="dd-stats-mini-item"><span class="num">¥${totalFee.toLocaleString()}</span><span class="lbl">累積</span></div>
+  </div>`;
+  
+  html += orders.slice(0, 50).map(o => {
+    const date = o.date || '日期不明';
+    const route = o.routeBrief || (o.from || '') + ' → ' + (o.to || '') || '行程資訊缺';
+    const fee = o.fee ? '¥' + o.fee.toLocaleString() : '';
+    return `<div class="dd-order-row" onclick="alert('訂單詳情：${o.orderNo}')">
+      <span class="dd-order-no">${o.orderNo}</span>
+      <span class="dd-order-date">${date}</span>
+      <span class="dd-order-fee">${fee}</span>
+      <div class="dd-order-route">${route}</div>
+    </div>`;
+  }).join('');
+  
+  if (orders.length > 50) {
+    html += `<div class="dd-orders-loading">僅顯示前 50 筆（共 ${orders.length} 筆）</div>`;
+  }
+  
+  container.innerHTML = html;
+}
+
+/* ====== v18 搜尋頁加司機篩選 ====== */
+let searchDriverId = null;
+
+function applyDriverToSearch(driverId, driverName) {
+  searchDriverId = driverId;
+  // 更新按鈕狀態
+  document.querySelectorAll('.search-driver-chip').forEach(c => c.classList.remove('active'));
+  if (driverId) {
+    const target = document.querySelector(`[data-driver-id="${driverId}"]`);
+    if (target) target.classList.add('active');
+  }
+  // 觸發重新搜尋
+  if (typeof renderSearchResults === 'function') {
+    renderSearchResults();
+  }
+}
+
+async function renderSearchDriverChips() {
+  const container = document.getElementById('searchDriverChips');
+  if (!container) return;
+  // 依趟次排前 10 位
+  const topDrivers = [...DRIVERS]
+    .filter(d => !d.off)
+    .sort((a,b) => (b.servedCount || 0) - (a.servedCount || 0))
+    .slice(0, 10);
+  
+  container.innerHTML = '<div class="search-driver-chip" data-driver-id="" onclick="applyDriverToSearch(null)">全部司機</div>' + 
+    topDrivers.map(d => 
+      `<div class="search-driver-chip" data-driver-id="${d.id}" onclick="applyDriverToSearch('${d.id}', '${d.name}')">👤 ${d.name}</div>`
+    ).join('');
+}
 
 
 /* ====== v15 草稿暫存 (localStorage) ====== */
@@ -3005,6 +3223,10 @@ function setSearchFilter(filter) {
 function renderSearchResults() {
   const q = state.searchQuery.toLowerCase();
   let list = ORDERS.tomorrow;
+  // v18: 司機過濾
+  if (searchDriverId) {
+    list = list.filter(o => (o.assignments || []).some(a => a.driverId === searchDriverId));
+  }
   if (state.searchFilter === 'pending') list = list.filter(o => o.status === 'pending');
   else if (state.searchFilter === 'assigned') list = list.filter(o => ['assigned','confirmed','in-progress'].includes(o.status));
   else if (state.searchFilter === 'completed') list = list.filter(o => o.status === 'completed');
@@ -3514,7 +3736,7 @@ function switchPage(page) {
   if (page === 'schedule') renderScheduleGrid();
   if (page === 'drivers') { renderTagFilterBar(); renderDriversList(); }
   if (page === 'vehicles') renderVehiclesList();
-  if (page === 'search') { document.getElementById('searchInput').focus(); renderSearchResults(); }
+  if (page === 'search') { document.getElementById('searchInput').focus(); renderSearchResults(); renderSearchDriverChips(); }
   if (page === 'notify-history') renderNotifyHistory();
   if (page === 'stats') renderStatsDriverRank();
 }
