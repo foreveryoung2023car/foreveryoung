@@ -1343,14 +1343,17 @@
     .confirm-modal { display: none !important; }
     .confirm-modal.show { display: flex !important; }
   }
-  /* v26: 司機詳情 modal 桌機加寬 */
+  /* v26+v29: 司機詳情 modal 桌機加寬 */
   @media (min-width: 768px) {
-    .sheet.sheet-driver-detail { max-width: 880px !important; }
+    .sheet.sheet-driver-detail { max-width: 1100px !important; }
     .sheet.sheet-driver-detail .dd-cover { padding: 32px 24px 20px; }
     .sheet.sheet-driver-detail .dd-stats-row { gap: 14px; }
   }
-  @media (min-width: 1200px) {
-    .sheet.sheet-driver-detail { max-width: 1100px !important; }
+  @media (min-width: 1280px) {
+    .sheet.sheet-driver-detail { max-width: 1400px !important; }
+  }
+  @media (min-width: 1600px) {
+    .sheet.sheet-driver-detail { max-width: 1600px !important; }
   }
 
   /* v18 主頁依司機檢視 */
@@ -2545,6 +2548,21 @@ function recomputeQuickStats() {
   setText('qsWeekTotal', weekOrders.length);
 }
 
+// v29: 計算同訂單號跨多少不同日期（連續多日）
+function recomputeMultiDayInfo() {
+  const byOrderNo = {};
+  ORDERS.tomorrow.forEach(o => {
+    const k = o.no;
+    if (!byOrderNo[k]) byOrderNo[k] = [];
+    byOrderNo[k].push(o.date);
+  });
+  ORDERS.tomorrow.forEach(o => {
+    const dates = Array.from(new Set(byOrderNo[o.no])).sort();
+    o._multiDayCount = dates.length;
+    o._multiDayIndex = dates.indexOf(o.date) + 1;  // 1-based
+  });
+}
+
 function recomputeDateCounts() {
   DATE_LIST.forEach(d => { d.total = 0; d.pending = 0; });
   ORDERS.tomorrow.forEach(o => {
@@ -2739,6 +2757,7 @@ function showNotifyHistory() {
 function renderDateStrip() {
   recomputeDateCounts();
   recomputeQuickStats();  // v23: 確保 date count 是最新的
+  recomputeMultiDayInfo();  // v29: 算連續日資訊
   const todayIdx = DATE_LIST.findIndex(x => x.isToday);
   // 預設顯示「今日前 1 天到後 7 天」(共 9 個)；點歷史展開全部
   const visible = state.dateStripShowAll
@@ -2908,7 +2927,7 @@ function renderOrderCard(o, idx) {
       </div>
       ${o.status !== 'pending' && o.status !== 'cancelled' ? renderStatusMiniFlow(o) : ''}
       <div class="order-time">
-        ${(!o.start || o.start === '時段未定') ? '<span style="color:var(--muted-2);">時段未定</span>' : (o.end ? `${o.start} – ${o.end}` : `${o.start} 出發`)}${o.tripType === 'daytrip' ? '<span class="uncertain">結束時間可能延後</span>' : ''}${o.tripType === 'multiday' ? '<span class="multiday-range">' + o.multidayInfo.dayCount + ' 天連續</span>' : ''}
+        ${(!o.start || o.start === '時段未定') ? '<span style="color:var(--muted-2);">時段未定</span>' : (o.end ? `${o.start} – ${o.end}` : `${o.start} 出發`)}${o.tripType === 'daytrip' ? '<span class="uncertain">結束時間可能延後</span>' : ''}${(o._multiDayCount && o._multiDayCount > 1) ? '<span class="multiday-range" style="background:#DBEAFE;color:#1E40AF;padding:1px 6px;border-radius:4px;font-size:10px;margin-left:4px;">📅 連 ' + o._multiDayCount + ' 日 (Day ' + o._multiDayIndex + ')</span>' : ''}${o.tripType === 'multiday' ? '<span class="multiday-range">' + (o.multidayInfo?.dayCount || '') + ' 天連續</span>' : ''}
       </div>
       <div class="order-route">${getRouteDisplay(o)}</div>
       <div class="order-tags">
@@ -2982,18 +3001,7 @@ function openEditor(idx) {
         <span class="raw-msg-toggle" onclick="toggleRawMsg(event)">展開全部 ▾</span>
       </div>
       <div class="raw-msg-body" id="rawMsgBody">${escapeHtml(o.rawMessage)}</div>
-      <div class="parsed-info">
-        <div><span class="pi-lbl">訂單編號</span> <span class="pi-val">${o.no}</span></div>
-        <div><span class="pi-lbl">服務日期</span> <span class="pi-val">${formatDateDisplay(o.date)}</span></div>
-        <div><span class="pi-lbl">時段</span> <span class="pi-val">${o.start} - ${o.end}</span></div>
-        <div><span class="pi-lbl">類型</span> <span class="pi-val">${o.tripType === 'roundtrip' ? '往返' : (o.tripType === 'daytrip' ? '一日遊' : (o.tripType === 'multiday' ? (o.multidayInfo.dayCount + '日' + o.multidayInfo.nights + '夜') : '單程'))}</span></div>
-        <div class="full"><span class="pi-lbl">行程</span> <span class="pi-val">${o.routeBrief || (o.from + ' → ' + o.to)}</span></div>
-        <div><span class="pi-lbl">人數</span> <span class="pi-val">${formatPax(o.pax)}</span></div>
-        <div><span class="pi-lbl">汽座</span> <span class="pi-val">${o.carSeatCount > 0 ? '需 ' + o.carSeatCount + ' 個' : '無'}</span></div>
-        <div class="full"><span class="pi-lbl">車款</span> <span class="pi-val">${o.carType}${o.carCount > 1 ? ' (需 ' + o.carCount + ' 台)' : ''}</span></div>
-        ${o.priorityType ? `<div class="full"><span class="pi-lbl">訂單類別</span> <span class="pi-val">${o.priorityType}（系統優先推薦此類司機）</span></div>` : ''}
-        ${o.requireLang && o.requireLang.length ? `<div class="full"><span class="pi-lbl">語言需求</span> <span class="pi-val">${o.requireLang.map(l => LANGUAGES.find(x => x.code === l)?.name).join('、')}</span></div>` : ''}
-      </div>
+      <!-- v29: parsed-info 已合併進 rawMessage 區塊（去掉重複） -->
     </div>
 
     ${o.remarks ? `<div class="remark-highlight"><div class="rh-head">⚠ 客人備註 / 派車注意事項</div>${o.remarks}</div>` : ''}
@@ -3262,8 +3270,19 @@ function adjustFee(slotIdx, delta) {
   state.editingAssignments[slotIdx].fee = v;
   input.style.background = delta > 0 ? '#ECFDF5' : '#FEF2F2';
   setTimeout(() => input.style.background = 'white', 220);
+  // v29: 重繪獎懲區（含 finalFee 更新）
+  refreshAdjustmentsBlock(slotIdx);
 }
-function updateFee(slotIdx, val) { state.editingAssignments[slotIdx].fee = parseInt(val) || 0; }
+function updateFee(slotIdx, val) {
+  state.editingAssignments[slotIdx].fee = parseInt(val) || 0;
+  // v29: input 邊改邊更新
+  refreshAdjustmentsBlock(slotIdx);
+}
+// v29: 只重繪 adjustments 區塊（不重建整個 slot，避免 input 失焦）
+function refreshAdjustmentsBlock(slotIdx) {
+  const block = document.getElementById('adjustBlock-' + slotIdx);
+  if (block) block.outerHTML = renderAdjustmentsSection(slotIdx, state.editingAssignments[slotIdx]);
+}
 function toggleRawMsg(e) {
   e.stopPropagation();
   const body = document.getElementById('rawMsgBody');
@@ -3877,7 +3896,7 @@ function renderAdjustmentsSection(slotIdx, assignment) {
   const dT = adjustments.filter(a => a.type === 'deduct').reduce((s, a) => s + a.amount, 0);
   const bT = adjustments.filter(a => a.type === 'bonus').reduce((s, a) => s + a.amount, 0);
   const finalFee = baseFee - dT + bT;
-  let html = '<div class="adjust-block"><div class="adjust-title"><span>獎懲調整（' + adjustments.length + ' 筆）</span><span class="adjust-add-btn" onclick="openAddAdjustment(' + slotIdx + ')">+ 新增獎懲</span></div>';
+  let html = '<div id="adjustBlock-' + slotIdx + '" class="adjust-block"><div class="adjust-title"><span>獎懲調整（' + adjustments.length + ' 筆）</span><span class="adjust-add-btn" onclick="openAddAdjustment(' + slotIdx + ')">+ 新增獎懲</span></div>';
   if (adjustments.length === 0) {
     html += '<div style="text-align:center;padding:8px;color:var(--muted-2);font-size:11px;">尚無獎懲紀錄</div>';
   } else {
