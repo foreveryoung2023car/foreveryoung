@@ -3805,4 +3805,82 @@ function renderStatsMonthNav() {
     else if (m.offset === 0) cls = 'current';
     else cls = 'future';
     const isSelected = m.offset === state.statsMonthOffset;
-    return '<div class="stats-month-chip ' + cls + (isSelec
+    return '<div class="stats-month-chip ' + cls + (isSelected ? ' selected' : '') + '" onclick="setStatsMonth(' + m.offset + ')" ' +
+      (isSelected ? 'style="box-shadow:0 0 0 2px var(--primary-soft);"' : '') + '>' +
+      m.name + '<span class="lbl">' + (m.offset === 0 ? '本月' : (m.offset === -1 ? '上月' : (m.offset === 1 ? '下月' : (m.offset < 0 ? Math.abs(m.offset)+'月前' : m.offset+'月後')))) + '</span></div>';
+  }).join('');
+}
+function setStatsMonth(offset) {
+  state.statsMonthOffset = offset;
+  renderStatsMonthNav();
+  renderStatsDriverRank();
+}
+function renderStatsDriverRank() {
+  renderStatsMonthNav();
+  const isPast = state.statsMonthOffset < 0;
+  const isFuture = state.statsMonthOffset > 0;
+  // 模擬不同月份的數據（offset 不同會有不同數字）
+  const factor = 1 + state.statsMonthOffset * 0.05;
+  const ranked = [...DRIVERS].sort((a,b) => b.servedCount - a.servedCount).slice(0, 5);
+  const maxCount = Math.round((ranked[0]?.servedCount || 1) * factor);
+  document.getElementById('statsDriverRank').innerHTML = (isFuture ?
+    '<div style="padding:12px;text-align:center;color:var(--muted);font-size:12px;background:var(--primary-soft);border-radius:8px;">📈 未來月份為「預估數據」，根據過去 3 個月平均推估</div>' : '') +
+    ranked.map(d => {
+      const c = Math.round(d.servedCount * factor);
+      return '<div class="stats-bar-item"><div style="display:flex;align-items:center;gap:6px;width:90px;">' + renderDriverAvatar(d, 'xs') + '<span style="font-size:11px;font-weight:600;">' + d.name + '</span></div><div class="sbi-bar"><div class="sbi-fill" style="width:' + (c/maxCount*100).toFixed(0) + '%;"></div></div><span class="sbi-val">' + c + ' 趟</span></div>';
+    }).join('');
+  // 更新統計卡的數字（簡單 mock）
+  const cards = document.querySelectorAll('#page-stats .stats-card-value');
+  if (cards.length >= 4) {
+    cards[0].textContent = Math.round(128 * factor);
+    cards[1].textContent = '¥' + (4.2 * factor).toFixed(1) + 'M';
+    cards[2].innerHTML = (4.7 + state.statsMonthOffset * 0.1).toFixed(1) + ' <span style="color:var(--gold);font-size:14px;">★</span>';
+    cards[3].textContent = Math.max(0.5, 2.3 - state.statsMonthOffset * 0.3).toFixed(1) + '%';
+  }
+}
+
+/* ============ 切頁 ============ */
+/* ============ 切頁 ============ */
+function switchPage(page) {
+  state.page = page;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector(`.nav-btn[data-page="${page}"]`);
+  if (btn) btn.classList.add('active');
+  if (page === 'schedule') renderScheduleGrid();
+  if (page === 'drivers') { renderTagFilterBar(); renderDriversList(); }
+  if (page === 'vehicles') renderVehiclesList();
+  if (page === 'search') { document.getElementById('searchInput').focus(); renderSearchResults(); renderSearchDriverChips(); }
+  if (page === 'notify-history') renderNotifyHistory();
+  if (page === 'stats') renderStatsDriverRank();
+}
+
+function doLogin() {
+  doLoginReal();
+}
+function doLoginMock() {
+  document.getElementById('loginMask').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+}
+function logoutConfirm() {
+  if (confirm('確定要登出？')) {
+    document.getElementById('loginMask').style.display = 'flex';
+    document.getElementById('mainApp').style.display = 'none';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.filter-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      if (t.classList.contains('disabled')) return;
+      setFilter(t.dataset.filter);
+    });
+  });
+  renderDateStrip();
+  renderNotifyBanner();
+  renderOrders();
+});
+</script>
+</body>
+</html>
