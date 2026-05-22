@@ -1276,7 +1276,23 @@
   }
   /* v24: 卡片 grid 對齊頂部，不再拉同列等高 */
   .orders { align-items: start; }
-  /* v24: 條列檢視 */
+  /* v25: 桌機 (≥1100px) 自動套用條列檢視 - 不需要 toggle */
+  @media (min-width: 1100px) {
+    .orders { display: block !important; padding: 8px 24px 100px !important; }
+    .orders .order-card { display: grid; grid-template-columns: 92px 1fr 1fr 130px 100px; gap: 12px; align-items: center; padding: 12px 16px !important; margin-bottom: 8px !important; }
+    .orders .order-card .order-row1 { grid-column: 1 / 2; flex-direction: column; align-items: flex-start; gap: 2px; }
+    .orders .order-card .order-time { grid-column: 2 / 3; font-size: 12.5px; -webkit-line-clamp: unset !important; }
+    .orders .order-card .order-route { grid-column: 3 / 4; font-size: 12px; -webkit-line-clamp: 2 !important; }
+    .orders .order-card .order-tags { grid-column: 4 / 5; flex-wrap: wrap; gap: 3px; }
+    .orders .order-card .order-actions { grid-column: 5 / 6; margin-top: 0 !important; }
+    .orders .order-card .order-tags .tag { font-size: 10.5px; padding: 1px 6px; }
+    .orders .order-card .order-remark,
+    .orders .order-card .order-update-log { grid-column: 1 / -1; font-size: 11px; padding: 4px 8px; -webkit-line-clamp: 1 !important; }
+    .orders .order-card .order-assigned-info { grid-column: 1 / -1; padding: 4px 8px; font-size: 11px; }
+    .orders .order-card .rating-block,
+    .orders .order-card .rating-empty { grid-column: 1 / -1; }
+  }
+  /* v24 lib 樣式（保留 list-view class 給強制切換用） */
   .orders.list-view { display: block !important; padding: 8px 16px !important; }
   .orders.list-view .order-card { display: grid; grid-template-columns: 80px 1fr 1fr 110px 90px; gap: 12px; align-items: center; padding: 10px 14px !important; margin-bottom: 6px !important; }
   .orders.list-view .order-card .order-row1 { grid-column: 1 / 2; flex-direction: column; align-items: flex-start; gap: 2px; }
@@ -1475,19 +1491,12 @@
     </div>
     <div class="date-strip" id="dateStrip"></div>
 
-    <div class="driver-view-bar hidden" id="driverViewBar">
-      <select id="driverViewSelect"><option value="">-- 選擇司機 --</option></select>
-    </div>
-    <div style="padding: 4px 16px;">
-      <button id="driverViewToggle" class="driver-view-toggle" onclick="toggleDriverView()">依司機檢視</button>
-    </div>
     <div class="filter-bar" id="filterBar">
       <div class="filter-tab active" data-filter="all">全部<span class="pill" id="cntAll">0</span></div>
       <div class="filter-tab" data-filter="pending">待派<span class="pill alert" id="cntPending">0</span></div>
       <div class="filter-tab" data-filter="active">處理中<span class="pill" id="cntActive">0</span></div>
       <div class="filter-tab" data-filter="completed">完成<span class="pill" id="cntDone">0</span></div>
-      <button onclick="toggleListView()" id="viewToggleBtn" style="margin-left:auto;background:none;border:1px solid var(--border-2);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--muted);cursor:pointer;">📋 條列檢視</button>
-    </div>
+      </div>
 
     <div class="orders" id="ordersList"></div>
   </section>
@@ -1841,11 +1850,30 @@ async function loadRealData() {
   if (orders && orders.length > 0) {
     ORDERS.tomorrow.length = 0;
     let matched = 0, unmatched = 0;
-    orders.forEach(o => {
-      const adapted = adaptOrderFromApi(o);
-      if (adapted._driverMatched) matched++; else if (o.driverName) unmatched++;
-      ORDERS.tomorrow.push(adapted);
+    const rawAdapted = orders.map(o => {
+      const a = adaptOrderFromApi(o);
+      if (a._driverMatched) matched++; else if (o.driverName) unmatched++;
+      return a;
     });
+    // v25: 合併同訂單號 + 同日期的多列 → 一張卡片
+    const merged = {};
+    rawAdapted.forEach(a => {
+      const key = a.date + '_' + a.no;
+      if (!merged[key]) {
+        merged[key] = a;
+      } else {
+        // 合併 assignments + 累加司機費 + 累加 totalJP
+        merged[key].assignments = merged[key].assignments.concat(a.assignments);
+        merged[key].driverFee = (merged[key].driverFee || 0) + (a.driverFee || 0);
+        merged[key].totalJP = (merged[key].totalJP || 0) + (a.totalJP || 0);
+        // 車款合併（用 / 串）
+        if (a.carType && !merged[key].carType.includes(a.carType)) {
+          merged[key].carType += ' + ' + a.carType;
+        }
+        merged[key].carCount = (merged[key].carCount || 1) + 1;
+      }
+    });
+    Object.values(merged).forEach(o => ORDERS.tomorrow.push(o));
     console.log('[Orders]', ORDERS.tomorrow.length, '筆 / 司機名匹配', matched, '筆 / 未匹配', unmatched, '筆');
     // v22: 保持今日為預設，不自動跳到歷史日期
     // 若今日沒訂單，切到最近有訂單的日期
@@ -1955,23 +1983,39 @@ function adaptOrderFromApi(o) {
     status: 'pending',
     assignments: [],  // 沒有真正派車，清空
     rating: null,
-    rawMessage: [
-      '訂單編號：' + (o.no || ''),
-      '出車日期：' + (o.date || ''),
-      '預計出車：' + (o.startTime || '(未指定)'),
-      '車款：' + (o.carType || ''),
-      '車牌：' + (o.plate || '(未指定)'),
-      '出發地：' + (o.from || ''),
-      '目的地：' + (o.to || ''),
-      '時數：' + (o.hours || ''),
-      '人數：' + (o.pax?.raw || ''),
-      '小孩年齡：' + (o.childAge || ''),
-      '汽座：' + (o.carSeat || '無'),
-      '行李：' + (o.luggage || ''),
-      '備註：' + (o.remarks || '(無)'),
-      '司機費：¥' + (o.driverFee || 0).toLocaleString(),
-      '日幣總額：¥' + (o.totalJP || 0).toLocaleString()
-    ].join('\n'),
+    rawMessage: (function() {
+      // v25: 用 LINE 訂單制式格式
+      const splitLoc = (text) => {
+        if (!text) return { name: '', addr: '' };
+        const s = String(text).split(/[;；]/);
+        return { name: (s[0] || '').trim(), addr: (s[1] || '').trim() };
+      };
+      const fromL = splitLoc(o.from);
+      const toL = splitLoc(o.to);
+      const tripTypeText = (toText => {
+        if (!toText) return '單程';
+        if (toText.includes('一日遊')) return '一日遊';
+        if (toText.includes('往返')) return '往返';
+        return '單程';
+      })(o.to || '');
+      const lines = [
+        '訂單編號：' + (o.no || ''),
+        '日期：' + (o.date || '') + (o.startTime ? ' ' + o.startTime : ''),
+        '起始：' + (fromL.name || o.from || ''),
+        fromL.addr ? '地址：' + fromL.addr : null,
+        '行程：' + (toL.name || o.to || '') + '(' + tripTypeText + ')',
+        toL.addr ? '地址：' + toL.addr : null,
+        '車款：' + (o.carType || ''),
+        '人數：' + (o.pax?.raw || ''),
+        o.childAge ? '小孩年齡：' + o.childAge : null,
+        o.carSeat ? '汽座：' + o.carSeat : null,
+        o.luggage ? '行李：' + o.luggage : null,
+        o.hours ? '時數：' + o.hours : null,
+        o.remarks ? '備註：' + o.remarks : null,
+        '司機費：¥' + (o.driverFee || 0).toLocaleString()
+      ];
+      return lines.filter(Boolean).join('\n');
+    })(),
     lifecycle: [],
     // 附加資訊（v20 新增）
     driverFee: o.driverFee || 0,
@@ -3033,7 +3077,7 @@ function openEditor(idx) {
         <div class="full"><span class="pi-lbl">行程</span> <span class="pi-val">${o.routeBrief || (o.from + ' → ' + o.to)}</span></div>
         <div><span class="pi-lbl">人數</span> <span class="pi-val">${formatPax(o.pax)}</span></div>
         <div><span class="pi-lbl">汽座</span> <span class="pi-val">${o.carSeatCount > 0 ? '需 ' + o.carSeatCount + ' 個' : '無'}</span></div>
-        <div class="full"><span class="pi-lbl">車款</span> <span class="pi-val">${o.carType}${o.carCount > 1 ? '・' + o.carCount + ' 台' : ''}</span></div>
+        <div class="full"><span class="pi-lbl">車款</span> <span class="pi-val">${o.carType}${o.carCount > 1 ? ' (需 ' + o.carCount + ' 台)' : ''}</span></div>
         ${o.priorityType ? `<div class="full"><span class="pi-lbl">訂單類別</span> <span class="pi-val">${o.priorityType}（系統優先推薦此類司機）</span></div>` : ''}
         ${o.requireLang && o.requireLang.length ? `<div class="full"><span class="pi-lbl">語言需求</span> <span class="pi-val">${o.requireLang.map(l => LANGUAGES.find(x => x.code === l)?.name).join('、')}</span></div>` : ''}
       </div>
