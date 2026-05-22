@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v22</title>
+<title>旅乘派車系統 v23</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -1649,10 +1649,7 @@
       <div class="nav-icon-wrap"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg></div>
       <span>車輛</span>
     </div>
-    <div class="nav-btn" data-page="stats" onclick="switchPage('stats')">
-      <div class="nav-icon-wrap"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
-      <span>統計</span>
-    </div>
+    <!-- v23: 統計暫時隱藏，待真實資料源接好 -->
     <div class="nav-btn" data-page="settings" onclick="switchPage('settings')">
       <div class="nav-icon-wrap"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
       <span>設定</span>
@@ -2498,41 +2495,41 @@ const ORDERS = {
 };
 
 // v9: 自動生成 -30 至 +14 天的日期清單（含過去/未來）
+// v23: DATE_LIST 改成只含日期骨架，count 由 ORDERS.tomorrow 動態計算
 const DATE_LIST = (function() {
   const dowZh = ['日','一','二','三','四','五','六'];
-  // 用本地時區建構日期，避免 toISOString 的 UTC 偏移
-  const today = new Date(2026, 4, 22); // 2026-05-22 本地時間
+  const todayLocal = new Date();
+  todayLocal.setHours(0,0,0,0);
+  const baseYear = todayLocal.getFullYear();
+  const baseMonth = todayLocal.getMonth();
+  const baseDay = todayLocal.getDate();
   const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   const list = [];
-  const fixedData = {
-    '2026-05-22': {total:1, pending:0},
-    '2026-05-23': {total:8, pending:4},
-    '2026-05-24': {total:5, pending:2},
-    '2026-05-25': {total:5, pending:3},
-    '2026-05-26': {total:3, pending:1},
-    '2026-05-27': {total:4, pending:2},
-    '2026-05-28': {total:3, pending:0},
-    '2026-04-15': {total:3, pending:0},
-    '2026-03-28': {total:2, pending:0}
-  };
-  for (let i = -38; i <= 14; i++) {
-    const d = new Date(2026, 4, 22 + i);
+  for (let i = -38; i <= 60; i++) {
+    const d = new Date(baseYear, baseMonth, baseDay + i);
     const key = fmt(d);
-    const fd = fixedData[key];
     list.push({
       key,
       dow: dowZh[d.getDay()],
       month: d.getMonth() + 1,
       day: d.getDate(),
-      total: fd ? fd.total : (i < 0 ? Math.floor((i + 38) * 0.13) % 4 + 1 : 0),
-      pending: fd ? fd.pending : 0,
-      isToday: i === 0,
-      isTomorrow: i === 1,
-      isPast: i < 0
+      total: 0, pending: 0,
+      isToday: i === 0, isTomorrow: i === 1, isPast: i < 0
     });
   }
   return list;
 })();
+// v23: 動態計算每個日期的 total / pending（依當前 ORDERS.tomorrow）
+function recomputeDateCounts() {
+  DATE_LIST.forEach(d => { d.total = 0; d.pending = 0; });
+  ORDERS.tomorrow.forEach(o => {
+    const dl = DATE_LIST.find(x => x.key === o.date);
+    if (dl) {
+      dl.total++;
+      if (o.status === 'pending') dl.pending++;
+    }
+  });
+}
 
 let state = {
   page:'dispatch', currentDate:'2026-05-22', filter:'all',
@@ -2591,6 +2588,7 @@ function formatPax(p) {
 }
 
 function getRouteDisplay(o) {
+  if (!o) return '';
   if (o.routeBrief) return o.routeBrief;
   if (o.tripType === 'roundtrip') return `${o.from} <span class="rt">⇆ 往返</span> ${o.to}`;
   return `${o.from} <span class="arr">→</span> ${o.to}`;
@@ -2714,6 +2712,7 @@ function showNotifyHistory() {
 
 /* ============ 日期 strip ============ */
 function renderDateStrip() {
+  recomputeDateCounts();  // v23: 確保 date count 是最新的
   const todayIdx = DATE_LIST.findIndex(x => x.isToday);
   // 預設顯示「今日前 1 天到後 7 天」(共 9 個)；點歷史展開全部
   const visible = state.dateStripShowAll
@@ -2732,8 +2731,12 @@ function renderDateStrip() {
   }).join('');
   document.getElementById('dateStrip').innerHTML = html;
 
-  // 快速跳轉按鈕的 active 狀態
-  const today = '2026-05-22', tomorrow = '2026-05-23', nextWeek = '2026-05-29';
+  // 快速跳轉按鈕的 active 狀態（v23: 動態今日）
+  const _d = new Date();
+  const _fmt = (dt) => dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
+  const today = _fmt(_d);
+  const tomorrow = _fmt(new Date(_d.getFullYear(), _d.getMonth(), _d.getDate()+1));
+  const nextWeek = _fmt(new Date(_d.getFullYear(), _d.getMonth(), _d.getDate()+7));
   document.getElementById('dqToday').classList.toggle('active', state.currentDate === today);
   document.getElementById('dqTomorrow').classList.toggle('active', state.currentDate === tomorrow);
   document.getElementById('dqNextWeek').classList.toggle('active', state.currentDate === nextWeek);
@@ -2814,7 +2817,7 @@ function renderOrders() {
         <div style="font-size:11px;color:var(--muted-2);margin-top:4px;line-height:1.5;">${hint}</div>
         <div class="empty-action">
           ${state.filter !== 'all' ? `<button class="primary" onclick="setFilter('all')">顯示全部</button>` : ''}
-          ${!isToday ? `<button onclick="selectDate('2026-05-22')">回今日</button>` : ''}
+          ${!isToday ? `<button onclick="selectDate((function(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');})())">回今日</button>` : ''}
           <button onclick="switchPage('search')">搜尋訂單</button>
         </div>
       </div>`;
@@ -2920,9 +2923,11 @@ function openEditorByNo(orderNo) {
 }
 
 function openEditor(idx) {
+  try {
   const list = getOrdersForDate();
   const o = list[idx];
-  if (!o) return;
+  if (!o) { console.warn('[openEditor] no order at idx', idx); return; }
+  console.log('[openEditor] opening', o.no, 'date=' + o.date);
   state.editingOrder = {idx, data:o};
 
   const activeOnes = (o.assignments || []).filter(a => a.status === 'active');
@@ -3010,6 +3015,10 @@ function openEditor(idx) {
   renderCarSlots();
   document.getElementById('sheetMask').classList.add('show');
   document.getElementById('sheet').classList.add('show');
+  } catch(err) {
+    console.error('[openEditor] error:', err);
+    alert('開啟派車面板時發生錯誤：\n' + err.message + '\n\n請按 F12 開 console 看完整錯誤訊息。');
+  }
 }
 
 function renderCarSlots() {
@@ -3201,7 +3210,7 @@ function toggleRawMsg(e) {
   body.classList.toggle('expanded');
   e.target.textContent = body.classList.contains('expanded') ? '收合 ▴' : '展開全部 ▾';
 }
-function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+function escapeHtml(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
 function closeSheet() {
   document.getElementById('sheetMask').classList.remove('show');
   document.getElementById('sheet').classList.remove('show');
@@ -3902,7 +3911,12 @@ function switchPage(page) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   const btn = document.querySelector(`.nav-btn[data-page="${page}"]`);
   if (btn) btn.classList.add('active');
-  if (page === 'schedule') renderScheduleGrid();
+  if (page === 'schedule') {
+    renderScheduleGrid();
+    // v23: 提示資料尚未接真實
+    const sg = document.getElementById('scheduleGrid');
+    if (sg) sg.insertAdjacentHTML('afterbegin', '<div style="background:#FEF3C7;border:1px solid #F59E0B;color:#92400E;padding:10px 14px;border-radius:8px;margin:10px 16px;font-size:12px;line-height:1.5;">🚧 排班表正在串接真實派車紀錄，目前看到的是示範資料。功能尚未完成，預計下一階段完工。</div>');
+  }
   if (page === 'drivers') { renderTagFilterBar(); renderDriversList(); }
   if (page === 'vehicles') renderVehiclesList();
   if (page === 'search') { document.getElementById('searchInput').focus(); renderSearchResults(); renderSearchDriverChips(); }
