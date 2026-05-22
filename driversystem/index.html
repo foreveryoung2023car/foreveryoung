@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v21</title>
+<title>旅乘派車系統 v22</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -1769,6 +1769,9 @@ async function doLoginReal() {
 
 async function loadRealData() {
   if (!currentUser) return;
+  // v22: 先清空 mock data，避免閃現
+  ORDERS.tomorrow.length = 0;
+  document.getElementById('ordersList').innerHTML = '<div class="empty" style="padding:40px 20px;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><div style="margin-top:8px;color:var(--muted);">載入您負責的訂單中...</div></div>';
   const region = currentUser.regionCode;
   console.log('[loadRealData] region =', region);
 
@@ -1802,9 +1805,18 @@ async function loadRealData() {
       ORDERS.tomorrow.push(adapted);
     });
     console.log('[Orders]', ORDERS.tomorrow.length, '筆 / 司機名匹配', matched, '筆 / 未匹配', unmatched, '筆');
-    // 自動跳到第一筆訂單的日期
-    if (ORDERS.tomorrow.length > 0) {
-      state.currentDate = ORDERS.tomorrow[0].date;
+    // v22: 保持今日為預設，不自動跳到歷史日期
+    // 若今日沒訂單，切到最近有訂單的日期
+    const todayKey = (function(){
+      const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    })();
+    const hasToday = ORDERS.tomorrow.some(o => o.date === todayKey);
+    if (hasToday) {
+      state.currentDate = todayKey;
+    } else if (ORDERS.tomorrow.length > 0) {
+      // 找今日之後最近的訂單
+      const future = ORDERS.tomorrow.filter(o => o.date >= todayKey).sort((a,b) => a.date.localeCompare(b.date));
+      state.currentDate = future[0]?.date || ORDERS.tomorrow[0].date;
     }
   } else {
     console.log('[Orders] 無真實訂單，保留示範資料');
@@ -1896,8 +1908,9 @@ function adaptOrderFromApi(o) {
     carCount: 1,
     multidayInfo: null,
     remarks: o.remarks || '',
-    status: o.status === 'assigned' ? 'assigned' : 'pending',
-    assignments: assignments,
+    // v22: 訂單收支表 F 欄只是 leader，不代表已派車。永遠 pending 直到派車紀錄有對應 row
+    status: 'pending',
+    assignments: [],  // 沒有真正派車，清空
     rating: null,
     rawMessage: '',
     lifecycle: [],
@@ -2855,7 +2868,7 @@ function renderOrderCard(o, idx) {
     </div>` : `<div class="rating-empty" onclick="event.stopPropagation();openRatingSheet('${o.no}')">+ 此訂單尚未評分（點此輸入）</div>`) : '';
 
   return `
-    <div class="order-card ${o.status} ${o.isModified ? 'modified' : ''}" onclick="openEditor(${idx})">
+    <div class="order-card ${o.status} ${o.isModified ? 'modified' : ''}" onclick="openEditorByNo('${o.no}')">
       <div class="order-row1">
         <div class="order-no-wrap">
           <span class="order-no">${o.no}</span>
@@ -2882,11 +2895,30 @@ function renderOrderCard(o, idx) {
       ${o.status === 'cancelled' ? `<div class="order-remark" style="background:#FEE2E2;border-color:#FCA5A5;color:#991B1B;"><span class="lbl">取消原因：</span>${o.cancelInfo?.reason || '無'}<br><span style="opacity:0.7;font-size:10px;">${o.cancelInfo?.at} 由 ${o.cancelInfo?.by}</span></div>` : ''}
       ${activeAssignments.length > 0 ? `<div class="order-assigned-info">${assignedHtml}</div>${cancelledHtml}` : ''}
       ${ratingHtml}
-      ${o.status === 'pending' ? `<div class="order-actions"><button class="btn btn-primary btn-sm btn-block" onclick="event.stopPropagation();openEditor(${idx})">立即派車</button></div>` : ''}
+      ${o.status === 'pending' ? `<div class="order-actions"><button class="btn btn-primary btn-sm btn-block" onclick="event.stopPropagation();openEditorByNo('${o.no}')">立即派車</button></div>` : ''}
     </div>`;
 }
 
-/* ============ 開啟編輯 ============ */
+/* ============ 開啟編輯 (v22 by orderNo) ============ */
+function openEditorByNo(orderNo) {
+  const o = ORDERS.tomorrow.find(x => x.no === orderNo);
+  if (!o) { console.warn('[openEditor] no order found:', orderNo); return; }
+  const list = getOrdersForDate();
+  const idx = list.indexOf(o);
+  if (idx >= 0) openEditor(idx);
+  else {
+    // 訂單不在當前日期 → 切換到該訂單的日期
+    state.currentDate = o.date;
+    renderDateStrip();
+    renderOrders();
+    setTimeout(() => {
+      const list2 = getOrdersForDate();
+      const idx2 = list2.indexOf(o);
+      if (idx2 >= 0) openEditor(idx2);
+    }, 50);
+  }
+}
+
 function openEditor(idx) {
   const list = getOrdersForDate();
   const o = list[idx];
@@ -3455,12 +3487,12 @@ function renderDriversList() {
         ${renderDriverAvatar(d)}
         <div class="li-main">
           <div class="li-name">${d.name}${renderLangFlags(d.languages)}<span style="font-family:monospace;font-weight:400;color:var(--muted);font-size:11px;">${d.id}</span></div>
-          <div class="li-meta">${d.phone} ・ ¥${d.defaultFee.toLocaleString()} ${d.off ? '・ 🛏 休假' : ''}</div>
-          <div class="li-tags">${d.tags.map(t => `<span class="dt-chip">${t}</span>`).join('')}</div>
+          <div class="li-meta">${d.phone || ''} ・ ¥${(d.defaultFeeDay ?? d.defaultFee ?? 0).toLocaleString()} ${d.off ? '・ 🛏 休假' : ''}</div>
+          <div class="li-tags">${(d.tags || []).map(t => `<span class="dt-chip">${t}</span>`).join('')}</div>
         </div>
         <div class="li-right">
-          ${d.rating ? renderStarsMini(d.rating) : ''}
-          <div style="font-size:10px;margin-top:2px;">${d.servedCount} 趟・${d.ratingCount || 0} 評</div>
+          ${(d.avgRating ?? d.rating) ? renderStarsMini(d.avgRating ?? d.rating) : ''}
+          <div style="font-size:10px;margin-top:2px;">${d.servedCount || 0} 趟・${d.ratingCount || 0} 評</div>
         </div>
       </div>`).join('');
 }
