@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v19</title>
+<title>旅乘派車系統 v20</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -1710,7 +1710,22 @@ const api = {
   login(email) { return this.call('login', { email: email }); },
   getDrivers(region) { return this.call('getDrivers', { region: region }); },
   getVehicles(region) { return this.call('getVehicles', { region: region }); },
-  getOrders(date, region) { return this.call('getOrders', { date: date, region: region }); },
+  // v20: 新版 getOrders 改傳日期區間 + 司機篩選
+  // 回傳 { ok, orders, total, range }
+  async getOrders(opts) {
+    opts = opts || {};
+    const data = await this.call('getOrders', {
+      dateStart: opts.dateStart || null,
+      dateEnd: opts.dateEnd || null,
+      regions: opts.regions ? opts.regions.join(',') : null,
+      driverName: opts.driverName || null,
+      status: opts.status || null
+    });
+    // 兼容兩種回傳：(A) 直接是 array (舊版)、(B) { orders:[...] } (v20)
+    if (Array.isArray(data)) return data;
+    if (data && Array.isArray(data.orders)) return data.orders;
+    return [];
+  },
   getDispatchers(region) { return this.call('getDispatchers', { region: region }); },
   dispatch(p) { return this.call('dispatch', p); },
   addAdjustment(p) { return this.call('addAdjustment', p); },
@@ -1745,10 +1760,17 @@ async function loadRealData() {
   if (!currentUser) return;
   const region = currentUser.regionCode;
   console.log('[loadRealData] region =', region);
+
+  // v20: 計算日期區間（過去 7 天 ~ 未來 60 天）
+  const today = new Date();
+  const start = new Date(today.getTime() - 7 * 86400000);
+  const end = new Date(today.getTime() + 60 * 86400000);
+  const fmt = d => d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0');
+
   const [drivers, vehicles, orders] = await Promise.all([
     api.getDrivers(region),
     api.getVehicles(region),
-    api.getOrders(null, region)
+    api.getOrders({ dateStart: fmt(start), dateEnd: fmt(end), regions: [region] })
   ]);
   if (drivers && drivers.length > 0) {
     DRIVERS.length = 0;
@@ -1762,8 +1784,17 @@ async function loadRealData() {
   }
   if (orders && orders.length > 0) {
     ORDERS.tomorrow.length = 0;
-    orders.forEach(o => ORDERS.tomorrow.push(adaptOrderFromApi(o)));
-    console.log('[Orders]', ORDERS.tomorrow.length, '筆');
+    let matched = 0, unmatched = 0;
+    orders.forEach(o => {
+      const adapted = adaptOrderFromApi(o);
+      if (adapted._driverMatched) matched++; else if (o.driverName) unmatched++;
+      ORDERS.tomorrow.push(adapted);
+    });
+    console.log('[Orders]', ORDERS.tomorrow.length, '筆 / 司機名匹配', matched, '筆 / 未匹配', unmatched, '筆');
+    // 自動跳到第一筆訂單的日期
+    if (ORDERS.tomorrow.length > 0) {
+      state.currentDate = ORDERS.tomorrow[0].date;
+    }
   } else {
     console.log('[Orders] 無真實訂單，保留示範資料');
   }
@@ -1772,35 +1803,93 @@ async function loadRealData() {
 }
 
 function adaptOrderFromApi(o) {
-  const tripTypeMap = { '單程':'oneway', '往返':'roundtrip', '一日遊':'daytrip', '多日':'multiday' };
-  const statusMap = { '待派車':'pending', '已派車':'assigned', '司機確認':'confirmed', '行程中':'in-progress', '完成':'completed', '已對帳':'reconciled', '已取消':'cancelled' };
+  // v20: 直接從訂單收支表的扁平結構轉換
+  // 日期：'2026/05/01' → '2026-05-01' (前端 state.currentDate 用 dash 格式)
+  const dateNorm = (o.date || '').replace(/\//g, '-');
+
+  // 嘗試以司機姓名匹配 DRIVERS 表
+  let driverId = null;
+  let driverMatched = false;
+  if (o.driverName) {
+    const d = DRIVERS.find(x => x.name === o.driverName);
+    if (d) { driverId = d.id; driverMatched = true; }
+  }
+
+  // 嘗試以車牌匹配 VEHICLES 表
+  let vehicleId = null;
+  if (o.plate) {
+    const v = VEHICLES.find(x => x.plate === o.plate);
+    if (v) vehicleId = v.id;
+  }
+
+  // 解析人數
+  const pax = {
+    adult: parseInt(o.pax?.adult) || 0,
+    child: parseInt(o.pax?.child) || 0,
+    infant: 0
+  };
+
+  // 解析安全座椅
+  let carSeatCount = 0;
+  const carSeatStr = o.carSeat || '';
+  const csMatch = carSeatStr.match(/(\d+)/);
+  if (csMatch) carSeatCount = parseInt(csMatch[1]);
+
+  // 推測行程類型：N欄包含「往返」、「一日遊」、「→」就判斷
+  let tripType = 'oneway';
+  const toText = o.to || '';
+  if (toText.includes('一日遊')) tripType = 'daytrip';
+  else if (toText.includes('往返')) tripType = 'roundtrip';
+
+  // 組 assignments
   const assignments = [];
-  if (o.driverId) {
+  if (o.driverFull) {
     assignments.push({
-      driverId: o.driverId, vehicleId: o.vehicleId,
-      fee: o.fee || 0, status: 'active', assignedAt: ''
+      driverId: driverId,
+      driverNameRaw: o.driverName,   // 沒匹配到時前端顯示原文
+      driverFullRaw: o.driverFull,   // 「東京-李勇軍」
+      vehicleId: vehicleId,
+      vehiclePlateRaw: o.plate || '',
+      vehicleModelRaw: o.carType || '',
+      fee: o.driverFee || 0,
+      status: 'active',
+      assignedAt: ''
     });
   }
+
   return {
-    no: o.orderNo,
-    date: o.date,
-    start: o.start || '00:00', end: o.end || '23:59',
-    tripType: tripTypeMap[o.tripType] || 'oneway',
-    priorityType: o.priorityType,
-    requireLang: o.requireLang || [],
-    from: o.from || '', to: o.to || '',
-    routeBrief: o.routeBrief || '',
-    pax: { adult: o.adult || 0, child: o.child || 0, infant: o.infant || 0 },
-    carSeatCount: o.carSeatCount || 0,
-    carType: o.carModel || '',
-    carCount: o.carCount || 1,
-    multidayInfo: o.multiEndDate ? { startDate: o.date, endDate: o.multiEndDate, dayCount: 2, nights: 1 } : null,
+    no: o.no || '',
+    date: dateNorm,
+    start: '00:00', end: '23:59',  // 訂單收支表沒有具體時段
+    tripType: tripType,
+    priorityType: '',
+    requireLang: [],
+    from: o.from || '',
+    to: o.to || '',
+    routeBrief: '',
+    pax: pax,
+    paxRaw: o.pax?.raw || '',
+    carSeatCount: carSeatCount,
+    carType: o.carType || '',
+    carCount: 1,
+    multidayInfo: null,
     remarks: o.remarks || '',
-    status: statusMap[o.status] || 'pending',
+    status: o.status === 'assigned' ? 'assigned' : 'pending',
     assignments: assignments,
-    rating: o.rating ? { score: o.rating, comment: o.ratingComment, ratedBy: '客人 LINE 回覆' } : null,
-    rawMessage: o.rawMessage || '',
-    lifecycle: []
+    rating: null,
+    rawMessage: '',
+    lifecycle: [],
+    // 附加資訊（v20 新增）
+    driverFee: o.driverFee || 0,
+    driverCollect: o.driverCollect || 0,
+    extraDriver: o.extraDriver || 0,
+    totalJP: o.totalJP || 0,
+    plan: o.plan || '',
+    hours: o.hours || '',
+    luggage: o.luggage || '',
+    region: o.region || '',
+    rowIndex: o.rowIndex || 0,
+    _driverMatched: driverMatched
   };
 }
 
@@ -1872,16 +1961,27 @@ async function onDriverViewChange() {
   const driverId = document.getElementById('driverViewSelect').value;
   viewedDriverId = driverId;
   if (!driverId) return;
-  
-  // 撈該司機所有訂單
-  const orders = await api.call('getOrders', { region: currentUser.regionCode, driverId });
+
+  // v20: 透過 DRIVERS 表把 driverId 轉成 driverName 再傳給 API
+  const drv = DRIVERS.find(x => x.id === driverId);
+  if (!drv) { alert('找不到該司機資料'); return; }
+
+  const today = new Date();
+  const start = new Date(today.getTime() - 30 * 86400000);   // 過去 30 天
+  const end = new Date(today.getTime() + 90 * 86400000);     // 未來 90 天
+  const fmt = d => d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0');
+
+  const orders = await api.getOrders({
+    driverName: drv.name,
+    dateStart: fmt(start), dateEnd: fmt(end)
+  });
   if (orders) {
     ORDERS.tomorrow.length = 0;
     orders.forEach(o => ORDERS.tomorrow.push(adaptOrderFromApi(o)));
-    
+
     // 切到該司機第一筆訂單的日期
     if (orders.length > 0) {
-      state.currentDate = orders[0].date;
+      state.currentDate = orders[0].date.replace(/\//g, '-');
     }
     renderDateStrip();
     renderOrders();
@@ -1889,13 +1989,27 @@ async function onDriverViewChange() {
   }
 }
 
-/* ====== v18 司機詳情頁 - 真實訂單清單 ====== */
+/* ====== v18 司機詳情頁 - 真實訂單清單（v20 改寫） ====== */
 async function loadDriverOrders(driverId) {
   const container = document.getElementById('ddOrdersList');
   if (!container) return;
   container.innerHTML = '<div class="dd-orders-loading">⏳ 載入訂單中...</div>';
-  
-  const orders = await api.call('getOrders', { region: currentUser.regionCode, driverId });
+
+  const drv = DRIVERS.find(x => x.id === driverId);
+  if (!drv) {
+    container.innerHTML = '<div class="dd-orders-loading">⚠ 找不到司機資料</div>';
+    return;
+  }
+
+  // 取較大的日期區間：過去 90 天 ~ 未來 90 天
+  const today = new Date();
+  const start = new Date(today.getTime() - 90 * 86400000);
+  const end = new Date(today.getTime() + 90 * 86400000);
+  const fmt = d => d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0');
+
+  const orders = await api.getOrders({
+    driverName: drv.name, dateStart: fmt(start), dateEnd: fmt(end)
+  });
   if (!orders) {
     container.innerHTML = '<div class="dd-orders-loading">⚠ 撈取失敗</div>';
     return;
@@ -1904,27 +2018,27 @@ async function loadDriverOrders(driverId) {
     container.innerHTML = '<div class="dd-orders-loading">該司機目前無派車紀錄</div>';
     return;
   }
-  
+
   // 排序：日期由新到舊
   orders.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  
+
   // 統計
   const total = orders.length;
-  const totalFee = orders.reduce((s, o) => s + (o.fee || 0), 0);
-  const withFee = orders.filter(o => o.fee).length;
-  
+  const totalFee = orders.reduce((s, o) => s + (o.driverFee || 0), 0);
+  const withFee = orders.filter(o => o.driverFee).length;
+
   let html = `<div class="dd-stats-mini">
     <div class="dd-stats-mini-item"><span class="num">${total}</span><span class="lbl">總趟次</span></div>
     <div class="dd-stats-mini-item"><span class="num">${withFee}</span><span class="lbl">已填費用</span></div>
     <div class="dd-stats-mini-item"><span class="num">¥${totalFee.toLocaleString()}</span><span class="lbl">累積</span></div>
   </div>`;
-  
+
   html += orders.slice(0, 50).map(o => {
     const date = o.date || '日期不明';
-    const route = o.routeBrief || (o.from || '') + ' → ' + (o.to || '') || '行程資訊缺';
-    const fee = o.fee ? '¥' + o.fee.toLocaleString() : '';
-    return `<div class="dd-order-row" onclick="alert('訂單詳情：${o.orderNo}')">
-      <span class="dd-order-no">${o.orderNo}</span>
+    const route = ((o.from || '') + ' → ' + (o.to || '')) || '行程資訊缺';
+    const fee = o.driverFee ? '¥' + o.driverFee.toLocaleString() : '';
+    return `<div class="dd-order-row" onclick="alert('訂單編號：${o.no}\\n${o.from || ''} → ${o.to || ''}\\n${o.pax?.raw || ''}\\n${o.remarks || ''}')">
+      <span class="dd-order-no">${o.no}</span>
       <span class="dd-order-date">${date}</span>
       <span class="dd-order-fee">${fee}</span>
       <div class="dd-order-route">${route}</div>
@@ -2691,8 +2805,8 @@ function renderOrderCard(o, idx) {
       <div class="assigned-row">
         <div class="info-l">
           ${activeAssignments.length > 1 ? `<span class="car-no-tag">車${i+1}</span>` : ''}
-          ${renderDriverAvatar(d, 'xs')}
-          ${d?.name || '?'}${renderLangFlags(d?.languages)} ・ ${v?.plate || '未配車'}
+          ${renderDriverAvatar(d || { name: a.driverNameRaw || '?' }, 'xs')}
+          ${d?.name || a.driverNameRaw || '?'}${renderLangFlags(d?.languages)} ・ ${v?.plate || a.vehiclePlateRaw || a.vehicleModelRaw || '未配車'}
           ${hasDeduct ? `<span class="order-adjust-badge">⚠ 扣費</span>` : ''}
           ${hasBonus ? `<span class="order-adjust-badge bonus">＋ 獎金</span>` : ''}
         </div>
@@ -2730,11 +2844,11 @@ function renderOrderCard(o, idx) {
       </div>
       ${o.status !== 'pending' && o.status !== 'cancelled' ? renderStatusMiniFlow(o) : ''}
       <div class="order-time">
-        ${o.start} – ${o.end}${o.tripType === 'daytrip' ? '<span class="uncertain">結束時間可能延後</span>' : ''}${o.tripType === 'multiday' ? '<span class="multiday-range">' + o.multidayInfo.dayCount + ' 天連續</span>' : ''}
+        ${(o.start === '00:00' && o.end === '23:59') ? '<span style="color:var(--muted-2);">時段未指定</span>' : `${o.start} – ${o.end}`}${o.tripType === 'daytrip' ? '<span class="uncertain">結束時間可能延後</span>' : ''}${o.tripType === 'multiday' ? '<span class="multiday-range">' + o.multidayInfo.dayCount + ' 天連續</span>' : ''}
       </div>
       <div class="order-route">${getRouteDisplay(o)}</div>
       <div class="order-tags">
-        <span class="tag">${formatPax(o.pax)}</span>
+        <span class="tag">${(!o.pax?.adult && !o.pax?.child && o.paxRaw) ? o.paxRaw : formatPax(o.pax)}</span>
         <span class="tag">${o.carType}</span>
         ${o.carSeatCount > 0 ? `<span class="tag warn">需汽座 x${o.carSeatCount}</span>` : ''}
         ${o.carCount > 1 ? `<span class="tag danger">需 ${o.carCount} 台車</span>` : ''}
@@ -3691,83 +3805,4 @@ function renderStatsMonthNav() {
     else if (m.offset === 0) cls = 'current';
     else cls = 'future';
     const isSelected = m.offset === state.statsMonthOffset;
-    return '<div class="stats-month-chip ' + cls + (isSelected ? ' selected' : '') + '" onclick="setStatsMonth(' + m.offset + ')" ' +
-      (isSelected ? 'style="box-shadow:0 0 0 2px var(--primary-soft);"' : '') + '>' +
-      m.name + '<span class="lbl">' + (m.offset === 0 ? '本月' : (m.offset === -1 ? '上月' : (m.offset === 1 ? '下月' : (m.offset < 0 ? Math.abs(m.offset)+'月前' : m.offset+'月後')))) + '</span></div>';
-  }).join('');
-}
-function setStatsMonth(offset) {
-  state.statsMonthOffset = offset;
-  renderStatsMonthNav();
-  renderStatsDriverRank();
-}
-function renderStatsDriverRank() {
-  renderStatsMonthNav();
-  const isPast = state.statsMonthOffset < 0;
-  const isFuture = state.statsMonthOffset > 0;
-  // 模擬不同月份的數據（offset 不同會有不同數字）
-  const factor = 1 + state.statsMonthOffset * 0.05;
-  const ranked = [...DRIVERS].sort((a,b) => b.servedCount - a.servedCount).slice(0, 5);
-  const maxCount = Math.round((ranked[0]?.servedCount || 1) * factor);
-  document.getElementById('statsDriverRank').innerHTML = (isFuture ?
-    '<div style="padding:12px;text-align:center;color:var(--muted);font-size:12px;background:var(--primary-soft);border-radius:8px;">📈 未來月份為「預估數據」，根據過去 3 個月平均推估</div>' : '') +
-    ranked.map(d => {
-      const c = Math.round(d.servedCount * factor);
-      return '<div class="stats-bar-item"><div style="display:flex;align-items:center;gap:6px;width:90px;">' + renderDriverAvatar(d, 'xs') + '<span style="font-size:11px;font-weight:600;">' + d.name + '</span></div><div class="sbi-bar"><div class="sbi-fill" style="width:' + (c/maxCount*100).toFixed(0) + '%;"></div></div><span class="sbi-val">' + c + ' 趟</span></div>';
-    }).join('');
-  // 更新統計卡的數字（簡單 mock）
-  const cards = document.querySelectorAll('#page-stats .stats-card-value');
-  if (cards.length >= 4) {
-    cards[0].textContent = Math.round(128 * factor);
-    cards[1].textContent = '¥' + (4.2 * factor).toFixed(1) + 'M';
-    cards[2].innerHTML = (4.7 + state.statsMonthOffset * 0.1).toFixed(1) + ' <span style="color:var(--gold);font-size:14px;">★</span>';
-    cards[3].textContent = Math.max(0.5, 2.3 - state.statsMonthOffset * 0.3).toFixed(1) + '%';
-  }
-}
-
-/* ============ 切頁 ============ */
-/* ============ 切頁 ============ */
-function switchPage(page) {
-  state.page = page;
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-' + page).classList.add('active');
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  const btn = document.querySelector(`.nav-btn[data-page="${page}"]`);
-  if (btn) btn.classList.add('active');
-  if (page === 'schedule') renderScheduleGrid();
-  if (page === 'drivers') { renderTagFilterBar(); renderDriversList(); }
-  if (page === 'vehicles') renderVehiclesList();
-  if (page === 'search') { document.getElementById('searchInput').focus(); renderSearchResults(); renderSearchDriverChips(); }
-  if (page === 'notify-history') renderNotifyHistory();
-  if (page === 'stats') renderStatsDriverRank();
-}
-
-function doLogin() {
-  doLoginReal();
-}
-function doLoginMock() {
-  document.getElementById('loginMask').style.display = 'none';
-  document.getElementById('mainApp').style.display = 'block';
-}
-function logoutConfirm() {
-  if (confirm('確定要登出？')) {
-    document.getElementById('loginMask').style.display = 'flex';
-    document.getElementById('mainApp').style.display = 'none';
-  }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.filter-tab').forEach(t => {
-    t.addEventListener('click', () => {
-      if (t.classList.contains('disabled')) return;
-      setFilter(t.dataset.filter);
-    });
-  });
-  renderDateStrip();
-  renderNotifyBanner();
-  renderOrders();
-});
-</script>
-</body>
-</html>
-                                                         
+    return '<div class="stats-month-chip ' + cls + (isSelec
