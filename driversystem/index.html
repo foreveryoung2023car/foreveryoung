@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v13</title>
+<title>旅乘派車系統 v15</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -1185,6 +1185,86 @@
   .empty-action button.primary {
     background: var(--primary); color: white;
   }
+
+  /* ====== v15 RWD 桌機適配 ====== */
+  @media (min-width: 768px) {
+    .device-shell {
+      max-width: 1200px !important;
+      border-left: none !important;
+      border-right: none !important;
+      box-shadow: 0 0 60px rgba(53,112,168,0.10);
+      padding-bottom: 100px;
+    }
+    body {
+      background: linear-gradient(135deg, #E8F1F9 0%, #F5F8FB 100%);
+      min-height: 100vh;
+    }
+    .topbar {
+      padding: 16px 32px;
+    }
+    .quick-stats {
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .sect-head, .filter-bar, .date-strip, .date-quick-nav {
+      padding-left: 32px !important;
+      padding-right: 32px !important;
+    }
+    .orders {
+      padding: 14px 28px 100px !important;
+      display: grid !important;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .order-card { margin-bottom: 0 !important; }
+    .bottom-nav {
+      max-width: 1200px !important;
+      padding: 8px 0 calc(8px + env(safe-area-inset-bottom)) !important;
+    }
+    .schedule-grid-wrap { padding: 0 32px; }
+    .list-card { margin: 10px 24px !important; }
+    .veh-group { margin: 10px 24px !important; }
+    .stats-row, .stats-block { margin: 10px 24px !important; }
+    .search-bar, .tag-filter-bar { padding-left: 32px !important; padding-right: 32px !important; }
+    .sheet {
+      max-width: 600px !important;
+      border-radius: 16px !important;
+      max-height: 88vh !important;
+      top: 50%; left: 50%; bottom: auto !important; right: auto !important;
+      transform: translate(-50%, -50%) !important;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .sheet.show {
+      transform: translate(-50%, -50%) !important;
+    }
+    .sheet-handle { display: none; }
+  }
+  @media (min-width: 1100px) {
+    .orders {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  /* ====== v15 localStorage 提示 ====== */
+  .draft-indicator {
+    position: fixed;
+    top: 60px; right: 12px;
+    background: var(--warning-soft);
+    color: var(--warning);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    z-index: 250;
+    border: 1px solid #FCD34D;
+    display: none;
+    animation: pulseHint 1.5s;
+  }
+  .draft-indicator.show { display: block; }
+  @keyframes pulseHint {
+    0% { transform: scale(0.9); opacity: 0; }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); opacity: 1; }
+  }
 </style>
 </head>
 <body>
@@ -1461,6 +1541,10 @@
       <div class="nav-icon-wrap"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg></div>
       <span>車輛</span>
     </div>
+    <div class="nav-btn" data-page="stats" onclick="switchPage('stats')">
+      <div class="nav-icon-wrap"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+      <span>統計</span>
+    </div>
     <div class="nav-btn" data-page="settings" onclick="switchPage('settings')">
       <div class="nav-icon-wrap"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
       <span>設定</span>
@@ -1500,6 +1584,279 @@ const LANGUAGES = [
 ];
 
 /* ============ 司機（含語言、評分） ============ */
+
+/* ====== v14 API Client ====== */
+const API_URL = 'https://script.google.com/macros/s/AKfycbwRd2uzzuhCn_4tW9bMCY5c0NZa0j8ZYS-eGFlvX3z2fM2mv0zpf-0ICjpmrMpr8Ptbpw/exec';
+
+const api = {
+  async call(action, params) {
+    params = params || {};
+    const url = new URL(API_URL);
+    url.searchParams.set('action', action);
+    Object.keys(params).forEach(k => {
+      if (params[k] != null) url.searchParams.set(k, String(params[k]));
+    });
+    try {
+      const res = await fetch(url.toString(), { method: 'GET' });
+      const json = await res.json();
+      if (!json.success) {
+        console.error('[API error]', action, json.error);
+        return null;
+      }
+      return json.data;
+    } catch (err) {
+      console.error('[API network error]', action, err);
+      return null;
+    }
+  },
+  ping() { return this.call('ping'); },
+  login(email) { return this.call('login', { email: email }); },
+  getDrivers(region) { return this.call('getDrivers', { region: region }); },
+  getVehicles(region) { return this.call('getVehicles', { region: region }); },
+  getOrders(date, region) { return this.call('getOrders', { date: date, region: region }); },
+  getDispatchers(region) { return this.call('getDispatchers', { region: region }); },
+  dispatch(p) { return this.call('dispatch', p); },
+  addAdjustment(p) { return this.call('addAdjustment', p); },
+  addRating(p) { return this.call('addRating', p); }
+};
+
+let currentUser = null;
+
+async function doLoginReal() {
+  const email = document.getElementById('loginUser').value.trim();
+  if (!email) { alert('請輸入帳號'); return; }
+  const btn = document.querySelector('#loginMask button.btn-primary');
+  if (btn) { btn.textContent = '登入中...'; btn.disabled = true; }
+  const user = await api.login(email);
+  if (!user) {
+    alert('帳號未授權\n請確認此 email 已建立在「派車負責人」表（I 欄）');
+    if (btn) { btn.textContent = '登入查看我的派車介面'; btn.disabled = false; }
+    return;
+  }
+  currentUser = user;
+  console.log('[Login] 登入成功', user);
+  const userEl = document.querySelector('.header-info .user');
+  const regionEl = document.querySelector('.header-info .region');
+  if (userEl) userEl.textContent = user.name;
+  if (regionEl) regionEl.textContent = user.region;
+  document.getElementById('loginMask').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+  await loadRealData();
+}
+
+async function loadRealData() {
+  if (!currentUser) return;
+  const region = currentUser.regionCode;
+  console.log('[loadRealData] region =', region);
+  const [drivers, vehicles, orders] = await Promise.all([
+    api.getDrivers(region),
+    api.getVehicles(region),
+    api.getOrders(null, region)
+  ]);
+  if (drivers && drivers.length > 0) {
+    DRIVERS.length = 0;
+    drivers.forEach(d => DRIVERS.push(d));
+    console.log('[Drivers]', DRIVERS.length, '位');
+  }
+  if (vehicles && vehicles.length > 0) {
+    VEHICLES.length = 0;
+    vehicles.forEach(v => VEHICLES.push(v));
+    console.log('[Vehicles]', VEHICLES.length, '台');
+  }
+  if (orders && orders.length > 0) {
+    ORDERS.tomorrow.length = 0;
+    orders.forEach(o => ORDERS.tomorrow.push(adaptOrderFromApi(o)));
+    console.log('[Orders]', ORDERS.tomorrow.length, '筆');
+  } else {
+    console.log('[Orders] 無真實訂單，保留示範資料');
+  }
+  renderDateStrip();
+  renderOrders();
+}
+
+function adaptOrderFromApi(o) {
+  const tripTypeMap = { '單程':'oneway', '往返':'roundtrip', '一日遊':'daytrip', '多日':'multiday' };
+  const statusMap = { '待派車':'pending', '已派車':'assigned', '司機確認':'confirmed', '行程中':'in-progress', '完成':'completed', '已對帳':'reconciled', '已取消':'cancelled' };
+  const assignments = [];
+  if (o.driverId) {
+    assignments.push({
+      driverId: o.driverId, vehicleId: o.vehicleId,
+      fee: o.fee || 0, status: 'active', assignedAt: ''
+    });
+  }
+  return {
+    no: o.orderNo,
+    date: o.date,
+    start: o.start || '00:00', end: o.end || '23:59',
+    tripType: tripTypeMap[o.tripType] || 'oneway',
+    priorityType: o.priorityType,
+    requireLang: o.requireLang || [],
+    from: o.from || '', to: o.to || '',
+    routeBrief: o.routeBrief || '',
+    pax: { adult: o.adult || 0, child: o.child || 0, infant: o.infant || 0 },
+    carSeatCount: o.carSeatCount || 0,
+    carType: o.carModel || '',
+    carCount: o.carCount || 1,
+    multidayInfo: o.multiEndDate ? { startDate: o.date, endDate: o.multiEndDate, dayCount: 2, nights: 1 } : null,
+    remarks: o.remarks || '',
+    status: statusMap[o.status] || 'pending',
+    assignments: assignments,
+    rating: o.rating ? { score: o.rating, comment: o.ratingComment, ratedBy: '客人 LINE 回覆' } : null,
+    rawMessage: o.rawMessage || '',
+    lifecycle: []
+  };
+}
+
+async function saveDispatchReal() {
+  if (!state.editingOrder) return;
+  const o = state.editingOrder.data;
+  for (let i = 0; i < state.editingAssignments.length; i++) {
+    const a = state.editingAssignments[i];
+    if (!a.driverId) { alert(`第 ${i+1} 台車尚未選擇司機`); return; }
+    if (!a.vehicleId) { alert(`第 ${i+1} 台車尚未選擇車輛`); return; }
+    if (!a.fee || a.fee <= 0) { alert(`第 ${i+1} 台車尚未輸入費用`); return; }
+  }
+  const first = state.editingAssignments[0];
+  const result = await api.dispatch({
+    orderNo: o.no,
+    region: currentUser ? currentUser.regionCode : 'TK',
+    driverId: first.driverId,
+    vehicleId: first.vehicleId,
+    fee: first.fee,
+    status: '已派車'
+  });
+  if (result && result.updated) {
+    o.assignments = state.editingAssignments.map(a => ({...a, status:'active', assignedAt: new Date().toISOString().slice(0,16).replace('T',' ')}));
+    o.status = 'assigned';
+    alert('✓ 派車已寫入 Google Sheets');
+  } else {
+    alert('⚠️ API 寫入失敗，僅在前端記錄。請查看 console。');
+    const now = new Date().toISOString().slice(0,16).replace('T',' ');
+    o.assignments = state.editingAssignments.map(a => ({...a, status:'active', assignedAt: now}));
+    o.status = 'assigned';
+  }
+  closeSheet();
+  renderOrders();
+}
+
+
+
+/* ====== v15 草稿暫存 (localStorage) ====== */
+const DRAFT_KEY = 'lvcheng_dispatch_draft_v15';
+
+function saveDraft() {
+  if (!state.editingOrder) return;
+  const draft = {
+    orderNo: state.editingOrder.data.no,
+    assignments: state.editingAssignments,
+    savedAt: new Date().toISOString()
+  };
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    showDraftSaved();
+  } catch(e) {}
+}
+
+function loadDraftIfMatch(orderNo) {
+  try {
+    const draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || '{}');
+    if (draft.orderNo === orderNo && draft.assignments) {
+      const savedTime = new Date(draft.savedAt);
+      const ageMin = Math.floor((Date.now() - savedTime.getTime()) / 60000);
+      if (ageMin < 60 * 24) { // 24小時內草稿才復原
+        return draft;
+      }
+    }
+  } catch(e) {}
+  return null;
+}
+
+function clearDraft() {
+  try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
+}
+
+let draftHintTimer = null;
+function showDraftSaved() {
+  let el = document.getElementById('draftIndicator');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'draftIndicator';
+    el.className = 'draft-indicator';
+    el.innerHTML = '✓ 已暫存草稿';
+    document.body.appendChild(el);
+  }
+  el.classList.add('show');
+  clearTimeout(draftHintTimer);
+  draftHintTimer = setTimeout(() => el.classList.remove('show'), 1500);
+}
+
+/* hook editing 動作自動存 */
+function wrapWithDraftSave(fnName) {
+  const orig = window[fnName];
+  if (typeof orig === 'function') {
+    window[fnName] = function(...args) {
+      const r = orig.apply(this, args);
+      saveDraft();
+      return r;
+    };
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    wrapWithDraftSave('selectDriverForSlot');
+    wrapWithDraftSave('selectVehicleForSlot');
+    wrapWithDraftSave('adjustFee');
+    wrapWithDraftSave('updateFee');
+    wrapWithDraftSave('addCarSlot');
+    wrapWithDraftSave('removeCarSlot');
+  }, 500);
+  
+  // 全域 state 也存 localStorage
+  setInterval(() => {
+    try {
+      localStorage.setItem('lvcheng_view_state', JSON.stringify({
+        currentDate: state.currentDate,
+        filter: state.filter,
+        page: state.page
+      }));
+    } catch(e) {}
+  }, 3000);
+});
+
+/* hook openEditor 載入草稿 */
+function tryRestoreDraft(orderData, editingAssignments) {
+  const draft = loadDraftIfMatch(orderData.no);
+  if (draft && draft.assignments && draft.assignments.length > 0) {
+    if (confirm('偵測到此訂單先前未完成的編輯草稿（' + new Date(draft.savedAt).toLocaleString() + '），要還原嗎？\n\n按「確定」還原草稿，「取消」用最新狀態。')) {
+      editingAssignments.length = 0;
+      draft.assignments.forEach(a => editingAssignments.push(a));
+      return true;
+    } else {
+      clearDraft();
+    }
+  }
+  return false;
+}
+
+/* hook closeSheet → 清草稿 */
+const _origCloseSheet = window.closeSheet;
+window.closeSheet = function() {
+  clearDraft();
+  if (typeof _origCloseSheet === 'function') _origCloseSheet.apply(this, arguments);
+};
+
+/* hook saveDispatch → 清草稿 */
+const _origSave = window.saveDispatchReal;
+if (typeof _origSave === 'function') {
+  window.saveDispatchReal = async function(...args) {
+    const r = await _origSave.apply(this, args);
+    clearDraft();
+    return r;
+  };
+}
+
+
 const DRIVERS = [
   {id:'TK-001', name:'劉備', phone:'080-4376-5678', defaultFee:30000, off:false,
    tags:['機場接送','一日遊','富士山'], languages:['zh','ja'],
@@ -2177,6 +2534,8 @@ function openEditor(idx) {
   while (state.editingAssignments.length < (o.carCount || 1)) {
     state.editingAssignments.push({driverId:null, vehicleId:null, fee:null, status:'active'});
   }
+  // v15: 嘗試還原草稿
+  tryRestoreDraft(o, state.editingAssignments);
 
   document.getElementById('sheetTitle').textContent = o.status === 'pending' ? '派車安排' : '修改派車安排';
 
@@ -2454,6 +2813,9 @@ function closeSheet() {
 }
 
 function saveDispatch() {
+  saveDispatchReal();
+}
+function saveDispatchMock() {
   if (!state.editingOrder) return;
   const o = state.editingOrder.data;
   for (let i = 0; i < state.editingAssignments.length; i++) {
@@ -3147,6 +3509,9 @@ function switchPage(page) {
 }
 
 function doLogin() {
+  doLoginReal();
+}
+function doLoginMock() {
   document.getElementById('loginMask').style.display = 'none';
   document.getElementById('mainApp').style.display = 'block';
 }
