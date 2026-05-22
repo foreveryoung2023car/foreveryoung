@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v20</title>
+<title>旅乘派車系統 v21</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -1190,7 +1190,7 @@
   /* ====== v15 RWD 桌機適配 ====== */
   @media (min-width: 768px) {
     .device-shell {
-      max-width: 1200px !important;
+      max-width: 1440px !important;
       border-left: none !important;
       border-right: none !important;
       box-shadow: 0 0 60px rgba(53,112,168,0.10);
@@ -1218,7 +1218,7 @@
     }
     .order-card { margin-bottom: 0 !important; }
     .bottom-nav {
-      max-width: 1200px !important;
+      max-width: 1440px !important;
       padding: 8px 0 calc(8px + env(safe-area-inset-bottom)) !important;
     }
     .schedule-grid-wrap { padding: 0 32px; }
@@ -1248,6 +1248,21 @@
     .orders {
       grid-template-columns: repeat(3, 1fr);
     }
+  }
+  /* v21: 超寬桌機 4 欄 */
+  @media (min-width: 1400px) {
+    .orders {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+  }
+  /* v21: 訂單卡內容更舒服 */
+  @media (min-width: 768px) {
+    .order-card {
+      padding: 14px 16px !important;
+    }
+    .order-card .order-route { line-height: 1.5; }
+    .order-card .order-remark { padding: 6px 8px; line-height: 1.45; }
   }
 
   /* ====== v15 localStorage 提示 ====== */
@@ -1767,10 +1782,11 @@ async function loadRealData() {
   const end = new Date(today.getTime() + 60 * 86400000);
   const fmt = d => d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0');
 
+  // v21: 改用 driverName (leader 名字) 過濾，而不是 region
   const [drivers, vehicles, orders] = await Promise.all([
     api.getDrivers(region),
     api.getVehicles(region),
-    api.getOrders({ dateStart: fmt(start), dateEnd: fmt(end), regions: [region] })
+    api.getOrders({ dateStart: fmt(start), dateEnd: fmt(end), driverName: currentUser.name })
   ]);
   if (drivers && drivers.length > 0) {
     DRIVERS.length = 0;
@@ -1857,10 +1873,26 @@ function adaptOrderFromApi(o) {
     });
   }
 
+  // v21: 從 L 欄 (startTime) 取出發時間
+  const startStr = String(o.startTime || '').trim();
+  const startTime = startStr || '時段未定';
+  // 依時數推估結束時間（如有 hours 數字）
+  let endTime = '';
+  if (startStr && o.hours) {
+    const hoursNum = parseInt(o.hours);
+    if (!isNaN(hoursNum) && hoursNum > 0) {
+      const m = startStr.match(/^(\d{1,2}):(\d{2})/);
+      if (m) {
+        const eh = (parseInt(m[1]) + hoursNum) % 24;
+        endTime = String(eh).padStart(2,'0') + ':' + m[2];
+      }
+    }
+  }
+
   return {
     no: o.no || '',
     date: dateNorm,
-    start: '00:00', end: '23:59',  // 訂單收支表沒有具體時段
+    start: startTime, end: endTime || '',  // v21: L 欄出發時間
     tripType: tripType,
     priorityType: '',
     requireLang: [],
@@ -2844,7 +2876,7 @@ function renderOrderCard(o, idx) {
       </div>
       ${o.status !== 'pending' && o.status !== 'cancelled' ? renderStatusMiniFlow(o) : ''}
       <div class="order-time">
-        ${(o.start === '00:00' && o.end === '23:59') ? '<span style="color:var(--muted-2);">時段未指定</span>' : `${o.start} – ${o.end}`}${o.tripType === 'daytrip' ? '<span class="uncertain">結束時間可能延後</span>' : ''}${o.tripType === 'multiday' ? '<span class="multiday-range">' + o.multidayInfo.dayCount + ' 天連續</span>' : ''}
+        ${!o.start || o.start === '時段未定' ? '<span style="color:var(--muted-2);">時段未定</span>' : (o.end ? `${o.start} – ${o.end}` : `${o.start} 出發`)}${o.tripType === 'daytrip' ? '<span class="uncertain">結束時間可能延後</span>' : ''}${o.tripType === 'multiday' ? '<span class="multiday-range">' + o.multidayInfo.dayCount + ' 天連續</span>' : ''}
       </div>
       <div class="order-route">${getRouteDisplay(o)}</div>
       <div class="order-tags">
@@ -3849,38 +3881,4 @@ function switchPage(page) {
   const btn = document.querySelector(`.nav-btn[data-page="${page}"]`);
   if (btn) btn.classList.add('active');
   if (page === 'schedule') renderScheduleGrid();
-  if (page === 'drivers') { renderTagFilterBar(); renderDriversList(); }
-  if (page === 'vehicles') renderVehiclesList();
-  if (page === 'search') { document.getElementById('searchInput').focus(); renderSearchResults(); renderSearchDriverChips(); }
-  if (page === 'notify-history') renderNotifyHistory();
-  if (page === 'stats') renderStatsDriverRank();
-}
-
-function doLogin() {
-  doLoginReal();
-}
-function doLoginMock() {
-  document.getElementById('loginMask').style.display = 'none';
-  document.getElementById('mainApp').style.display = 'block';
-}
-function logoutConfirm() {
-  if (confirm('確定要登出？')) {
-    document.getElementById('loginMask').style.display = 'flex';
-    document.getElementById('mainApp').style.display = 'none';
-  }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.filter-tab').forEach(t => {
-    t.addEventListener('click', () => {
-      if (t.classList.contains('disabled')) return;
-      setFilter(t.dataset.filter);
-    });
-  });
-  renderDateStrip();
-  renderNotifyBanner();
-  renderOrders();
-});
-</script>
-</body>
-</html>
+  if (page === 'drivers') { renderTagFilterBar();
