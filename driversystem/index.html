@@ -1773,6 +1773,7 @@ const api = {
     }
   },
   ping() { return this.call('ping'); },
+  syncOrders(opts) { return this.call('syncOrders', opts || {}); },
   login(email) { return this.call('login', { email: email }); },
   getDrivers(region) { return this.call('getDrivers', { region: region }); },
   getVehicles(region) { return this.call('getVehicles', { region: region }); },
@@ -1811,7 +1812,7 @@ async function doLoginReal() {
     if (btn) { btn.textContent = '登入查看我的派車介面'; btn.disabled = false; }
     return;
   }
-  currentUser = user;
+  currentUser = Object.assign({}, user, { email: email });
   console.log('[Login] 登入成功', user);
   const userEl = document.querySelector('.header-info .user');
   const regionEl = document.querySelector('.header-info .region');
@@ -1831,13 +1832,17 @@ async function loadRealData() {
   const region = currentUser.regionCode;
   console.log('[loadRealData] region =', region);
 
-  // v26: 漸進載入 - 先抓近 3 天，UI 立即可用；其餘背景補
+  // v28: 漸進載入 + 先 sync 派車紀錄
   const today = new Date();
   const fmt = d => d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0');
   const near3Start = fmt(today);
   const near3End = fmt(new Date(today.getTime() + 3 * 86400000));
   const wideStart = fmt(new Date(today.getTime() - 7 * 86400000));
   const wideEnd = fmt(new Date(today.getTime() + 60 * 86400000));
+  // v28: sync 派車紀錄（背景跑，不阻塞）
+  api.syncOrders({ leaderName: currentUser.name, dateStart: near3Start, dateEnd: near3End })
+     .then(r => console.log('[Sync] 第一批已同步:', r))
+     .catch(e => console.warn('[Sync] 失敗', e));
 
   // 第一批：今日 + 未來 3 天
   const [drivers, vehicles, orders] = await Promise.all([
@@ -2001,6 +2006,7 @@ function adaptOrderFromApi(o) {
   return {
     no: o.no || '',
     date: dateNorm,
+    carIndex: o.carIndex || 1,  // v28
     // v21: 從 L 欄 (API.startTime) 取出發時間，再用 hours 推結束
     start: (o.startTime || '時段未定'),
     end: (function(){
@@ -2026,9 +2032,18 @@ function adaptOrderFromApi(o) {
     carCount: 1,
     multidayInfo: null,
     remarks: o.remarks || '',
-    // v22: 訂單收支表 F 欄只是 leader，不代表已派車。永遠 pending 直到派車紀錄有對應 row
-    status: 'pending',
-    assignments: [],  // 沒有真正派車，清空
+    // v28: 真實 status 來自派車紀錄 join
+    status: o.status || 'pending',
+    assignments: (o.hasDispatch && o.assignedDriverId) ? [{
+      driverId: o.assignedDriverId,
+      driverName: o.assignedDriverName || '',
+      vehicleId: o.assignedVehicleId || '',
+      vehiclePlateRaw: o.assignedPlate || '',
+      vehicleModelRaw: o.carType || '',
+      fee: o.assignedFee || o.driverFee || 0,
+      status: 'active',
+      assignedAt: (o.dispatch && o.dispatch.assignedAt) || ''
+    }] : [],
     rating: null,
     rawMessage: (function() {
       // v25: 用 LINE 訂單制式格式
@@ -2079,30 +2094,42 @@ function adaptOrderFromApi(o) {
 }
 
 async function saveDispatchReal() {
+  // v28: 對每台車各打一次新派車 API
   if (!state.editingOrder) return;
   const o = state.editingOrder.data;
   for (let i = 0; i < state.editingAssignments.length; i++) {
     const a = state.editingAssignments[i];
     if (!a.driverId) { alert(`第 ${i+1} 台車尚未選擇司機`); return; }
-    if (!a.vehicleId) { alert(`第 ${i+1} 台車尚未選擇車輛`); return; }
     if (!a.fee || a.fee <= 0) { alert(`第 ${i+1} 台車尚未輸入費用`); return; }
   }
-  const first = state.editingAssignments[0];
-  const result = await api.dispatch({
-    orderNo: o.no,
-    region: currentUser ? currentUser.regionCode : 'TK',
-    driverId: first.driverId,
-    vehicleId: first.vehicleId,
-    fee: first.fee,
-    status: '已派車'
-  });
-  if (result && result.updated) {
+  const dispatchDate = (o.date || '').replace(/-/g, '/');
+  let allOk = true;
+  const messages = [];
+  for (let i = 0; i < state.editingAssignments.length; i++) {
+    const a = state.editingAssignments[i];
+    const carIndex = (o.carIndex || 1) + i;
+    const r = await api.call('dispatch', {
+      orderNo: o.no,
+      date: dispatchDate,
+      carIndex: carIndex,
+      driverId: a.driverId,
+      vehicleId: a.vehicleId || '',
+      fee: a.fee,
+      dispatcherEmail: (currentUser && currentUser.email) || ''
+    });
+    if (r && r.updated) {
+      messages.push(`✓ 第 ${i+1} 台：${a.driverId} 已寫入 (record=${r.recordId})`);
+    } else {
+      allOk = false;
+      messages.push(`✗ 第 ${i+1} 台：失敗 ${r ? (r.error || '') : '網路問題'}`);
+    }
+  }
+  if (allOk) {
     o.assignments = state.editingAssignments.map(a => ({...a, status:'active', assignedAt: new Date().toISOString().slice(0,16).replace('T',' ')}));
     o.status = 'assigned';
-    alert('✓ 派車已寫入 Google Sheets');
+    alert('🎉 派車成功\n\n' + messages.join('\n'));
   } else {
-    // v24: API 失敗不假裝成功
-    alert('⚠️ 派車寫入失敗：派車紀錄分頁尚未接好同步流程。\n\n目前只是看到面板的雛形，真實寫入需等下次架構大改完成。');
+    alert('⚠ 部分派車失敗\n\n' + messages.join('\n'));
   }
   closeSheet();
   renderOrders();
@@ -2942,9 +2969,7 @@ function openEditor(idx) {
   document.getElementById('sheetTitle').textContent = o.status === 'pending' ? '派車安排' : '修改派車安排';
 
   document.getElementById('sheetBody').innerHTML = `
-    <div style="background:#FEF3C7;border:1px solid #F59E0B;color:#92400E;padding:10px 14px;border-radius:8px;margin:0 0 12px;font-size:12px;line-height:1.5;">
-      🚧 <strong>派車流程開發中</strong>：可瀏覽訂單詳情、選司機、選車輛、設費用，但「確認派車」尚無法寫入派車紀錄分頁。
-    </div>
+
     ${o.isModified && o.modifyLog ? `
       <div class="remark-highlight" style="background:var(--warning-soft);border-color:var(--warning);">
         <div class="rh-head" style="color:var(--warning);">⚠ 此訂單最近有修改</div>
