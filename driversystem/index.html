@@ -1785,7 +1785,14 @@ async function loadRealData() {
   ]);
   if (drivers && drivers.length > 0) {
     DRIVERS.length = 0;
-    drivers.forEach(d => DRIVERS.push(d));
+    drivers.forEach(d => {
+      // v23: API 欄位 alias，避免舊版前端 d.defaultFee / d.rating 為 undefined
+      if (d.defaultFeeDay != null && d.defaultFee == null) d.defaultFee = d.defaultFeeDay;
+      if (d.avgRating != null && d.rating == null) d.rating = d.avgRating;
+      if (!Array.isArray(d.tags)) d.tags = [];
+      if (!Array.isArray(d.languages)) d.languages = [];
+      DRIVERS.push(d);
+    });
     console.log('[Drivers]', DRIVERS.length, '位');
   }
   if (vehicles && vehicles.length > 0) {
@@ -3160,13 +3167,13 @@ function renderDriverRow(g, slotIdx, selectedId, disabled, order) {
           <span class="driver-id">${driver.id}</span>
           ${renderLangFlags(driver.languages)}
           ${g.tagMatch ? `<span class="priority-star">⭐ 優先</span>` : ''}
-          ${driver.rating ? `<span class="driver-rating-inline">★ ${driver.rating.toFixed(1)}</span>` : ''}
+          ${(driver.avgRating ?? driver.rating) ? `<span class="driver-rating-inline">★ ${(driver.avgRating ?? driver.rating).toFixed(1)}</span>` : ''}
         </div>
         <div class="driver-tags-mini">${tagsHtml}</div>
         <div class="driver-status ${statusClass}">${statusLine}</div>
         <span class="driver-served">服務 ${driver.servedCount} 趟 ・ ${driver.ratingCount || 0} 則評價</span>
       </div>
-      <div class="driver-fee-default">預設<br><strong>¥${driver.defaultFee.toLocaleString()}</strong></div>
+      <div class="driver-fee-default">預設<br><strong>¥${(driver.defaultFeeDay ?? driver.defaultFee ?? 0).toLocaleString()}</strong></div>
     </div>`;
 }
 
@@ -3682,8 +3689,8 @@ function openDriverDetail(driverId) {
   html += '<div><div class="dd-cover-name">' + driver.name + '<span class="dd-cover-id">' + driver.id + '</span>' + renderLangFlags(driver.languages) + '</div>';
   html += '<div class="dd-cover-meta">📱 ' + driver.phone + '<br>' + (driver.off ? '🛏 目前休假中' : '✓ 可派車') + '・加入於 ' + (driver.joinedYear || 2024) + ' 年</div></div></div></div>';
   html += '<div class="dd-stats"><div class="dd-stat"><div class="dd-stat-num">' + driver.servedCount + '</div><div class="dd-stat-label">累積趟次</div></div>';
-  html += '<div class="dd-stat"><div class="dd-stat-num gold">★ ' + (driver.rating || 0).toFixed(1) + '</div><div class="dd-stat-label">' + (driver.ratingCount || 0) + ' 則評價</div></div>';
-  html += '<div class="dd-stat"><div class="dd-stat-num">¥' + driver.defaultFee.toLocaleString() + '</div><div class="dd-stat-label">預設日費</div></div></div>';
+  html += '<div class="dd-stat"><div class="dd-stat-num gold">★ ' + ((driver.avgRating ?? driver.rating) || 0).toFixed(1) + '</div><div class="dd-stat-label">' + (driver.ratingCount || 0) + ' 則評價</div></div>';
+  html += '<div class="dd-stat"><div class="dd-stat-num">¥' + (driver.defaultFeeDay ?? driver.defaultFee ?? 0).toLocaleString() + '</div><div class="dd-stat-label">預設日費</div></div></div>';
   html += '<div class="dd-section"><div class="dd-section-title">業務標籤</div><div style="display:flex;flex-wrap:wrap;gap:4px;">' + driver.tags.map(t => '<span class="dt-chip">' + t + '</span>').join('') + '</div></div>';
   html += '<div class="dd-section"><div class="dd-section-title">本月收益（含獎懲）</div><div class="dd-info-list">';
   html += '<div class="dd-info-row"><span class="lbl">本月趟次</span><span class="val">28 趟</span></div>';
