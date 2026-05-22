@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v15</title>
+<title>旅乘派車系統 v16</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -1230,11 +1230,16 @@
       border-radius: 16px !important;
       max-height: 88vh !important;
       top: 50%; left: 50%; bottom: auto !important; right: auto !important;
-      transform: translate(-50%, -50%) !important;
+      transform: translate(-50%, -50%) scale(0.9) !important;
+      opacity: 0;
+      pointer-events: none;
       box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      transition: opacity 0.2s, transform 0.2s !important;
     }
     .sheet.show {
-      transform: translate(-50%, -50%) !important;
+      transform: translate(-50%, -50%) scale(1) !important;
+      opacity: 1;
+      pointer-events: auto;
     }
     .sheet-handle { display: none; }
   }
@@ -1264,6 +1269,12 @@
     0% { transform: scale(0.9); opacity: 0; }
     50% { transform: scale(1.05); }
     100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* v16 修桌機 confirm-modal */
+  @media (min-width: 768px) {
+    .confirm-modal { display: none !important; }
+    .confirm-modal.show { display: flex !important; }
   }
 </style>
 </head>
