@@ -1257,9 +1257,25 @@
     }
   }
   @media (min-width: 768px) {
-    .order-card { padding: 14px 16px !important; }
-    .order-card .order-route { line-height: 1.5; }
+    .order-card { padding: 14px 16px !important; align-self: start; }
+    .order-card .order-route {
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .order-card .order-remark {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
+  /* v24: 卡片 grid 對齊頂部，不再拉同列等高 */
+  .orders { align-items: start; }
 
   /* ====== v15 localStorage 提示 ====== */
   .draft-indicator {
@@ -3931,22 +3947,4 @@ function doLoginMock() {
 }
 function logoutConfirm() {
   if (confirm('確定要登出？')) {
-    document.getElementById('loginMask').style.display = 'flex';
-    document.getElementById('mainApp').style.display = 'none';
-  }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.filter-tab').forEach(t => {
-    t.addEventListener('click', () => {
-      if (t.classList.contains('disabled')) return;
-      setFilter(t.dataset.filter);
-    });
-  });
-  renderDateStrip();
-  renderNotifyBanner();
-  renderOrders();
-});
-</script>
-</body>
-</html>
+    document.getElemen
