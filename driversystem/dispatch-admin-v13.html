@@ -1,0 +1,3173 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>旅乘派車系統 v13</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg: #F5F8FB;
+    --card: #FFFFFF;
+    --header: #2A5685;
+    --primary: #3570a8;
+    --primary-dark: #2A5685;
+    --primary-darker: #1F4566;
+    --primary-soft: #E8F1F9;
+    --primary-50: #F4F8FC;
+    --success: #059669;
+    --success-soft: #ECFDF5;
+    --warning: #D97706;
+    --warning-soft: #FFFBEB;
+    --danger: #DC2626;
+    --danger-soft: #FEF2F2;
+    --info: #0891B2;
+    --info-soft: #ECFEFF;
+    --purple: #7C3AED;
+    --purple-soft: #F5F3FF;
+    --gold: #F59E0B;
+    --gold-soft: #FEF3C7;
+    --text: #1F2937;
+    --text-2: #374151;
+    --muted: #6B7280;
+    --muted-2: #9CA3AF;
+    --border: #E5E7EB;
+    --border-2: #D1D5DB;
+  }
+  html, body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+    background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased; overscroll-behavior: none;
+  }
+  .device-shell {
+    max-width: 430px; margin: 0 auto; background: var(--bg);
+    min-height: 100vh; position: relative;
+  }
+  @media (min-width: 481px) {
+    .device-shell { box-shadow: 0 0 60px rgba(53,112,168,0.12); border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
+  }
+  .icon { width: 18px; height: 18px; flex-shrink: 0; }
+  .icon-sm { width: 14px; height: 14px; flex-shrink: 0; }
+
+  /* ====== Header ====== */
+  .topbar {
+    background: linear-gradient(180deg, var(--header) 0%, var(--primary) 100%);
+    color: white; padding: 12px 16px;
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 16px; font-weight: 700; letter-spacing: -0.3px;
+  }
+  .brand .mark {
+    width: 28px; height: 28px; background: white; color: var(--primary);
+    border-radius: 7px; display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700;
+  }
+  .header-actions {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px;
+  }
+  .header-search-btn {
+    background: rgba(255,255,255,0.15); border: none;
+    color: white; width: 32px; height: 32px;
+    border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .header-search-btn:hover { background: rgba(255,255,255,0.25); }
+  .header-info {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12.5px;
+  }
+  .header-info .region { color: rgba(255,255,255,0.85); }
+  .header-info .divider { color: rgba(255,255,255,0.35); }
+  .header-info .user { font-weight: 600; }
+  .header-info .logout {
+    color: white; opacity: 0.85; cursor: pointer; padding: 2px 0;
+  }
+  .header-info .logout:hover { opacity: 1; }
+
+  .page { display: none; padding-bottom: 80px; }
+  .page.active { display: block; }
+
+  /* ====== 通知 Banner（含已處理） ====== */
+  .notify-banner {
+    background: linear-gradient(135deg, #FEF3C7 0%, #FFF8E1 100%);
+    border-bottom: 1px solid #FCD34D;
+  }
+  .nb-head {
+    padding: 8px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px dashed #FCD34D;
+  }
+  .nb-title {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: #92400E; font-weight: 700;
+  }
+  .nb-count {
+    background: var(--danger); color: white;
+    font-size: 10px; padding: 1px 7px; border-radius: 999px; font-weight: 700;
+  }
+  .nb-history-link {
+    font-size: 11px; color: #78350F; cursor: pointer; opacity: 0.8;
+  }
+  .nb-items { }
+  .nb-row {
+    padding: 7px 14px 7px 14px;
+    border-bottom: 1px dashed rgba(252,211,77,0.5);
+    display: flex; align-items: flex-start; gap: 8px;
+    font-size: 12px; color: #78350F; line-height: 1.45;
+  }
+  .nb-row:last-child { border-bottom: none; }
+  .nb-row.handled {
+    opacity: 0.45;
+    background: rgba(255,255,255,0.3);
+  }
+  .nb-row.unread { font-weight: 600; }
+  .nb-row-content { flex: 1; cursor: pointer; }
+  .nb-row-content .row-tag {
+    display: inline-block; padding: 0 5px; border-radius: 3px;
+    font-size: 10px; font-weight: 700; margin-right: 4px;
+    vertical-align: 1px;
+  }
+  .row-tag.new { background: var(--success); color: white; }
+  .row-tag.modified { background: var(--warning); color: white; }
+  .row-tag.cancelled { background: var(--danger); color: white; }
+  .row-tag.assigned { background: var(--info); color: white; }
+  .nb-row-time { font-size: 10px; color: #92400E; opacity: 0.7; margin-top: 2px; }
+  .nb-handle-btn {
+    background: white; border: 1px solid #FCD34D;
+    color: #92400E; padding: 3px 8px; border-radius: 4px;
+    font-size: 10px; font-weight: 600; cursor: pointer;
+    white-space: nowrap;
+  }
+  .nb-handle-btn:hover { background: #FEF3C7; }
+  .nb-row.handled .nb-handle-btn { display: none; }
+
+  /* ====== 統計列 ====== */
+  .quick-stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 1px; background: var(--border); border-bottom: 1px solid var(--border);
+  }
+  .qstat { background: white; padding: 12px 6px; text-align: center; }
+  .qstat-num {
+    font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums;
+    color: var(--text); line-height: 1;
+  }
+  .qstat-num.warn { color: var(--warning); }
+  .qstat-num.danger { color: var(--danger); }
+  .qstat-num.success { color: var(--success); }
+  .qstat-num.primary { color: var(--primary); }
+  .qstat-label { font-size: 10.5px; color: var(--muted); margin-top: 4px; }
+
+  .sect-head {
+    padding: 14px 16px 8px; display: flex;
+    justify-content: space-between; align-items: baseline;
+  }
+  .sect-title { font-size: 13px; font-weight: 600; color: var(--text); }
+  .sect-title small { color: var(--muted); font-weight: 400; margin-left: 4px; }
+  .sect-link { font-size: 12px; color: var(--primary); cursor: pointer; font-weight: 500; }
+
+  .date-strip { padding: 0 16px 8px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+  .date-strip::-webkit-scrollbar { display: none; }
+  .date-pill {
+    flex-shrink: 0; padding: 8px 12px; background: white;
+    border: 1px solid var(--border); border-radius: 8px; cursor: pointer;
+    min-width: 60px; text-align: center; transition: all 0.15s;
+  }
+  .date-pill .dow { font-size: 10px; color: var(--muted); }
+  .date-pill .num { font-size: 17px; font-weight: 700; color: var(--text); margin-top: 2px; line-height: 1; font-variant-numeric: tabular-nums; }
+  .date-pill .badge { margin-top: 4px; font-size: 10px; color: var(--muted); }
+  .date-pill.has-pending .badge { color: var(--warning); font-weight: 600; }
+  .date-pill.active { background: var(--primary); border-color: var(--primary); }
+  .date-pill.active .dow, .date-pill.active .num, .date-pill.active .badge { color: white; }
+
+  .filter-bar {
+    display: flex; padding: 0 12px; border-bottom: 1px solid var(--border); background: white;
+  }
+  .filter-tab {
+    flex: 1; text-align: center; padding: 11px 4px; font-size: 13px;
+    color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  .filter-tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+  .filter-tab .pill {
+    display: inline-block; min-width: 18px; padding: 0 5px; margin-left: 4px;
+    background: var(--border); color: var(--muted); border-radius: 999px;
+    font-size: 10px; font-weight: 600; line-height: 16px;
+  }
+  .filter-tab.active .pill { background: var(--primary); color: white; }
+  .filter-tab .pill.alert { background: var(--warning); color: white; }
+
+  /* ====== 訂單卡 ====== */
+  .orders { padding: 10px 12px; }
+  .order-card {
+    background: white; border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 8px; cursor: pointer;
+    transition: all 0.15s; position: relative;
+  }
+  .order-card:active { transform: scale(0.998); }
+  .order-card.pending::before { content: ''; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px; background: var(--warning); border-radius: 0 3px 3px 0; }
+  .order-card.assigned::before { content: ''; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px; background: var(--info); border-radius: 0 3px 3px 0; }
+  .order-card.confirmed::before { content: ''; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px; background: var(--primary); border-radius: 0 3px 3px 0; }
+  .order-card.completed::before { content: ''; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px; background: var(--success); border-radius: 0 3px 3px 0; }
+  .order-card.cancelled::before { content: ''; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px; background: var(--danger); border-radius: 0 3px 3px 0; }
+  .order-card.cancelled { opacity: 0.7; }
+  .order-card.completed { opacity: 0.92; }
+  .order-card.modified {
+    background: linear-gradient(180deg, #FFFBEB 0%, white 30%);
+    border-color: #FCD34D;
+  }
+
+  .order-row1 { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 8px; }
+  .order-no-wrap { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .order-no {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 13px; font-weight: 600; color: var(--text);
+  }
+  .modified-tag {
+    background: var(--warning); color: white;
+    font-size: 10px; padding: 1px 6px; border-radius: 3px; font-weight: 700;
+  }
+  .trip-type-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+  .ttb.daytrip { background: #FEF3C7; color: #92400E; }
+  .ttb.multiday { background: var(--purple-soft); color: var(--purple); }
+  .ttb.roundtrip { background: var(--primary-soft); color: var(--primary-dark); }
+  .ttb.oneway { background: #F3F4F6; color: var(--muted); }
+  .ttb.multi-car { background: var(--danger-soft); color: var(--danger); }
+
+  .order-status {
+    font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px;
+  }
+  .st-pending { background: var(--warning-soft); color: var(--warning); }
+  .st-assigned { background: var(--info-soft); color: var(--info); }
+  .st-confirmed { background: var(--primary-soft); color: var(--primary); }
+  .st-in-progress { background: #DBEAFE; color: #1E40AF; }
+  .st-completed { background: var(--success-soft); color: var(--success); }
+  .st-reconciled { background: #F1F5F9; color: var(--text-2); }
+  .st-cancelled { background: var(--danger-soft); color: var(--danger); }
+
+  /* ====== 狀態流 mini ====== */
+  .status-mini-flow {
+    display: flex; align-items: center;
+    margin: 6px 0 8px; gap: 0; font-size: 10px;
+    overflow-x: auto; scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .status-mini-flow::-webkit-scrollbar { display: none; }
+  .smf-step {
+    display: flex; align-items: center; gap: 4px; flex-shrink: 0;
+  }
+  .smf-dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--border); border: 2px solid var(--border);
+    flex-shrink: 0;
+  }
+  .smf-dot.done { background: var(--success); border-color: var(--success); }
+  .smf-dot.current { background: white; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+  .smf-dot.cancelled { background: var(--danger); border-color: var(--danger); }
+  .smf-label {
+    color: var(--muted);
+    white-space: nowrap;
+    margin-right: 6px;
+  }
+  .smf-label.done { color: var(--text); }
+  .smf-label.current { color: var(--primary); font-weight: 700; }
+  .smf-arrow {
+    width: 16px; height: 1px;
+    background: var(--border);
+    margin: 0 1px;
+    flex-shrink: 0;
+  }
+  .smf-arrow.done { background: var(--success); }
+
+  .order-time {
+    font-size: 13px; color: var(--text); font-weight: 600;
+    margin-bottom: 4px; font-variant-numeric: tabular-nums;
+  }
+  .order-time .uncertain { color: var(--warning); font-weight: 500; font-size: 11px; margin-left: 4px; }
+  .order-time .multiday-range { color: var(--purple); font-size: 11px; margin-left: 4px; }
+
+  .order-route { font-size: 12.5px; color: var(--text-2); line-height: 1.4; margin-bottom: 6px; }
+  .order-route .arr { color: var(--muted-2); margin: 0 4px; }
+  .order-route .rt { color: var(--primary); margin: 0 4px; font-weight: 600; }
+  .order-tags { display: flex; gap: 5px; flex-wrap: wrap; font-size: 11px; margin-bottom: 6px; }
+  .order-tags .tag { background: #F1F5F9; padding: 2px 7px; border-radius: 4px; color: var(--text-2); }
+  .order-tags .tag.warn { background: #FEF3C7; color: #92400E; }
+  .order-tags .tag.danger { background: var(--danger-soft); color: var(--danger); }
+  .order-tags .tag.info { background: var(--info-soft); color: var(--info); }
+  .order-remark {
+    background: #FFFBEB; border-left: 2px solid #FCD34D;
+    padding: 6px 8px; border-radius: 4px;
+    font-size: 11.5px; color: #78350F; margin-bottom: 8px; line-height: 1.45;
+  }
+  .order-remark .lbl { font-weight: 600; color: #92400E; margin-right: 4px; }
+
+  .order-update-log {
+    background: var(--warning-soft); border-left: 2px solid var(--warning);
+    padding: 6px 8px; border-radius: 4px;
+    font-size: 11px; color: #78350F; margin-bottom: 8px; line-height: 1.45;
+  }
+  .order-update-log .lbl { font-weight: 700; color: #92400E; margin-right: 4px; }
+
+  .order-assigned-info {
+    padding: 8px 10px; background: var(--success-soft);
+    border-radius: 6px; font-size: 12px; color: var(--success);
+  }
+  .assigned-row { display: flex; justify-content: space-between; align-items: center; }
+  .assigned-row + .assigned-row { margin-top: 4px; padding-top: 4px; border-top: 1px dashed rgba(5,150,105,0.25); }
+  .assigned-row .info-l { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+  .assigned-row .info-r { font-family: ui-monospace, monospace; font-weight: 600; }
+  .car-no-tag {
+    display: inline-block; background: rgba(5,150,105,0.15); color: var(--success);
+    padding: 0 5px; border-radius: 3px; font-size: 10px; font-weight: 700; margin-right: 4px;
+  }
+  .cancelled-row {
+    color: var(--muted); text-decoration: line-through;
+    background: rgba(0,0,0,0.04);
+    padding: 4px 8px; border-radius: 4px; font-size: 11px;
+    margin-top: 4px;
+  }
+
+  /* ====== 完成評分區塊 ====== */
+  .rating-block {
+    margin-top: 8px; padding: 8px 10px;
+    background: var(--gold-soft); border: 1px solid #FDE68A;
+    border-radius: 6px;
+  }
+  .rating-row { display: flex; align-items: center; justify-content: space-between; }
+  .rating-stars { display: flex; align-items: center; gap: 2px; }
+  .star { color: #D1D5DB; font-size: 14px; }
+  .star.filled { color: var(--gold); }
+  .star.large { font-size: 22px; }
+  .rating-score {
+    font-size: 12px; font-weight: 700; color: #92400E;
+    margin-left: 6px;
+  }
+  .rating-comment {
+    font-size: 11.5px; color: #78350F;
+    margin-top: 4px; line-height: 1.45; font-style: italic;
+  }
+  .rating-empty {
+    text-align: center; padding: 6px;
+    font-size: 11px; color: var(--muted);
+    background: #F8FAFC; border: 1px dashed var(--border);
+    border-radius: 6px; margin-top: 6px; cursor: pointer;
+  }
+  .rating-empty:hover { background: var(--primary-50); color: var(--primary); }
+
+  .order-actions { display: flex; gap: 6px; margin-top: 6px; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 6px; padding: 8px 14px; border-radius: 7px;
+    border: 1px solid var(--border); background: white; color: var(--text);
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    font-family: inherit; transition: all 0.15s;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--primary); border-color: var(--primary); color: white; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-block { width: 100%; }
+  .btn-sm { padding: 6px 10px; font-size: 12px; }
+  .btn-ghost { background: transparent; }
+  .btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+  .btn-dashed { border: 1.5px dashed var(--primary); color: var(--primary); background: transparent; }
+  .btn-dashed:hover { background: var(--primary-soft); }
+  .btn-danger { color: var(--danger); border-color: #FECACA; }
+  .btn-gold { background: var(--gold); border-color: var(--gold); color: white; }
+
+  /* ====== 底部導覽 ====== */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    max-width: 430px; margin: 0 auto; background: white;
+    border-top: 1px solid var(--border); display: flex;
+    padding: 6px 0 calc(6px + env(safe-area-inset-bottom)); z-index: 90;
+  }
+  .nav-btn {
+    flex: 1; text-align: center; padding: 6px 0 4px; cursor: pointer;
+    color: var(--muted); font-size: 10.5px;
+  }
+  .nav-btn .nav-icon-wrap { display: flex; justify-content: center; margin-bottom: 2px; }
+  .nav-btn.active { color: var(--primary); }
+  .nav-btn.active svg { stroke-width: 2.3; }
+
+  /* ====== Sheet ====== */
+  .sheet-mask {
+    position: fixed; inset: 0; background: rgba(31,69,102,0.55);
+    z-index: 200; display: none; opacity: 0; transition: opacity 0.25s;
+  }
+  .sheet-mask.show { display: block; opacity: 1; }
+  .sheet {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    max-width: 430px; margin: 0 auto; background: white;
+    border-radius: 16px 16px 0 0; z-index: 210;
+    max-height: 92vh; overflow-y: auto;
+    transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  .sheet.show { transform: translateY(0); }
+  .sheet-handle { width: 36px; height: 4px; background: var(--border-2); border-radius: 999px; margin: 8px auto 4px; }
+  .sheet-header {
+    padding: 8px 16px 14px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .sheet-title { font-size: 15px; font-weight: 700; }
+  .sheet-close { background: none; border: none; color: var(--muted); cursor: pointer; padding: 4px; }
+  .sheet-body { padding: 14px 16px 16px; }
+  .sheet-footer {
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--border); background: white;
+    position: sticky; bottom: 0; display: flex; gap: 8px;
+  }
+
+  /* ====== 原始訊息 ====== */
+  .raw-msg-block {
+    background: #F8FAFC; border: 1px solid var(--border);
+    border-radius: 8px; margin-bottom: 14px; overflow: hidden;
+  }
+  .raw-msg-head {
+    padding: 8px 12px; background: white; border-bottom: 1px solid var(--border);
+    font-size: 11px; color: var(--muted);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .raw-msg-head .source { display: flex; align-items: center; gap: 6px; font-weight: 500; }
+  .raw-msg-head .src-dot { width: 6px; height: 6px; background: #00B900; border-radius: 50%; }
+  .raw-msg-toggle { color: var(--primary); cursor: pointer; font-size: 11px; font-weight: 500; }
+  .raw-msg-body {
+    padding: 10px 12px; font-size: 12px; color: var(--text-2); line-height: 1.55;
+    max-height: 100px; overflow: hidden; position: relative;
+    font-family: -apple-system, "Noto Sans TC", monospace;
+  }
+  .raw-msg-body.expanded { max-height: none; }
+  .raw-msg-body::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+    height: 24px; background: linear-gradient(transparent, #F8FAFC); pointer-events: none;
+  }
+  .raw-msg-body.expanded::after { display: none; }
+
+  .parsed-info {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 6px 12px; padding: 10px 12px;
+    background: var(--primary-soft); border-top: 1px solid #B8D2EA;
+    font-size: 12px;
+  }
+  .parsed-info .pi-lbl { color: var(--primary-dark); opacity: 0.7; }
+  .parsed-info .pi-val { color: var(--text); font-weight: 600; }
+  .parsed-info .full { grid-column: 1/-1; }
+
+  .remark-highlight {
+    background: #FFFBEB; border: 1px solid #FCD34D;
+    padding: 10px 12px; border-radius: 8px;
+    font-size: 12.5px; color: #78350F;
+    margin-bottom: 14px; line-height: 1.55;
+  }
+  .remark-highlight .rh-head {
+    font-size: 11px; font-weight: 700; color: #92400E;
+    margin-bottom: 4px; display: flex; align-items: center; gap: 4px;
+  }
+
+  /* ====== 派車異動歷史 ====== */
+  .dispatch-history {
+    background: #F8FAFC; border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px; margin-bottom: 14px;
+  }
+  .dispatch-history .dh-title {
+    font-size: 11px; font-weight: 700; color: var(--muted);
+    margin-bottom: 6px; display: flex; align-items: center; gap: 4px;
+  }
+  .dh-item {
+    padding: 8px 0; border-bottom: 1px dashed var(--border); font-size: 12px;
+  }
+  .dh-item:last-child { border-bottom: none; }
+  .dh-item.cancelled { color: var(--muted); }
+  .dh-item.cancelled .dh-name { text-decoration: line-through; }
+  .dh-item.active { color: var(--success); }
+  .dh-item-row { display: flex; justify-content: space-between; align-items: center; }
+  .dh-item-meta { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .dh-item-detail {
+    font-size: 11px; color: var(--text-2);
+    margin-top: 4px; padding: 4px 6px;
+    background: white; border-radius: 4px;
+    border-left: 2px solid var(--warning);
+  }
+
+  /* ====== 表單 ====== */
+  .form-group { margin-bottom: 14px; }
+  .form-label {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 6px;
+  }
+  .form-label .required { color: var(--danger); }
+  .form-label .hint { color: var(--muted); font-weight: 400; font-size: 11px; }
+  .form-control {
+    width: 100%; padding: 10px 12px;
+    border: 1px solid var(--border); border-radius: 7px;
+    font-size: 14px; background: white; color: var(--text); font-family: inherit;
+  }
+  .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(53,112,168,0.15); }
+
+  /* ====== 多車輛 ====== */
+  .car-slot {
+    border: 1px solid var(--border); border-radius: 10px;
+    margin-bottom: 12px; overflow: hidden; background: white;
+  }
+  .car-slot-head {
+    padding: 10px 12px; background: var(--primary-soft);
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #D1E2F0;
+  }
+  .car-slot-title { font-size: 12px; font-weight: 700; color: var(--primary-dark); display: flex; align-items: center; gap: 6px; }
+  .car-slot-no {
+    background: var(--primary); color: white; width: 20px; height: 20px;
+    border-radius: 4px; display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+  }
+  .car-slot-remove { background: none; border: none; color: var(--danger); font-size: 12px; cursor: pointer; padding: 2px 8px; border-radius: 4px; }
+  .car-slot-body { padding: 12px; }
+
+  /* ====== 司機選擇器 ====== */
+  .driver-picker {
+    border: 1px solid var(--border); border-radius: 8px;
+    max-height: 320px; overflow-y: auto; background: white;
+  }
+  .driver-group-head {
+    padding: 8px 12px; background: #F8FAFC; font-size: 11px;
+    color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 1;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .driver-group-head .gh-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .gh-dot.av { background: var(--success); }
+  .gh-dot.partial { background: var(--warning); }
+  .gh-dot.daytrip { background: var(--info); }
+  .gh-dot.busy { background: var(--danger); }
+  .gh-dot.off { background: var(--muted); }
+
+  .driver-item {
+    padding: 10px 12px; border-bottom: 1px solid var(--border);
+    cursor: pointer; display: flex; align-items: flex-start; gap: 10px;
+    transition: background 0.1s;
+  }
+  .driver-item:last-child { border-bottom: none; }
+  .driver-item:hover { background: var(--primary-50); }
+  .driver-item.selected { background: var(--primary-soft); }
+  .driver-item.disabled { opacity: 0.4; cursor: not-allowed; }
+  .driver-item.priority-match { background: linear-gradient(90deg, #ECFDF5 0%, white 60%); }
+  .driver-radio {
+    width: 16px; height: 16px; border: 2px solid var(--border-2);
+    border-radius: 50%; flex-shrink: 0; position: relative; margin-top: 2px;
+  }
+  .driver-item.selected .driver-radio { border-color: var(--primary); }
+  .driver-item.selected .driver-radio::after {
+    content: ''; position: absolute; inset: 2px; background: var(--primary); border-radius: 50%;
+  }
+  .driver-main { flex: 1; min-width: 0; }
+  .driver-name-row { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .driver-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .driver-id { color: var(--muted); font-size: 11px; font-family: ui-monospace, monospace; }
+  .lang-flags {
+    display: inline-flex; gap: 2px; margin-left: 2px;
+  }
+  .lang-flag {
+    display: inline-block;
+    font-size: 11px;
+    padding: 0 4px;
+    border-radius: 3px;
+    background: #F1F5F9;
+    color: var(--text-2);
+    font-weight: 600;
+  }
+  .lang-flag.zh { background: #FEE2E2; color: #991B1B; }
+  .lang-flag.ja { background: #FCE7F3; color: #BE185D; }
+  .lang-flag.en { background: #DBEAFE; color: #1E40AF; }
+  .lang-flag.ko { background: #DDD6FE; color: #5B21B6; }
+  .priority-star {
+    color: #92400E;
+    font-size: 11px;
+    background: #FEF3C7;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 700;
+  }
+  .driver-rating-inline {
+    display: inline-flex; align-items: center; gap: 2px;
+    background: var(--gold-soft); padding: 1px 6px;
+    border-radius: 4px; font-size: 11px; font-weight: 700; color: #92400E;
+  }
+  .driver-tags-mini { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 3px; }
+  .dt-chip {
+    font-size: 10px; padding: 1px 5px;
+    background: var(--primary-soft); color: var(--primary-dark);
+    border-radius: 3px; font-weight: 500;
+  }
+  .dt-chip.match { background: #FEF3C7; color: #92400E; font-weight: 700; }
+  .driver-status { font-size: 11px; color: var(--muted); margin-top: 3px; line-height: 1.3; }
+  .driver-status.daytrip { color: var(--info); }
+  .driver-status.partial { color: var(--warning); }
+  .driver-status.busy { color: var(--danger); }
+  .driver-served {
+    font-size: 10px; color: var(--muted);
+    background: #F3F4F6; padding: 1px 5px;
+    border-radius: 3px; margin-top: 2px; display: inline-block;
+  }
+  .driver-fee-default { font-size: 11px; color: var(--muted-2); text-align: right; }
+  .driver-fee-default strong { color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  /* ====== 車輛推薦 ====== */
+  .vehicle-recommend {
+    margin-top: 8px; padding: 10px;
+    background: #FFFBEB; border: 1px solid #FCD34D; border-radius: 7px;
+  }
+  .vr-head { font-size: 11px; color: #92400E; font-weight: 600; margin-bottom: 6px; }
+  .vr-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .vr-chip {
+    padding: 6px 10px; background: white; border: 1px solid #FCD34D;
+    border-radius: 6px; font-size: 12px; cursor: pointer;
+    display: flex; align-items: center; gap: 5px; color: var(--text);
+  }
+  .vr-chip:active { background: #FEF3C7; }
+  .vr-chip .freq { color: #92400E; font-size: 10px; font-weight: 700; }
+
+  /* ====== 費用 +/- ====== */
+  .fee-stepper {
+    display: flex; align-items: stretch;
+    border: 1px solid var(--border); border-radius: 8px;
+    overflow: hidden; background: white;
+  }
+  .fee-step-btn {
+    width: 44px; background: var(--primary-50); border: none;
+    color: var(--primary); font-size: 18px; font-weight: 700; cursor: pointer;
+  }
+  .fee-step-btn:hover { background: var(--primary-soft); }
+  .fee-step-btn:active { background: var(--primary); color: white; }
+  .fee-step-btn.minus { border-right: 1px solid var(--border); }
+  .fee-step-btn.plus { border-left: 1px solid var(--border); }
+  .fee-input-area { flex: 1; display: flex; align-items: center; background: white; }
+  .fee-currency { padding-left: 12px; color: var(--muted); font-weight: 700; }
+  .fee-input {
+    flex: 1; border: none; padding: 10px 8px; font-size: 16px;
+    font-weight: 700; text-align: center; color: var(--text);
+    outline: none; font-variant-numeric: tabular-nums; font-family: inherit;
+  }
+  .fee-input::-webkit-inner-spin-button, .fee-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .fee-step-hint { font-size: 11px; color: var(--muted); text-align: center; margin-top: 6px; }
+
+  /* ====== 排班表 ====== */
+  .schedule-toolbar {
+    padding: 12px 16px; display: flex; justify-content: space-between;
+    align-items: center; background: white; border-bottom: 1px solid var(--border);
+  }
+  .week-label { font-size: 13px; font-weight: 600; }
+  .week-nav { display: flex; gap: 4px; }
+  .week-nav button {
+    width: 28px; height: 28px; border: 1px solid var(--border);
+    background: white; border-radius: 6px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; color: var(--text);
+  }
+  .schedule-legend {
+    padding: 10px 16px; background: white; border-bottom: 1px solid var(--border);
+    display: flex; gap: 12px; font-size: 11px; color: var(--muted); flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 4px; }
+  .legend-box { width: 12px; height: 12px; border-radius: 3px; }
+  .lg-free { background: #F1F5F9; border: 1px solid var(--border); }
+  .lg-light { background: #BBF7D0; }
+  .lg-med { background: #FCD34D; }
+  .lg-heavy { background: #FCA5A5; }
+  .lg-off { background: #E2E8F0; }
+  .lg-multiday { background: var(--purple-soft); border: 1px solid var(--purple); }
+
+  .schedule-grid-wrap { overflow-x: auto; background: white; }
+  .sg-table { border-collapse: collapse; width: 100%; min-width: 540px; font-size: 11px; }
+  .sg-table th, .sg-table td { border: 1px solid var(--border); padding: 0; text-align: center; vertical-align: top; }
+  .sg-table thead th { background: #F8FAFC; padding: 8px 4px; font-weight: 600; color: var(--text); position: sticky; top: 0; z-index: 2; }
+  .sg-table thead th.today { background: var(--primary); color: white; }
+  .sg-table thead th .dow { font-size: 10px; color: var(--muted); font-weight: 400; display: block; }
+  .sg-table thead th.today .dow { color: rgba(255,255,255,0.7); }
+  .sg-table tbody th {
+    background: white; text-align: left; padding: 8px; font-weight: 500;
+    color: var(--text); position: sticky; left: 0; z-index: 1;
+    min-width: 96px; border-right: 1px solid var(--border-2);
+  }
+  .sg-table tbody th .driver-id-sm {
+    font-size: 10px; color: var(--muted);
+    font-family: ui-monospace, monospace; margin-top: 2px;
+  }
+  .sg-cell { height: 50px; padding: 4px !important; cursor: pointer; position: relative; }
+  .sg-cell.free { background: white; }
+  .sg-cell.light { background: #BBF7D0; }
+  .sg-cell.med { background: #FCD34D; }
+  .sg-cell.heavy { background: #FCA5A5; }
+  .sg-cell.off { background: #E2E8F0; color: var(--muted); }
+  .sg-cell.multiday { background: var(--purple-soft); }
+  .sg-cell-content { font-size: 10px; line-height: 1.2; font-weight: 600; color: #1F2937; }
+  .sg-cell-sub { font-size: 9px; color: rgba(31,41,55,0.65); margin-top: 2px; }
+
+  /* ====== 列表 ====== */
+  .list-card {
+    background: white; margin: 10px 12px; border-radius: 10px;
+    border: 1px solid var(--border); overflow: hidden;
+  }
+  .list-item {
+    padding: 12px 14px; display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid var(--border); cursor: pointer;
+  }
+  .list-item:last-child { border-bottom: none; }
+  .list-item:active { background: var(--primary-50); }
+  .li-avatar {
+    width: 36px; height: 36px; background: var(--primary-soft); color: var(--primary);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 14px; flex-shrink: 0;
+  }
+  .li-main { flex: 1; min-width: 0; }
+  .li-name { font-size: 13.5px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .li-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .li-tags { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 4px; }
+  .li-right { text-align: right; font-size: 12px; color: var(--muted); }
+  .li-right .num { font-size: 14px; color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .li-right .stars-mini { display: flex; align-items: center; justify-content: flex-end; gap: 2px; }
+
+  .veh-group {
+    background: white; margin: 10px 12px; border-radius: 10px;
+    border: 1px solid var(--border); overflow: hidden;
+  }
+  .veh-group-head {
+    padding: 10px 14px; background: #F8FAFC;
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer;
+  }
+  .veh-group-title {
+    font-size: 13px; font-weight: 700; color: var(--text);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .veh-group-count {
+    background: var(--primary); color: white;
+    font-size: 11px; padding: 1px 7px; border-radius: 999px; font-weight: 700;
+  }
+  .veh-group-toggle { color: var(--muted); transition: transform 0.2s; }
+  .veh-group.collapsed .veh-group-toggle { transform: rotate(-90deg); }
+  .veh-group-body { max-height: 800px; overflow: hidden; transition: max-height 0.3s; }
+  .veh-group.collapsed .veh-group-body { max-height: 0; }
+
+  /* ====== 搜尋 / 篩選 ====== */
+  .search-bar { padding: 10px 16px; background: white; border-bottom: 1px solid var(--border); }
+  .search-input-wrap {
+    display: flex; align-items: center; background: #F1F5F9;
+    border-radius: 8px; padding: 8px 10px; gap: 8px;
+  }
+  .search-input-wrap input {
+    flex: 1; border: none; background: transparent; outline: none;
+    font-size: 14px; color: var(--text);
+  }
+
+  .tag-filter-bar {
+    padding: 10px 16px 4px;
+    background: white; border-bottom: 1px solid var(--border);
+    overflow-x: auto; scrollbar-width: none;
+    display: flex; gap: 6px;
+  }
+  .tag-filter-bar::-webkit-scrollbar { display: none; }
+  .tag-filter-chip {
+    flex-shrink: 0; padding: 4px 10px; border: 1px solid var(--border);
+    border-radius: 999px; font-size: 12px; cursor: pointer; color: var(--muted-2);
+    background: white; white-space: nowrap;
+  }
+  .tag-filter-chip.active {
+    background: var(--primary); border-color: var(--primary); color: white;
+  }
+  .tag-filter-chip .count {
+    margin-left: 4px; font-size: 10px;
+    background: rgba(0,0,0,0.08); padding: 0 5px; border-radius: 999px;
+  }
+  .tag-filter-chip.active .count { background: rgba(255,255,255,0.25); }
+
+  /* ====== 搜尋頁專屬 ====== */
+  .search-page-bar {
+    padding: 12px 14px;
+    background: white; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .search-page-input {
+    flex: 1; display: flex; align-items: center;
+    background: #F1F5F9; border-radius: 8px;
+    padding: 9px 12px; gap: 8px;
+  }
+  .search-page-input input {
+    flex: 1; border: none; background: transparent; outline: none;
+    font-size: 14px; color: var(--text);
+  }
+  .search-cancel {
+    color: var(--primary); cursor: pointer; font-size: 13px;
+    padding: 4px;
+  }
+  .search-suggest {
+    padding: 10px 14px;
+    background: white; border-bottom: 1px solid var(--border);
+  }
+  .search-suggest-title {
+    font-size: 11px; color: var(--muted); font-weight: 600; margin-bottom: 6px;
+  }
+  .search-suggest-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .search-suggest-chip {
+    padding: 5px 10px; background: var(--primary-soft); color: var(--primary);
+    border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 500;
+  }
+  .search-results-head {
+    padding: 10px 14px;
+    background: #F8FAFC; font-size: 11px; color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between;
+  }
+
+  /* ====== Login ====== */
+  .login-mask {
+    position: fixed; inset: 0;
+    background: linear-gradient(135deg, var(--primary-darker) 0%, var(--primary) 100%);
+    z-index: 999; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 32px; color: white;
+  }
+  .login-mask .l-brand { text-align: center; margin-bottom: 36px; }
+  .login-mask .l-mark {
+    width: 64px; height: 64px; background: white; color: var(--primary);
+    border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    font-size: 30px; font-weight: 700;
+    margin: 0 auto 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  }
+  .login-mask .l-title { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+  .login-box {
+    background: white; border-radius: 14px; padding: 22px;
+    width: 100%; max-width: 340px; color: var(--text);
+  }
+  .login-box h3 { font-size: 14px; font-weight: 600; margin-bottom: 14px; }
+  .login-box .fg { margin-bottom: 12px; }
+  .login-box label { display: block; font-size: 11px; color: var(--muted); font-weight: 600; margin-bottom: 4px; }
+  .login-box input {
+    width: 100%; padding: 9px 11px;
+    border: 1px solid var(--border); border-radius: 7px;
+    font-size: 14px; font-family: inherit;
+  }
+  .login-box .forget { text-align: right; font-size: 11px; color: var(--primary); margin-top: 4px; cursor: pointer; }
+  .login-foot {
+    margin-top: 28px; color: rgba(255,255,255,0.75);
+    font-size: 11px; text-align: center; line-height: 1.6;
+  }
+  .login-foot .copy { display: block; margin-top: 14px; opacity: 0.5; letter-spacing: 0.5px; }
+
+  .empty { text-align: center; padding: 50px 20px; color: var(--muted-2); }
+
+  .settings-item {
+    padding: 14px; display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid var(--border); cursor: pointer; background: white;
+  }
+  .settings-item:last-child { border-bottom: none; }
+  .settings-icon {
+    width: 32px; height: 32px; background: var(--primary-soft); color: var(--primary);
+    border-radius: 7px; display: flex; align-items: center; justify-content: center;
+  }
+  .settings-text { flex: 1; }
+  .settings-text .t1 { font-size: 13.5px; font-weight: 500; }
+  .settings-text .t2 { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .tag-picker {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    padding: 8px; border: 1px solid var(--border); border-radius: 8px;
+    background: white;
+  }
+  .tag-option {
+    padding: 5px 10px; border: 1px solid var(--border);
+    border-radius: 999px; font-size: 12px; cursor: pointer;
+    color: var(--muted); background: #F8FAFC;
+  }
+  .tag-option.selected {
+    background: var(--primary); border-color: var(--primary); color: white; font-weight: 600;
+  }
+  .tag-option.lang { font-weight: 600; }
+  .tag-option.lang.selected { background: var(--gold); border-color: var(--gold); color: white; }
+
+  /* ====== 確認 Modal ====== */
+  .confirm-modal {
+    position: fixed; inset: 0;
+    background: rgba(31,69,102,0.6);
+    z-index: 300; display: none;
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .confirm-modal.show { display: flex; }
+  .confirm-card {
+    background: white; border-radius: 14px; padding: 20px;
+    width: 100%; max-width: 360px;
+    max-height: 90vh; overflow-y: auto;
+  }
+  .confirm-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+  .confirm-card p { font-size: 13px; color: var(--text-2); margin-bottom: 12px; line-height: 1.5; }
+  .confirm-card .confirm-actions { display: flex; gap: 8px; margin-top: 6px; }
+
+  /* ====== 評分 Modal 用 ====== */
+  .star-picker {
+    display: flex; gap: 4px; justify-content: center;
+    padding: 16px 0; cursor: pointer;
+  }
+  .star-pick {
+    font-size: 32px; color: #D1D5DB; cursor: pointer;
+    transition: transform 0.15s, color 0.15s;
+  }
+  .star-pick:hover { transform: scale(1.15); }
+  .star-pick.filled { color: var(--gold); }
+
+  /* ====== v7 司機照片 ====== */
+  .avatar-img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: var(--primary-soft); flex-shrink: 0; }
+  .avatar-img.lg { width: 72px; height: 72px; }
+  .avatar-img.xs { width: 24px; height: 24px; }
+  .avatar-fallback { width: 36px; height: 36px; border-radius: 50%; background: var(--primary-soft); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; flex-shrink: 0; }
+  .avatar-fallback.lg { width: 72px; height: 72px; font-size: 28px; }
+  .avatar-wrap { position: relative; flex-shrink: 0; }
+  .avatar-wrap .photo-badge { position: absolute; bottom: -2px; right: -2px; width: 14px; height: 14px; background: var(--success); border: 2px solid white; border-radius: 50%; }
+  .avatar-wrap .photo-badge.off { background: var(--muted-2); }
+
+  /* ====== v7 通知強化 ====== */
+  .nb-row.unread { font-weight: 700; background: rgba(255,255,255,0.4); }
+  .nb-row.unread .nb-row-content::before { content: '●'; color: var(--danger); margin-right: 6px; font-size: 9px; vertical-align: middle; }
+  .nb-row.read { font-weight: 400; }
+  .nb-fold-btn { background: none; border: none; padding: 8px 14px; width: 100%; text-align: center; cursor: pointer; color: #78350F; font-size: 11px; font-weight: 600; border-top: 1px dashed #FCD34D; }
+  .nb-fold-btn:hover { background: rgba(252,211,77,0.15); }
+
+  /* ====== v7 狀態觸發來源 ====== */
+  .lifecycle-list { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 14px; }
+  .lifecycle-title { font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .lifecycle-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; border-bottom: 1px dashed var(--border); font-size: 12px; }
+  .lifecycle-item:last-child { border-bottom: none; }
+  .lifecycle-state-dot { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; background: var(--success); }
+  .lifecycle-state-dot.current { background: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+  .lifecycle-state-dot.pending { background: var(--muted-2); }
+  .lifecycle-main { flex: 1; }
+  .lifecycle-state-name { font-weight: 600; color: var(--text); }
+  .lifecycle-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .trigger-source { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 10px; font-weight: 700; margin-right: 4px; }
+  .trigger-source.system { background: var(--primary-soft); color: var(--primary); }
+  .trigger-source.driver { background: var(--success-soft); color: var(--success); }
+  .trigger-source.manual { background: #FEF3C7; color: #92400E; }
+  .trigger-source.line { background: #DCFCE7; color: #166534; }
+
+  /* ====== v7 司機詳情頁 ====== */
+  .dd-cover { background: linear-gradient(135deg, var(--primary) 0%, var(--header) 100%); margin: -14px -16px 0; padding: 24px 16px 16px; color: white; position: relative; }
+  .dd-edit-btn { position: absolute; top: 14px; right: 14px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 500; }
+  .dd-cover-row { display: flex; align-items: center; gap: 14px; }
+  .dd-cover .avatar-img.lg, .dd-cover .avatar-fallback.lg { border: 3px solid white; }
+  .dd-cover-name { font-size: 18px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .dd-cover-id { font-family: ui-monospace, monospace; font-size: 11px; opacity: 0.85; background: rgba(255,255,255,0.18); padding: 1px 7px; border-radius: 4px; }
+  .dd-cover-meta { font-size: 12px; opacity: 0.9; line-height: 1.5; }
+  .dd-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); margin: 0 -16px 14px; border-bottom: 1px solid var(--border); }
+  .dd-stat { background: white; padding: 14px 8px; text-align: center; }
+  .dd-stat-num { font-size: 20px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; line-height: 1; }
+  .dd-stat-num.gold { color: var(--gold); }
+  .dd-stat-label { font-size: 10.5px; color: var(--muted); margin-top: 4px; }
+  .dd-section { margin-bottom: 14px; }
+  .dd-section-title { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+  .dd-info-list { background: var(--bg); border-radius: 8px; padding: 10px 12px; font-size: 13px; }
+  .dd-info-row { display: flex; justify-content: space-between; padding: 4px 0; }
+  .dd-info-row .lbl { color: var(--muted); }
+  .dd-info-row .val { color: var(--text); font-weight: 500; }
+  .dd-review { background: var(--gold-soft); border: 1px solid #FDE68A; border-radius: 8px; padding: 10px; margin-bottom: 6px; }
+  .dd-review-row { display: flex; justify-content: space-between; align-items: center; }
+  .dd-review-comment { font-size: 12px; color: #78350F; margin-top: 4px; line-height: 1.45; }
+  .dd-review-meta { font-size: 10px; color: #92400E; opacity: 0.7; margin-top: 4px; }
+  .dd-trip-item { padding: 8px 10px; border-bottom: 1px dashed var(--border); font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .dd-trip-item:last-child { border-bottom: none; }
+  .dd-trip-item .trip-date { color: var(--muted); font-size: 11px; }
+  .dd-trip-item .trip-fee { font-family: monospace; font-weight: 700; color: var(--success); }
+
+  /* ====== v7 統計頁 ====== */
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px 12px; }
+  .stats-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+  .stats-card-title { font-size: 11px; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
+  .stats-card-value { font-size: 22px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; line-height: 1; }
+  .stats-card-change { font-size: 11px; margin-top: 4px; }
+  .stats-card-change.up { color: var(--success); }
+  .stats-card-change.down { color: var(--danger); }
+  .stats-block { background: white; margin: 10px 12px; border-radius: 10px; border: 1px solid var(--border); padding: 14px; }
+  .stats-block-title { font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+  .stats-bar-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 12px; }
+  .stats-bar-item .sbi-label { width: 60px; color: var(--text-2); }
+  .stats-bar-item .sbi-bar { flex: 1; height: 16px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+  .stats-bar-item .sbi-fill { height: 100%; background: linear-gradient(90deg, var(--primary) 0%, #5B8DC4 100%); border-radius: 4px; }
+  .stats-bar-item .sbi-val { width: 64px; text-align: right; font-family: monospace; font-weight: 600; color: var(--text); font-size: 11px; }
+
+  /* ====== v7 通知歷史 ====== */
+  .notify-history-bar { padding: 10px 16px; background: white; border-bottom: 1px solid var(--border); display: flex; gap: 6px; }
+  .nh-filter { padding: 4px 10px; border: 1px solid var(--border); border-radius: 999px; font-size: 12px; cursor: pointer; color: var(--muted); background: white; }
+  .nh-filter.active { background: var(--primary); border-color: var(--primary); color: white; font-weight: 600; }
+  .nh-list { padding: 10px 12px; }
+  .nh-item { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 6px; font-size: 12px; }
+  .nh-item.unread { background: linear-gradient(180deg, #FFFBEB 0%, white 30%); border-color: #FCD34D; }
+  .nh-item.handled { opacity: 0.65; }
+  .nh-item-row { display: flex; justify-content: space-between; align-items: center; }
+  .nh-item-content { color: var(--text); line-height: 1.4; margin-top: 2px; }
+  .nh-item-meta { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+  /* ====== v7 司機獎懲 ====== */
+  .adjust-block { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin: 10px 0; }
+  .adjust-title { font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .adjust-add-btn { color: var(--primary); cursor: pointer; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; background: var(--primary-soft); }
+  .adjust-item { padding: 8px 0; border-bottom: 1px dashed var(--border); display: flex; align-items: center; justify-content: space-between; font-size: 12px; gap: 8px; }
+  .adjust-item:last-child { border-bottom: none; }
+  .adjust-type-tag { font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: 700; flex-shrink: 0; }
+  .adjust-type-tag.deduct { background: var(--danger-soft); color: var(--danger); }
+  .adjust-type-tag.bonus { background: var(--success-soft); color: var(--success); }
+  .adjust-info { flex: 1; min-width: 0; }
+  .adjust-reason { color: var(--text); font-size: 12px; line-height: 1.4; }
+  .adjust-meta { color: var(--muted); font-size: 10px; margin-top: 2px; }
+  .adjust-amount { font-family: monospace; font-weight: 700; font-size: 13px; white-space: nowrap; }
+  .adjust-amount.minus { color: var(--danger); }
+  .adjust-amount.plus { color: var(--success); }
+  .adjust-delete { background: none; border: none; cursor: pointer; color: var(--muted-2); padding: 2px 4px; font-size: 14px; }
+  .fee-summary { background: var(--primary-soft); border-radius: 8px; padding: 10px 12px; margin-top: 8px; font-size: 12px; }
+  .fs-row { display: flex; justify-content: space-between; padding: 2px 0; }
+  .fs-row.total { border-top: 1px solid #B8D2EA; padding-top: 6px; margin-top: 4px; font-weight: 700; font-size: 13px; }
+  .fs-row .val { font-family: monospace; }
+  .fs-row .val.minus { color: var(--danger); }
+  .fs-row .val.plus { color: var(--success); }
+  .order-adjust-badge { display: inline-flex; align-items: center; background: var(--danger-soft); color: var(--danger); padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; margin-left: 4px; }
+  .order-adjust-badge.bonus { background: var(--success-soft); color: var(--success); }
+
+  /* ====== v7 編輯司機照片 ====== */
+  .photo-uploader { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg); border-radius: 8px; }
+  .photo-uploader-current { width: 64px; height: 64px; border-radius: 50%; overflow: hidden; background: var(--primary-soft); flex-shrink: 0; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  .photo-uploader-current img { width: 100%; height: 100%; object-fit: cover; }
+  .photo-uploader-actions { flex: 1; }
+  .photo-uploader-actions .pu-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+  .photo-uploader-actions .pu-btn { font-size: 11px; padding: 4px 10px; background: white; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; color: var(--text); }
+  .photo-uploader-actions .pu-btn.primary { background: var(--primary); border-color: var(--primary); color: white; }
+  .photo-uploader-actions .pu-hint { font-size: 11px; color: var(--muted); }
+
+
+  /* v8 日期 strip 過去/收合 */
+  .date-strip-toggle {
+    flex-shrink: 0; padding: 8px 10px; background: white;
+    border: 1px dashed var(--primary); border-radius: 8px;
+    cursor: pointer; min-width: 56px; text-align: center;
+    color: var(--primary); font-size: 11px; font-weight: 600;
+    align-self: stretch; display: flex; align-items: center; justify-content: center;
+  }
+  .date-pill.past {
+    background: #F9FAFB; border-color: var(--border);
+    opacity: 0.7;
+  }
+  .date-pill.past .num { color: var(--muted); }
+  .date-pill.past .badge { color: var(--muted-2); }
+
+  /* v8 排班強化 */
+  .sg-cell { height: auto; min-height: 50px; }
+  .sg-cell-job-list {
+    display: flex; flex-direction: column; gap: 2px;
+    padding: 3px;
+  }
+  .sg-job-block {
+    background: rgba(255,255,255,0.85);
+    border-left: 2px solid var(--primary);
+    padding: 2px 4px;
+    border-radius: 2px;
+    font-size: 9px;
+    line-height: 1.2;
+    text-align: left;
+  }
+  .sg-job-block.airport { border-left-color: var(--info); }
+  .sg-job-block.daytrip { border-left-color: var(--warning); }
+  .sg-job-block.multiday { border-left-color: var(--purple); }
+  .sg-job-block .jt { font-weight: 700; font-size: 9px; color: var(--text); }
+  .sg-job-block .jr { color: var(--text-2); font-size: 8.5px; }
+  .schedule-driver-info {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px;
+  }
+  .schedule-driver-info .small-photo { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; }
+
+  /* v8 統計多月切換 */
+  .stats-month-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; background: white;
+    border-bottom: 1px solid var(--border);
+  }
+  .stats-month-row {
+    display: flex; gap: 4px;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .stats-month-row::-webkit-scrollbar { display: none; }
+  .stats-month-chip {
+    flex-shrink: 0; padding: 4px 10px;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: white; cursor: pointer;
+    font-size: 12px; color: var(--muted);
+    min-width: 58px; text-align: center;
+  }
+  .stats-month-chip.past { background: #F9FAFB; }
+  .stats-month-chip.current {
+    background: var(--primary); border-color: var(--primary);
+    color: white; font-weight: 700;
+  }
+  .stats-month-chip.future {
+    background: var(--primary-soft);
+    color: var(--primary);
+    border-color: var(--primary);
+    border-style: dashed;
+  }
+  .stats-month-chip .lbl {
+    font-size: 10px; opacity: 0.8;
+    display: block;
+  }
+
+  /* v9 訂單卡簡化 */
+  .order-meta-line {
+    font-size: 11.5px; color: var(--muted);
+    margin-bottom: 6px; line-height: 1.4;
+  }
+  .order-remark, .order-update-log {
+    font-size: 11px; padding: 5px 8px; margin-bottom: 6px;
+    border-radius: 4px; line-height: 1.4;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .order-card { padding: 12px; }
+
+  .month-divider {
+    display: flex; align-items: center;
+    color: var(--muted); font-size: 11px;
+    padding: 0 6px; font-weight: 700;
+    border-left: 1px dashed var(--border);
+    margin: 0 2px;
+  }
+  /* v11 filter tab disabled */
+  .filter-tab.disabled {
+    opacity: 0.45; cursor: not-allowed;
+  }
+  .filter-tab.disabled .pill { background: var(--border); color: var(--muted-2); }
+
+  /* v10 快速跳轉按鈕 */
+  .date-quick-nav {
+    padding: 0 16px 8px;
+    display: flex; gap: 6px;
+    flex-wrap: wrap;
+  }
+  .dq-btn {
+    flex: 1; min-width: 60px;
+    padding: 6px 8px;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: white; color: var(--text);
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .dq-btn:hover { background: var(--primary-soft); border-color: var(--primary); color: var(--primary); }
+  .dq-btn.active { background: var(--primary); border-color: var(--primary); color: white; }
+
+  /* v10 今日標記 */
+  .date-pill.is-today {
+    border: 1.5px solid var(--primary);
+    position: relative;
+  }
+  .date-pill.is-today::after {
+    content: '';
+    position: absolute; bottom: 4px; left: 50%;
+    transform: translateX(-50%);
+    width: 4px; height: 4px;
+    background: var(--primary); border-radius: 50%;
+  }
+  .date-pill.is-today.active::after { background: white; }
+
+  /* v10 空狀態加強 */
+  .empty-action {
+    margin-top: 16px;
+    display: flex; gap: 8px; justify-content: center;
+  }
+  .empty-action button {
+    padding: 8px 16px;
+    border: 1px solid var(--primary); color: var(--primary);
+    background: white; border-radius: 7px;
+    font-size: 12px; cursor: pointer;
+  }
+  .empty-action button.primary {
+    background: var(--primary); color: white;
+  }
+</style>
+</head>
+<body>
+
+<!-- ====== 登入頁 ====== -->
+<div class="login-mask" id="loginMask">
+  <div class="l-brand">
+    <div class="l-mark">旅</div>
+    <div class="l-title">旅乘派車系統</div>
+  </div>
+  <div class="login-box">
+    <h3>派車負責人登入</h3>
+    <div class="fg">
+      <label>登入帳號（電子郵件）</label>
+      <input type="text" value="lin@foreveryoung.tw" id="loginUser" placeholder="例：lin@foreveryoung.tw">
+    </div>
+    <button class="btn btn-primary btn-block" style="padding:10px;margin-top:6px;" onclick="doLogin()">登入查看我的派車介面</button>
+    <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.5;">
+      🔓 目前測試階段無需密碼<br>系統會依帳號自動辨識所屬地區
+    </div>
+  </div>
+  <div class="login-foot">
+    登入後系統會自動鎖定您的所屬地區
+    <span class="copy">© 旅乘日本自由行包車 ・ Foreveryoung</span>
+  </div>
+</div>
+
+<!-- ====== 主體 ====== -->
+<div class="device-shell" id="mainApp" style="display:none;">
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="mark">旅</div>
+      <span>旅乘派車系統</span>
+    </div>
+    <div class="header-actions">
+      <button class="header-search-btn" onclick="switchPage('search')" title="全域搜尋">
+        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      </button>
+      <div class="header-info">
+        <span class="region">東京</span>
+        <span class="divider">│</span>
+        <span class="user">林</span>
+        <span class="divider">│</span>
+        <span class="logout" onclick="logoutConfirm()">登出</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ 派車頁 ============ -->
+  <section class="page active" id="page-dispatch">
+    <div id="notifyBannerWrap"></div>
+
+    <div class="quick-stats">
+      <div class="qstat"><div class="qstat-num warn">4</div><div class="qstat-label">明日待派</div></div>
+      <div class="qstat"><div class="qstat-num primary">9</div><div class="qstat-label">明日訂單</div></div>
+      <div class="qstat"><div class="qstat-num danger">1</div><div class="qstat-label">衝突警示</div></div>
+      <div class="qstat"><div class="qstat-num success">28</div><div class="qstat-label">本週服務</div></div>
+    </div>
+
+    <div class="sect-head">
+      <div class="sect-title">日期選擇</div>
+      <span class="sect-link" onclick="switchPage('schedule')">查看排班表 →</span>
+    </div>
+    <div class="date-quick-nav">
+      <button class="dq-btn" onclick="selectDate('2026-05-22')" id="dqToday">回今日</button>
+      <button class="dq-btn" onclick="selectDate('2026-05-23')" id="dqTomorrow">明日</button>
+      <button class="dq-btn" onclick="selectDate('2026-05-29')" id="dqNextWeek">下週</button>
+      <button class="dq-btn" onclick="toggleDateStripAll()" id="dqHistory">⊲ 歷史</button>
+    </div>
+    <div class="date-strip" id="dateStrip"></div>
+
+    <div class="filter-bar" id="filterBar">
+      <div class="filter-tab active" data-filter="all">全部<span class="pill" id="cntAll">0</span></div>
+      <div class="filter-tab" data-filter="pending">待派<span class="pill alert" id="cntPending">0</span></div>
+      <div class="filter-tab" data-filter="active">處理中<span class="pill" id="cntActive">0</span></div>
+      <div class="filter-tab" data-filter="completed">完成<span class="pill" id="cntDone">0</span></div>
+    </div>
+
+    <div class="orders" id="ordersList"></div>
+  </section>
+
+  <!-- ============ 全域搜尋頁 ============ -->
+  <section class="page" id="page-search">
+    <div class="search-page-bar">
+      <div class="search-page-input">
+        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="color:var(--muted);"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="searchInput" placeholder="搜尋訂單編號、客人姓名、行程、司機..." oninput="performSearch()" autofocus>
+      </div>
+      <span class="search-cancel" onclick="switchPage('dispatch')">取消</span>
+    </div>
+
+    <div class="tag-filter-bar" id="searchFilterBar">
+      <div class="tag-filter-chip active" data-search-filter="all" onclick="setSearchFilter('all')">全部</div>
+      <div class="tag-filter-chip" data-search-filter="pending" onclick="setSearchFilter('pending')">待派車</div>
+      <div class="tag-filter-chip" data-search-filter="assigned" onclick="setSearchFilter('assigned')">已派車</div>
+      <div class="tag-filter-chip" data-search-filter="completed" onclick="setSearchFilter('completed')">已完成</div>
+      <div class="tag-filter-chip" data-search-filter="cancelled" onclick="setSearchFilter('cancelled')">已取消</div>
+    </div>
+
+    <div id="searchSuggest" class="search-suggest">
+      <div class="search-suggest-title">快速搜尋</div>
+      <div class="search-suggest-chips">
+        <span class="search-suggest-chip" onclick="quickSearch('已取消')">已取消的訂單</span>
+        <span class="search-suggest-chip" onclick="quickSearch('成田')">成田機場</span>
+        <span class="search-suggest-chip" onclick="quickSearch('富士山')">富士山行程</span>
+        <span class="search-suggest-chip" onclick="quickSearch('迪士尼')">迪士尼</span>
+        <span class="search-suggest-chip" onclick="quickSearch('TK-005')">司機 TK-005</span>
+        <span class="search-suggest-chip" onclick="quickSearch('26041502')">3 月以前訂單</span>
+        <span class="search-suggest-chip" onclick="quickSearch('王永剛')">司機 王永剛</span>
+      </div>
+    </div>
+
+    <div class="search-results-head" id="searchResultsHead" style="display:none;">
+      <span id="searchResultsCount">0 筆結果</span>
+      <span>依日期由新到舊排序</span>
+    </div>
+    <div class="orders" id="searchResults"></div>
+  </section>
+
+  <!-- ============ 排班表頁 ============ -->
+  <section class="page" id="page-schedule">
+    <div class="schedule-toolbar">
+      <div class="week-label">2026/05/22 - 05/28</div>
+      <div class="week-nav"><button>‹</button><button>今</button><button>›</button></div>
+    </div>
+    <div class="schedule-legend">
+      <div class="legend-item"><span class="legend-box lg-free"></span>休息</div>
+      <div class="legend-item"><span class="legend-box lg-light"></span>1 趟</div>
+      <div class="legend-item"><span class="legend-box lg-med"></span>2 趟</div>
+      <div class="legend-item"><span class="legend-box lg-heavy"></span>3+ 趟</div>
+      <div class="legend-item"><span class="legend-box lg-multiday"></span>多日行程</div>
+      <div class="legend-item"><span class="legend-box lg-off"></span>休假</div>
+    </div>
+    <div class="schedule-grid-wrap"><table class="sg-table" id="scheduleTable"></table></div>
+  </section>
+
+  <!-- ============ 司機頁 ============ -->
+  <section class="page" id="page-drivers">
+    <div class="search-bar">
+      <div class="search-input-wrap">
+        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" placeholder="搜尋司機名稱、編號或電話" oninput="filterDrivers(this.value)">
+      </div>
+    </div>
+    <div class="tag-filter-bar" id="tagFilterBar"></div>
+    <div class="sect-head">
+      <div class="sect-title">東京地區司機 <small id="driverCountText"></small></div>
+      <span class="sect-link" onclick="openAddDriverSheet()">+ 新增司機</span>
+    </div>
+    <div class="list-card" id="driversList"></div>
+  </section>
+
+  <!-- ============ 車輛頁 ============ -->
+  <section class="page" id="page-vehicles">
+    <div class="search-bar">
+      <div class="search-input-wrap">
+        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" placeholder="搜尋車牌或車款">
+      </div>
+    </div>
+    <div class="sect-head">
+      <div class="sect-title">東京地區車輛 <small>依車款分組</small></div>
+      <span class="sect-link">+ 新增車輛</span>
+    </div>
+    <div id="vehiclesList"></div>
+  </section>
+
+  <!-- ============ 通知歷史頁 ============ -->
+  <section class="page" id="page-notify-history">
+    <div class="search-page-bar">
+      <div style="font-size:15px;font-weight:700;flex:1;">通知歷史</div>
+      <span class="search-cancel" onclick="switchPage('dispatch')">關閉</span>
+    </div>
+    <div class="notify-history-bar" id="notifyHistoryBar"></div>
+    <div class="nh-list" id="notifyHistoryList"></div>
+  </section>
+
+  <!-- ============ 統計分析頁 ============ -->
+  <section class="page" id="page-stats">
+    <div class="search-page-bar">
+      <div style="font-size:15px;font-weight:700;flex:1;">統計分析</div>
+      <span class="search-cancel" onclick="switchPage('settings')">關閉</span>
+    </div>
+    <div class="stats-month-nav">
+      <div class="stats-month-row" id="statsMonthRow"></div>
+    </div>
+    <div class="stats-row">
+      <div class="stats-card"><div class="stats-card-title">本月派車</div><div class="stats-card-value">128</div><div class="stats-card-change up">▲ +18 趟</div></div>
+      <div class="stats-card"><div class="stats-card-title">本月收益</div><div class="stats-card-value">¥4.2M</div><div class="stats-card-change up">▲ +12.5%</div></div>
+      <div class="stats-card"><div class="stats-card-title">平均評分</div><div class="stats-card-value">4.7 <span style="color:var(--gold);font-size:14px;">★</span></div><div class="stats-card-change up">▲ +0.2</div></div>
+      <div class="stats-card"><div class="stats-card-title">取消率</div><div class="stats-card-value">2.3%</div><div class="stats-card-change down">▼ -0.5%</div></div>
+    </div>
+    <div class="stats-block">
+      <div class="stats-block-title">司機派車排行</div>
+      <div id="statsDriverRank"></div>
+    </div>
+    <div class="stats-block">
+      <div class="stats-block-title">訂單類型分布</div>
+      <div class="stats-bar-item"><span class="sbi-label">一日遊</span><div class="sbi-bar"><div class="sbi-fill" style="width:62%;"></div></div><span class="sbi-val">52 (40%)</span></div>
+      <div class="stats-bar-item"><span class="sbi-label">機場接送</span><div class="sbi-bar"><div class="sbi-fill" style="width:48%;"></div></div><span class="sbi-val">38 (29%)</span></div>
+      <div class="stats-bar-item"><span class="sbi-label">多日行程</span><div class="sbi-bar"><div class="sbi-fill" style="width:24%;"></div></div><span class="sbi-val">18 (14%)</span></div>
+      <div class="stats-bar-item"><span class="sbi-label">迪士尼</span><div class="sbi-bar"><div class="sbi-fill" style="width:18%;"></div></div><span class="sbi-val">12 (9%)</span></div>
+    </div>
+    <div class="stats-block">
+      <div class="stats-block-title">車款使用率</div>
+      <div class="stats-bar-item"><span class="sbi-label">7座</span><div class="sbi-bar"><div class="sbi-fill" style="width:75%;"></div></div><span class="sbi-val">68 (53%)</span></div>
+      <div class="stats-bar-item"><span class="sbi-label">10座</span><div class="sbi-bar"><div class="sbi-fill" style="width:55%;background:#059669;"></div></div><span class="sbi-val">52 (41%)</span></div>
+      <div class="stats-bar-item"><span class="sbi-label">19座</span><div class="sbi-bar"><div class="sbi-fill" style="width:10%;background:#D97706;"></div></div><span class="sbi-val">8 (6%)</span></div>
+    </div>
+  </section>
+
+  <!-- ============ 設定頁 ============ -->
+  <section class="page" id="page-settings">
+    <div class="sect-head"><div class="sect-title">個人</div></div>
+    <div class="list-card">
+      <div class="settings-item">
+        <div class="settings-icon">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div class="settings-text"><div class="t1">林小姐</div><div class="t2">lin@foreveryoung.tw</div></div>
+        <span style="color:var(--muted-2);">›</span>
+      </div>
+    </div>
+    <div class="sect-head"><div class="sect-title">分析</div></div>
+    <div class="list-card">
+      <div class="settings-item" onclick="switchPage('stats')">
+        <div class="settings-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+        <div class="settings-text"><div class="t1">統計分析</div><div class="t2">本月派車、評分、收益</div></div>
+        <span style="color:var(--muted-2);">›</span>
+      </div>
+    </div>
+
+    <div class="sect-head"><div class="sect-title">系統</div></div>
+    <div class="list-card">
+      <div class="settings-item" onclick="switchPage('notify-history')">
+        <div class="settings-icon">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <div class="settings-text"><div class="t1">通知歷史</div><div class="t2">所有訂單異動記錄</div></div>
+        <span style="color:var(--muted-2);">›</span>
+      </div>
+      <div class="settings-item">
+        <div class="settings-icon">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        </div>
+        <div class="settings-text"><div class="t1">資料同步</div><div class="t2">最後同步：2 分鐘前</div></div>
+        <span style="color:var(--muted-2);">›</span>
+      </div>
+      <div class="settings-item">
+        <div class="settings-icon">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        </div>
+        <div class="settings-text"><div class="t1">關於系統</div><div class="t2">v5.0</div></div>
+        <span style="color:var(--muted-2);">›</span>
+      </div>
+    </div>
+  </section>
+
+  <nav class="bottom-nav">
+    <div class="nav-btn active" data-page="dispatch" onclick="switchPage('dispatch')">
+      <div class="nav-icon-wrap"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18M8 14h2M14 14h2M8 18h2M14 18h2"/></svg></div>
+      <span>派車</span>
+    </div>
+    <div class="nav-btn" data-page="schedule" onclick="switchPage('schedule')">
+      <div class="nav-icon-wrap"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+      <span>排班</span>
+    </div>
+    <div class="nav-btn" data-page="drivers" onclick="switchPage('drivers')">
+      <div class="nav-icon-wrap"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <span>司機</span>
+    </div>
+    <div class="nav-btn" data-page="vehicles" onclick="switchPage('vehicles')">
+      <div class="nav-icon-wrap"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg></div>
+      <span>車輛</span>
+    </div>
+    <div class="nav-btn" data-page="settings" onclick="switchPage('settings')">
+      <div class="nav-icon-wrap"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+      <span>設定</span>
+    </div>
+  </nav>
+</div>
+
+<div class="sheet-mask" id="sheetMask" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div class="sheet-title" id="sheetTitle">派車安排</div>
+    <button class="sheet-close" onclick="closeSheet()">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="sheet-body" id="sheetBody"></div>
+  <div class="sheet-footer" id="sheetFooter">
+    <button class="btn btn-block" onclick="closeSheet()">取消</button>
+    <button class="btn btn-primary btn-block" onclick="saveDispatch()">確認派車</button>
+  </div>
+</div>
+
+<!-- 確認 modal -->
+<div class="confirm-modal" id="confirmModal">
+  <div class="confirm-card" id="confirmCard"></div>
+</div>
+
+<script>
+/* ============ 標籤 / 語言 ============ */
+const DRIVER_TAGS = ['機場接送','一日遊','多日行程','富士山','迪士尼接送','夜間接送','長途'];
+const LANGUAGES = [
+  {code:'zh', name:'中文', label:'中'},
+  {code:'ja', name:'日文', label:'日'},
+  {code:'en', name:'英文', label:'英'},
+  {code:'ko', name:'韓文', label:'韓'}
+];
+
+/* ============ 司機（含語言、評分） ============ */
+const DRIVERS = [
+  {id:'TK-001', name:'劉備', phone:'080-4376-5678', defaultFee:30000, off:false,
+   tags:['機場接送','一日遊','富士山'], languages:['zh','ja'],
+   servedCount:142, rating:4.8, ratingCount:98, joinedYear:2024, photoUrl:'https://i.pravatar.cc/200?img=12'},
+  {id:'TK-002', name:'張翊琅', phone:'080-7069-9401', defaultFee:32000, off:false,
+   tags:['一日遊','富士山'], languages:['zh'],
+   servedCount:98, rating:4.6, ratingCount:67, photoUrl:'https://i.pravatar.cc/200?img=33'},
+  {id:'TK-003', name:'王永剛', phone:'080-3753-1069', defaultFee:28000, off:false,
+   tags:['機場接送','夜間接送'], languages:['zh'],
+   servedCount:215, rating:4.9, ratingCount:180, photoUrl:'https://i.pravatar.cc/200?img=51'},
+  {id:'TK-004', name:'孫洪涛', phone:'090-2339-9100', defaultFee:30000, off:false,
+   tags:['一日遊','長途'], languages:['zh'],
+   servedCount:76, rating:4.3, ratingCount:52, photoUrl:'https://i.pravatar.cc/200?img=15'},
+  {id:'TK-005', name:'郭海峰', phone:'070-2234-3664', defaultFee:35000, off:false,
+   tags:['迪士尼接送','一日遊'], languages:['zh','ja'],
+   servedCount:188, rating:5.0, ratingCount:155, photoUrl:'https://i.pravatar.cc/200?img=68'},
+  {id:'TK-008', name:'魏雲', phone:'070-8515-3901', defaultFee:32000, off:false,
+   tags:['富士山','一日遊'], languages:['zh'],
+   servedCount:65, rating:4.4, ratingCount:38, photoUrl:'https://i.pravatar.cc/200?img=60'},
+  {id:'TK-009', name:'チョウ', phone:'080-5622-5658', defaultFee:30000, off:true,
+   tags:['機場接送'], languages:['ja','en'],
+   servedCount:120, rating:4.7, ratingCount:88, photoUrl:'https://i.pravatar.cc/200?img=14'},
+  {id:'TK-010', name:'鈴木政輝', phone:'090-1804-5930', defaultFee:32000, off:false,
+   tags:['機場接送','富士山'], languages:['ja','en'],
+   servedCount:155, rating:4.8, ratingCount:120, photoUrl:'https://i.pravatar.cc/200?img=53'},
+  {id:'TK-012', name:'李勇軍', phone:'070-1275-0099', defaultFee:30000, off:false,
+   tags:['一日遊','機場接送'], languages:['zh','ja'],
+   servedCount:135, rating:4.5, ratingCount:95, photoUrl:'https://i.pravatar.cc/200?img=11'},
+  {id:'TK-020', name:'湯村浩', phone:'070-1275-0099', defaultFee:32000, off:false,
+   tags:['富士山','多日行程'], languages:['ja','en'],
+   servedCount:88, rating:4.9, ratingCount:62, photoUrl:'https://i.pravatar.cc/200?img=8'}
+];
+
+const VEHICLES = [
+  {id:'VTK-001', plate:'164',         model:'Alphard', color:'黑', seat:7, category:'7座'},
+  {id:'VTK-005', plate:'4907',        model:'Alphard', color:'黑', seat:7, category:'7座'},
+  {id:'VTK-006', plate:'53-12',       model:'Alphard', color:'黑', seat:7, category:'7座'},
+  {id:'VTK-011', plate:'494',         model:'Alphard', color:'黑', seat:7, category:'7座'},
+  {id:'VTK-017', plate:'192',         model:'舒適款',  color:'黑', seat:7, category:'7座'},
+  {id:'VTK-008', plate:'376',         model:'海獅',    color:'黑', seat:10, category:'10座'},
+  {id:'VTK-014', plate:'22',          model:'海獅',    color:'黑', seat:10, category:'10座'},
+  {id:'VTK-023', plate:'葛飾300あ575', model:'海獅',   color:'黑', seat:10, category:'10座'},
+  {id:'VTK-015', plate:'足立200あ1061', model:'考斯特', color:'銀', seat:19, category:'19座'}
+];
+
+const DRIVER_VEHICLE_HISTORY = {
+  'TK-001':[{vid:'VTK-001', plate:'164', count:8},{vid:'VTK-017', plate:'192', count:5}],
+  'TK-003':[{vid:'VTK-006', plate:'53-12', count:6}],
+  'TK-004':[{vid:'VTK-006', plate:'53-12', count:9}],
+  'TK-005':[{vid:'VTK-008', plate:'376', count:14}],
+  'TK-008':[{vid:'VTK-011', plate:'494', count:7}],
+  'TK-012':[{vid:'VTK-008', plate:'376', count:10}],
+  'TK-020':[{vid:'VTK-023', plate:'葛飾300あ575', count:8}]
+};
+
+const DRIVER_SCHEDULE = {
+  'TK-001':[
+    {date:'2026-05-23', start:'14:00', end:'17:00', tripType:'oneway', orderNo:'#26052304', route:'品川→羽田'},
+    {date:'2026-05-24', start:'09:00', end:'18:00', tripType:'daytrip', orderNo:'#26052403', route:'富士山'}
+  ],
+  'TK-002':[{date:'2026-05-24', start:'10:00', end:'19:00', tripType:'daytrip', orderNo:'#26052404', route:'鎌倉'}],
+  'TK-003':[{date:'2026-05-23', start:'08:00', end:'12:00', tripType:'oneway', orderNo:'X', route:'送機'}],
+  'TK-004':[{date:'2026-05-23', start:'16:00', end:'19:00', tripType:'oneway', orderNo:'#26052307', route:'送機'}],
+  'TK-005':[{date:'2026-05-23', start:'10:00', end:'20:00', tripType:'daytrip', orderNo:'#26052305', route:'迪士尼+等候'}],
+  'TK-008':[{date:'2026-05-23', start:'09:00', end:'18:00', tripType:'daytrip', orderNo:'#26052308b', route:'河口湖'}],
+  'TK-020':[
+    {date:'2026-05-23', start:'09:00', end:'23:00', tripType:'multiday', orderNo:'#26052306', route:'富士山兩天一夜 Day1'},
+    {date:'2026-05-24', start:'08:00', end:'18:00', tripType:'multiday', orderNo:'#26052306', route:'富士山兩天一夜 Day2'}
+  ]
+};
+
+/* ============ 訂單生命週期狀態流 ============ */
+const ORDER_STATES = [
+  {key:'pending', label:'待派車'},
+  {key:'assigned', label:'已派車'},
+  {key:'confirmed', label:'司機確認'},
+  {key:'in-progress', label:'行程中'},
+  {key:'completed', label:'完成'},
+  {key:'reconciled', label:'已對帳'}
+];
+
+/* ============ 通知資料 ============ */
+const NOTIFICATIONS = [
+  {id:'n1', type:'modified', orderNo:'#26052301', content:'客人改出發 09:00 → 10:00', timestamp:'2026-05-22 14:32', state:'unread'},
+  {id:'n2', type:'new', orderNo:'#26052309', content:'5/24 河口湖一日遊新訂單', timestamp:'2026-05-22 14:15', state:'unread'},
+  {id:'n3', type:'cancelled', orderNo:'#26052310', content:'客人取消行程（班機改期）', timestamp:'2026-05-22 13:48', state:'unread'},
+  {id:'n4', type:'modified', orderNo:'#26052302', content:'客人加 1 位小孩，需汽座', timestamp:'2026-05-22 12:10', state:'unread'},
+  {id:'n5', type:'new', orderNo:'#26052311', content:'5/26 富士山多日新訂單', timestamp:'2026-05-22 11:35', state:'unread'},
+  {id:'n6', type:'modified', orderNo:'#26052303', content:'增加大佛景點停留', timestamp:'2026-05-22 11:00', state:'read'},
+  {id:'n7', type:'assigned', orderNo:'#26052304', content:'已派車予 劉備', timestamp:'2026-05-22 10:30', state:'read'},
+  {id:'n8', type:'modified', orderNo:'#26052305', content:'抽換司機：張翊琅 → 郭海峰', timestamp:'2026-05-22 09:20', state:'handled', handledAt:'2026-05-22 09:25', handledBy:'林小姐'},
+  {id:'n9', type:'new', orderNo:'#26052289', content:'5/22 富士山一日遊', timestamp:'2026-05-19 10:00', state:'handled', handledAt:'2026-05-19 14:00', handledBy:'林小姐'}
+];
+
+/* ============ 訂單 ============ */
+const ORDERS = {
+  'tomorrow':[
+    {
+      no:'#26052301', date:'2026-05-23', start:'10:00', end:'18:00',
+      tripType:'roundtrip', priorityType:'富士山', requireLang:['zh'],
+      from:'淺草雷門飯店', to:'富士山',
+      routeBrief:'淺草雷門飯店 往返 富士山一日遊',
+      pax:{adult:3, child:1}, carSeatCount:1, carType:'7座 Alphard', carCount:1,
+      remarks:'客人指定多停大石公園 30 分鐘拍照，回程經御殿場 Outlet 採購 1 小時。需要汽座 x1。',
+      status:'pending', assignments:[],
+      lifecycle:[{state:'pending', at:'2026-05-20 10:00', by:'系統'}],
+      lastModified:'2026-05-22 14:32', isModified:true,
+      modifyLog:'客人改出發時間 09:00 → 10:00（14:32）',
+      rawMessage:`#26052301
+日期：2026/05/23
+時間：10:00 AM（原 09:00，客人改）
+起始：淺草雷門飯店
+行程：淺草飯店 ⇆ 河口湖 → 大石公園 → 新倉淺間公園 → 御殿場Outlet → 飯店
+人數：3 大 + 1 小
+車款：7 座舒適款 Alphard
+特殊需求：汽座 x1
+備註：拍照景點多停 30 分；經 Outlet 採購 1 小時`
+    },
+    {
+      no:'#26052308', date:'2026-05-23', start:'13:00', end:'16:00',
+      tripType:'oneway', priorityType:'機場接送', requireLang:['zh','ja'],
+      from:'成田機場 T1', to:'新宿希爾頓',
+      routeBrief:'成田 T1 → 新宿希爾頓（多車）',
+      pax:{adult:12, child:2}, carSeatCount:2, carType:'10座海獅 + 7座Alphard', carCount:2,
+      remarks:'14 位旅客 + 18 件大行李，需要 2 台車。班機 NH828 抵達 12:55。汽座 x2',
+      status:'pending', assignments:[],
+      lifecycle:[{state:'pending', at:'2026-05-21 09:30', by:'系統'}],
+      rawMessage:`#26052308\n日期：2026/05/23\n時間：13:00 (NH828 抵達 12:55)\n起始：成田機場 T1\n行程：T1 → 新宿希爾頓\n人數：12 大 + 2 小\n車款：10座海獅 x 1 + 7座Alphard x 1`
+    },
+    {
+      no:'#26052302', date:'2026-05-23', start:'08:30', end:'11:00',
+      tripType:'oneway', priorityType:'機場接送', requireLang:['zh'],
+      from:'成田機場 T1', to:'銀座蒙特利酒店',
+      routeBrief:'成田機場 T1 → 銀座蒙特利酒店',
+      pax:{adult:2, child:1}, carSeatCount:1, carType:'7座舒適款', carCount:1,
+      remarks:'T1 入境大廳舉牌「黃先生」，班機 CI100 抵達 08:30。需汽座 x1',
+      status:'pending', assignments:[],
+      lifecycle:[{state:'pending', at:'2026-05-21 11:00', by:'系統'}],
+      rawMessage:`#26052302\n日期：2026/05/23\n時間：08:30 AM\n起始：東京成田T1 / CI100 / 抵達 08:30\n行程：成田機場 → 銀座蒙特利酒店\n人數：2 大 + 1 小`
+    },
+    {
+      no:'#26052303', date:'2026-05-23', start:'07:00', end:'19:00',
+      tripType:'roundtrip', priorityType:'一日遊', requireLang:['zh'],
+      from:'上野東橫INN', to:'鎌倉',
+      routeBrief:'上野 往返 鎌倉一日遊',
+      pax:{adult:7, child:0}, carSeatCount:0, carType:'10座 海獅', carCount:1,
+      remarks:'拍照景點較多：江之島、鎌倉高校前、鶴岡八幡宮、小町通、大佛',
+      status:'pending', assignments:[],
+      lifecycle:[{state:'pending', at:'2026-05-20 14:00', by:'系統'}],
+      rawMessage:`#26052303\n日期：2026/05/23\n時間：07:00 AM\n起始：上野東橫INN\n行程：飯店 ⇆ 江之島 → 鎌倉高校前 → 八幡宮 → 大佛\n人數：7 大`
+    },
+    {
+      no:'#26052304', date:'2026-05-23', start:'14:00', end:'17:00',
+      tripType:'oneway', priorityType:'機場接送', requireLang:['zh'],
+      from:'品川王子飯店', to:'羽田 T3',
+      routeBrief:'品川王子飯店 → 羽田 T3',
+      pax:{adult:2, child:0}, carSeatCount:0, carType:'7座 Alphard', carCount:1,
+      remarks:'2 大人 + 4 件大行李',
+      status:'assigned',
+      assignments:[{driverId:'TK-001', vehicleId:'VTK-001', fee:30000, status:'active', assignedAt:'2026-05-22 10:30', adjustments:[{type:'deduct', amount:3000, reason:'前次服務（#26052290）遲到 30 分鐘導致客人險些錯過班機', at:'2026-05-22 11:00', by:'林小姐'}]}],
+      lifecycle:[
+        {state:'pending', at:'2026-05-20 09:00', by:'系統'},
+        {state:'assigned', at:'2026-05-22 10:30', by:'林小姐'}
+      ],
+      rawMessage:`#26052304\n日期：2026/05/23\n時間：14:00\n起始：品川王子飯店\n行程：品川王子 → 羽田 T3\n人數：2 大`
+    },
+    {
+      no:'#26052305', date:'2026-05-23', start:'10:00', end:'20:00',
+      tripType:'daytrip', priorityType:'迪士尼接送', requireLang:['zh'],
+      from:'新宿京王廣場', to:'迪士尼樂園',
+      routeBrief:'新宿 ⇆ 迪士尼接送+園區等候',
+      pax:{adult:3, child:2}, carSeatCount:1, carType:'7座 Alphard', carCount:1,
+      remarks:'司機需在園區附近停車場等候至 19:30',
+      status:'confirmed',
+      assignments:[
+        {driverId:'TK-002', vehicleId:'VTK-005', fee:32000, status:'cancelled',
+         cancelReason:'客人改成下午出發，原司機已有其他班次', cancelledAt:'2026-05-22 09:15',
+         changeType:'客人要求', notifiedCustomer:true, notifiedDriver:true},
+        {driverId:'TK-005', vehicleId:'VTK-008', fee:35000, status:'active', assignedAt:'2026-05-22 09:20'}
+      ],
+      lifecycle:[
+        {state:'pending', at:'2026-05-20 11:00', by:'系統'},
+        {state:'assigned', at:'2026-05-21 14:30', by:'林小姐'},
+        {state:'confirmed', at:'2026-05-22 09:22', by:'郭海峰'}
+      ],
+      lastModified:'2026-05-22 09:20',
+      rawMessage:`#26052305\n日期：2026/05/23\n時間：10:00\n起始：新宿京王廣場\n行程：新宿 → 迪士尼樂園 → 新宿\n人數：3 大 + 2 小`
+    },
+    {
+      no:'#26052306', date:'2026-05-23 → 05-24', start:'09:00', end:'18:00',
+      tripType:'multiday', priorityType:'多日行程', requireLang:['ja'],
+      from:'池袋大都會', to:'富士山',
+      routeBrief:'池袋出發 富士山兩天一夜',
+      pax:{adult:4, child:2}, carSeatCount:1, carType:'10座 海獅', carCount:1,
+      multidayInfo:{startDate:'2026-05-23', endDate:'2026-05-24', dayCount:2, nights:1},
+      remarks:'兩天一夜行程：Day1 富士山周邊 + 河口湖民宿過夜，Day2 御殿場 Outlet → 返池袋',
+      status:'in-progress',
+      assignments:[{driverId:'TK-020', vehicleId:'VTK-023', fee:80000, status:'active', assignedAt:'2026-05-21 16:30'}],
+      lifecycle:[
+        {state:'pending', at:'2026-05-19 10:00', by:'系統'},
+        {state:'assigned', at:'2026-05-21 16:30', by:'林小姐'},
+        {state:'confirmed', at:'2026-05-21 17:00', by:'湯村浩'},
+        {state:'in-progress', at:'2026-05-23 09:00', by:'湯村浩'}
+      ],
+      rawMessage:`#26052306\n日期：2026/05/23 - 05/24\n時間：Day1 09:00 出發\n起始：池袋大都會\n行程：Day1 池袋 → 河口湖民宿\n　　　Day2 民宿 → 御殿場Outlet → 池袋\n人數：4 大 + 2 小`
+    },
+    {
+      no:'#26052307', date:'2026-05-23', start:'16:00', end:'19:00',
+      tripType:'oneway', priorityType:'機場接送', requireLang:['zh'],
+      from:'東京站JR飯店', to:'成田 T2',
+      routeBrief:'東京站JR飯店 → 成田 T2',
+      pax:{adult:4, child:0}, carSeatCount:0, carType:'7座 Alphard', carCount:1,
+      remarks:'',
+      status:'assigned',
+      assignments:[{driverId:'TK-004', vehicleId:'VTK-006', fee:30000, status:'active', assignedAt:'2026-05-21 11:00'}],
+      lifecycle:[
+        {state:'pending', at:'2026-05-20 15:00', by:'系統'},
+        {state:'assigned', at:'2026-05-21 11:00', by:'林小姐'}
+      ],
+      rawMessage:`#26052307\n日期：2026/05/23\n時間：16:00\n起始：東京站JR飯店\n行程：東京站 → 成田 T2`
+    },
+    // 已完成示範（含評分）
+    {
+      no:'#26052289', date:'2026-05-22', start:'09:00', end:'17:00',
+      tripType:'daytrip', priorityType:'富士山', requireLang:['zh'],
+      from:'新宿', to:'富士山',
+      routeBrief:'新宿 ⇆ 富士山一日遊',
+      pax:{adult:4, child:0}, carSeatCount:0, carType:'7座 Alphard', carCount:1,
+      remarks:'',
+      status:'completed',
+      assignments:[{driverId:'TK-001', vehicleId:'VTK-001', fee:30000, status:'active', assignedAt:'2026-05-20 14:00', adjustments:[{type:'bonus', amount:1000, reason:'客人指定加給（行程結束額外感謝）', at:'2026-05-22 18:30', by:'林小姐'}]}],
+      lifecycle:[
+        {state:'pending', at:'2026-05-19 10:00', by:'系統'},
+        {state:'assigned', at:'2026-05-20 14:00', by:'林小姐'},
+        {state:'confirmed', at:'2026-05-20 15:00', by:'劉備'},
+        {state:'in-progress', at:'2026-05-22 09:00', by:'劉備'},
+        {state:'completed', at:'2026-05-22 17:20', by:'劉備'}
+      ],
+      rating:{score:5, comment:'司機很親切，景點都有妥善安排，孩子很開心！', ratedAt:'2026-05-22 18:00', ratedBy:'客人 LINE 回覆'},
+      rawMessage:`#26052289\n日期：2026/05/22\n富士山一日遊`
+    },
+    // 已取消示範
+    {
+      no:'#26052310', date:'2026-05-25', start:'10:00', end:'14:00',
+      tripType:'oneway', priorityType:'機場接送', requireLang:['zh'],
+      from:'新宿', to:'成田 T1',
+      routeBrief:'新宿 → 成田 T1',
+      pax:{adult:3, child:0}, carSeatCount:0, carType:'7座 Alphard', carCount:1,
+      remarks:'客人原訂送機，因班機改期取消',
+      status:'cancelled',
+      assignments:[],
+      lifecycle:[
+        {state:'pending', at:'2026-05-20 12:00', by:'系統'},
+        {state:'cancelled', at:'2026-05-22 13:48', by:'客人', reason:'班機改期，整個行程延後一週'}
+      ],
+      cancelInfo:{at:'2026-05-22 13:48', by:'客人', reason:'班機改期，整個行程延後一週'},
+      rawMessage:`#26052310\n（客人取消）`
+    }
+  ]
+};
+
+// v9: 自動生成 -30 至 +14 天的日期清單（含過去/未來）
+const DATE_LIST = (function() {
+  const dowZh = ['日','一','二','三','四','五','六'];
+  // 用本地時區建構日期，避免 toISOString 的 UTC 偏移
+  const today = new Date(2026, 4, 22); // 2026-05-22 本地時間
+  const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const list = [];
+  const fixedData = {
+    '2026-05-22': {total:1, pending:0},
+    '2026-05-23': {total:8, pending:4},
+    '2026-05-24': {total:5, pending:2},
+    '2026-05-25': {total:5, pending:3},
+    '2026-05-26': {total:3, pending:1},
+    '2026-05-27': {total:4, pending:2},
+    '2026-05-28': {total:3, pending:0},
+    '2026-04-15': {total:3, pending:0},
+    '2026-03-28': {total:2, pending:0}
+  };
+  for (let i = -38; i <= 14; i++) {
+    const d = new Date(2026, 4, 22 + i);
+    const key = fmt(d);
+    const fd = fixedData[key];
+    list.push({
+      key,
+      dow: dowZh[d.getDay()],
+      month: d.getMonth() + 1,
+      day: d.getDate(),
+      total: fd ? fd.total : (i < 0 ? Math.floor((i + 38) * 0.13) % 4 + 1 : 0),
+      pending: fd ? fd.pending : 0,
+      isToday: i === 0,
+      isTomorrow: i === 1,
+      isPast: i < 0
+    });
+  }
+  return list;
+})();
+
+let state = {
+  page:'dispatch', currentDate:'2026-05-22', filter:'all',
+  editingOrder:null, editingAssignments:[],
+  driverFilterTag:'all', driverSearch:'',
+  searchFilter:'all', searchQuery:'',
+  dateStripShowAll: false,
+  statsMonthOffset: 0
+};
+
+/* ============ 工具 ============ */
+function timeOverlap(s1, e1, s2, e2) { return s1 < e2 && s2 < e1; }
+
+function formatDateDisplay(isoStr) {
+  if (!isoStr) return '';
+  return isoStr.replace(/-/g, '/');
+}
+
+function expandDateRange(start, end) {
+  const dates = [];
+  const s = new Date(start); const e = new Date(end);
+  while (s <= e) { dates.push(s.toISOString().split('T')[0]); s.setDate(s.getDate() + 1); }
+  return dates;
+}
+function getDriverConflictStatus(driverId, targetOrder) {
+  if (!driverId || !targetOrder) return {status:'available'};
+  const driver = DRIVERS.find(d => d.id === driverId);
+  if (driver?.off) return {status:'off'};
+  const checkDates = targetOrder.tripType === 'multiday' && targetOrder.multidayInfo
+    ? expandDateRange(targetOrder.multidayInfo.startDate, targetOrder.multidayInfo.endDate)
+    : [targetOrder.date];
+  let hasOverlap = false, hasDayTrip = false;
+  const otherJobs = [];
+  for (const checkDate of checkDates) {
+    const schedules = (DRIVER_SCHEDULE[driverId] || []).filter(s => s.date === checkDate);
+    for (const s of schedules) {
+      const ov = timeOverlap(s.start, s.end, targetOrder.start, targetOrder.end);
+      if (ov) hasOverlap = true;
+      if (s.tripType === 'daytrip' || s.tripType === 'multiday') hasDayTrip = true;
+      otherJobs.push({...s, overlap:ov});
+    }
+  }
+  if (hasOverlap) return {status:'busy', jobs:otherJobs.filter(j => j.overlap)};
+  if (hasDayTrip && targetOrder.tripType !== 'daytrip') return {status:'daytrip-warn', jobs:otherJobs};
+  if (otherJobs.length > 0) return {status:'partial', jobs:otherJobs};
+  return {status:'available'};
+}
+
+function formatPax(p) {
+  if (typeof p === 'number') return `${p} 位`;
+  const parts = [];
+  if (p.adult) parts.push(`${p.adult} 大`);
+  if (p.child) parts.push(`${p.child} 小`);
+  if (p.infant) parts.push(`${p.infant} 嬰`);
+  return parts.join(' ') || '0 位';
+}
+
+function getRouteDisplay(o) {
+  if (o.routeBrief) return o.routeBrief;
+  if (o.tripType === 'roundtrip') return `${o.from} <span class="rt">⇆ 往返</span> ${o.to}`;
+  return `${o.from} <span class="arr">→</span> ${o.to}`;
+}
+
+function getTripTypeBadge(o) {
+  if (o.carCount > 1) return `<span class="trip-type-badge ttb multi-car">${o.carCount} 台車</span>`;
+  if (o.tripType === 'multiday') {
+    const mi = o.multidayInfo;
+    return `<span class="trip-type-badge ttb multiday">${mi?.dayCount || 2}日${mi?.nights || 1}夜</span>`;
+  }
+  const map = {daytrip:{cls:'daytrip',text:'一日遊'},roundtrip:{cls:'roundtrip',text:'往返'},oneway:{cls:'oneway',text:'單程'}};
+  const t = map[o.tripType] || map.oneway;
+  return `<span class="trip-type-badge ttb ${t.cls}">${t.text}</span>`;
+}
+
+function renderStars(score, maxScore = 5) {
+  let html = '<div class="rating-stars">';
+  for (let i = 1; i <= maxScore; i++) {
+    html += `<span class="star ${i <= score ? 'filled' : ''}">★</span>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+function renderStarsMini(score) {
+  if (!score) return '';
+  return `<div class="stars-mini">${renderStars(Math.round(score))}<span class="rating-score">${score.toFixed(1)}</span></div>`;
+}
+
+function renderLangFlags(langs) {
+  if (!langs || !langs.length) return '';
+  return `<span class="lang-flags">${langs.map(l => {
+    const lang = LANGUAGES.find(x => x.code === l);
+    return lang ? `<span class="lang-flag ${l}">${lang.label}</span>` : '';
+  }).join('')}</span>`;
+}
+
+/* ============ Mini 狀態流 ============ */
+function renderStatusMiniFlow(order) {
+  const statusOrder = ['pending','assigned','confirmed','in-progress','completed'];
+  const labels = {'pending':'待派車','assigned':'已派車','confirmed':'司機確認','in-progress':'行程中','completed':'完成'};
+
+  if (order.status === 'cancelled') {
+    return `<div class="status-mini-flow"><div class="smf-step"><span class="smf-dot cancelled"></span><span class="smf-label" style="color:var(--danger);">已取消</span></div></div>`;
+  }
+
+  const currentIdx = statusOrder.indexOf(order.status);
+  return `<div class="status-mini-flow">` +
+    statusOrder.map((s, i) => {
+      const done = i < currentIdx;
+      const current = i === currentIdx;
+      const cls = done ? 'done' : (current ? 'current' : '');
+      const arrCls = done ? 'done' : '';
+      return `<div class="smf-step">
+        <span class="smf-dot ${cls}"></span>
+        <span class="smf-label ${cls}">${labels[s]}</span>
+      </div>${i < statusOrder.length - 1 ? `<span class="smf-arrow ${arrCls}"></span>` : ''}`;
+    }).join('') +
+  `</div>`;
+}
+
+/* ============ 通知 banner ============ */
+function renderNotifyBanner() {
+  const wrap = document.getElementById('notifyBannerWrap');
+  const visible = NOTIFICATIONS.filter(n => n.state !== 'handled');
+  if (visible.length === 0) { wrap.innerHTML = ''; return; }
+  const unreadCount = NOTIFICATIONS.filter(n => n.state === 'unread').length;
+  const LIMIT = 3;
+  const shown = notifyBannerExpanded ? visible : visible.slice(0, LIMIT);
+  const hiddenCount = visible.length - shown.length;
+  wrap.innerHTML = `
+    <div class="notify-banner">
+      <div class="nb-head">
+        <div class="nb-title">🔔 訂單異動通知 ${unreadCount > 0 ? `<span class="nb-count">${unreadCount}</span>` : ''}</div>
+        <span class="nb-history-link" onclick="switchPage('notify-history')">查看歷史 →</span>
+      </div>
+      <div class="nb-items">
+        ${shown.map(n => `
+          <div class="nb-row ${n.state}">
+            <div class="nb-row-content" onclick="readNotify('${n.id}', '${n.orderNo}')">
+              <div><span class="row-tag ${n.type}">${{'new':'新增','modified':'修改','cancelled':'取消','assigned':'已派'}[n.type]}</span>${n.orderNo} ・ ${n.content}</div>
+              <div class="nb-row-time">${n.timestamp}</div>
+            </div>
+            <button class="nb-handle-btn" onclick="handleNotify('${n.id}')">已處理</button>
+          </div>
+        `).join('')}
+      </div>
+      ${hiddenCount > 0 || notifyBannerExpanded ? `<button class="nb-fold-btn" onclick="toggleNotifyExpand()">${notifyBannerExpanded ? '收合 ▴' : `另有 ${hiddenCount} 筆通知 ▾`}</button>` : ''}
+    </div>`;
+}
+function readNotify(id, orderNo) {
+  const n = NOTIFICATIONS.find(x => x.id === id);
+  if (n && n.state === 'unread') n.state = 'read';
+  renderNotifyBanner();
+  // 跳到訂單（這裡就只是 alert）
+  alert('跳轉到訂單 ' + orderNo);
+}
+function handleNotify(id) {
+  const n = NOTIFICATIONS.find(x => x.id === id);
+  if (n) {
+    n.state = 'handled';
+    n.handledAt = new Date().toISOString().slice(0,16).replace('T',' ');
+    n.handledBy = '林小姐';
+  }
+  renderNotifyBanner();
+}
+
+function showNotifyHistory() {
+  const html = NOTIFICATIONS.map(n => `
+    <div style="padding:10px 0;border-bottom:1px dashed var(--border);font-size:12px;">
+      <div><span class="row-tag ${n.type}" style="background:${n.type==='new'?'#059669':n.type==='modified'?'#D97706':n.type==='cancelled'?'#DC2626':'#0891B2'};color:white;padding:1px 5px;border-radius:3px;font-size:10px;font-weight:700;">${{'new':'新','modified':'改','cancelled':'消','assigned':'派'}[n.type]}</span> ${n.orderNo} ・ ${n.content}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px;">${n.timestamp}・狀態：${{unread:'未讀',read:'已讀',handled:'已處理'}[n.state]}${n.handledAt ? '（'+n.handledBy+' '+n.handledAt+'）' : ''}</div>
+    </div>`).join('');
+  document.getElementById('confirmCard').innerHTML = `
+    <h3>通知歷史（全部）</h3>
+    <div style="max-height:50vh;overflow-y:auto;margin-bottom:14px;">${html}</div>
+    <div class="confirm-actions"><button class="btn btn-block" onclick="closeConfirm()">關閉</button></div>`;
+  document.getElementById('confirmModal').classList.add('show');
+}
+
+/* ============ 日期 strip ============ */
+function renderDateStrip() {
+  const todayIdx = DATE_LIST.findIndex(x => x.isToday);
+  // 預設顯示「今日前 1 天到後 7 天」(共 9 個)；點歷史展開全部
+  const visible = state.dateStripShowAll
+    ? DATE_LIST
+    : DATE_LIST.filter((d, i) => i - todayIdx >= -1 && i - todayIdx <= 7);
+
+  const html = visible.map((d, i) => {
+    const monthChange = i > 0 && d.month !== visible[i-1].month;
+    const dowLabel = d.isToday ? '今日' : (d.isTomorrow ? '明日' : '週' + d.dow);
+    return (monthChange ? `<div class="month-divider">${d.month}月</div>` : '') +
+    `<div class="date-pill ${d.key === state.currentDate ? 'active' : ''} ${d.pending > 0 ? 'has-pending' : ''} ${d.isPast ? 'past' : ''} ${d.isToday ? 'is-today' : ''}" onclick="selectDate('${d.key}')" data-date="${d.key}">
+      <div class="dow">${dowLabel}</div>
+      <div class="num">${d.day}</div>
+      <div class="badge">${d.pending > 0 ? '待派 ' + d.pending : (d.total > 0 ? d.total + '趟' : '無')}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('dateStrip').innerHTML = html;
+
+  // 快速跳轉按鈕的 active 狀態
+  const today = '2026-05-22', tomorrow = '2026-05-23', nextWeek = '2026-05-29';
+  document.getElementById('dqToday').classList.toggle('active', state.currentDate === today);
+  document.getElementById('dqTomorrow').classList.toggle('active', state.currentDate === tomorrow);
+  document.getElementById('dqNextWeek').classList.toggle('active', state.currentDate === nextWeek);
+  document.getElementById('dqHistory').classList.toggle('active', state.dateStripShowAll);
+  document.getElementById('dqHistory').textContent = state.dateStripShowAll ? '⊳ 收合' : '⊲ 歷史';
+
+  // 自動滾動到目前選中日期
+  setTimeout(() => {
+    const selectedEl = document.querySelector(`.date-pill[data-date="${state.currentDate}"]`);
+    if (selectedEl) selectedEl.scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'});
+  }, 0);
+}
+function toggleDateStripAll() {
+  state.dateStripShowAll = !state.dateStripShowAll;
+  renderDateStrip();
+}
+function selectDate(key) { state.currentDate = key; state.filter = 'all'; renderDateStrip(); document.querySelectorAll('.filter-tab').forEach(x => x.classList.remove('active')); document.querySelector('.filter-tab[data-filter="all"]').classList.add('active'); renderOrders(); }
+function setFilter(filter) {
+  state.filter = filter;
+  document.querySelectorAll('.filter-tab').forEach(x => x.classList.remove('active'));
+  document.querySelector(`.filter-tab[data-filter="${filter}"]`).classList.add('active');
+  renderOrders();
+}
+
+
+/* ============ 訂單列表 ============ */
+function getOrdersForDate() {
+  return ORDERS.tomorrow.filter(o => {
+    if (!o.date) return false;
+    return o.date.startsWith(state.currentDate) || o.date.includes(state.currentDate);
+  });
+}
+
+function renderOrders() {
+  const dateOrders = getOrdersForDate();
+  // 動態計算各過濾分類的數量，並更新 tab 上的 pill
+  const counts = {
+    all: dateOrders.length,
+    pending: dateOrders.filter(o => o.status === 'pending').length,
+    active: dateOrders.filter(o => ['assigned','confirmed','in-progress'].includes(o.status)).length,
+    completed: dateOrders.filter(o => o.status === 'completed').length
+  };
+  document.getElementById('cntAll').textContent = counts.all;
+  document.getElementById('cntPending').textContent = counts.pending;
+  document.getElementById('cntActive').textContent = counts.active;
+  document.getElementById('cntDone').textContent = counts.completed;
+  // 0 的 tab 灰掉 (disabled-looking)
+  document.querySelectorAll('#filterBar .filter-tab').forEach(tab => {
+    const f = tab.dataset.filter;
+    tab.classList.toggle('disabled', counts[f] === 0);
+  });
+
+  let list = dateOrders;
+  if (state.filter === 'pending') list = list.filter(o => o.status === 'pending');
+  else if (state.filter === 'active') list = list.filter(o => ['assigned','confirmed','in-progress'].includes(o.status));
+  else if (state.filter === 'completed') list = list.filter(o => o.status === 'completed');
+
+  const container = document.getElementById('ordersList');
+  if (list.length === 0) {
+    const dateInfo = DATE_LIST.find(d => d.key === state.currentDate);
+    const dateLabel = dateInfo ? `${dateInfo.month}/${dateInfo.day}（週${dateInfo.dow}）` : state.currentDate;
+    const isToday = dateInfo?.isToday;
+    const filterLabel = {all:'', pending:'待派車', active:'處理中', completed:'已完成'}[state.filter];
+    const hasOrdersThisDay = dateOrders.length > 0;
+    let title, hint;
+    if (state.filter !== 'all' && hasOrdersThisDay) {
+      // 該日期有其他狀態的訂單，但目前過濾沒結果
+      title = `${dateLabel}・沒有${filterLabel}訂單`;
+      hint = `這個日期有 ${dateOrders.length} 筆訂單，但都不是「${filterLabel}」狀態。試試切換到「全部」`;
+    } else if (!hasOrdersThisDay) {
+      title = `${dateLabel}・沒有訂單`;
+      hint = isToday ? '今日無派車安排' : '此日期目前查不到任何訂單';
+    }
+    container.innerHTML = `
+      <div class="empty">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        <div style="margin-top:8px;font-weight:600;color:var(--text-2);">${title}</div>
+        <div style="font-size:11px;color:var(--muted-2);margin-top:4px;line-height:1.5;">${hint}</div>
+        <div class="empty-action">
+          ${state.filter !== 'all' ? `<button class="primary" onclick="setFilter('all')">顯示全部</button>` : ''}
+          ${!isToday ? `<button onclick="selectDate('2026-05-22')">回今日</button>` : ''}
+          <button onclick="switchPage('search')">搜尋訂單</button>
+        </div>
+      </div>`;
+    return;
+  }
+  container.innerHTML = list.map((o, idx) => renderOrderCard(o, idx)).join('');
+}
+
+function renderOrderCard(o, idx) {
+  const stText = {'pending':'待派車','assigned':'已派車','confirmed':'司機確認','in-progress':'行程中','completed':'完成','reconciled':'已對帳','cancelled':'已取消'}[o.status];
+  const stClass = {'pending':'st-pending','assigned':'st-assigned','confirmed':'st-confirmed','in-progress':'st-in-progress','completed':'st-completed','reconciled':'st-reconciled','cancelled':'st-cancelled'}[o.status];
+  const activeAssignments = (o.assignments || []).filter(a => a.status === 'active');
+  const cancelledAssignments = (o.assignments || []).filter(a => a.status === 'cancelled');
+
+  const assignedHtml = activeAssignments.map((a, i) => {
+    const d = DRIVERS.find(x => x.id === a.driverId);
+    const v = VEHICLES.find(x => x.id === a.vehicleId);
+    const adjT = (a.adjustments || []).reduce((s, adj) => s + (adj.type === 'bonus' ? adj.amount : -adj.amount), 0);
+    const finalF = (a.fee || 0) + adjT;
+    const hasDeduct = (a.adjustments || []).some(adj => adj.type === 'deduct');
+    const hasBonus = (a.adjustments || []).some(adj => adj.type === 'bonus');
+    return `
+      <div class="assigned-row">
+        <div class="info-l">
+          ${activeAssignments.length > 1 ? `<span class="car-no-tag">車${i+1}</span>` : ''}
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+          ${d?.name || '?'}${renderLangFlags(d?.languages)} ・ ${v?.plate || '未配車'}
+          ${hasDeduct ? `<span class="order-adjust-badge">⚠ 扣費</span>` : ''}
+          ${hasBonus ? `<span class="order-adjust-badge bonus">＋ 獎金</span>` : ''}
+        </div>
+        <div class="info-r">${adjT !== 0 ? `<span style="text-decoration:line-through;color:var(--muted-2);font-weight:400;font-size:10px;margin-right:4px;">¥${a.fee?.toLocaleString()}</span>` : ''}¥${finalF.toLocaleString()}</div>
+      </div>`;
+  }).join('');
+
+  const cancelledHtml = cancelledAssignments.length > 0
+    ? cancelledAssignments.map(a => {
+        const d = DRIVERS.find(x => x.id === a.driverId);
+        return `<div class="cancelled-row">已取消：${d?.name || '?'}（${a.cancelReason || ''}）</div>`;
+      }).join('') : '';
+
+  const ratingHtml = o.status === 'completed' ? (o.rating ? `
+    <div class="rating-block">
+      <div class="rating-row">
+        <div style="display:flex;align-items:center;gap:4px;">
+          ${renderStars(o.rating.score)}
+          <span class="rating-score">${o.rating.score}.0</span>
+        </div>
+        <span style="font-size:10px;color:#92400E;">${o.rating.ratedBy || '客人'}</span>
+      </div>
+      ${o.rating.comment ? `<div class="rating-comment">「${o.rating.comment}」</div>` : ''}
+    </div>` : `<div class="rating-empty" onclick="event.stopPropagation();openRatingSheet('${o.no}')">+ 此訂單尚未評分（點此輸入）</div>`) : '';
+
+  return `
+    <div class="order-card ${o.status} ${o.isModified ? 'modified' : ''}" onclick="openEditor(${idx})">
+      <div class="order-row1">
+        <div class="order-no-wrap">
+          <span class="order-no">${o.no}</span>
+          ${getTripTypeBadge(o)}
+          ${o.isModified ? `<span class="modified-tag">已修改</span>` : ''}
+        </div>
+        <span class="order-status ${stClass}">${stText}</span>
+      </div>
+      ${o.status !== 'pending' && o.status !== 'cancelled' ? renderStatusMiniFlow(o) : ''}
+      <div class="order-time">
+        ${o.start} – ${o.end}${o.tripType === 'daytrip' ? '<span class="uncertain">結束時間可能延後</span>' : ''}${o.tripType === 'multiday' ? '<span class="multiday-range">' + o.multidayInfo.dayCount + ' 天連續</span>' : ''}
+      </div>
+      <div class="order-route">${getRouteDisplay(o)}</div>
+      <div class="order-tags">
+        <span class="tag">${formatPax(o.pax)}</span>
+        <span class="tag">${o.carType}</span>
+        ${o.carSeatCount > 0 ? `<span class="tag warn">需汽座 x${o.carSeatCount}</span>` : ''}
+        ${o.carCount > 1 ? `<span class="tag danger">需 ${o.carCount} 台車</span>` : ''}
+        ${o.priorityType ? `<span class="tag info">${o.priorityType}</span>` : ''}
+        ${o.requireLang && o.requireLang.length ? `<span class="tag">需${o.requireLang.map(l => LANGUAGES.find(x => x.code === l)?.label).join('/')}司機</span>` : ''}
+      </div>
+      ${o.isModified && o.modifyLog ? `<div class="order-update-log"><span class="lbl">⚠ 異動：</span>${o.modifyLog}</div>` : ''}
+      ${o.remarks ? `<div class="order-remark"><span class="lbl">備註：</span>${o.remarks}</div>` : ''}
+      ${o.status === 'cancelled' ? `<div class="order-remark" style="background:#FEE2E2;border-color:#FCA5A5;color:#991B1B;"><span class="lbl">取消原因：</span>${o.cancelInfo?.reason || '無'}<br><span style="opacity:0.7;font-size:10px;">${o.cancelInfo?.at} 由 ${o.cancelInfo?.by}</span></div>` : ''}
+      ${activeAssignments.length > 0 ? `<div class="order-assigned-info">${assignedHtml}</div>${cancelledHtml}` : ''}
+      ${ratingHtml}
+      ${o.status === 'pending' ? `<div class="order-actions"><button class="btn btn-primary btn-sm btn-block" onclick="event.stopPropagation();openEditor(${idx})">立即派車</button></div>` : ''}
+    </div>`;
+}
+
+/* ============ 開啟編輯 ============ */
+function openEditor(idx) {
+  const list = getOrdersForDate();
+  const o = list[idx];
+  if (!o) return;
+  state.editingOrder = {idx, data:o};
+
+  const activeOnes = (o.assignments || []).filter(a => a.status === 'active');
+  state.editingAssignments = activeOnes.length > 0
+    ? activeOnes.map(a => ({...a}))
+    : Array.from({length:o.carCount || 1}, () => ({driverId:null, vehicleId:null, fee:null, status:'active'}));
+  while (state.editingAssignments.length < (o.carCount || 1)) {
+    state.editingAssignments.push({driverId:null, vehicleId:null, fee:null, status:'active'});
+  }
+
+  document.getElementById('sheetTitle').textContent = o.status === 'pending' ? '派車安排' : '修改派車安排';
+
+  document.getElementById('sheetBody').innerHTML = `
+    ${o.isModified && o.modifyLog ? `
+      <div class="remark-highlight" style="background:var(--warning-soft);border-color:var(--warning);">
+        <div class="rh-head" style="color:var(--warning);">⚠ 此訂單最近有修改</div>
+        ${o.modifyLog}
+      </div>` : ''}
+
+    <div class="raw-msg-block">
+      <div class="raw-msg-head">
+        <div class="source"><span class="src-dot"></span> 訂單原始訊息</div>
+        <span class="raw-msg-toggle" onclick="toggleRawMsg(event)">展開全部 ▾</span>
+      </div>
+      <div class="raw-msg-body" id="rawMsgBody">${escapeHtml(o.rawMessage)}</div>
+      <div class="parsed-info">
+        <div><span class="pi-lbl">訂單編號</span> <span class="pi-val">${o.no}</span></div>
+        <div><span class="pi-lbl">服務日期</span> <span class="pi-val">${formatDateDisplay(o.date)}</span></div>
+        <div><span class="pi-lbl">時段</span> <span class="pi-val">${o.start} - ${o.end}</span></div>
+        <div><span class="pi-lbl">類型</span> <span class="pi-val">${o.tripType === 'roundtrip' ? '往返' : (o.tripType === 'daytrip' ? '一日遊' : (o.tripType === 'multiday' ? (o.multidayInfo.dayCount + '日' + o.multidayInfo.nights + '夜') : '單程'))}</span></div>
+        <div class="full"><span class="pi-lbl">行程</span> <span class="pi-val">${o.routeBrief || (o.from + ' → ' + o.to)}</span></div>
+        <div><span class="pi-lbl">人數</span> <span class="pi-val">${formatPax(o.pax)}</span></div>
+        <div><span class="pi-lbl">汽座</span> <span class="pi-val">${o.carSeatCount > 0 ? '需 ' + o.carSeatCount + ' 個' : '無'}</span></div>
+        <div class="full"><span class="pi-lbl">車款</span> <span class="pi-val">${o.carType}${o.carCount > 1 ? '・' + o.carCount + ' 台' : ''}</span></div>
+        ${o.priorityType ? `<div class="full"><span class="pi-lbl">訂單類別</span> <span class="pi-val">${o.priorityType}（系統優先推薦此類司機）</span></div>` : ''}
+        ${o.requireLang && o.requireLang.length ? `<div class="full"><span class="pi-lbl">語言需求</span> <span class="pi-val">${o.requireLang.map(l => LANGUAGES.find(x => x.code === l)?.name).join('、')}</span></div>` : ''}
+      </div>
+    </div>
+
+    ${o.remarks ? `<div class="remark-highlight"><div class="rh-head">⚠ 客人備註 / 派車注意事項</div>${o.remarks}</div>` : ''}
+
+    ${o.lifecycle && o.lifecycle.length > 0 ? `
+      <div class="lifecycle-list">
+        <div class="lifecycle-title"><span>📋 訂單狀態變動歷程</span></div>
+        ${renderLifecycleItems(o)}
+      </div>
+    ` : ''}
+
+    ${(o.assignments || []).filter(a => a.status === 'cancelled').length > 0 ? `
+      <div class="dispatch-history">
+        <div class="dh-title">📋 派車異動歷史</div>
+        ${o.assignments.map(a => {
+          const d = DRIVERS.find(x => x.id === a.driverId);
+          const v = VEHICLES.find(x => x.id === a.vehicleId);
+          return `
+            <div class="dh-item ${a.status}">
+              <div class="dh-item-row">
+                <div><span class="dh-name">${d?.name || '?'}</span> ・ ${v?.plate || '?'}</div>
+                <div style="font-family:monospace;font-weight:700;">${a.status === 'cancelled' ? '¥0（未領）' : '¥' + (a.fee || 0).toLocaleString()}</div>
+              </div>
+              <div class="dh-item-meta">${a.status === 'cancelled' ? '已取消 ・ ' + (a.cancelledAt || '') : '生效中 ・ ' + (a.assignedAt || '')}</div>
+              ${a.status === 'cancelled' && a.cancelReason ? `
+                <div class="dh-item-detail">
+                  <strong>變更類型：</strong>${a.changeType || '未分類'}<br>
+                  <strong>原因：</strong>${a.cancelReason}<br>
+                  ${a.notifiedCustomer ? '✓ 已通知客人 ' : '✗ 未通知客人 '}
+                  ${a.notifiedDriver ? '・ ✓ 已通知司機' : '・ ✗ 未通知司機'}
+                </div>` : ''}
+            </div>`;
+        }).join('')}
+      </div>
+    ` : ''}
+
+    <div id="carSlotsContainer"></div>
+    <button class="btn btn-dashed btn-block" style="margin-bottom:14px;" onclick="addCarSlot()">+ 加派一台車</button>
+
+    <div class="form-group">
+      <label class="form-label"><span>派車內部備註</span><span class="hint">僅內部可見</span></label>
+      <textarea class="form-control" rows="2" placeholder="例：王經理已確認此單由我負責..."></textarea>
+    </div>
+  `;
+
+  renderCarSlots();
+  document.getElementById('sheetMask').classList.add('show');
+  document.getElementById('sheet').classList.add('show');
+}
+
+function renderCarSlots() {
+  const o = state.editingOrder.data;
+  document.getElementById('carSlotsContainer').innerHTML =
+    state.editingAssignments.map((a, i) => renderCarSlot(o, a, i)).join('');
+}
+
+function renderCarSlot(order, assignment, slotIdx) {
+  const usedIds = state.editingAssignments.map((a, i) => i !== slotIdx ? a.driverId : null).filter(Boolean);
+  const allDrivers = DRIVERS.map(d => {
+    const status = getDriverConflictStatus(d.id, order);
+    const tagMatch = order.priorityType && d.tags.includes(order.priorityType);
+    const langMatch = !order.requireLang || order.requireLang.length === 0 || order.requireLang.every(l => d.languages.includes(l));
+    return {d, status, tagMatch, langMatch};
+  });
+
+  const groups = {available:[], partial:[], daytripWarn:[], busy:[], off:[], used:[]};
+  allDrivers.forEach(item => {
+    if (usedIds.includes(item.d.id)) { groups.used.push({d:item.d, status:'used'}); return; }
+    if (item.status.status === 'off') groups.off.push({...item, ...item.status});
+    else if (item.status.status === 'busy') groups.busy.push({...item, ...item.status});
+    else if (item.status.status === 'daytrip-warn') groups.daytripWarn.push({...item, ...item.status});
+    else if (item.status.status === 'partial') groups.partial.push({...item, ...item.status});
+    else groups.available.push({...item, ...item.status});
+  });
+
+  // 智慧排序：語言匹配 > 標籤匹配 > 評分 > 趟次
+  const sortFn = (a, b) => {
+    if (a.langMatch !== b.langMatch) return a.langMatch ? -1 : 1;
+    if (a.tagMatch !== b.tagMatch) return a.tagMatch ? -1 : 1;
+    if ((b.d.rating || 0) !== (a.d.rating || 0)) return (b.d.rating || 0) - (a.d.rating || 0);
+    return (b.d.servedCount || 0) - (a.d.servedCount || 0);
+  };
+  groups.available.sort(sortFn);
+  groups.partial.sort(sortFn);
+  groups.daytripWarn.sort(sortFn);
+
+  const selectedDriver = assignment.driverId ? DRIVERS.find(d => d.id === assignment.driverId) : null;
+  const history = assignment.driverId ? (DRIVER_VEHICLE_HISTORY[assignment.driverId] || []) : [];
+  const feeValue = assignment.fee || selectedDriver?.defaultFee || 30000;
+  const canRemove = state.editingAssignments.length > 1;
+
+  return `
+    <div class="car-slot">
+      <div class="car-slot-head">
+        <div class="car-slot-title">
+          <span class="car-slot-no">${slotIdx + 1}</span>
+          ${order.carCount > 1 ? `第 ${slotIdx + 1} 台車` : '派車安排'}
+        </div>
+        ${canRemove ? `<button class="car-slot-remove" onclick="removeCarSlot(${slotIdx})">移除</button>` : ''}
+      </div>
+      <div class="car-slot-body">
+
+        <div class="form-group">
+          <label class="form-label">
+            <span>選擇司機 <span class="required">*</span></span>
+            <span class="hint">${order.priorityType ? `「${order.priorityType}」標籤+評分+趟次排序` : '評分+趟次排序'}</span>
+          </label>
+          <div class="driver-picker">
+            ${groups.available.length ? `<div class="driver-group-head"><span class="gh-dot av"></span>可派車（${groups.available.length}）</div>${groups.available.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}` : ''}
+            ${groups.partial.length ? `<div class="driver-group-head"><span class="gh-dot partial"></span>同日有班次但時段不衝突（${groups.partial.length}）</div>${groups.partial.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}` : ''}
+            ${groups.daytripWarn.length ? `<div class="driver-group-head"><span class="gh-dot daytrip"></span>同日有一日遊/多日（${groups.daytripWarn.length}）</div>${groups.daytripWarn.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}` : ''}
+            ${groups.busy.length ? `<div class="driver-group-head"><span class="gh-dot busy"></span>時段衝突無法派車（${groups.busy.length}）</div>${groups.busy.map(g => renderDriverRow(g, slotIdx, assignment.driverId, true, order)).join('')}` : ''}
+            ${groups.used.length ? `<div class="driver-group-head"><span class="gh-dot busy"></span>已被本訂單其他車指派（${groups.used.length}）</div>${groups.used.map(g => renderDriverRow(g, slotIdx, assignment.driverId, true, order)).join('')}` : ''}
+            ${groups.off.length ? `<div class="driver-group-head"><span class="gh-dot off"></span>休假（${groups.off.length}）</div>${groups.off.map(g => renderDriverRow(g, slotIdx, assignment.driverId, true, order)).join('')}` : ''}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            <span>選擇車輛 <span class="required">*</span></span>
+            <span class="hint">${VEHICLES.length} 台可選</span>
+          </label>
+          <select class="form-control" id="vehicleSelect-${slotIdx}" onchange="onVehicleChange(${slotIdx})">
+            <option value="">請選擇車輛...</option>
+            ${['7座','10座','19座'].map(cat => `
+              <optgroup label="${cat}">
+                ${VEHICLES.filter(v => v.category === cat).map(v => `
+                  <option value="${v.id}" ${assignment.vehicleId === v.id ? 'selected' : ''}>${v.plate} ・ ${v.model} (${v.color})</option>
+                `).join('')}
+              </optgroup>
+            `).join('')}
+          </select>
+          ${history.length ? `
+            <div class="vehicle-recommend">
+              <div class="vr-head">⭐ ${selectedDriver?.name || ''}司機常用車輛</div>
+              <div class="vr-chips">${history.map(h => `<div class="vr-chip" onclick="selectVehicleForSlot(${slotIdx}, '${h.vid}')">${h.plate}<span class="freq">${h.count}次</span></div>`).join('')}</div>
+            </div>` : ''}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            <span>司機費用 <span class="required">*</span></span>
+            <span class="hint">±1,000 微調</span>
+          </label>
+          <div class="fee-stepper">
+            <button class="fee-step-btn minus" onclick="adjustFee(${slotIdx}, -1000)">−</button>
+            <div class="fee-input-area">
+              <span class="fee-currency">¥</span>
+              <input type="number" id="feeInput-${slotIdx}" class="fee-input" value="${feeValue}" step="1000" oninput="updateFee(${slotIdx}, this.value)">
+            </div>
+            <button class="fee-step-btn plus" onclick="adjustFee(${slotIdx}, 1000)">+</button>
+          </div>
+          <div class="fee-step-hint">每按一次 ±¥1,000</div>
+        </div>
+
+        ${renderAdjustmentsSection(slotIdx, assignment)}
+
+      </div>
+    </div>`;
+}
+
+function renderDriverRow(g, slotIdx, selectedId, disabled, order) {
+  const driver = g.d;
+  const selected = driver.id === selectedId;
+  let statusLine = '', statusClass = '';
+  if (g.status === 'available') statusLine = '當日無其他派車';
+  else if (g.status === 'partial') { statusLine = '同日：' + g.jobs.map(j => `${j.start}-${j.end} ${j.route}`).join('；'); statusClass = 'partial'; }
+  else if (g.status === 'daytrip-warn') { statusLine = '⚠ 同日一日遊/多日：' + g.jobs.map(j => `${j.start}起 ${j.route}`).join('；'); statusClass = 'daytrip'; }
+  else if (g.status === 'busy') { statusLine = '衝突：' + g.jobs.map(j => `${j.start}-${j.end} ${j.orderNo}`).join('；'); statusClass = 'busy'; }
+  else if (g.status === 'off') { statusLine = '今日休假'; statusClass = 'busy'; }
+  else if (g.status === 'used') { statusLine = '已被本訂單其他車派此司機'; statusClass = 'busy'; }
+
+  const priorityClass = (!disabled && g.tagMatch) ? 'priority-match' : '';
+  const tagsHtml = (driver.tags || []).slice(0, 3).map(t => {
+    const isMatch = order.priorityType && t === order.priorityType;
+    return `<span class="dt-chip ${isMatch ? 'match' : ''}">${t}</span>`;
+  }).join('');
+
+  return `
+    <div class="driver-item ${selected ? 'selected' : ''} ${disabled ? 'disabled' : ''} ${priorityClass}"
+         onclick="${disabled ? '' : `selectDriverForSlot(${slotIdx}, '${driver.id}')`}">
+      <div class="driver-radio"></div>
+      ${renderDriverAvatar(driver, 'xs')}
+      <div class="driver-main">
+        <div class="driver-name-row">
+          <span class="driver-name">${driver.name}</span>
+          <span class="driver-id">${driver.id}</span>
+          ${renderLangFlags(driver.languages)}
+          ${g.tagMatch ? `<span class="priority-star">⭐ 優先</span>` : ''}
+          ${driver.rating ? `<span class="driver-rating-inline">★ ${driver.rating.toFixed(1)}</span>` : ''}
+        </div>
+        <div class="driver-tags-mini">${tagsHtml}</div>
+        <div class="driver-status ${statusClass}">${statusLine}</div>
+        <span class="driver-served">服務 ${driver.servedCount} 趟 ・ ${driver.ratingCount || 0} 則評價</span>
+      </div>
+      <div class="driver-fee-default">預設<br><strong>¥${driver.defaultFee.toLocaleString()}</strong></div>
+    </div>`;
+}
+
+function addCarSlot() { state.editingAssignments.push({driverId:null, vehicleId:null, fee:null, status:'active'}); renderCarSlots(); }
+function removeCarSlot(idx) { if (state.editingAssignments.length <= 1) return; state.editingAssignments.splice(idx, 1); renderCarSlots(); }
+
+function selectDriverForSlot(slotIdx, driverId) {
+  const order = state.editingOrder.data;
+  const oldDriverId = state.editingAssignments[slotIdx].driverId;
+  if (order.status !== 'pending' && oldDriverId && oldDriverId !== driverId) {
+    showReplaceConfirm(slotIdx, oldDriverId, driverId);
+    return;
+  }
+  state.editingAssignments[slotIdx].driverId = driverId;
+  const driver = DRIVERS.find(d => d.id === driverId);
+  if (driver && !state.editingAssignments[slotIdx].fee) {
+    state.editingAssignments[slotIdx].fee = driver.defaultFee;
+  }
+  renderCarSlots();
+}
+function selectVehicleForSlot(slotIdx, vid) {
+  state.editingAssignments[slotIdx].vehicleId = vid;
+  document.getElementById(`vehicleSelect-${slotIdx}`).value = vid;
+}
+function onVehicleChange(slotIdx) {
+  state.editingAssignments[slotIdx].vehicleId = document.getElementById(`vehicleSelect-${slotIdx}`).value;
+}
+function adjustFee(slotIdx, delta) {
+  const input = document.getElementById(`feeInput-${slotIdx}`);
+  let v = parseInt(input.value) || 0;
+  v += delta; if (v < 0) v = 0;
+  input.value = v;
+  state.editingAssignments[slotIdx].fee = v;
+  input.style.background = delta > 0 ? '#ECFDF5' : '#FEF2F2';
+  setTimeout(() => input.style.background = 'white', 220);
+}
+function updateFee(slotIdx, val) { state.editingAssignments[slotIdx].fee = parseInt(val) || 0; }
+function toggleRawMsg(e) {
+  e.stopPropagation();
+  const body = document.getElementById('rawMsgBody');
+  body.classList.toggle('expanded');
+  e.target.textContent = body.classList.contains('expanded') ? '收合 ▴' : '展開全部 ▾';
+}
+function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+function closeSheet() {
+  document.getElementById('sheetMask').classList.remove('show');
+  document.getElementById('sheet').classList.remove('show');
+  state.editingOrder = null; state.editingAssignments = [];
+  // Reset footer
+  document.getElementById('sheetFooter').innerHTML = `<button class="btn btn-block" onclick="closeSheet()">取消</button><button class="btn btn-primary btn-block" onclick="saveDispatch()">確認派車</button>`;
+}
+
+function saveDispatch() {
+  if (!state.editingOrder) return;
+  const o = state.editingOrder.data;
+  for (let i = 0; i < state.editingAssignments.length; i++) {
+    const a = state.editingAssignments[i];
+    if (!a.driverId) { alert(`第 ${i+1} 台車尚未選擇司機`); return; }
+    if (!a.vehicleId) { alert(`第 ${i+1} 台車尚未選擇車輛`); return; }
+    if (!a.fee || a.fee <= 0) { alert(`第 ${i+1} 台車尚未輸入費用`); return; }
+  }
+  const cancelled = (o.assignments || []).filter(a => a.status === 'cancelled');
+  const now = new Date().toISOString().slice(0,16).replace('T',' ');
+  o.assignments = [
+    ...cancelled,
+    ...state.editingAssignments.map(a => ({...a, status:'active', assignedAt:now}))
+  ];
+  if (o.status === 'pending') {
+    o.status = 'assigned';
+    o.lifecycle.push({state:'assigned', at:now, by:'林小姐'});
+  }
+  closeSheet();
+  renderOrders();
+}
+
+/* ============ 抽換司機（強化） ============ */
+let pendingReplace = null;
+function showReplaceConfirm(slotIdx, oldDriverId, newDriverId) {
+  const oldD = DRIVERS.find(d => d.id === oldDriverId);
+  const newD = DRIVERS.find(d => d.id === newDriverId);
+  pendingReplace = {slotIdx, oldDriverId, newDriverId};
+  document.getElementById('confirmCard').innerHTML = `
+    <h3>🔄 抽換司機</h3>
+    <p>原司機 <strong>${oldD?.name}</strong> → 新司機 <strong>${newD?.name}</strong><br>
+    <span style="font-size:11px;color:var(--muted);">原司機會保留在訂單歷史，費用記為 ¥0（未領）</span></p>
+
+    <div class="form-group">
+      <label class="form-label"><span>變更類型 <span class="required">*</span></span></label>
+      <select class="form-control" id="replaceChangeType">
+        <option value="客人要求">客人要求變動</option>
+        <option value="司機問題">司機問題（請假/車況）</option>
+        <option value="系統調整">系統調整</option>
+        <option value="行程變動">行程變動</option>
+        <option value="其他">其他</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label"><span>變更原因 <span class="required">*</span></span></label>
+      <textarea class="form-control" id="replaceReason" rows="2" placeholder="例：客人改下午出發，原司機已有其他班次"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label"><span>通知狀態</span></label>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;">
+          <input type="checkbox" id="replaceNotifyCustomer" checked> 已通知客人
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;">
+          <input type="checkbox" id="replaceNotifyDriver" checked> 已通知原司機
+        </label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label"><span>補充說明</span><span class="hint">選填</span></label>
+      <textarea class="form-control" rows="1" placeholder="如有截圖佐證可記錄路徑..."></textarea>
+    </div>
+
+    <div class="confirm-actions">
+      <button class="btn btn-block" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-primary btn-block" onclick="doReplace()">確認抽換</button>
+    </div>`;
+  document.getElementById('confirmModal').classList.add('show');
+}
+function doReplace() {
+  const reason = document.getElementById('replaceReason').value.trim();
+  if (!reason) { alert('請填寫變更原因'); return; }
+  const order = state.editingOrder.data;
+  const { slotIdx, oldDriverId, newDriverId } = pendingReplace;
+  if (!order.assignments) order.assignments = [];
+  order.assignments.push({
+    driverId: oldDriverId,
+    vehicleId: state.editingAssignments[slotIdx].vehicleId,
+    fee: 0, status:'cancelled',
+    cancelReason: reason,
+    changeType: document.getElementById('replaceChangeType').value,
+    notifiedCustomer: document.getElementById('replaceNotifyCustomer').checked,
+    notifiedDriver: document.getElementById('replaceNotifyDriver').checked,
+    cancelledAt: new Date().toISOString().slice(0,16).replace('T',' ')
+  });
+  const newD = DRIVERS.find(d => d.id === newDriverId);
+  state.editingAssignments[slotIdx].driverId = newDriverId;
+  state.editingAssignments[slotIdx].fee = newD?.defaultFee || 30000;
+  closeConfirm();
+  renderCarSlots();
+}
+function closeConfirm() {
+  document.getElementById('confirmModal').classList.remove('show');
+  pendingReplace = null;
+}
+
+/* ============ 評分 ============ */
+let ratingTarget = null;
+function openRatingSheet(orderNo) {
+  const order = ORDERS.tomorrow.find(o => o.no === orderNo);
+  if (!order) return;
+  ratingTarget = order;
+  document.getElementById('confirmCard').innerHTML = `
+    <h3>⭐ 為此訂單評分</h3>
+    <p>訂單編號：<strong>${order.no}</strong><br>
+    司機：<strong>${DRIVERS.find(d => d.id === order.assignments[0]?.driverId)?.name || '?'}</strong></p>
+
+    <div class="form-group">
+      <label class="form-label"><span>給予幾星評價？</span></label>
+      <div class="star-picker" id="starPicker">
+        ${[1,2,3,4,5].map(i => `<span class="star-pick" data-score="${i}" onclick="setRating(${i})">★</span>`).join('')}
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label"><span>評語 / 客人回饋</span></label>
+      <textarea class="form-control" id="ratingComment" rows="3" placeholder="例：司機很親切，景點都有妥善安排..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label"><span>回饋來源</span></label>
+      <select class="form-control" id="ratingSource">
+        <option value="客人 LINE 回覆">客人 LINE 回覆</option>
+        <option value="客服整理">客服整理</option>
+        <option value="派車負責人觀察">派車負責人觀察</option>
+      </select>
+    </div>
+
+    <div class="confirm-actions">
+      <button class="btn btn-block" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-primary btn-block" onclick="saveRating()">儲存評分</button>
+    </div>`;
+  document.getElementById('confirmModal').classList.add('show');
+}
+let currentRatingScore = 0;
+function setRating(score) {
+  currentRatingScore = score;
+  document.querySelectorAll('#starPicker .star-pick').forEach((el, i) => {
+    el.classList.toggle('filled', i < score);
+  });
+}
+function saveRating() {
+  if (currentRatingScore === 0) { alert('請選擇星級'); return; }
+  ratingTarget.rating = {
+    score: currentRatingScore,
+    comment: document.getElementById('ratingComment').value,
+    ratedAt: new Date().toISOString().slice(0,16).replace('T',' '),
+    ratedBy: document.getElementById('ratingSource').value
+  };
+  closeConfirm();
+  currentRatingScore = 0;
+  renderOrders();
+}
+
+/* ============ 搜尋頁 ============ */
+function performSearch() {
+  const q = document.getElementById('searchInput').value.trim();
+  state.searchQuery = q;
+  renderSearchResults();
+}
+function quickSearch(q) {
+  document.getElementById('searchInput').value = q;
+  state.searchQuery = q;
+  if (q === '已取消') state.searchFilter = 'cancelled';
+  renderSearchResults();
+}
+function setSearchFilter(filter) {
+  state.searchFilter = filter;
+  document.querySelectorAll('#searchFilterBar .tag-filter-chip').forEach(c => c.classList.remove('active'));
+  document.querySelector(`#searchFilterBar [data-search-filter="${filter}"]`).classList.add('active');
+  renderSearchResults();
+}
+function renderSearchResults() {
+  const q = state.searchQuery.toLowerCase();
+  let list = ORDERS.tomorrow;
+  if (state.searchFilter === 'pending') list = list.filter(o => o.status === 'pending');
+  else if (state.searchFilter === 'assigned') list = list.filter(o => ['assigned','confirmed','in-progress'].includes(o.status));
+  else if (state.searchFilter === 'completed') list = list.filter(o => o.status === 'completed');
+  else if (state.searchFilter === 'cancelled') list = list.filter(o => o.status === 'cancelled');
+
+  if (q) {
+    list = list.filter(o => {
+      const driver = (o.assignments || []).map(a => DRIVERS.find(d => d.id === a.driverId)?.name || '').join(' ');
+      return o.no.toLowerCase().includes(q)
+        || (o.routeBrief || '').toLowerCase().includes(q)
+        || (o.from || '').toLowerCase().includes(q)
+        || (o.to || '').toLowerCase().includes(q)
+        || (o.remarks || '').toLowerCase().includes(q)
+        || driver.toLowerCase().includes(q)
+        || (o.priorityType || '').toLowerCase().includes(q)
+        || (o.assignments || []).some(a => a.driverId?.toLowerCase().includes(q));
+    });
+  }
+
+  const head = document.getElementById('searchResultsHead');
+  const suggest = document.getElementById('searchSuggest');
+  if (q || state.searchFilter !== 'all') {
+    head.style.display = 'flex';
+    document.getElementById('searchResultsCount').textContent = `${list.length} 筆結果`;
+    suggest.style.display = 'none';
+  } else {
+    head.style.display = 'none';
+    suggest.style.display = 'block';
+  }
+
+  const container = document.getElementById('searchResults');
+  if (q || state.searchFilter !== 'all') {
+    if (list.length === 0) {
+      container.innerHTML = `<div class="empty"><div style="font-size:32px;margin-bottom:8px;">🔍</div><div>找不到符合「${q || state.searchFilter}」的訂單</div></div>`;
+      return;
+    }
+    container.innerHTML = list.map((o, i) => renderOrderCard(o, i)).join('');
+  } else {
+    container.innerHTML = '';
+  }
+}
+
+/* ============ 排班表 ============ */
+function renderScheduleGrid() {
+  const headRow = '<tr><th>司機</th>' + DATE_LIST.map(d => `<th class="${d.isToday ? 'today' : ''}">${d.key.split('-')[2]}<span class="dow">週${d.dow}</span></th>`).join('') + '</tr>';
+  const rows = DRIVERS.slice(0, 8).map(driver => {
+    const cells = DRIVER_SCHEDULE[driver.id] || [];
+    return '<tr>' +
+      `<th>${driver.name}<div class="driver-id-sm">${driver.id}</div></th>` +
+      DATE_LIST.map(d => {
+        const todayJobs = cells.filter(c => c.date === d.key);
+        if (driver.off && d.key === '2026-05-22') return `<td class="sg-cell off"><div class="sg-cell-content">休</div></td>`;
+        if (todayJobs.length === 0) return `<td class="sg-cell free"></td>`;
+        const hasMultiday = todayJobs.some(j => j.tripType === 'multiday');
+        const cls = hasMultiday ? 'multiday' : (todayJobs.length === 1 ? 'light' : todayJobs.length === 2 ? 'med' : 'heavy');
+        return `<td class="sg-cell ${cls}"><div class="sg-cell-content">${hasMultiday ? '多日' : todayJobs.length+'趟'}</div><div class="sg-cell-sub">${todayJobs[0].start.slice(0,5)}起</div></td>`;
+      }).join('') +
+    '</tr>';
+  }).join('');
+  document.getElementById('scheduleTable').innerHTML = `<thead>${headRow}</thead><tbody>${rows}</tbody>`;
+}
+
+/* ============ 司機列表 ============ */
+function renderTagFilterBar() {
+  const counts = {all: DRIVERS.length};
+  DRIVER_TAGS.forEach(t => counts[t] = DRIVERS.filter(d => d.tags.includes(t)).length);
+  const chips = [{key:'all', name:'全部'}, ...DRIVER_TAGS.map(t => ({key:t, name:t}))];
+  document.getElementById('tagFilterBar').innerHTML = chips.map(c => `
+    <div class="tag-filter-chip ${state.driverFilterTag === c.key ? 'active' : ''}" onclick="setDriverFilter('${c.key}')">
+      ${c.name}<span class="count">${counts[c.key] || 0}</span>
+    </div>`).join('');
+}
+function setDriverFilter(tag) { state.driverFilterTag = tag; renderDriversList(); renderTagFilterBar(); }
+function filterDrivers(q) { state.driverSearch = q.trim(); renderDriversList(); }
+function renderDriversList() {
+  let list = DRIVERS;
+  if (state.driverFilterTag !== 'all') list = list.filter(d => d.tags.includes(state.driverFilterTag));
+  if (state.driverSearch) {
+    const q = state.driverSearch.toLowerCase();
+    list = list.filter(d => d.name.includes(state.driverSearch) || d.id.toLowerCase().includes(q) || (d.phone || '').includes(state.driverSearch));
+  }
+  list = [...list].sort((a, b) => (b.rating || 0) - (a.rating || 0) || (b.servedCount - a.servedCount));
+
+  document.getElementById('driverCountText').textContent = `(${list.length} 位)`;
+  document.getElementById('driversList').innerHTML = list.length === 0
+    ? `<div class="empty">沒有符合條件的司機</div>`
+    : list.map(d => `
+      <div class="list-item" onclick="openDriverDetail('${d.id}')">
+        ${renderDriverAvatar(d)}
+        <div class="li-main">
+          <div class="li-name">${d.name}${renderLangFlags(d.languages)}<span style="font-family:monospace;font-weight:400;color:var(--muted);font-size:11px;">${d.id}</span></div>
+          <div class="li-meta">${d.phone} ・ ¥${d.defaultFee.toLocaleString()} ${d.off ? '・ 🛏 休假' : ''}</div>
+          <div class="li-tags">${d.tags.map(t => `<span class="dt-chip">${t}</span>`).join('')}</div>
+        </div>
+        <div class="li-right">
+          ${d.rating ? renderStarsMini(d.rating) : ''}
+          <div style="font-size:10px;margin-top:2px;">${d.servedCount} 趟・${d.ratingCount || 0} 評</div>
+        </div>
+      </div>`).join('');
+}
+
+/* ============ 車輛分組 ============ */
+function renderVehiclesList() {
+  const grouped = {};
+  VEHICLES.forEach(v => { (grouped[v.category] = grouped[v.category] || []).push(v); });
+  const categories = ['7座', '10座', '19座'];
+  document.getElementById('vehiclesList').innerHTML = categories.map(cat => {
+    const list = grouped[cat] || [];
+    if (list.length === 0) return '';
+    return `
+      <div class="veh-group" id="vehGroup-${cat}">
+        <div class="veh-group-head" onclick="document.getElementById('vehGroup-${cat}').classList.toggle('collapsed')">
+          <div class="veh-group-title">${cat}車款 <span class="veh-group-count">${list.length}</span></div>
+          <span class="veh-group-toggle">▾</span>
+        </div>
+        <div class="veh-group-body">
+          ${list.map(v => `
+            <div class="list-item">
+              <div class="li-avatar" style="background:#FEF3C7;color:#92400E;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>
+              </div>
+              <div class="li-main">
+                <div class="li-name">${v.plate}</div>
+                <div class="li-meta">${v.model} ・ ${v.color} ・ ${v.seat} 座</div>
+              </div>
+              <div class="li-right"><div style="color:var(--success);font-weight:600;">啟用</div></div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ============ 新增司機 ============ */
+function openAddDriverSheet() {
+  const nextId = `TK-${String(DRIVERS.length + 1).padStart(3, '0')}`;
+  document.getElementById('sheetTitle').textContent = '新增司機';
+  document.getElementById('sheetBody').innerHTML = `
+    <div class="form-group">
+      <label class="form-label"><span>司機編號 <span class="required">*</span></span><span class="hint">系統自動生成</span></label>
+      <input class="form-control" value="${nextId}" id="newDriverId">
+    </div>
+    <div class="form-group">
+      <label class="form-label"><span>姓名 <span class="required">*</span></span></label>
+      <input class="form-control" placeholder="例：田中太郎" id="newDriverName">
+    </div>
+    <div class="form-group">
+      <label class="form-label"><span>聯絡電話</span></label>
+      <input class="form-control" placeholder="090-1234-5678" id="newDriverPhone">
+    </div>
+    <div class="form-group">
+      <label class="form-label"><span>LINE ID</span></label>
+      <input class="form-control" placeholder="@example" id="newDriverLine">
+    </div>
+    <div class="form-group">
+      <label class="form-label"><span>預設日費 (¥) <span class="required">*</span></span></label>
+      <input class="form-control" type="number" value="30000" step="1000" id="newDriverFee">
+    </div>
+    <div class="form-group">
+      <label class="form-label"><span>語言能力 <span class="required">*</span></span><span class="hint">多選</span></label>
+      <div class="tag-picker" id="newDriverLangPicker">
+        ${LANGUAGES.map(l => `<div class="tag-option lang" data-lang="${l.code}" onclick="this.classList.toggle('selected')">${l.name}</div>`).join('')}
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label"><span>業務標籤</span><span class="hint">影響派車推薦</span></label>
+      <div class="tag-picker" id="newDriverTagPicker">
+        ${DRIVER_TAGS.map(t => `<div class="tag-option" data-tag="${t}" onclick="this.classList.toggle('selected')">${t}</div>`).join('')}
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label"><span>備註</span></label>
+      <textarea class="form-control" rows="2" placeholder="特殊事項..."></textarea>
+    </div>`;
+  document.getElementById('sheetFooter').innerHTML = `
+    <button class="btn btn-block" onclick="closeSheet()">取消</button>
+    <button class="btn btn-primary btn-block" onclick="saveNewDriver()">建立司機</button>`;
+  document.getElementById('sheetMask').classList.add('show');
+  document.getElementById('sheet').classList.add('show');
+}
+function saveNewDriver() {
+  const name = document.getElementById('newDriverName').value.trim();
+  if (!name) { alert('請輸入姓名'); return; }
+  const langs = [...document.getElementById('newDriverLangPicker').querySelectorAll('.tag-option.selected')].map(el => el.dataset.lang);
+  const tags = [...document.getElementById('newDriverTagPicker').querySelectorAll('.tag-option.selected')].map(el => el.dataset.tag);
+  DRIVERS.push({
+    id: document.getElementById('newDriverId').value, name,
+    phone: document.getElementById('newDriverPhone').value,
+    defaultFee: parseInt(document.getElementById('newDriverFee').value) || 30000,
+    tags, languages:langs, servedCount:0, rating:null, ratingCount:0, off:false, joinedYear:2026
+  });
+  closeSheet();
+  renderDriversList(); renderTagFilterBar();
+  alert('司機已新增！');
+}
+
+
+/* ============ v7 司機頭像 ============ */
+function renderDriverAvatar(driver, size) {
+  const sizeClass = size === 'lg' ? ' lg' : (size === 'xs' ? ' xs' : '');
+  const initial = (driver && driver.name) ? driver.name.charAt(0) : '?';
+  if (driver && driver.photoUrl) {
+    // img 預設顯示、fallback div 預設隱藏；img 載入失敗時用 onerror 切換顯示
+    return '<div class="avatar-wrap">' +
+      '<img src="' + driver.photoUrl + '" class="avatar-img' + sizeClass + '" ' +
+        'onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">' +
+      '<div class="avatar-fallback' + sizeClass + '" style="display:none;">' + initial + '</div>' +
+      (size === 'lg' ? '<span class="photo-badge ' + (driver.off ? 'off' : '') + '"></span>' : '') +
+    '</div>';
+  }
+  return '<div class="avatar-fallback' + sizeClass + '">' + initial + '</div>';
+}
+
+/* ============ v7 Lifecycle 渲染 ============ */
+function renderLifecycleItems(order) {
+  const allStates = ['pending','assigned','confirmed','in-progress','completed'];
+  const labels = {'pending':'待派車','assigned':'已派車','confirmed':'司機確認','in-progress':'行程中','completed':'完成','reconciled':'已對帳','cancelled':'已取消'};
+  const triggerMap = {
+    'pending': {source:'system', detail:'LINE 訂單接收後自動進入待派狀態'},
+    'assigned': {source:'manual', detail:'按「確認派車」自動轉換'},
+    'confirmed': {source:'line', detail:'偵測司機 LINE 訊息關鍵字自動進入'},
+    'in-progress': {source:'system', detail:'服務時間到自動切換或司機按「開始行程」'},
+    'completed': {source:'driver', detail:'司機回報結束或結束時間到自動切換'},
+    'cancelled': {source:'manual', detail:'根據客人通知手動切換'}
+  };
+  const completed = order.lifecycle || [];
+  const currentIdx = completed.length - 1;
+  let html = '';
+  completed.forEach((entry, i) => {
+    const cls = i === currentIdx ? 'current' : '';
+    const trig = entry.triggerSource || triggerMap[entry.state]?.source || 'manual';
+    const trigIcon = {'system':'⚙','manual':'👤','driver':'📱','line':'📱'}[trig] || '👤';
+    html += '<div class="lifecycle-item"><div class="lifecycle-state-dot ' + cls + '">' + (i === currentIdx ? '●' : '✓') + '</div><div class="lifecycle-main"><div class="lifecycle-state-name"><span class="trigger-source ' + trig + '">' + trigIcon + '</span>' + labels[entry.state] + '</div><div class="lifecycle-meta">' + entry.at + ' ・ ' + (entry.by || '') + (entry.reason ? '・ ' + entry.reason : '') + '</div></div></div>';
+  });
+  if (order.status !== 'completed' && order.status !== 'cancelled' && order.status !== 'reconciled') {
+    const currentState = completed[currentIdx]?.state;
+    const currentStateIdx = allStates.indexOf(currentState);
+    const nextStates = allStates.slice(currentStateIdx + 1);
+    nextStates.forEach(s => {
+      const t = triggerMap[s];
+      const trigIcon = {'system':'⚙','manual':'👤','driver':'📱','line':'📱'}[t.source] || '👤';
+      html += '<div class="lifecycle-item" style="opacity:0.55;"><div class="lifecycle-state-dot pending">○</div><div class="lifecycle-main"><div class="lifecycle-state-name"><span class="trigger-source ' + t.source + '">' + trigIcon + '</span>' + labels[s] + ' <span style="color:var(--muted-2);font-weight:400;font-size:11px;">（預定）</span></div><div class="lifecycle-meta">' + t.detail + '</div></div></div>';
+    });
+  }
+  return html;
+}
+
+/* ============ v7 通知 banner 折疊 ============ */
+let notifyBannerExpanded = false;
+function toggleNotifyExpand() { notifyBannerExpanded = !notifyBannerExpanded; renderNotifyBanner(); }
+
+/* ============ v7 司機詳情頁 ============ */
+function openDriverDetail(driverId) {
+  const driver = DRIVERS.find(d => d.id === driverId);
+  if (!driver) return;
+  const recentTrips = [
+    {date:'2026-05-22', route:'富士山一日遊', fee:30000, rating:5},
+    {date:'2026-05-20', route:'箱根送機', fee:32000, rating:5},
+    {date:'2026-05-18', route:'迪士尼接送', fee:28000, rating:4}
+  ];
+  const recentReviews = [
+    {score:5, comment:'司機很親切，景點都有妥善安排，孩子很開心！', from:'客人 LINE 回覆', at:'2026-05-22'},
+    {score:5, comment:'準時又專業，會推薦給朋友', from:'客人 LINE 回覆', at:'2026-05-20'},
+    {score:4, comment:'整體不錯，車內可以再清潔一下', from:'客服整理', at:'2026-05-15'}
+  ];
+  const recentAdj = [
+    {type:'deduct', amount:3000, reason:'5/19 遲到 30 分鐘', at:'2026-05-20', orderNo:'#26052290'},
+    {type:'bonus', amount:1000, reason:'客人指定加給', at:'2026-05-22', orderNo:'#26052289'}
+  ];
+  const dT = recentAdj.filter(a => a.type === 'deduct').reduce((s, a) => s + a.amount, 0);
+  const bT = recentAdj.filter(a => a.type === 'bonus').reduce((s, a) => s + a.amount, 0);
+
+  document.getElementById('sheetTitle').textContent = '司機詳情';
+  let html = '<div class="dd-cover"><button class="dd-edit-btn" onclick="openEditDriverSheet(\'' + driver.id + '\')">✎ 編輯</button>';
+  html += '<div class="dd-cover-row">' + renderDriverAvatar(driver, 'lg');
+  html += '<div><div class="dd-cover-name">' + driver.name + '<span class="dd-cover-id">' + driver.id + '</span>' + renderLangFlags(driver.languages) + '</div>';
+  html += '<div class="dd-cover-meta">📱 ' + driver.phone + '<br>' + (driver.off ? '🛏 目前休假中' : '✓ 可派車') + '・加入於 ' + (driver.joinedYear || 2024) + ' 年</div></div></div></div>';
+  html += '<div class="dd-stats"><div class="dd-stat"><div class="dd-stat-num">' + driver.servedCount + '</div><div class="dd-stat-label">累積趟次</div></div>';
+  html += '<div class="dd-stat"><div class="dd-stat-num gold">★ ' + (driver.rating || 0).toFixed(1) + '</div><div class="dd-stat-label">' + (driver.ratingCount || 0) + ' 則評價</div></div>';
+  html += '<div class="dd-stat"><div class="dd-stat-num">¥' + driver.defaultFee.toLocaleString() + '</div><div class="dd-stat-label">預設日費</div></div></div>';
+  html += '<div class="dd-section"><div class="dd-section-title">業務標籤</div><div style="display:flex;flex-wrap:wrap;gap:4px;">' + driver.tags.map(t => '<span class="dt-chip">' + t + '</span>').join('') + '</div></div>';
+  html += '<div class="dd-section"><div class="dd-section-title">本月收益（含獎懲）</div><div class="dd-info-list">';
+  html += '<div class="dd-info-row"><span class="lbl">本月趟次</span><span class="val">28 趟</span></div>';
+  html += '<div class="dd-info-row"><span class="lbl">原費總和</span><span class="val">¥856,000</span></div>';
+  html += '<div class="dd-info-row"><span class="lbl">累積扣費</span><span class="val" style="color:var(--danger);">−¥' + dT.toLocaleString() + '</span></div>';
+  html += '<div class="dd-info-row"><span class="lbl">累積獎金</span><span class="val" style="color:var(--success);">+¥' + bT.toLocaleString() + '</span></div>';
+  html += '<div class="dd-info-row" style="border-top:1px solid var(--border);padding-top:6px;margin-top:4px;font-weight:700;"><span class="lbl">本月應領</span><span class="val">¥' + (856000 - dT + bT).toLocaleString() + '</span></div></div></div>';
+  html += '<div class="dd-section"><div class="dd-section-title">最近獎懲紀錄</div><div style="background:white;border:1px solid var(--border);border-radius:8px;overflow:hidden;">';
+  recentAdj.forEach(a => {
+    html += '<div class="adjust-item" style="padding:8px 10px;"><span class="adjust-type-tag ' + a.type + '">' + (a.type === 'deduct' ? '扣費' : '獎金') + '</span><div class="adjust-info"><div class="adjust-reason">' + a.reason + '</div><div class="adjust-meta">' + a.at + ' ・ 訂單 ' + a.orderNo + '</div></div><div class="adjust-amount ' + (a.type === 'deduct' ? 'minus' : 'plus') + '">' + (a.type === 'deduct' ? '−' : '+') + '¥' + a.amount.toLocaleString() + '</div></div>';
+  });
+  html += '</div></div>';
+  html += '<div class="dd-section"><div class="dd-section-title">最近評價</div>';
+  recentReviews.forEach(r => {
+    html += '<div class="dd-review"><div class="dd-review-row">' + renderStars(r.score) + '<span style="font-size:10px;color:#92400E;">' + r.from + '</span></div><div class="dd-review-comment">「' + r.comment + '」</div><div class="dd-review-meta">' + r.at + '</div></div>';
+  });
+  html += '</div>';
+  html += '<div class="dd-section"><div class="dd-section-title">最近派車紀錄</div><div style="background:white;border:1px solid var(--border);border-radius:8px;overflow:hidden;">';
+  recentTrips.forEach(t => {
+    html += '<div class="dd-trip-item"><div><div>' + t.route + '</div><div class="trip-date">' + t.date + ' ・ ' + renderStars(t.rating) + '</div></div><div class="trip-fee">¥' + t.fee.toLocaleString() + '</div></div>';
+  });
+  html += '</div></div>';
+
+  document.getElementById('sheetBody').innerHTML = html;
+  document.getElementById('sheetFooter').innerHTML = '<button class="btn btn-block" onclick="closeSheet()">關閉</button>';
+  document.getElementById('sheetMask').classList.add('show');
+  document.getElementById('sheet').classList.add('show');
+}
+
+/* ============ v7 編輯司機 ============ */
+function openEditDriverSheet(driverId) {
+  const driver = DRIVERS.find(d => d.id === driverId);
+  if (!driver) return;
+  document.getElementById('sheetTitle').textContent = '編輯司機資料';
+  let html = '<div class="form-group"><label class="form-label"><span>司機照片</span></label><div class="photo-uploader">';
+  html += '<div class="photo-uploader-current"><img src="' + (driver.photoUrl || '') + '" id="editPhotoPreview" style="' + (driver.photoUrl ? '' : 'display:none;') + '"></div>';
+  html += '<div class="photo-uploader-actions"><div class="pu-btns">';
+  html += '<button class="pu-btn primary" onclick="alert(\'手機相機拍照（示範）\')">📷 拍照</button>';
+  html += '<button class="pu-btn" onclick="alert(\'從相簿選擇（示範）\')">🖼 相簿</button>';
+  html += '<button class="pu-btn" onclick="promptPhotoUrl()">🔗 網址</button>';
+  html += '<button class="pu-btn" onclick="removePhoto()">🗑 移除</button>';
+  html += '</div><div class="pu-hint">建議方形圖片 200x200 以上</div></div></div></div>';
+  html += '<div class="form-group"><label class="form-label"><span>司機編號</span></label><input class="form-control" value="' + driver.id + '" disabled style="background:#F9FAFB;color:var(--muted);"></div>';
+  html += '<div class="form-group"><label class="form-label"><span>姓名 <span class="required">*</span></span></label><input class="form-control" id="editDriverName" value="' + driver.name + '"></div>';
+  html += '<div class="form-group"><label class="form-label"><span>聯絡電話</span></label><input class="form-control" id="editDriverPhone" value="' + (driver.phone || '') + '"></div>';
+  html += '<div class="form-group"><label class="form-label"><span>預設日費 (¥)</span></label><input class="form-control" type="number" id="editDriverFee" value="' + driver.defaultFee + '" step="1000"></div>';
+  html += '<div class="form-group"><label class="form-label"><span>語言能力</span></label><div class="tag-picker" id="editDriverLangPicker">';
+  LANGUAGES.forEach(l => {
+    html += '<div class="tag-option lang ' + (driver.languages.includes(l.code) ? 'selected' : '') + '" data-lang="' + l.code + '" onclick="this.classList.toggle(\'selected\')">' + l.name + '</div>';
+  });
+  html += '</div></div>';
+  html += '<div class="form-group"><label class="form-label"><span>業務標籤</span></label><div class="tag-picker" id="editDriverTagPicker">';
+  DRIVER_TAGS.forEach(t => {
+    html += '<div class="tag-option ' + (driver.tags.includes(t) ? 'selected' : '') + '" data-tag="' + t + '" onclick="this.classList.toggle(\'selected\')">' + t + '</div>';
+  });
+  html += '</div></div>';
+  html += '<div class="form-group"><label class="form-label"><span>狀態</span></label><select class="form-control" id="editDriverStatus">';
+  html += '<option value="active" ' + (!driver.off ? 'selected' : '') + '>啟用（可派車）</option>';
+  html += '<option value="off" ' + (driver.off ? 'selected' : '') + '>休假中</option>';
+  html += '</select></div>';
+  html += '<input type="hidden" id="editDriverId" value="' + driver.id + '">';
+
+  document.getElementById('sheetBody').innerHTML = html;
+  document.getElementById('sheetFooter').innerHTML = '<button class="btn btn-block" onclick="closeSheet()">取消</button><button class="btn btn-primary btn-block" onclick="saveEditDriver()">儲存</button>';
+}
+function promptPhotoUrl() {
+  const url = prompt('輸入照片網址：', 'https://i.pravatar.cc/200?img=');
+  if (url) { const el = document.getElementById('editPhotoPreview'); el.src = url; el.style.display = 'block'; }
+}
+function removePhoto() {
+  const el = document.getElementById('editPhotoPreview');
+  el.src = ''; el.style.display = 'none';
+}
+function saveEditDriver() {
+  const id = document.getElementById('editDriverId').value;
+  const driver = DRIVERS.find(d => d.id === id);
+  if (!driver) return;
+  driver.name = document.getElementById('editDriverName').value.trim();
+  driver.phone = document.getElementById('editDriverPhone').value;
+  driver.defaultFee = parseInt(document.getElementById('editDriverFee').value) || 30000;
+  driver.languages = [...document.getElementById('editDriverLangPicker').querySelectorAll('.tag-option.selected')].map(el => el.dataset.lang);
+  driver.tags = [...document.getElementById('editDriverTagPicker').querySelectorAll('.tag-option.selected')].map(el => el.dataset.tag);
+  driver.off = document.getElementById('editDriverStatus').value === 'off';
+  const newPhoto = document.getElementById('editPhotoPreview').src;
+  if (newPhoto && !newPhoto.endsWith('/')) driver.photoUrl = newPhoto;
+  closeSheet();
+  renderDriversList();
+  alert('司機資料已更新！');
+}
+
+/* ============ v7 獎懲管理 ============ */
+let pendingAdjustSlot = null;
+function openAddAdjustment(slotIdx) {
+  pendingAdjustSlot = slotIdx;
+  let html = '<h3>新增獎懲</h3><p style="font-size:12px;color:var(--muted);">記錄會保留在訂單歷史與司機檔案中</p>';
+  html += '<div class="form-group"><label class="form-label"><span>類型 <span class="required">*</span></span></label>';
+  html += '<div style="display:flex;gap:8px;">';
+  html += '<label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border:2px solid var(--danger);border-radius:8px;cursor:pointer;background:var(--danger-soft);color:var(--danger);font-weight:600;"><input type="radio" name="adjType" value="deduct" checked> 扣費</label>';
+  html += '<label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border:2px solid var(--border);border-radius:8px;cursor:pointer;color:var(--text);font-weight:600;"><input type="radio" name="adjType" value="bonus"> 獎金</label>';
+  html += '</div></div>';
+  html += '<div class="form-group"><label class="form-label"><span>金額 (¥) <span class="required">*</span></span></label><input class="form-control" type="number" id="adjAmount" value="1000" step="500"></div>';
+  html += '<div class="form-group"><label class="form-label"><span>原因 <span class="required">*</span></span></label><textarea class="form-control" id="adjReason" rows="3" placeholder="例：5/19 遲到 30 分鐘導致客人險些錯過班機"></textarea></div>';
+  html += '<div class="confirm-actions"><button class="btn btn-block" onclick="closeConfirm()">取消</button><button class="btn btn-primary btn-block" onclick="saveAdjustment()">儲存</button></div>';
+  document.getElementById('confirmCard').innerHTML = html;
+  document.getElementById('confirmModal').classList.add('show');
+}
+function saveAdjustment() {
+  const type = document.querySelector('input[name="adjType"]:checked').value;
+  const amount = parseInt(document.getElementById('adjAmount').value);
+  const reason = document.getElementById('adjReason').value.trim();
+  if (!amount || amount <= 0) { alert('金額需大於 0'); return; }
+  if (!reason) { alert('請填寫原因'); return; }
+  const slot = state.editingAssignments[pendingAdjustSlot];
+  if (!slot.adjustments) slot.adjustments = [];
+  slot.adjustments.push({ type, amount, reason, at: new Date().toISOString().slice(0,16).replace('T',' '), by: '林小姐' });
+  closeConfirm();
+  renderCarSlots();
+}
+function removeAdjustment(slotIdx, adjIdx) {
+  if (!confirm('確定刪除此筆獎懲記錄？')) return;
+  state.editingAssignments[slotIdx].adjustments.splice(adjIdx, 1);
+  renderCarSlots();
+}
+function renderAdjustmentsSection(slotIdx, assignment) {
+  const adjustments = assignment.adjustments || [];
+  const baseFee = assignment.fee || 0;
+  const dT = adjustments.filter(a => a.type === 'deduct').reduce((s, a) => s + a.amount, 0);
+  const bT = adjustments.filter(a => a.type === 'bonus').reduce((s, a) => s + a.amount, 0);
+  const finalFee = baseFee - dT + bT;
+  let html = '<div class="adjust-block"><div class="adjust-title"><span>獎懲調整（' + adjustments.length + ' 筆）</span><span class="adjust-add-btn" onclick="openAddAdjustment(' + slotIdx + ')">+ 新增獎懲</span></div>';
+  if (adjustments.length === 0) {
+    html += '<div style="text-align:center;padding:8px;color:var(--muted-2);font-size:11px;">尚無獎懲紀錄</div>';
+  } else {
+    adjustments.forEach((adj, ai) => {
+      html += '<div class="adjust-item"><span class="adjust-type-tag ' + adj.type + '">' + (adj.type === 'deduct' ? '扣費' : '獎金') + '</span>';
+      html += '<div class="adjust-info"><div class="adjust-reason">' + adj.reason + '</div><div class="adjust-meta">' + adj.at + ' ・ ' + adj.by + '</div></div>';
+      html += '<div class="adjust-amount ' + (adj.type === 'deduct' ? 'minus' : 'plus') + '">' + (adj.type === 'deduct' ? '−' : '+') + '¥' + adj.amount.toLocaleString() + '</div>';
+      html += '<button class="adjust-delete" onclick="removeAdjustment(' + slotIdx + ', ' + ai + ')">×</button></div>';
+    });
+    html += '<div class="fee-summary">';
+    html += '<div class="fs-row"><span>原約定費用</span><span class="val">¥' + baseFee.toLocaleString() + '</span></div>';
+    if (dT > 0) html += '<div class="fs-row"><span>扣費小計</span><span class="val minus">−¥' + dT.toLocaleString() + '</span></div>';
+    if (bT > 0) html += '<div class="fs-row"><span>獎金小計</span><span class="val plus">+¥' + bT.toLocaleString() + '</span></div>';
+    html += '<div class="fs-row total"><span>司機實領</span><span class="val">¥' + finalFee.toLocaleString() + '</span></div>';
+    html += '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+/* ============ v7 通知歷史 ============ */
+let notifyHistoryFilter = 'all';
+function renderNotifyHistory() {
+  const filters = [{key:'all',name:'全部'},{key:'unread',name:'未讀'},{key:'read',name:'已讀'},{key:'handled',name:'已處理'}];
+  const counts = {all:NOTIFICATIONS.length, unread:NOTIFICATIONS.filter(n=>n.state==='unread').length, read:NOTIFICATIONS.filter(n=>n.state==='read').length, handled:NOTIFICATIONS.filter(n=>n.state==='handled').length};
+  document.getElementById('notifyHistoryBar').innerHTML = filters.map(f => '<div class="nh-filter ' + (notifyHistoryFilter === f.key ? 'active' : '') + '" onclick="setNotifyHistoryFilter(\'' + f.key + '\')">' + f.name + ' (' + counts[f.key] + ')</div>').join('');
+  let list = NOTIFICATIONS;
+  if (notifyHistoryFilter !== 'all') list = list.filter(n => n.state === notifyHistoryFilter);
+  document.getElementById('notifyHistoryList').innerHTML = list.length === 0 ? '<div class="empty">沒有通知</div>' : list.map(n => {
+    const typeText = {'new':'新訂單','modified':'已修改','cancelled':'已取消','assigned':'已派車'}[n.type];
+    return '<div class="nh-item ' + n.state + '"><div class="nh-item-row"><span class="row-tag ' + n.type + '">' + typeText + '</span><span style="font-size:11px;color:var(--muted);">' + n.timestamp + '</span></div><div class="nh-item-content"><strong>' + n.orderNo + '</strong> ・ ' + n.content + '</div><div class="nh-item-meta">' + (n.state === 'unread' ? '🔴 未讀' : (n.state === 'read' ? '✓ 已讀' : '✅ 已處理 ・ ' + n.handledBy + ' ・ ' + n.handledAt)) + '</div></div>';
+  }).join('');
+}
+function setNotifyHistoryFilter(f) { notifyHistoryFilter = f; renderNotifyHistory(); }
+
+/* ============ v7 統計排行 ============ */
+function renderStatsMonthNav() {
+  const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  // -3 月 ~ +3 月（共 7 個月，5 月為基準）
+  const baseMonth = 5; const baseYear = 2026;
+  const months = [];
+  for (let offset = -3; offset <= 3; offset++) {
+    let m = baseMonth + offset;
+    let y = baseYear;
+    if (m < 1) { m += 12; y--; }
+    if (m > 12) { m -= 12; y++; }
+    months.push({offset, month:m, year:y, name:monthNames[m-1]});
+  }
+  document.getElementById('statsMonthRow').innerHTML = months.map(m => {
+    let cls = '';
+    if (m.offset < 0) cls = 'past';
+    else if (m.offset === 0) cls = 'current';
+    else cls = 'future';
+    const isSelected = m.offset === state.statsMonthOffset;
+    return '<div class="stats-month-chip ' + cls + (isSelected ? ' selected' : '') + '" onclick="setStatsMonth(' + m.offset + ')" ' +
+      (isSelected ? 'style="box-shadow:0 0 0 2px var(--primary-soft);"' : '') + '>' +
+      m.name + '<span class="lbl">' + (m.offset === 0 ? '本月' : (m.offset === -1 ? '上月' : (m.offset === 1 ? '下月' : (m.offset < 0 ? Math.abs(m.offset)+'月前' : m.offset+'月後')))) + '</span></div>';
+  }).join('');
+}
+function setStatsMonth(offset) {
+  state.statsMonthOffset = offset;
+  renderStatsMonthNav();
+  renderStatsDriverRank();
+}
+function renderStatsDriverRank() {
+  renderStatsMonthNav();
+  const isPast = state.statsMonthOffset < 0;
+  const isFuture = state.statsMonthOffset > 0;
+  // 模擬不同月份的數據（offset 不同會有不同數字）
+  const factor = 1 + state.statsMonthOffset * 0.05;
+  const ranked = [...DRIVERS].sort((a,b) => b.servedCount - a.servedCount).slice(0, 5);
+  const maxCount = Math.round((ranked[0]?.servedCount || 1) * factor);
+  document.getElementById('statsDriverRank').innerHTML = (isFuture ?
+    '<div style="padding:12px;text-align:center;color:var(--muted);font-size:12px;background:var(--primary-soft);border-radius:8px;">📈 未來月份為「預估數據」，根據過去 3 個月平均推估</div>' : '') +
+    ranked.map(d => {
+      const c = Math.round(d.servedCount * factor);
+      return '<div class="stats-bar-item"><div style="display:flex;align-items:center;gap:6px;width:90px;">' + renderDriverAvatar(d, 'xs') + '<span style="font-size:11px;font-weight:600;">' + d.name + '</span></div><div class="sbi-bar"><div class="sbi-fill" style="width:' + (c/maxCount*100).toFixed(0) + '%;"></div></div><span class="sbi-val">' + c + ' 趟</span></div>';
+    }).join('');
+  // 更新統計卡的數字（簡單 mock）
+  const cards = document.querySelectorAll('#page-stats .stats-card-value');
+  if (cards.length >= 4) {
+    cards[0].textContent = Math.round(128 * factor);
+    cards[1].textContent = '¥' + (4.2 * factor).toFixed(1) + 'M';
+    cards[2].innerHTML = (4.7 + state.statsMonthOffset * 0.1).toFixed(1) + ' <span style="color:var(--gold);font-size:14px;">★</span>';
+    cards[3].textContent = Math.max(0.5, 2.3 - state.statsMonthOffset * 0.3).toFixed(1) + '%';
+  }
+}
+
+/* ============ 切頁 ============ */
+/* ============ 切頁 ============ */
+function switchPage(page) {
+  state.page = page;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector(`.nav-btn[data-page="${page}"]`);
+  if (btn) btn.classList.add('active');
+  if (page === 'schedule') renderScheduleGrid();
+  if (page === 'drivers') { renderTagFilterBar(); renderDriversList(); }
+  if (page === 'vehicles') renderVehiclesList();
+  if (page === 'search') { document.getElementById('searchInput').focus(); renderSearchResults(); }
+  if (page === 'notify-history') renderNotifyHistory();
+  if (page === 'stats') renderStatsDriverRank();
+}
+
+function doLogin() {
+  document.getElementById('loginMask').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+}
+function logoutConfirm() {
+  if (confirm('確定要登出？')) {
+    document.getElementById('loginMask').style.display = 'flex';
+    document.getElementById('mainApp').style.display = 'none';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.filter-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      if (t.classList.contains('disabled')) return;
+      setFilter(t.dataset.filter);
+    });
+  });
+  renderDateStrip();
+  renderNotifyBanner();
+  renderOrders();
+});
+</script>
+</body>
+</html>
