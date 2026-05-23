@@ -1315,6 +1315,12 @@
     .orders.list-view .order-card .order-actions { grid-column: 1 / -1; }
   }
 
+  /* v30: 排班 sticky 司機欄 */
+  .sg-sticky-col { position: sticky; left: 0; background: white; z-index: 5; box-shadow: 1px 0 0 var(--border); min-width: 110px; }
+  thead .sg-sticky-col { background: var(--header) !important; color: white; }
+  .schedule-table thead th { position: sticky; top: 0; z-index: 4; background: var(--header); color: white; }
+  .schedule-table thead .sg-sticky-col { z-index: 6; }
+
   /* ====== v15 localStorage 提示 ====== */
   .draft-indicator {
     position: fixed;
@@ -2987,8 +2993,26 @@ function openEditor(idx) {
 
   document.getElementById('sheetTitle').textContent = o.status === 'pending' ? '派車安排' : '修改派車安排';
 
-  document.getElementById('sheetBody').innerHTML = `
+  // v30: 同訂單其他日已派誰
+  let multiDayBanner = '';
+  if (o._multiDayCount && o._multiDayCount > 1) {
+    const sameOrders = ORDERS.tomorrow.filter(x => x.no === o.no && x.date !== o.date);
+    const assignedOthers = sameOrders.filter(x => x.assignments && x.assignments.length > 0 && x.assignments[0].driverId);
+    if (assignedOthers.length > 0) {
+      const driverList = assignedOthers.map(x => {
+        const a = x.assignments[0];
+        const drv = DRIVERS.find(d => d.id === a.driverId);
+        const dateLabel = '<span style="font-family:monospace;">' + x.date + '</span>';
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:white;border-radius:6px;margin-top:6px;"><div>' + dateLabel + ' 派的是 <strong>' + (drv?.name || a.driverNameRaw || a.driverId) + '</strong></div><button onclick="applySameDriver(\'' + a.driverId + '\', \'' + (a.vehicleId || '') + '\', ' + (a.fee || 0) + ')" style="background:var(--primary);color:white;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600;">📋 沿用</button></div>';
+      }).join('');
+      multiDayBanner = '<div style="background:#DBEAFE;border:1px solid #3B82F6;color:#1E40AF;padding:10px 14px;border-radius:8px;margin:0 0 12px;font-size:12px;line-height:1.5;"><strong>📅 此訂單共 ' + o._multiDayCount + ' 天（這是 Day ' + o._multiDayIndex + '）</strong>' + driverList + '</div>';
+    } else {
+      multiDayBanner = '<div style="background:#FEF3C7;border:1px solid #F59E0B;color:#92400E;padding:8px 14px;border-radius:8px;margin:0 0 12px;font-size:12px;">📅 此訂單共 ' + o._multiDayCount + ' 天（這是 Day ' + o._multiDayIndex + '）— 其他日尚未派車</div>';
+    }
+  }
 
+  document.getElementById('sheetBody').innerHTML = `
+    ${multiDayBanner}
     ${o.isModified && o.modifyLog ? `
       <div class="remark-highlight" style="background:var(--warning-soft);border-color:var(--warning);">
         <div class="rh-head" style="color:var(--warning);">⚠ 此訂單最近有修改</div>
@@ -3236,6 +3260,16 @@ function toggleListView() {
   if (btn) btn.textContent = state.listView ? '🎴 卡片檢視' : '📋 條列檢視';
   document.getElementById('ordersList').classList.toggle('list-view', state.listView);
   renderOrders();
+}
+
+// v30: 沿用同訂單其他日的司機
+function applySameDriver(driverId, vehicleId, fee) {
+  if (!state.editingAssignments[0]) return;
+  state.editingAssignments[0].driverId = driverId;
+  if (vehicleId) state.editingAssignments[0].vehicleId = vehicleId;
+  if (fee) state.editingAssignments[0].fee = fee;
+  renderCarSlots();
+  alert('✓ 已沿用同訂單其他日的司機 ' + driverId);
 }
 
 function addCarSlot() { state.editingAssignments.push({driverId:null, vehicleId:null, fee:null, status:'active'}); renderCarSlots(); }
@@ -3529,18 +3563,41 @@ function renderSearchResults() {
 
 /* ============ 排班表 ============ */
 function renderScheduleGrid() {
-  const headRow = '<tr><th>司機</th>' + DATE_LIST.map(d => `<th class="${d.isToday ? 'today' : ''}">${d.key.split('-')[2]}<span class="dow">週${d.dow}</span></th>`).join('') + '</tr>';
-  const rows = DRIVERS.slice(0, 8).map(driver => {
-    const cells = DRIVER_SCHEDULE[driver.id] || [];
+  // v30: 用真實派車紀錄 (從 ORDERS.tomorrow.assignments 推) + sticky 司機 + 緊湊但清楚
+  // 收集每位司機每日的排班 from ORDERS.tomorrow
+  const driverSchedule = {};  // {driverId: [{date, start, route, orderNo, status}]}
+  ORDERS.tomorrow.forEach(o => {
+    (o.assignments || []).forEach(a => {
+      if (!a.driverId) return;
+      driverSchedule[a.driverId] = driverSchedule[a.driverId] || [];
+      driverSchedule[a.driverId].push({
+        date: o.date, start: o.start || '', route: (o.from || '') + '→' + (o.to || '').slice(0,15),
+        orderNo: o.no, status: o.status, fee: a.fee || 0
+      });
+    });
+  });
+  // 限縮日期：今日前 1 ~ 後 14 天
+  const todayIdx = DATE_LIST.findIndex(x => x.isToday);
+  const visibleDates = DATE_LIST.filter((d, i) => i - todayIdx >= -1 && i - todayIdx <= 14);
+  // 只顯示有排班的司機 + 5 個沒排班的司機
+  const driversWithJobs = DRIVERS.filter(d => driverSchedule[d.id] && driverSchedule[d.id].length > 0);
+  const driversNoJobs = DRIVERS.filter(d => !driverSchedule[d.id] || driverSchedule[d.id].length === 0).slice(0, 5);
+  const allShown = [...driversWithJobs, ...driversNoJobs];
+
+  const headRow = '<tr><th class="sg-sticky-col">司機 (' + driversWithJobs.length + ' 有班 / ' + allShown.length + ' 顯示)</th>' +
+    visibleDates.map(d => `<th class="${d.isToday ? 'today' : ''}" style="min-width:74px;">${d.month}/${d.key.split('-')[2]}<span class="dow">週${d.dow}</span></th>`).join('') + '</tr>';
+
+  const rows = allShown.map(driver => {
+    const cells = driverSchedule[driver.id] || [];
     return '<tr>' +
-      `<th>${driver.name}<div class="driver-id-sm">${driver.id}</div></th>` +
-      DATE_LIST.map(d => {
+      `<th class="sg-sticky-col" style="text-align:left;padding:6px 10px;"><div style="display:flex;align-items:center;gap:6px;">${renderDriverAvatar(driver, 'xs')}<div><div style="font-weight:600;font-size:12px;">${driver.name}</div><div class="driver-id-sm" style="font-size:10px;color:var(--muted);">${driver.id}</div></div></div></th>` +
+      visibleDates.map(d => {
         const todayJobs = cells.filter(c => c.date === d.key);
-        if (driver.off && (d.isToday === true)) return `<td class="sg-cell off"><div class="sg-cell-content">休</div></td>`;
+        if (driver.off && d.isToday) return `<td class="sg-cell off"><div class="sg-cell-content">🛏休</div></td>`;
         if (todayJobs.length === 0) return `<td class="sg-cell free"></td>`;
-        const hasMultiday = todayJobs.some(j => j.tripType === 'multiday');
-        const cls = hasMultiday ? 'multiday' : (todayJobs.length === 1 ? 'light' : todayJobs.length === 2 ? 'med' : 'heavy');
-        return `<td class="sg-cell ${cls}"><div class="sg-cell-content">${hasMultiday ? '多日' : todayJobs.length+'趟'}</div><div class="sg-cell-sub">${todayJobs[0].start.slice(0,5)}起</div></td>`;
+        const cls = todayJobs.length === 1 ? 'light' : todayJobs.length === 2 ? 'med' : 'heavy';
+        const tip = todayJobs.map(j => j.orderNo + ' ' + j.start + ' ' + j.route).join('\n');
+        return `<td class="sg-cell ${cls}" title="${tip.replace(/"/g, '&quot;')}"><div class="sg-cell-content" style="font-size:11px;font-weight:600;">${todayJobs.length}趟</div><div class="sg-cell-sub" style="font-size:9.5px;">${todayJobs[0].start.slice(0,5)}起</div></td>`;
       }).join('') +
     '</tr>';
   }).join('');
@@ -3588,10 +3645,24 @@ function renderDriversList() {
 
 /* ============ 車輛分組 ============ */
 function renderVehiclesList() {
+  // v30: 狀態切換 tab + 車款分組
+  state.vehicleStatusFilter = state.vehicleStatusFilter || 'all';
+  const statusCounts = { all: VEHICLES.length, 啟用: 0, 休假: 0, 維修: 0, 停用: 0 };
+  VEHICLES.forEach(v => { const s = v.status || '啟用'; statusCounts[s] = (statusCounts[s] || 0) + 1; });
+  const statusFilter = state.vehicleStatusFilter;
+  const filtered = (statusFilter === 'all') ? VEHICLES : VEHICLES.filter(v => (v.status || '啟用') === statusFilter);
   const grouped = {};
-  VEHICLES.forEach(v => { (grouped[v.category] = grouped[v.category] || []).push(v); });
+  filtered.forEach(v => { (grouped[v.category] = grouped[v.category] || []).push(v); });
   const categories = ['7座', '10座', '19座'];
-  document.getElementById('vehiclesList').innerHTML = categories.map(cat => {
+  const statusColor = { '啟用': 'var(--success)', '休假': '#F59E0B', '維修': 'var(--danger)', '停用': 'var(--muted-2)' };
+  const tabHtml = '<div style="display:flex;gap:6px;padding:8px 16px;flex-wrap:wrap;">' +
+    ['all','啟用','休假','維修','停用'].map(s => {
+      const cnt = statusCounts[s] || 0;
+      const active = statusFilter === s;
+      const label = s === 'all' ? '全部' : s;
+      return '<button onclick="setVehicleStatusFilter(\'' + s + '\')" style="background:' + (active ? 'var(--primary)' : 'white') + ';color:' + (active ? 'white' : 'var(--text)') + ';border:1px solid ' + (active ? 'var(--primary)' : 'var(--border-2)') + ';padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;' + (cnt === 0 && s !== 'all' ? 'opacity:0.4;' : '') + '">' + label + ' <span style="opacity:0.7;font-size:10px;">' + cnt + '</span></button>';
+    }).join('') + '</div>';
+  const listHtml = categories.map(cat => {
     const list = grouped[cat] || [];
     if (list.length === 0) return '';
     return `
@@ -3601,20 +3672,30 @@ function renderVehiclesList() {
           <span class="veh-group-toggle">▾</span>
         </div>
         <div class="veh-group-body">
-          ${list.map(v => `
+          ${list.map(v => {
+            const stat = v.status || '啟用';
+            return `
             <div class="list-item">
               <div class="li-avatar" style="background:#FEF3C7;color:#92400E;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>
               </div>
               <div class="li-main">
                 <div class="li-name">${v.plate}</div>
-                <div class="li-meta">${v.model} ・ ${v.color} ・ ${v.seat} 座</div>
+                <div class="li-meta">${v.model || ''} ・ ${v.color || ''} ・ ${v.seat || ''} 座</div>
+                ${v.remark ? '<div class="li-meta" style="opacity:0.7;font-size:10.5px;">📝 ' + v.remark + '</div>' : ''}
               </div>
-              <div class="li-right"><div style="color:var(--success);font-weight:600;">啟用</div></div>
-            </div>`).join('')}
+              <div class="li-right"><div style="color:${statusColor[stat] || 'var(--muted)'};font-weight:600;">${stat}</div></div>
+            </div>`;
+          }).join('')}
         </div>
       </div>`;
   }).join('');
+  document.getElementById('vehiclesList').innerHTML = tabHtml + listHtml;
+}
+
+function setVehicleStatusFilter(s) {
+  state.vehicleStatusFilter = s;
+  renderVehiclesList();
 }
 
 /* ============ 新增司機 ============ */
