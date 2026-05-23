@@ -3021,11 +3021,10 @@ function openEditor(idx) {
 
     <div class="raw-msg-block">
       <div class="raw-msg-head">
-        <div class="source"><span class="src-dot"></span> 訂單原始訊息</div>
+        <div class="source"><span class="src-dot"></span> 訂單完整資訊 ${o._multiDayCount > 1 ? '<span style="background:#3B82F6;color:white;padding:1px 6px;border-radius:4px;font-size:10px;margin-left:6px;">共 ' + o._multiDayCount + ' 日</span>' : ''}</div>
         <span class="raw-msg-toggle" onclick="toggleRawMsg(event)">展開全部 ▾</span>
       </div>
-      <div class="raw-msg-body" id="rawMsgBody">${escapeHtml(o.rawMessage)}</div>
-      <!-- v29: parsed-info 已合併進 rawMessage 區塊（去掉重複） -->
+      <div class="raw-msg-body" id="rawMsgBody">${renderFullOrderTimeline(o)}</div>
     </div>
 
     ${o.remarks ? `<div class="remark-highlight"><div class="rh-head">⚠ 客人備註 / 派車注意事項</div>${o.remarks}</div>` : ''}
@@ -3323,6 +3322,41 @@ function toggleRawMsg(e) {
   body.classList.toggle('expanded');
   e.target.textContent = body.classList.contains('expanded') ? '收合 ▴' : '展開全部 ▾';
 }
+// v31: 渲染同訂單所有日子的時間軸（當前高亮）
+function renderFullOrderTimeline(currentO) {
+  // 找同訂單號的所有日子
+  const allDays = ORDERS.tomorrow.filter(x => x.no === currentO.no).sort((a, b) => a.date.localeCompare(b.date));
+  if (allDays.length === 0) return escapeHtml(currentO.rawMessage || '');
+  let html = '';
+  allDays.forEach((day, idx) => {
+    const isCurrent = day.date === currentO.date && day.carIndex === currentO.carIndex;
+    const dayLabel = 'Day ' + (idx + 1);
+    const bg = isCurrent ? 'background:#FEF3C7;border-left:4px solid #F59E0B;' : 'background:#F9FAFB;border-left:4px solid #E5E7EB;';
+    const headBg = isCurrent ? 'background:#F59E0B;color:white;' : 'background:#E5E7EB;color:#6B7280;';
+    const dispatchInfo = (day.assignments && day.assignments[0] && day.assignments[0].driverId)
+      ? '<span style="background:var(--success);color:white;padding:1px 6px;border-radius:4px;font-size:10px;margin-left:6px;">✓ 已派 ' + (day.assignments[0].driverNameRaw || day.assignments[0].driverId) + '</span>'
+      : '<span style="background:#FEE2E2;color:#991B1B;padding:1px 6px;border-radius:4px;font-size:10px;margin-left:6px;">待派車</span>';
+    const currentTag = isCurrent ? '<span style="background:#1E40AF;color:white;padding:1px 6px;border-radius:4px;font-size:10px;margin-left:6px;">🎯 當前派車</span>' : '';
+    html += '<div style="' + bg + 'border-radius:6px;padding:0;margin-bottom:8px;overflow:hidden;">';
+    html += '<div style="' + headBg + 'padding:6px 10px;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:12px;">';
+    html += '<span>' + dayLabel + ' ・ ' + day.date + ' ' + (day.start || '時段未定') + '</span>';
+    html += '<span>' + dispatchInfo + currentTag + '</span>';
+    html += '</div>';
+    html += '<div style="padding:8px 12px;font-size:12px;line-height:1.6;">';
+    html += '<div><strong>車款：</strong>' + (day.carType || '') + (day.carCount > 1 ? ' (需 ' + day.carCount + ' 台)' : '') + '</div>';
+    html += '<div><strong>起始：</strong>' + (day.from || '') + '</div>';
+    html += '<div><strong>行程：</strong>' + (day.to || '') + '</div>';
+    if (day.pax?.raw) html += '<div><strong>人數：</strong>' + day.pax.raw + (day.childAge ? '（小孩 ' + day.childAge + ' 歲）' : '') + '</div>';
+    if (day.carSeat) html += '<div><strong>汽座：</strong>' + day.carSeat + '</div>';
+    if (day.luggage) html += '<div><strong>行李：</strong>' + day.luggage + '</div>';
+    if (day.hours) html += '<div><strong>時數：</strong>' + day.hours + '</div>';
+    if (day.remarks) html += '<div style="background:#FEF3C7;padding:6px 8px;border-radius:4px;margin-top:4px;"><strong>備註：</strong>' + day.remarks + '</div>';
+    html += '<div style="font-family:monospace;color:var(--muted);font-size:10.5px;margin-top:4px;">司機費：¥' + (day.driverFee || 0).toLocaleString() + ' / 日幣總額：¥' + (day.totalJP || 0).toLocaleString() + '</div>';
+    html += '</div></div>';
+  });
+  return html;
+}
+
 function escapeHtml(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
 function closeSheet() {
   document.getElementById('sheet').classList.remove('sheet-driver-detail');  // v26
