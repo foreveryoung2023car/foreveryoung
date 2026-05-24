@@ -224,7 +224,7 @@
   .order-no-wrap { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .order-no {
     font-family: ui-monospace, "SF Mono", Menlo, monospace;
-    font-size: 13px; font-weight: 600; color: var(--text);
+    font-size: 14.5px; font-weight: 700; color: var(--primary); letter-spacing: 0.3px;
   }
   .modified-tag {
     background: var(--warning); color: white;
@@ -3198,6 +3198,19 @@ function renderCarSlot(order, assignment, slotIdx) {
             <span>選擇司機 <span class="required">*</span></span>
             <span class="hint">${order.priorityType ? `「${order.priorityType}」標籤+評分+趟次排序` : '評分+趟次排序'}</span>
           </label>
+          ${(function(){
+            // v34: 最近派此 leader 訂單的司機 chip
+            const recent = computeRecentDrivers(order);
+            if (recent.length === 0) return '';
+            return '<div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">⚡ 最近派此 leader 訂單的司機（點即選）</div><div style="display:flex;flex-wrap:wrap;gap:4px;">' +
+              recent.map(r => {
+                const d = DRIVERS.find(x => x.id === r.driverId);
+                if (!d) return '';
+                const isSelected = assignment.driverId === r.driverId;
+                return '<button onclick="selectDriverForSlot(' + slotIdx + ', \'' + r.driverId + '\')" style="display:flex;align-items:center;gap:4px;background:' + (isSelected ? 'var(--primary)' : 'white') + ';color:' + (isSelected ? 'white' : 'var(--text)') + ';border:1.5px solid ' + (isSelected ? 'var(--primary)' : 'var(--border-2)') + ';padding:4px 8px;border-radius:14px;cursor:pointer;font-size:11.5px;font-weight:600;">' +
+                  d.name + ' <span style="opacity:0.7;font-size:9.5px;">' + r.count + '趟</span></button>';
+              }).join('') + '</div></div>';
+          })()}
           <input type="text" class="form-control driver-search-input" placeholder="🔍 搜尋司機姓名 / 編號..." style="margin-bottom:8px;font-size:13px;" oninput="filterDriverPicker(${slotIdx}, this.value)">
           <div class="driver-picker" id="driverPicker-${slotIdx}">
             ${assignment.driverId ? (function(){const d=DRIVERS.find(x=>x.id===assignment.driverId);if(!d)return '';return `<div class="driver-group-head" style="background:var(--primary-soft);color:var(--primary);">✓ 已選擇司機</div>${renderDriverRow({d:d,status:'available',tagMatch:false,langMatch:true,jobs:[]},slotIdx,assignment.driverId,false,order)}`;})() : ''}
@@ -3331,6 +3344,23 @@ function applySameDriver(driverId, vehicleId, fee) {
   if (fee) state.editingAssignments[0].fee = fee;
   renderCarSlots();
   alert('✓ 已沿用同訂單其他日的司機 ' + driverId);
+}
+
+// v34: 計算最近派此 leader 訂單的司機 (Top 5 by frequency)
+function computeRecentDrivers(currentOrder) {
+  const leaderName = currentOrder.leaderName || currentOrder.driverName || '';
+  if (!leaderName) return [];
+  const counts = {};
+  ORDERS.tomorrow.forEach(o => {
+    if (o.leaderName !== leaderName && o.driverName !== leaderName) return;
+    (o.assignments || []).forEach(a => {
+      if (a.driverId) counts[a.driverId] = (counts[a.driverId] || 0) + 1;
+    });
+  });
+  return Object.entries(counts)
+    .map(([driverId, count]) => ({ driverId, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8);
 }
 
 function addCarSlot() { state.editingAssignments.push({driverId:null, vehicleId:null, fee:null, status:'active'}); renderCarSlots(); }
