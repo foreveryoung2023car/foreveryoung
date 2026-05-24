@@ -2981,8 +2981,8 @@ function renderOrderCard(o, idx) {
         <span class="tag">${(!o.pax?.adult && !o.pax?.child && o.paxRaw) ? o.paxRaw : formatPax(o.pax)}</span>
         <span class="tag">${o.carType}</span>
         ${o.carSeatCount > 0 ? `<span class="tag warn">需汽座 x${o.carSeatCount}</span>` : ''}
-        ${o.carCount > 1 ? `<span class="tag danger">需 ${o.carCount} 台車</span>` : ''}
-        ${o.priorityType ? `<span class="tag info">${o.priorityType}</span>` : ''}
+
+
         ${o.requireLang && o.requireLang.length ? `<span class="tag">需${o.requireLang.map(l => LANGUAGES.find(x => x.code === l)?.label).join('/')}司機</span>` : ''}
       </div>
       ${o.isModified && o.modifyLog ? `<div class="order-update-log"><span class="lbl">⚠ 異動：</span>${o.modifyLog}</div>` : ''}
@@ -3126,10 +3126,7 @@ function openEditor(idx) {
     <div id="carSlotsContainer"></div>
     <button class="btn btn-dashed btn-block" style="margin-bottom:14px;" onclick="addCarSlot()">+ 加派一台車</button>
 
-    <div class="form-group">
-      <label class="form-label"><span>派車內部備註</span><span class="hint">僅內部可見</span></label>
-      <textarea class="form-control" rows="2" placeholder="例：王經理已確認此單由我負責..."></textarea>
-    </div>
+
   `;
 
   renderCarSlots();
@@ -3257,6 +3254,11 @@ function renderCarSlot(order, assignment, slotIdx) {
               <input type="number" id="feeInput-${slotIdx}" class="fee-input" value="${feeValue}" step="1000" oninput="updateFee(${slotIdx}, this.value)">
             </div>
             <button class="fee-step-btn plus" onclick="adjustFee(${slotIdx}, 1000)">+</button>
+          </div>
+          <!-- v35: 一鍵帶入快捷按鈕 -->
+          <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
+            <button type="button" onclick="setFeeQuick(${slotIdx}, ${order.driverFee || 0})" style="flex:1;min-width:140px;background:var(--primary-soft);color:var(--primary);border:1px solid var(--primary);padding:6px 10px;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;">📋 帶入訂單原費 ¥${(order.driverFee || 0).toLocaleString()}</button>
+            ${selectedDriver ? `<button type="button" onclick="setFeeQuick(${slotIdx}, ${(selectedDriver.defaultFeeDay ?? selectedDriver.defaultFee ?? 0)})" style="flex:1;min-width:140px;background:#FEF3C7;color:#92400E;border:1px solid #F59E0B;padding:6px 10px;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;">💰 帶入司機預設 ¥${(selectedDriver.defaultFeeDay ?? selectedDriver.defaultFee ?? 0).toLocaleString()}</button>` : ''}
           </div>
           <div class="fee-step-hint">每按一次 ±¥1,000</div>
         </div>
@@ -3387,6 +3389,17 @@ function selectVehicleForSlot(slotIdx, vid) {
 function onVehicleChange(slotIdx) {
   state.editingAssignments[slotIdx].vehicleId = document.getElementById(`vehicleSelect-${slotIdx}`).value;
 }
+// v35: 一鍵設定 fee
+function setFeeQuick(slotIdx, value) {
+  const input = document.getElementById('feeInput-' + slotIdx);
+  if (!input) return;
+  input.value = value;
+  state.editingAssignments[slotIdx].fee = value;
+  input.style.background = '#ECFDF5';
+  setTimeout(() => input.style.background = 'white', 220);
+  refreshAdjustmentsBlock(slotIdx);
+}
+
 function adjustFee(slotIdx, delta) {
   const input = document.getElementById(`feeInput-${slotIdx}`);
   let v = parseInt(input.value) || 0;
@@ -4071,6 +4084,34 @@ function removePhoto() {
   el.src = ''; el.style.display = 'none';
 }
 function saveEditDriver() {
+  // v35: 停用司機時提醒車輛
+  const driverId = state.editingDriverId;
+  if (driverId) {
+    const newStatus = document.getElementById('editDriverStatus')?.value;
+    const drv = DRIVERS.find(d => d.id === driverId);
+    if (newStatus === '停用' && drv && drv.status !== '停用') {
+      // 算該司機最近派的車輛
+      const usedVehicles = {};
+      ORDERS.tomorrow.forEach(o => {
+        (o.assignments || []).forEach(a => {
+          if (a.driverId === driverId && a.vehicleId) {
+            usedVehicles[a.vehicleId] = (usedVehicles[a.vehicleId] || 0) + 1;
+          }
+        });
+      });
+      const vehIds = Object.keys(usedVehicles).sort((a,b) => usedVehicles[b] - usedVehicles[a]);
+      if (vehIds.length > 0) {
+        const list = vehIds.map(vid => {
+          const v = VEHICLES.find(x => x.id === vid);
+          return v ? (v.plate + ' (' + (v.model || '') + ', ' + usedVehicles[vid] + '趟)') : vid;
+        }).join('\n  • ');
+        const ok = confirm('🛑 你即將停用司機 ' + drv.name + ' (' + driverId + ')\n\n該司機近期派過以下車輛：\n  • ' + list + '\n\n要一併考慮停用這些車輛嗎？\n（按確定查看，按取消僅停用司機。實際停用車輛請去車輛頁編輯）');
+        if (ok) {
+          alert('💡 請去「車輛」頁找以上車牌，點編輯改成「停用」狀態。\n\n之後司機停用會記錄到 sheet（API 接好後）');
+        }
+      }
+    }
+  }
   alert('⚠ 編輯功能尚未接 API：你的修改僅暫存在本機，重整頁面會還原。\n（之後會接 apiUpdateDriver）');
   const id = document.getElementById('editDriverId').value;
   const driver = DRIVERS.find(d => d.id === id);
@@ -4231,7 +4272,7 @@ function switchPage(page) {
     renderScheduleGrid();
     // v23: 提示資料尚未接真實
     const sg = document.getElementById('scheduleGrid');
-    if (sg && !sg.querySelector('.schedule-mock-banner')) sg.insertAdjacentHTML('afterbegin', '<div class="schedule-mock-banner" style="background:#FEF3C7;border:1px solid #F59E0B;color:#92400E;padding:10px 14px;border-radius:8px;margin:10px 16px;font-size:12px;line-height:1.5;">🚧 排班表正在串接真實派車紀錄，目前看到的是示範資料。需要先把派車紀錄分頁 sync 完成後才能跑真實。</div>');
+    // v28+v35: 排班 banner 已拿掉 (排班已接真實資料)
   }
   if (page === 'drivers') { renderTagFilterBar(); renderDriversList(); }
   if (page === 'vehicles') renderVehiclesList();
