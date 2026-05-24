@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v23</title>
+<title>旅乘派車系統 v38</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -1167,6 +1167,73 @@
   .dq-btn:hover { background: var(--primary-soft); border-color: var(--primary); color: var(--primary); }
   .dq-btn.active { background: var(--primary); border-color: var(--primary); color: white; }
 
+  /* v38: 全新日期選擇器 */
+  .date-picker-v38 {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 8px 16px 12px;
+    padding: 10px 12px;
+    box-shadow: 0 1px 3px rgba(53,112,168,0.04);
+  }
+  .dpv38-header {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+  .dpv38-arrow {
+    width: 28px; height: 28px; border: 1px solid var(--border);
+    background: white; border-radius: 6px; cursor: pointer;
+    color: var(--primary); font-size: 11px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .dpv38-arrow:hover { background: var(--primary-soft); border-color: var(--primary); }
+  .dpv38-title {
+    font-size: 13px; font-weight: 700; color: var(--text);
+    min-width: 100px; text-align: center;
+  }
+  .dpv38-quick { display: flex; gap: 6px; margin-left: auto; align-items: center; }
+  .dpv38-q-btn {
+    padding: 5px 10px;
+    border: 1px solid var(--primary); border-radius: 6px;
+    background: var(--primary); color: white;
+    font-size: 11.5px; font-weight: 600; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .dpv38-q-btn.ghost {
+    background: transparent; color: var(--primary);
+  }
+  .dpv38-q-btn:hover { opacity: 0.85; }
+  .dpv38-date-input {
+    padding: 4px 8px;
+    border: 1px solid var(--border); border-radius: 6px;
+    font-size: 11.5px; color: var(--text);
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .dpv38-strip {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    padding: 0;
+    overflow-x: visible;
+  }
+  /* v38: 強制蓋掉舊 date-pill 樣式，讓行事曆排列 */
+  .dpv38-strip .date-pill {
+    flex: none !important;
+    min-width: 0 !important;
+    padding: 7px 2px !important;
+    margin: 0 !important;
+  }
+  @media (max-width: 480px) {
+    .dpv38-strip { grid-template-columns: repeat(7, 1fr); gap: 3px; }
+    .dpv38-strip .date-pill { padding: 6px 0 !important; }
+    .dpv38-strip .date-pill .num { font-size: 14px !important; }
+    .dpv38-quick { width: 100%; margin-left: 0; justify-content: space-between; }
+    .dpv38-title { min-width: auto; flex: 1; }
+  }
+
   /* v10 今日標記 */
   .date-pill.is-today {
     border: 1.5px solid var(--primary);
@@ -1199,11 +1266,12 @@
   /* ====== v15 RWD 桌機適配 ====== */
   @media (min-width: 768px) {
     .device-shell {
-      max-width: 1440px !important;
+      max-width: none !important;
       border-left: none !important;
       border-right: none !important;
-      box-shadow: 0 0 60px rgba(53,112,168,0.10);
-      padding-bottom: 100px;
+      box-shadow: none !important;
+      padding-bottom: 30px;
+      padding-left: 80px;   /* v37: 留位給左側 nav */
     }
     body {
       background: linear-gradient(135deg, #E8F1F9 0%, #F5F8FB 100%);
@@ -1229,9 +1297,33 @@
     /* v36: 訂單卡 hover */
   .order-card:hover { box-shadow: 0 2px 12px rgba(53,112,168,0.15); transform: translateY(-1px); transition: all 0.15s; }
   .order-card { margin-bottom: 0 !important; }
+    /* v37: 桌機把 bottom-nav 變成左側 side-nav */
     .bottom-nav {
-      max-width: 1440px !important;
-      padding: 8px 0 calc(8px + env(safe-area-inset-bottom)) !important;
+      top: 0 !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: auto !important;
+      width: 80px !important;
+      max-width: 80px !important;
+      flex-direction: column !important;
+      padding: 70px 0 16px 0 !important;
+      border-top: none !important;
+      border-right: 1px solid var(--border) !important;
+      gap: 4px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbfd 100%);
+    }
+    .bottom-nav .nav-btn {
+      flex: 0 0 auto !important;
+      padding: 12px 4px !important;
+      border-radius: 8px;
+      margin: 0 8px;
+      transition: background 0.15s;
+    }
+    .bottom-nav .nav-btn:hover {
+      background: var(--primary-soft);
+    }
+    .bottom-nav .nav-btn.active {
+      background: var(--primary-soft);
     }
     .schedule-grid-wrap { padding: 0 32px; }
     .list-card { margin: 10px 24px !important; }
@@ -1513,17 +1605,20 @@
       <div class="qstat"><div class="qstat-num success" id="qsWeekTotal">-</div><div class="qstat-label">本週服務</div></div>
     </div>
 
-    <div class="sect-head">
-      <div class="sect-title">日期選擇</div>
-      <span class="sect-link" onclick="switchPage('schedule')">查看排班表 →</span>
+    <!-- v38: 全新日期選擇器：行事曆樣式 + 整合快捷 -->
+    <div class="date-picker-v38">
+      <div class="dpv38-header">
+        <button class="dpv38-arrow" onclick="dpv38ShiftWeek(-1)" title="上週">◀</button>
+        <div class="dpv38-title" id="dpv38Title">本週</div>
+        <button class="dpv38-arrow" onclick="dpv38ShiftWeek(1)" title="下週">▶</button>
+        <div class="dpv38-quick">
+          <button class="dpv38-q-btn" onclick="dpv38JumpToday()" id="dqToday">今日</button>
+          <input type="date" class="dpv38-date-input" id="dpv38DateInput" onchange="selectDate(this.value); dpv38Render();" title="選日期">
+          <button class="dpv38-q-btn ghost" onclick="switchPage('schedule')">排班表 →</button>
+        </div>
+      </div>
+      <div class="dpv38-strip" id="dateStrip"></div>
     </div>
-    <div class="date-quick-nav">
-      <button class="dq-btn" onclick="selectDate(new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0')+'-'+String(new Date().getDate()).padStart(2,'0'))" id="dqToday">回今日</button>
-      <button class="dq-btn" onclick="selectDate('2026-05-23')" id="dqTomorrow">明日</button>
-      <button class="dq-btn" onclick="selectDate('2026-05-29')" id="dqNextWeek">下週</button>
-      <button class="dq-btn" onclick="toggleDateStripAll()" id="dqHistory">⊲ 歷史</button>
-    </div>
-    <div class="date-strip" id="dateStrip"></div>
 
     <div class="filter-bar" id="filterBar">
       <div class="filter-tab active" data-filter="all">全部<span class="pill" id="cntAll">0</span></div>
@@ -1760,6 +1855,7 @@
 </div>
 
 <script>
+window.IMGBB_API_KEY = 'a4aa350b6e44e815ee46b4ac05b9e852'; // v38: young-forever 帳號
 /* ============ 標籤 / 語言 ============ */
 const DRIVER_TAGS = ['機場接送','一日遊','多日行程','富士山','迪士尼接送','夜間接送','長途'];
 const LANGUAGES = [
@@ -2855,6 +2951,81 @@ function renderDateStrip() {
     if (selectedEl) selectedEl.scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'});
   }, 0);
 }
+// v38: 新日期選擇器邏輯
+let dpv38WeekOffset = 0;  // 0 = 本週, 1 = 下週, -1 = 上週
+function dpv38ShiftWeek(d) {
+  dpv38WeekOffset += d;
+  dpv38Render();
+}
+function dpv38JumpToday() {
+  dpv38WeekOffset = 0;
+  const t = new Date();
+  const key = t.getFullYear() + '-' + String(t.getMonth()+1).padStart(2,'0') + '-' + String(t.getDate()).padStart(2,'0');
+  selectDate(key);
+  dpv38Render();
+}
+function dpv38Render() {
+  // 重畫日期選擇器內的 strip + title
+  const title = document.getElementById('dpv38Title');
+  const today = new Date();
+  // 找本週週一
+  const dayOfWeek = today.getDay() || 7;  // 週日 = 0 → 7
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - (dayOfWeek - 1) + dpv38WeekOffset * 7);
+  // 算這週的 7 天
+  const weekDays = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    weekDays.push(d);
+  }
+  // 更新 title
+  const mStart = monday.getMonth() + 1;
+  const mEnd = weekDays[6].getMonth() + 1;
+  let titleText = mStart === mEnd
+    ? (mStart + '月 ' + monday.getDate() + '-' + weekDays[6].getDate() + '日')
+    : (mStart + '/' + monday.getDate() + ' - ' + mEnd + '/' + weekDays[6].getDate());
+  if (dpv38WeekOffset === 0) titleText = '本週 · ' + titleText;
+  else if (dpv38WeekOffset === 1) titleText = '下週 · ' + titleText;
+  else if (dpv38WeekOffset === -1) titleText = '上週 · ' + titleText;
+  if (title) title.textContent = titleText;
+  // 更新 date input 預設值
+  const input = document.getElementById('dpv38DateInput');
+  if (input && state.currentDate) input.value = state.currentDate;
+  // 把 weekDays 餵給 renderDateStrip(weekDays)
+  if (typeof renderDateStripForWeek === 'function') {
+    renderDateStripForWeek(weekDays);
+  } else {
+    renderDateStrip();  // fallback
+  }
+}
+// v38: 給定 7 天陣列，畫 date pills（沿用既有的 pill 樣式）
+function renderDateStripForWeek(weekDays) {
+  const wrap = document.getElementById('dateStrip');
+  if (!wrap) return;
+  const todayKey = (function(){ const t = new Date(); return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0'); })();
+  const dowNames = ['日','一','二','三','四','五','六'];
+  const html = weekDays.map(d => {
+    const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    const isToday = key === todayKey;
+    const isPast = key < todayKey;
+    const isActive = key === state.currentDate;
+    // 算 pending 數（沿用 ORDERS）
+    let pending = 0;
+    const allOrders = [].concat(ORDERS.tomorrow || [], ORDERS.completed || []);
+    allOrders.forEach(o => {
+      if (o.date === key && o.status === 'pending') pending++;
+    });
+    const dow = dowNames[d.getDay()];
+    return `<div class="date-pill ${isActive ? 'active' : ''} ${pending > 0 ? 'has-pending' : ''} ${isPast ? 'past' : ''} ${isToday ? 'is-today' : ''}" onclick="selectDate('${key}'); dpv38Render();" data-date="${key}">
+      <div class="dow">${isToday ? '今日' : '週' + dow}</div>
+      <div class="num">${d.getDate()}</div>
+      <div class="badge">${pending > 0 ? pending + ' 待派' : '無'}</div>
+    </div>`;
+  }).join('');
+  wrap.innerHTML = html;
+}
+
 function toggleDateStripAll() {
   state.dateStripShowAll = !state.dateStripShowAll;
   renderDateStrip();
@@ -4003,7 +4174,7 @@ function openDriverDetail(driverId) {
         const hint = document.createElement('div');
         hint.id = 'photoUploadHint';
         hint.style.cssText = 'background:rgba(255,255,255,0.18);padding:6px 10px;border-radius:5px;margin-top:6px;font-size:10.5px;line-height:1.5;color:rgba(255,255,255,0.95);';
-        hint.innerHTML = '📷 <strong>照片上傳流程</strong>：把司機照片上傳到 ImgBB 對應地區相簿（檔名用司機編號 ' + driver.id + '.jpg），系統會自動同步。<a href="https://young-forever.imgbb.com/" target="_blank" style="color:#FCD34D;text-decoration:underline;">開啟 ImgBB →</a>';
+        hint.innerHTML = '📷 此司機尚未設定照片 → 請點右上「✎ 編輯」直接選擇照片即可。';
         detail.appendChild(hint);
       }
     }, 100);
@@ -4059,14 +4230,15 @@ function openEditDriverSheet(driverId) {
   const driver = DRIVERS.find(d => d.id === driverId);
   if (!driver) return;
   document.getElementById('sheetTitle').textContent = '編輯司機資料';
+  // v37: 真實照片上傳（檔案選擇 + 即時預覽 + ImgBB 上傳）
   let html = '<div class="form-group"><label class="form-label"><span>司機照片</span></label><div class="photo-uploader">';
   html += '<div class="photo-uploader-current"><img src="' + (driver.photoUrl || '') + '" id="editPhotoPreview" style="' + (driver.photoUrl ? '' : 'display:none;') + '"></div>';
   html += '<div class="photo-uploader-actions"><div class="pu-btns">';
-  html += '<button class="pu-btn primary" onclick="alert(\'手機相機拍照（示範）\')">📷 拍照</button>';
-  html += '<button class="pu-btn" onclick="alert(\'從相簿選擇（示範）\')">🖼 相簿</button>';
+  html += '<label class="pu-btn primary" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;">📷 選擇照片<input type="file" accept="image/*" id="driverPhotoFile" style="display:none;" onchange="handleDriverPhotoFile(event)"></label>';
+  html += '<label class="pu-btn" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;">📸 拍照<input type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleDriverPhotoFile(event)"></label>';
   html += '<button class="pu-btn" onclick="promptPhotoUrl()">🔗 網址</button>';
   html += '<button class="pu-btn" onclick="removePhoto()">🗑 移除</button>';
-  html += '</div><div class="pu-hint">建議方形圖片 200x200 以上</div></div></div></div>';
+  html += '</div><div class="pu-hint" id="photoUploadStatus">點選照片或拍照即可即時顯示，再按下方「儲存」即會記錄到此司機檔案。<br><span style="color:var(--muted);font-size:10px;">※ 若已設定 ImgBB API Key，會自動上傳並取得永久網址</span></div></div></div></div>';
   html += '<div class="form-group"><label class="form-label"><span>司機編號</span></label><input class="form-control" value="' + driver.id + '" disabled style="background:#F9FAFB;color:var(--muted);"></div>';
   html += '<div class="form-group"><label class="form-label"><span>姓名 <span class="required">*</span></span></label><input class="form-control" id="editDriverName" value="' + driver.name + '"></div>';
   html += '<div class="form-group"><label class="form-label"><span>聯絡電話</span></label><input class="form-control" id="editDriverPhone" value="' + (driver.phone || '') + '"></div>';
@@ -4089,6 +4261,59 @@ function openEditDriverSheet(driverId) {
 
   document.getElementById('sheetBody').innerHTML = html;
   document.getElementById('sheetFooter').innerHTML = '<button class="btn btn-block" onclick="closeSheet()">取消</button><button class="btn btn-primary btn-block" onclick="saveEditDriver()">儲存</button>';
+}
+// v37: 處理真實照片檔案上傳
+function handleDriverPhotoFile(ev) {
+  const file = ev.target.files && ev.target.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    alert('檔案太大！請選 5MB 以下的圖片。');
+    return;
+  }
+  const status = document.getElementById('photoUploadStatus');
+  const preview = document.getElementById('editPhotoPreview');
+  // 1) 即時 base64 預覽
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    const base64 = e.target.result;
+    preview.src = base64;
+    preview.style.display = 'block';
+    if (status) status.innerHTML = '✓ 已預覽（如需永久網址正在上傳到 ImgBB...）';
+    // 2) 嘗試上傳到 ImgBB（若有設 API key）
+    const apiKey = window.IMGBB_API_KEY || localStorage.getItem('imgbb_api_key');
+    if (apiKey) {
+      try {
+        const fd = new FormData();
+        fd.append('image', base64.split(',')[1]);
+        fd.append('name', (state.editingDriverId || 'driver') + '_' + Date.now());
+        const resp = await fetch('https://api.imgbb.com/1/upload?key=' + encodeURIComponent(apiKey), {
+          method: 'POST', body: fd
+        });
+        const j = await resp.json();
+        if (j.success && j.data && j.data.url) {
+          preview.src = j.data.url;
+          preview.dataset.uploadedUrl = j.data.url;
+          if (status) status.innerHTML = '✅ 已上傳到 ImgBB：<a href="' + j.data.url + '" target="_blank" style="color:var(--primary);text-decoration:underline;font-size:10px;">' + j.data.url.substring(0,50) + '...</a>';
+        } else {
+          if (status) status.innerHTML = '⚠ ImgBB 上傳失敗，先用本地預覽。儲存後仍會記錄 base64（注意大小）。';
+        }
+      } catch (err) {
+        console.error('ImgBB upload error:', err);
+        if (status) status.innerHTML = '⚠ ImgBB 連線失敗（' + err.message + '），先用本地預覽。';
+      }
+    } else {
+      if (status) status.innerHTML = '✓ 已預覽。<br>⚠ 尚未設定 ImgBB API Key（永久網址無法產生）。<br><button class="pu-btn" style="margin-top:4px;font-size:10px;padding:3px 8px;" onclick="setImgbbApiKey()">🔑 設定 ImgBB API Key</button>';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+function setImgbbApiKey() {
+  const current = localStorage.getItem('imgbb_api_key') || '';
+  const key = prompt('請輸入 ImgBB API Key（前往 https://api.imgbb.com/ 申請免費 key）：', current);
+  if (key && key.trim()) {
+    localStorage.setItem('imgbb_api_key', key.trim());
+    alert('✓ 已儲存 API Key（存在你瀏覽器 localStorage）。下次上傳會自動使用。');
+  }
 }
 function promptPhotoUrl() {
   const url = prompt('輸入照片網址：', 'https://i.pravatar.cc/200?img=');
@@ -4137,8 +4362,15 @@ function saveEditDriver() {
   driver.languages = [...document.getElementById('editDriverLangPicker').querySelectorAll('.tag-option.selected')].map(el => el.dataset.lang);
   driver.tags = [...document.getElementById('editDriverTagPicker').querySelectorAll('.tag-option.selected')].map(el => el.dataset.tag);
   driver.off = document.getElementById('editDriverStatus').value === 'off';
-  const newPhoto = document.getElementById('editPhotoPreview').src;
-  if (newPhoto && !newPhoto.endsWith('/')) driver.photoUrl = newPhoto;
+  // v37: 優先用 ImgBB 上傳後的永久網址，沒有才用 src（可能是 base64）
+  const previewEl = document.getElementById('editPhotoPreview');
+  const newPhoto = (previewEl && previewEl.dataset && previewEl.dataset.uploadedUrl) || previewEl.src;
+  if (newPhoto && !newPhoto.endsWith('/')) {
+    driver.photoUrl = newPhoto;
+    if (newPhoto.startsWith('data:')) {
+      console.warn('⚠ 司機 ' + driver.id + ' 照片是 base64（未上傳到 ImgBB），重整後可能會掉');
+    }
+  }
   closeSheet();
   renderDriversList();
   alert('司機資料已更新！');
@@ -4321,6 +4553,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
   renderDateStrip();
+  if (typeof dpv38Render === 'function') dpv38Render();  // v38
   renderNotifyBanner();
   renderOrders();
 });
