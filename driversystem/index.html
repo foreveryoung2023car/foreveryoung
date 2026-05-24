@@ -2123,23 +2123,40 @@ async function saveDispatchReal() {
   }
   let allOk = true;
   const messages = [];
+  // v33: bulk 時，每天 fee 用該天 order 原本的 driverFee（每天行程不同價格不同）
+  // 先建 target -> originalFee map
+  const dayFeeMap = {};
+  if (isBulk) {
+    ORDERS.tomorrow.forEach(x => {
+      if (x.no === o.no) {
+        const k = (x.date || '').replace(/-/g, '/');
+        // 用該天訂單收支表 G 欄的 driverFee 為預設
+        dayFeeMap[k] = x.driverFee || 0;
+      }
+    });
+  }
   // 對每個 target day × 每台車 派車
   for (const target of targetDays) {
     for (let i = 0; i < state.editingAssignments.length; i++) {
       const a = state.editingAssignments[i];
       const carIndex = target.carIndex + i;
+      // bulk 時：當天用該天原 driverFee；非 bulk 用 input 值
+      const feeForThisDay = isBulk
+        ? (dayFeeMap[target.date] || a.fee)  // 該天原費用，沒有就 fallback 到 input
+        : a.fee;
       const r = await api.call('dispatch', {
         orderNo: o.no,
         date: target.date,
         carIndex: carIndex,
         driverId: a.driverId,
         vehicleId: a.vehicleId || '',
-        fee: a.fee,
+        fee: feeForThisDay,
         dispatcherEmail: (currentUser && currentUser.email) || ''
       });
       const dayLabel = isBulk ? `[${target.date}] ` : '';
+      const feeNote = isBulk ? ` ¥${feeForThisDay.toLocaleString()}` : '';
       if (r && r.updated) {
-        messages.push(`✓ ${dayLabel}第 ${i+1} 台：${a.driverId} 已寫入`);
+        messages.push(`✓ ${dayLabel}第 ${i+1} 台：${a.driverId}${feeNote} 已寫入`);
       } else {
         allOk = false;
         messages.push(`✗ ${dayLabel}第 ${i+1} 台：失敗 ${r ? (r.error || '') : '網路問題'}`);
@@ -3037,12 +3054,20 @@ function openEditor(idx) {
       }
       multiDayBanner = '<div style="background:#DBEAFE;border:1px solid #3B82F6;color:#1E40AF;padding:10px 14px;border-radius:8px;margin:0 0 12px;font-size:12px;line-height:1.5;"><strong>📅 此訂單共 ' + o._multiDayCount + ' 天（這是 Day ' + o._multiDayIndex + '）</strong>' + driverList + bulkLine + '</div>';
     } else {
-      // v32: 加「同步派全部 N 天」checkbox
+      // v32+v33: 加「同步派全部 N 天」checkbox + 每天費用預覽
       const otherUnassigned = sameOrders.filter(x => !x.assignments || x.assignments.length === 0 || !x.assignments[0].driverId);
+      const allDays = [o].concat(sameOrders).sort((a, b) => a.date.localeCompare(b.date));
+      const dayFeeList = allDays.map((d, i) => '<div style="display:flex;justify-content:space-between;padding:2px 0;font-size:11px;"><span>Day ' + (i+1) + ' (' + d.date + ')</span><span style="font-family:monospace;font-weight:600;">¥' + (d.driverFee || 0).toLocaleString() + '</span></div>').join('');
+      const totalFee = allDays.reduce((s, d) => s + (d.driverFee || 0), 0);
       multiDayBanner = '<div style="background:#FEF3C7;border:1px solid #F59E0B;color:#92400E;padding:10px 14px;border-radius:8px;margin:0 0 12px;font-size:12px;line-height:1.6;">📅 此訂單共 ' + o._multiDayCount + ' 天（這是 Day ' + o._multiDayIndex + '）— 其他日尚未派車';
       if (otherUnassigned.length > 0) {
-        multiDayBanner += '<label style="display:flex;align-items:center;gap:8px;background:white;padding:8px 10px;border-radius:6px;margin-top:8px;cursor:pointer;color:var(--text);font-weight:600;"><input type="checkbox" id="bulkAllDays" style="width:18px;height:18px;cursor:pointer;"> 🚀 同步派全部 ' + o._multiDayCount + ' 天（含此單 + 其他 ' + otherUnassigned.length + ' 天）</label>';
-        multiDayBanner += '<div style="font-size:10.5px;opacity:0.8;margin-top:4px;">勾選後，「確認派車」會同時把這位司機 / 車輛 / 費用寫入剩餘日子的派車紀錄</div>';
+        multiDayBanner += '<label style="display:flex;align-items:center;gap:8px;background:white;padding:8px 10px;border-radius:6px;margin-top:8px;cursor:pointer;color:var(--text);font-weight:600;"><input type="checkbox" id="bulkAllDays" onchange="document.getElementById(\'bulkFeeDetail\').style.display=this.checked?\'block\':\'none\'" style="width:18px;height:18px;cursor:pointer;"> 🚀 同步派全部 ' + o._multiDayCount + ' 天（含此單 + 其他 ' + otherUnassigned.length + ' 天）</label>';
+        multiDayBanner += '<div id="bulkFeeDetail" style="display:none;background:white;padding:8px 10px;border-radius:6px;margin-top:4px;color:var(--text);">';
+        multiDayBanner += '<div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px;">每天費用（用訂單收支表 G 欄原費，下方 input 不影響 bulk）</div>';
+        multiDayBanner += dayFeeList;
+        multiDayBanner += '<div style="display:flex;justify-content:space-between;padding-top:6px;margin-top:4px;border-top:1px dashed var(--border);font-weight:700;color:var(--primary);"><span>合計</span><span style="font-family:monospace;">¥' + totalFee.toLocaleString() + '</span></div>';
+        multiDayBanner += '</div>';
+        multiDayBanner += '<div style="font-size:10.5px;opacity:0.8;margin-top:4px;">勾選後，「確認派車」會把這位司機寫入剩餘日子，<strong>每天費用各別保留訂單原價</strong></div>';
       }
       multiDayBanner += '</div>';
     }
@@ -3912,12 +3937,36 @@ function openDriverDetail(driverId) {
   document.getElementById('sheetTitle').textContent = '司機詳情';
   document.getElementById('sheet').classList.add('sheet-driver-detail');  // v26: 加 RWD wider class
   let html = '<div class="dd-cover"><button class="dd-edit-btn" onclick="openEditDriverSheet(\'' + driver.id + '\')">✎ 編輯</button>';
+  // v33: 照片上傳指引（如缺照片）
+  if (!driver.photoUrl) {
+    setTimeout(() => {
+      const detail = document.querySelector('.dd-cover-meta');
+      if (detail && !document.getElementById('photoUploadHint')) {
+        const hint = document.createElement('div');
+        hint.id = 'photoUploadHint';
+        hint.style.cssText = 'background:rgba(255,255,255,0.18);padding:6px 10px;border-radius:5px;margin-top:6px;font-size:10.5px;line-height:1.5;color:rgba(255,255,255,0.95);';
+        hint.innerHTML = '📷 <strong>照片上傳流程</strong>：把司機照片上傳到 ImgBB 對應地區相簿（檔名用司機編號 ' + driver.id + '.jpg），系統會自動同步。<a href="https://young-forever.imgbb.com/" target="_blank" style="color:#FCD34D;text-decoration:underline;">開啟 ImgBB →</a>';
+        detail.appendChild(hint);
+      }
+    }, 100);
+  }
+  // v33: 照片更新提示
+  const photoHint = driver.photoUrl
+    ? ''
+    : '<div title="司機照片尚未設定" style="cursor:help;opacity:0.6;font-size:10px;color:white;text-align:center;margin-top:4px;">📷 尚無照片</div>';
   html += '<div class="dd-cover-row">' + renderDriverAvatar(driver, 'lg');
   html += '<div><div class="dd-cover-name">' + driver.name + '<span class="dd-cover-id">' + driver.id + '</span>' + renderLangFlags(driver.languages) + '</div>';
-  html += '<div class="dd-cover-meta">📱 ' + driver.phone + '<br>' + (driver.off ? '🛏 目前休假中' : '✓ 可派車') + '・加入於 ' + (driver.joinedYear || 2024) + ' 年</div></div></div></div>';
+  // v33: 顯示完整狀態（含停用原因）
+  const statusText = driver.status === '停用' ? '⛔ 已停用'
+    : driver.status === '休假' ? '🛏 休假中'
+    : driver.off ? '🛏 目前休假中'
+    : '✓ 可派車';
+  const stopReason = driver.status === '停用' && driver.remark ? '<br><span style="color:#FCA5A5;font-size:11px;">停用原因：' + driver.remark + '</span>' : '';
+  html += '<div class="dd-cover-meta">📱 ' + (driver.phone || '(無)') + '<br>' + statusText + '・加入於 ' + (driver.joinedYear || '?') + ' 年' + stopReason + '</div></div></div></div>';
   html += '<div class="dd-stats"><div class="dd-stat"><div class="dd-stat-num">' + driver.servedCount + '</div><div class="dd-stat-label">累積趟次</div></div>';
   html += '<div class="dd-stat"><div class="dd-stat-num gold">★ ' + ((driver.avgRating ?? driver.rating) || 0).toFixed(1) + '</div><div class="dd-stat-label">' + (driver.ratingCount || 0) + ' 則評價</div></div>';
-  html += '<div class="dd-stat"><div class="dd-stat-num">¥' + (driver.defaultFeeDay ?? driver.defaultFee ?? 0).toLocaleString() + '</div><div class="dd-stat-label">預設日費</div></div></div>';
+  html += '<div class="dd-stat"><div class="dd-stat-num">¥' + (driver.defaultFeeDay ?? driver.defaultFee ?? 0).toLocaleString() + '</div><div class="dd-stat-label">預設日費 <span style="color:var(--muted);font-size:9px;">(參考)</span></div></div></div>';
+  html += '<div style="background:#FEF3C7;padding:6px 10px;border-radius:5px;font-size:10.5px;color:#92400E;margin-top:4px;">💡 「預設日費」僅供新訂單派車時填入參考，每筆訂單的實際費用以訂單收支表 G 欄為主</div>';
   html += '<div class="dd-section"><div class="dd-section-title">業務標籤</div><div style="display:flex;flex-wrap:wrap;gap:4px;">' + driver.tags.map(t => '<span class="dt-chip">' + t + '</span>').join('') + '</div></div>';
   html += '<div class="dd-section"><div class="dd-section-title">本月收益（含獎懲）</div><div class="dd-info-list" style="opacity:0.5;">⚠ 此區為示範數字，等派車紀錄真實 sync 後才顯示真實累積';
   html += '<div class="dd-info-row"><span class="lbl">本月趟次</span><span class="val">28 趟</span></div>';
