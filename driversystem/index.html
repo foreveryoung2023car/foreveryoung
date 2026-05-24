@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v38</title>
+<title>旅乘派車系統 v39</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -38,13 +38,13 @@
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
     background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5;
     -webkit-font-smoothing: antialiased; overscroll-behavior: none;
+    /* v39: 全寬流式 */
+    width: 100%; overflow-x: hidden;
   }
   .device-shell {
-    max-width: 430px; margin: 0 auto; background: var(--bg);
+    /* v39: 拿掉所有寬度限制，完全流式 */
+    width: 100%; max-width: none; margin: 0; background: var(--bg);
     min-height: 100vh; position: relative;
-  }
-  @media (min-width: 481px) {
-    .device-shell { box-shadow: 0 0 60px rgba(53,112,168,0.12); border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
   }
   .icon { width: 18px; height: 18px; flex-shrink: 0; }
   .icon-sm { width: 14px; height: 14px; flex-shrink: 0; }
@@ -385,7 +385,8 @@
   /* ====== 底部導覽 ====== */
   .bottom-nav {
     position: fixed; bottom: 0; left: 0; right: 0;
-    max-width: 430px; margin: 0 auto; background: white;
+    /* v39: 手機底部 nav 滿版 */
+    width: 100%; max-width: none; background: white;
     border-top: 1px solid var(--border); display: flex;
     padding: 6px 0 calc(6px + env(safe-area-inset-bottom)); z-index: 90;
   }
@@ -405,7 +406,8 @@
   .sheet-mask.show { display: block; opacity: 1; }
   .sheet {
     position: fixed; bottom: 0; left: 0; right: 0;
-    max-width: 430px; margin: 0 auto; background: white;
+    /* v39: 手機 sheet 滿版 */
+    width: 100%; max-width: none; background: white;
     border-radius: 16px 16px 0 0; z-index: 210;
     max-height: 92vh; overflow-y: auto;
     transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
@@ -844,7 +846,7 @@
   .login-mask .l-title { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
   .login-box {
     background: white; border-radius: 14px; padding: 22px;
-    width: 100%; max-width: 340px; color: var(--text);
+    width: 100%; max-width: min(420px, 90vw); color: var(--text);
   }
   .login-box h3 { font-size: 14px; font-weight: 600; margin-bottom: 14px; }
   .login-box .fg { margin-bottom: 12px; }
@@ -902,7 +904,7 @@
   .confirm-modal.show { display: flex; }
   .confirm-card {
     background: white; border-radius: 14px; padding: 20px;
-    width: 100%; max-width: 360px;
+    width: 100%; max-width: min(440px, 90vw);
     max-height: 90vh; overflow-y: auto;
   }
   .confirm-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
@@ -1278,20 +1280,21 @@
       min-height: 100vh;
     }
     .topbar {
-      padding: 16px 32px;
+      padding: 14px clamp(16px, 3vw, 40px);
     }
     /* v36: quick-stats 改成緊湊一行 */
   .quick-stats {
       grid-template-columns: repeat(4, 1fr);
     }
-    .sect-head, .filter-bar, .date-strip, .date-quick-nav {
-      padding-left: 32px !important;
-      padding-right: 32px !important;
+    .sect-head, .filter-bar, .date-strip, .date-quick-nav, .date-picker-v38 {
+      padding-left: clamp(16px, 3vw, 32px) !important;
+      padding-right: clamp(16px, 3vw, 32px) !important;
     }
     .orders {
-      padding: 14px 28px 100px !important;
+      /* v39: auto-fill 流式格線，視寬度自動 1-4 欄 */
+      padding: 14px 24px 60px !important;
       display: grid !important;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
       gap: 12px;
     }
     /* v36: 訂單卡 hover */
@@ -1325,14 +1328,15 @@
     .bottom-nav .nav-btn.active {
       background: var(--primary-soft);
     }
-    .schedule-grid-wrap { padding: 0 32px; }
-    .list-card { margin: 10px 24px !important; }
-    .veh-group { margin: 10px 24px !important; }
-    .stats-row, .stats-block { margin: 10px 24px !important; }
-    .search-bar, .tag-filter-bar { padding-left: 32px !important; padding-right: 32px !important; }
+    .schedule-grid-wrap { padding: 0 clamp(16px, 3vw, 32px); }
+    .list-card { margin: 10px clamp(16px, 3vw, 32px) !important; }
+    .veh-group { margin: 10px clamp(16px, 3vw, 32px) !important; }
+    .stats-row, .stats-block { margin: 10px clamp(16px, 3vw, 32px) !important; }
+    .search-bar, .tag-filter-bar { padding-left: clamp(16px, 3vw, 32px) !important; padding-right: clamp(16px, 3vw, 32px) !important; }
     .sheet {
-      max-width: 600px !important;
-      border-radius: 16px !important;
+      /* v39: 平板/桌機 sheet 寬度流式（min/max 之間，依視窗大小） */
+      width: min(680px, 70vw) !important;
+      max-width: none !important;
       max-height: 88vh !important;
       top: 50%; left: 50%; bottom: auto !important; right: auto !important;
       transform: translate(-50%, -50%) scale(0.9) !important;
@@ -1348,17 +1352,9 @@
     }
     .sheet-handle { display: none; }
   }
-  @media (min-width: 1100px) {
-    .orders {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-  /* v21: 超寬桌機 4 欄 + 卡片內距更寬 */
+  /* v39: orders 用 auto-fill minmax 已經自動撐 1-4 欄，這裡只調整 gap */
   @media (min-width: 1400px) {
-    .orders {
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-    }
+    .orders { gap: 14px; }
   }
   @media (min-width: 768px) {
     /* v36: 訂單卡 hover */
@@ -4556,6 +4552,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof dpv38Render === 'function') dpv38Render();  // v38
   renderNotifyBanner();
   renderOrders();
+  console.log('%c🚐 旅乘派車系統 v39', 'background:#3570a8;color:white;padding:4px 12px;border-radius:4px;font-weight:700;', '\n  • 全裝置流式 RWD\n  • orders auto-fill grid\n  • 司機詳情流式寬度');
 });
 </script>
 </body>
