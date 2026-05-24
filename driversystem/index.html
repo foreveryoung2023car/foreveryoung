@@ -146,12 +146,14 @@
   .nb-row.handled .nb-handle-btn { display: none; }
 
   /* ====== 統計列 ====== */
+  /* v36: quick-stats 改成緊湊一行 */
   .quick-stats {
     display: grid; grid-template-columns: repeat(4, 1fr);
     gap: 1px; background: var(--border); border-bottom: 1px solid var(--border);
   }
-  .qstat { background: white; padding: 12px 6px; text-align: center; }
-  .qstat-num {
+  .qstat { background: white; padding: 8px 6px; text-align: center; transition: background 0.15s; cursor: default; }
+  .qstat-num { font-size: 18px; font-weight: 700; line-height: 1.1; }
+  .qstat-num-old {
     font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums;
     color: var(--text); line-height: 1;
   }
@@ -159,7 +161,7 @@
   .qstat-num.danger { color: var(--danger); }
   .qstat-num.success { color: var(--success); }
   .qstat-num.primary { color: var(--primary); }
-  .qstat-label { font-size: 10.5px; color: var(--muted); margin-top: 4px; }
+  .qstat-label { font-size: 10px; color: var(--muted); margin-top: 2px; }
 
   .sect-head {
     padding: 14px 16px 8px; display: flex;
@@ -171,10 +173,11 @@
 
   .date-strip { padding: 0 16px 8px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
   .date-strip::-webkit-scrollbar { display: none; }
+  .date-pill:hover { transform: scale(1.05); }
   .date-pill {
-    flex-shrink: 0; padding: 8px 12px; background: white;
-    border: 1px solid var(--border); border-radius: 8px; cursor: pointer;
-    min-width: 60px; text-align: center; transition: all 0.15s;
+    flex-shrink: 0; padding: 6px 10px; background: white;
+    border: 1px solid var(--border); border-radius: 7px; cursor: pointer;
+    min-width: 52px; text-align: center; transition: all 0.15s;
   }
   .date-pill .dow { font-size: 10px; color: var(--muted); }
   .date-pill .num { font-size: 17px; font-weight: 700; color: var(--text); margin-top: 2px; line-height: 1; font-variant-numeric: tabular-nums; }
@@ -202,6 +205,8 @@
 
   /* ====== 訂單卡 ====== */
   .orders { padding: 10px 12px; }
+  /* v36: 訂單卡 hover */
+  .order-card:hover { box-shadow: 0 2px 12px rgba(53,112,168,0.15); transform: translateY(-1px); transition: all 0.15s; }
   .order-card {
     background: white; border: 1px solid var(--border); border-radius: 10px;
     padding: 12px 14px; margin-bottom: 8px; cursor: pointer;
@@ -238,7 +243,7 @@
   .ttb.multi-car { background: var(--danger-soft); color: var(--danger); }
 
   .order-status {
-    font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px;
+    font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 4px;
   }
   .st-pending { background: var(--warning-soft); color: var(--warning); }
   .st-assigned { background: var(--info-soft); color: var(--info); }
@@ -413,7 +418,7 @@
   }
   .sheet-title { font-size: 15px; font-weight: 700; }
   .sheet-close { background: none; border: none; color: var(--muted); cursor: pointer; padding: 4px; }
-  .sheet-body { padding: 14px 16px 16px; }
+  .sheet-body { padding: 12px 14px 14px; }
   .sheet-footer {
     padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
     border-top: 1px solid var(--border); background: white;
@@ -708,9 +713,11 @@
     background: white; margin: 10px 12px; border-radius: 10px;
     border: 1px solid var(--border); overflow: hidden;
   }
+  .list-item:hover { background: var(--primary-soft); }
   .list-item {
     padding: 12px 14px; display: flex; align-items: center; gap: 12px;
     border-bottom: 1px solid var(--border); cursor: pointer;
+    transition: background 0.1s;
   }
   .list-item:last-child { border-bottom: none; }
   .list-item:active { background: var(--primary-50); }
@@ -1126,6 +1133,8 @@
     border-radius: 4px; line-height: 1.4;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
+  /* v36: 訂單卡 hover */
+  .order-card:hover { box-shadow: 0 2px 12px rgba(53,112,168,0.15); transform: translateY(-1px); transition: all 0.15s; }
   .order-card { padding: 12px; }
 
   .month-divider {
@@ -1203,7 +1212,8 @@
     .topbar {
       padding: 16px 32px;
     }
-    .quick-stats {
+    /* v36: quick-stats 改成緊湊一行 */
+  .quick-stats {
       grid-template-columns: repeat(4, 1fr);
     }
     .sect-head, .filter-bar, .date-strip, .date-quick-nav {
@@ -1216,7 +1226,9 @@
       grid-template-columns: repeat(2, 1fr);
       gap: 12px;
     }
-    .order-card { margin-bottom: 0 !important; }
+    /* v36: 訂單卡 hover */
+  .order-card:hover { box-shadow: 0 2px 12px rgba(53,112,168,0.15); transform: translateY(-1px); transition: all 0.15s; }
+  .order-card { margin-bottom: 0 !important; }
     .bottom-nav {
       max-width: 1440px !important;
       padding: 8px 0 calc(8px + env(safe-area-inset-bottom)) !important;
@@ -1257,7 +1269,9 @@
     }
   }
   @media (min-width: 768px) {
-    .order-card { padding: 14px 16px !important; align-self: start; }
+    /* v36: 訂單卡 hover */
+  .order-card:hover { box-shadow: 0 2px 12px rgba(53,112,168,0.15); transform: translateY(-1px); transition: all 0.15s; }
+  .order-card { padding: 14px 16px !important; align-self: start; }
     .order-card .order-route {
       line-height: 1.5;
       display: -webkit-box;
@@ -2978,8 +2992,7 @@ function renderOrderCard(o, idx) {
       </div>
       <div class="order-route">${getRouteDisplay(o)}</div>
       <div class="order-tags">
-        <span class="tag">${(!o.pax?.adult && !o.pax?.child && o.paxRaw) ? o.paxRaw : formatPax(o.pax)}</span>
-        <span class="tag">${o.carType}</span>
+        <span class="tag" style="background:#EFF6FF;color:#1E40AF;font-weight:600;">${(!o.pax?.adult && !o.pax?.child && o.paxRaw) ? o.paxRaw : formatPax(o.pax)} ・ ${o.carType}</span>
         ${o.carSeatCount > 0 ? `<span class="tag warn">需汽座 x${o.carSeatCount}</span>` : ''}
 
 
@@ -3195,6 +3208,7 @@ function renderCarSlot(order, assignment, slotIdx) {
             <span>選擇司機 <span class="required">*</span></span>
             <span class="hint">${order.priorityType ? `「${order.priorityType}」標籤+評分+趟次排序` : '評分+趟次排序'}</span>
           </label>
+          <div style="position:sticky;top:0;background:white;z-index:5;padding:4px 0;margin-bottom:4px;">
           ${(function(){
             // v34: 最近派此 leader 訂單的司機 chip
             const recent = computeRecentDrivers(order);
@@ -3208,15 +3222,16 @@ function renderCarSlot(order, assignment, slotIdx) {
                   d.name + ' <span style="opacity:0.7;font-size:9.5px;">' + r.count + '趟</span></button>';
               }).join('') + '</div></div>';
           })()}
-          <input type="text" class="form-control driver-search-input" placeholder="🔍 搜尋司機姓名 / 編號..." style="margin-bottom:8px;font-size:13px;" oninput="filterDriverPicker(${slotIdx}, this.value)">
-          <div class="driver-picker" id="driverPicker-${slotIdx}">
+          <input type="text" class="form-control driver-search-input" placeholder="🔍 搜尋司機姓名 / 編號..." style="margin-bottom:0;font-size:13px;" oninput="filterDriverPicker(${slotIdx}, this.value)">
+          </div>
+          <div class="driver-picker" id="driverPicker-${slotIdx}" style="margin-top:6px;">
             ${assignment.driverId ? (function(){const d=DRIVERS.find(x=>x.id===assignment.driverId);if(!d)return '';return `<div class="driver-group-head" style="background:var(--primary-soft);color:var(--primary);">✓ 已選擇司機</div>${renderDriverRow({d:d,status:'available',tagMatch:false,langMatch:true,jobs:[]},slotIdx,assignment.driverId,false,order)}`;})() : ''}
             ${groups.available.length ? `<div class="driver-group-head"><span class="gh-dot av"></span>可派車（${groups.available.length}）</div>${groups.available.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}` : ''}
             ${groups.partial.length ? `<div class="driver-group-head"><span class="gh-dot partial"></span>同日有班次但時段不衝突（${groups.partial.length}）</div>${groups.partial.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}` : ''}
             ${groups.daytripWarn.length ? `<div class="driver-group-head"><span class="gh-dot daytrip"></span>同日有一日遊/多日（${groups.daytripWarn.length}）</div>${groups.daytripWarn.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}` : ''}
-            ${groups.busy.length ? `<div class="driver-group-head"><span class="gh-dot busy"></span>時段衝突無法派車（${groups.busy.length}）</div>${groups.busy.map(g => renderDriverRow(g, slotIdx, assignment.driverId, true, order)).join('')}` : ''}
-            ${groups.used.length ? `<div class="driver-group-head"><span class="gh-dot busy"></span>已被本訂單其他車指派（${groups.used.length}）</div>${groups.used.map(g => renderDriverRow(g, slotIdx, assignment.driverId, true, order)).join('')}` : ''}
-            ${groups.off.length ? `<div class="driver-group-head"><span class="gh-dot off"></span>休假（${groups.off.length}）</div>${groups.off.map(g => renderDriverRow(g, slotIdx, assignment.driverId, true, order)).join('')}` : ''}
+            ${groups.busy.length ? `<details style="margin-top:6px;"><summary style="cursor:pointer;padding:6px 10px;background:var(--danger-soft);border-radius:6px;font-size:12px;font-weight:600;color:var(--danger);">⚠ 時段衝突無法派車（${groups.busy.length}）</summary>${groups.busy.map(g => renderDriverRow(g, slotIdx, assignment.driverId, true, order)).join('')}</details>` : ''}
+            ${groups.used.length ? `<details style="margin-top:6px;"><summary style="cursor:pointer;padding:6px 10px;background:#FEE2E2;border-radius:6px;font-size:12px;font-weight:600;color:#991B1B;">🚫 已被本訂單其他車指派（${groups.used.length}）</summary>${groups.used.map(g => renderDriverRow(g, slotIdx, assignment.driverId, true, order)).join('')}</details>` : ''}
+            ${groups.off.length ? `<details style="margin-top:6px;"><summary style="cursor:pointer;padding:6px 10px;background:var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--muted);">🛏 休假中（${groups.off.length}） — 點開展開</summary>${groups.off.map(g => renderDriverRow(g, slotIdx, assignment.driverId, true, order)).join('')}</details>` : ''}
           </div>
         </div>
 
