@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v42</title>
+<title>旅乘派車系統 v43</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -3117,10 +3117,10 @@ function renderOrderCard(o) {
 }
 
 function renderOrders() {
-  // v42: 預設「今天+明天」並排，除非使用者手動點了單一日期
+  // v43: 預設今+明（強化版）
   const _td = (function(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })();
   const _tmr = (function(){ const d=new Date(Date.now()+86400000); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })();
-  const _showTodayTomorrow = (!state._manualDateClick) && (state.currentDate === _td || state.currentDate === _tmr);
+  const _showTodayTomorrow = !state._manualDateClick;  // v43: 只要沒手動切日期就一律顯示今+明
   let dateOrders;
   if (_showTodayTomorrow) {
     dateOrders = ORDERS.tomorrow.filter(o => o.date === _td || o.date === _tmr);
@@ -3424,6 +3424,15 @@ function openEditor(idx) {
 }
 
 function renderCarSlots() {
+  // v43: 開派車面板自動 scroll 到最頂部
+  setTimeout(() => {
+    const candidates = ['sheetBody', 'sheetCard', 'sheetContent'];
+    for (const id of candidates) {
+      const el = document.getElementById(id);
+      if (el) el.scrollTop = 0;
+    }
+    document.querySelectorAll('.sheet, .sheet-content, .sheet-body').forEach(el => el.scrollTop = 0);
+  }, 50);
   const o = state.editingOrder.data;
   document.getElementById('carSlotsContainer').innerHTML =
     state.editingAssignments.map((a, i) => renderCarSlot(o, a, i)).join('');
@@ -3513,16 +3522,28 @@ function renderCarSlot(order, assignment, slotIdx) {
             <span>選擇車輛 <span class="required">*</span></span>
             <span class="hint">${VEHICLES.length} 台可選</span>
           </label>
-          <select class="form-control" id="vehicleSelect-${slotIdx}" onchange="onVehicleChange(${slotIdx})">
+          <!-- v43: 改為可搜尋的 picker，並可滾 + 不限高 -->
+          <input type="text" class="form-control vehicle-search-input" id="vehicleSearch-${slotIdx}" placeholder="🔍 搜尋車牌 / 車型..." style="margin-bottom:6px;font-size:13px;" oninput="filterVehiclePicker(${slotIdx}, this.value)">
+          <div class="vehicle-picker" id="vehiclePicker-${slotIdx}" style="border:1px solid var(--border);border-radius:6px;max-height:320px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;">
+            ${['7座','10座','19座'].map(cat => {
+              const items = VEHICLES.filter(v => v.category === cat);
+              if (items.length === 0) return '';
+              return '<div class="vp-group-head" style="background:var(--bg);padding:6px 12px;font-size:11px;font-weight:600;color:var(--muted);position:sticky;top:0;border-bottom:1px solid var(--border);">' + cat + ' (' + items.length + ' 台)</div>' +
+                items.map(v => {
+                  const sel = assignment.vehicleId === v.id;
+                  return '<div class="vp-item" data-vid="' + v.id + '" data-plate="' + (v.plate||'').toLowerCase() + '" data-model="' + (v.model||'').toLowerCase() + '" onclick="selectVehicleForSlot(' + slotIdx + ', \'' + v.id + '\')" style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;display:flex;justify-content:space-between;align-items:center;' + (sel ? 'background:var(--primary-soft);color:var(--primary);font-weight:600;' : '') + '">' +
+                    '<span><span style="font-weight:600;">' + (v.plate || '?') + '</span>' + (v.model ? ' <span style="color:var(--muted);font-size:11.5px;">・ ' + v.model + '</span>' : '') + (v.color ? ' <span style="color:var(--muted);font-size:11.5px;">(' + v.color + ')</span>' : '') + '</span>' +
+                    (sel ? '<span style="color:var(--primary);">✓</span>' : '') +
+                    '</div>';
+                }).join('');
+            }).join('')}
+            <div onclick="onVehicleChange(${slotIdx}); document.getElementById('vehicleSelect-${slotIdx}').value='__NEW__'" style="padding:10px 12px;cursor:pointer;background:var(--primary-soft);color:var(--primary);font-weight:600;text-align:center;border-top:2px dashed var(--primary);">＋ 新增車輛（不在清單）</div>
+          </div>
+          <!-- v43: 隱藏 select 仍保留作為儲存目標 -->
+          <select class="form-control" id="vehicleSelect-${slotIdx}" onchange="onVehicleChange(${slotIdx})" style="display:none;">
             <option value="">請選擇車輛...</option>
-            ${['7座','10座','19座'].map(cat => `
-              <optgroup label="${cat}">
-                ${VEHICLES.filter(v => v.category === cat).map(v => `
-                  <option value="${v.id}" ${assignment.vehicleId === v.id ? 'selected' : ''}>${v.plate} ・ ${v.model} (${v.color})</option>
-                `).join('')}
-              </optgroup>
-            `).join('')}
-            <option value="__NEW__" style="font-weight:600;color:var(--primary);">＋ 新增車輛（不在清單）</option>
+            ${VEHICLES.map(v => '<option value="' + v.id + '" ' + (assignment.vehicleId === v.id ? 'selected' : '') + '>' + v.plate + '</option>').join('')}
+            <option value="__NEW__">__NEW__</option>
           </select>
           <div id="newVehicleBox-${slotIdx}" style="display:none;background:var(--primary-soft);border:1px solid var(--primary);padding:8px;border-radius:6px;margin-top:6px;">
             <div style="font-size:11px;color:var(--primary);font-weight:600;margin-bottom:6px;">📝 新增車輛資料</div>
@@ -3682,10 +3703,6 @@ function selectDriverForSlot(slotIdx, driverId) {
   }
   renderCarSlots();
 }
-function selectVehicleForSlot(slotIdx, vid) {
-  state.editingAssignments[slotIdx].vehicleId = vid;
-  document.getElementById(`vehicleSelect-${slotIdx}`).value = vid;
-}
 function clearDriverSelection(slotIdx) {
   state.editingAssignments[slotIdx].driverId = null;
   state.editingAssignments[slotIdx].fee = null;
@@ -3701,6 +3718,37 @@ function onVehicleChange(slotIdx) {
     if (newBox) newBox.style.display = 'none';
     state.editingAssignments[slotIdx].vehicleId = val;
   }
+}
+// v43: 車輛 picker 搜尋過濾
+function filterVehiclePicker(slotIdx, q) {
+  q = (q || '').toLowerCase().trim();
+  const picker = document.getElementById('vehiclePicker-' + slotIdx);
+  if (!picker) return;
+  const items = picker.querySelectorAll('.vp-item');
+  let visibleByGroup = {};
+  items.forEach(it => {
+    const plate = it.dataset.plate || '';
+    const model = it.dataset.model || '';
+    const matches = !q || plate.includes(q) || model.includes(q);
+    it.style.display = matches ? '' : 'none';
+  });
+  // 群組標題若該組沒任何可見 item 就隱藏
+  picker.querySelectorAll('.vp-group-head').forEach(head => {
+    let next = head.nextElementSibling;
+    let anyVisible = false;
+    while (next && !next.classList.contains('vp-group-head')) {
+      if (next.classList.contains('vp-item') && next.style.display !== 'none') { anyVisible = true; break; }
+      next = next.nextElementSibling;
+    }
+    head.style.display = anyVisible ? '' : 'none';
+  });
+}
+function selectVehicleForSlot(slotIdx, vid) {
+  state.editingAssignments[slotIdx].vehicleId = vid;
+  const sel = document.getElementById(`vehicleSelect-${slotIdx}`);
+  if (sel) sel.value = vid;
+  // 重渲整個 slot 才能反映「✓ 已選」標示
+  renderCarSlots();
 }
 function onNewVehicleInput(slotIdx) {
   const plate = document.getElementById(`newVehPlate-${slotIdx}`)?.value?.trim();
