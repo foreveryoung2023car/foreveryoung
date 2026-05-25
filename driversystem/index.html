@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v43</title>
+<title>旅乘派車系統 v44</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -2952,6 +2952,11 @@ function showNotifyHistory() {
 
 /* ============ 日期 strip ============ */
 function renderDateStrip() {
+  try {  // v44: 包 try/catch 避免拖累 renderOrders
+  _renderDateStripBody();
+  } catch (e) { console.warn('[renderDateStrip] error:', e); }
+}
+function _renderDateStripBody() {
   recomputeDateCounts();
   recomputeQuickStats();  // v23: 確保 date count 是最新的
   recomputeMultiDayInfo();  // v29: 算連續日資訊
@@ -2979,11 +2984,14 @@ function renderDateStrip() {
   const today = _fmt(_d);
   const tomorrow = _fmt(new Date(_d.getFullYear(), _d.getMonth(), _d.getDate()+1));
   const nextWeek = _fmt(new Date(_d.getFullYear(), _d.getMonth(), _d.getDate()+7));
-  document.getElementById('dqToday').classList.toggle('active', state.currentDate === today);
-  document.getElementById('dqTomorrow').classList.toggle('active', state.currentDate === tomorrow);
-  document.getElementById('dqNextWeek').classList.toggle('active', state.currentDate === nextWeek);
-  document.getElementById('dqHistory').classList.toggle('active', state.dateStripShowAll);
-  document.getElementById('dqHistory').textContent = state.dateStripShowAll ? '⊳ 收合' : '⊲ 歷史';
+  // v44: null-safe — 這些 element 不一定存在
+  const _toggle = (id, on) => { const e = document.getElementById(id); if (e) e.classList.toggle('active', on); };
+  _toggle('dqToday', state.currentDate === today);
+  _toggle('dqTomorrow', state.currentDate === tomorrow);
+  _toggle('dqNextWeek', state.currentDate === nextWeek);
+  _toggle('dqHistory', state.dateStripShowAll);
+  const _hist = document.getElementById('dqHistory');
+  if (_hist) _hist.textContent = state.dateStripShowAll ? '⊳ 收合' : '⊲ 歷史';
 
   // 自動滾動到目前選中日期
   setTimeout(() => {
@@ -3522,8 +3530,10 @@ function renderCarSlot(order, assignment, slotIdx) {
             <span>選擇車輛 <span class="required">*</span></span>
             <span class="hint">${VEHICLES.length} 台可選</span>
           </label>
-          <!-- v43: 改為可搜尋的 picker，並可滾 + 不限高 -->
-          <input type="text" class="form-control vehicle-search-input" id="vehicleSearch-${slotIdx}" placeholder="🔍 搜尋車牌 / 車型..." style="margin-bottom:6px;font-size:13px;" oninput="filterVehiclePicker(${slotIdx}, this.value)">
+          <!-- v44: 回到 native select（解決派車面板打不開）+ 上方搜尋只 filter -->
+          <input type="text" class="form-control" id="vehicleSearch-${slotIdx}" placeholder="🔍 搜尋車牌 / 車型 (打字過濾選單)" style="margin-bottom:6px;font-size:13px;" oninput="filterVehicleSelect(${slotIdx}, this.value)">
+          <!-- v43: 改為可搜尋的 picker，並可滾 + 不限高 (隱藏) -->
+          <input type="text" class="form-control vehicle-search-input" id="vehicleSearchHidden-${slotIdx}" style="display:none;" placeholder="🔍 搜尋車牌 / 車型..." style="margin-bottom:6px;font-size:13px;" oninput="filterVehiclePicker(${slotIdx}, this.value)">
           <div class="vehicle-picker" id="vehiclePicker-${slotIdx}" style="border:1px solid var(--border);border-radius:6px;max-height:320px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;">
             ${['7座','10座','19座'].map(cat => {
               const items = VEHICLES.filter(v => v.category === cat);
@@ -3539,11 +3549,15 @@ function renderCarSlot(order, assignment, slotIdx) {
             }).join('')}
             <div onclick="onVehicleChange(${slotIdx}); document.getElementById('vehicleSelect-${slotIdx}').value='__NEW__'" style="padding:10px 12px;cursor:pointer;background:var(--primary-soft);color:var(--primary);font-weight:600;text-align:center;border-top:2px dashed var(--primary);">＋ 新增車輛（不在清單）</div>
           </div>
-          <!-- v43: 隱藏 select 仍保留作為儲存目標 -->
-          <select class="form-control" id="vehicleSelect-${slotIdx}" onchange="onVehicleChange(${slotIdx})" style="display:none;">
+          <!-- v44: 重新顯示 native select，加上 size 讓它變成可見的清單 -->
+          <select class="form-control" id="vehicleSelect-${slotIdx}" onchange="onVehicleChange(${slotIdx})" size="8" style="height:auto;min-height:200px;font-size:13px;font-family:monospace;">
             <option value="">請選擇車輛...</option>
-            ${VEHICLES.map(v => '<option value="' + v.id + '" ' + (assignment.vehicleId === v.id ? 'selected' : '') + '>' + v.plate + '</option>').join('')}
-            <option value="__NEW__">__NEW__</option>
+            ${['7座','10座','19座'].map(cat => {
+              const items = VEHICLES.filter(v => v.category === cat);
+              if (items.length === 0) return '';
+              return '<optgroup label="━━ ' + cat + ' (' + items.length + ' 台) ━━">' + items.map(v => '<option value="' + v.id + '" ' + (assignment.vehicleId === v.id ? 'selected' : '') + '>' + (v.plate || '?') + (v.model ? ' · ' + v.model : '') + (v.color ? ' (' + v.color + ')' : '') + '</option>').join('') + '</optgroup>';
+            }).join('')}
+            <option value="__NEW__" style="font-weight:600;color:#1677ff;">＋ 新增車輛（不在清單）</option>
           </select>
           <div id="newVehicleBox-${slotIdx}" style="display:none;background:var(--primary-soft);border:1px solid var(--primary);padding:8px;border-radius:6px;margin-top:6px;">
             <div style="font-size:11px;color:var(--primary);font-weight:600;margin-bottom:6px;">📝 新增車輛資料</div>
@@ -3718,6 +3732,17 @@ function onVehicleChange(slotIdx) {
     if (newBox) newBox.style.display = 'none';
     state.editingAssignments[slotIdx].vehicleId = val;
   }
+}
+// v44: 搜尋過濾 native select 的 options
+function filterVehicleSelect(slotIdx, q) {
+  q = (q || '').toLowerCase().trim();
+  const sel = document.getElementById('vehicleSelect-' + slotIdx);
+  if (!sel) return;
+  Array.from(sel.options).forEach(opt => {
+    if (!opt.value || opt.value === '__NEW__') { opt.hidden = false; return; }
+    const t = (opt.textContent || '').toLowerCase();
+    opt.hidden = q && !t.includes(q);
+  });
 }
 // v43: 車輛 picker 搜尋過濾
 function filterVehiclePicker(slotIdx, q) {
