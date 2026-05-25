@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v41</title>
+<title>旅乘派車系統 v39</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -1380,20 +1380,18 @@
   .orders { align-items: start; }
   /* v25: 桌機 (≥1100px) 自動套用條列檢視 - 不需要 toggle */
   @media (min-width: 1100px) {
-    /* v40: 備註改為下方整列展開、路線給更多空間、整體更鬆 */
     .orders { display: block !important; padding: 8px 24px 40px !important; }
-    .orders .order-card { display: grid; grid-template-columns: 96px 100px 1fr 130px 100px; gap: 14px; align-items: center; padding: 14px 16px !important; margin-bottom: 10px !important; row-gap: 6px; }
+    .orders .order-card { display: grid; grid-template-columns: 90px 110px 1fr 180px 110px 100px; gap: 10px; align-items: center; padding: 12px 14px !important; margin-bottom: 8px !important; }
     .orders .order-card .order-row1 { grid-column: 1 / 2; flex-direction: column; align-items: flex-start; gap: 2px; }
     .orders .order-card .order-time { grid-column: 2 / 3; font-size: 12px; -webkit-line-clamp: unset !important; }
-    .orders .order-card .order-route { grid-column: 3 / 4; font-size: 12.5px; -webkit-line-clamp: 3 !important; line-height: 1.45; }
-    .orders .order-card .order-tags { grid-column: 4 / 5; flex-wrap: wrap; gap: 3px; justify-content: flex-start; }
-    .orders .order-card .order-actions { grid-column: 5 / 6; margin-top: 0 !important; }
+    .orders .order-card .order-route { grid-column: 3 / 4; font-size: 12px; -webkit-line-clamp: 2 !important; }
+    .orders .order-card .order-tags { grid-column: 5 / 6; flex-wrap: wrap; gap: 3px; justify-content: flex-end; }
+    .orders .order-card .order-actions { grid-column: 6 / 7; margin-top: 0 !important; }
     .orders .order-card .order-tags .tag { font-size: 10.5px; padding: 1px 6px; }
-    /* 備註改為下方整列，最大可讀寬度，最多 4 行 */
-    .orders .order-card .order-remark { grid-column: 1 / -1; font-size: 11.5px; padding: 6px 10px; -webkit-line-clamp: 4 !important; margin: 0; background: var(--warning-soft); border: 1px solid var(--warning); border-radius: 5px; line-height: 1.45; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
-    .orders .order-card .order-remark .lbl { display: inline-block; font-size: 9.5px; opacity: 0.7; margin-right: 4px; font-weight: 600; }
+    .orders .order-card .order-remark { grid-column: 4 / 5; font-size: 11px; padding: 4px 8px; -webkit-line-clamp: 2 !important; margin: 0; background: var(--warning-soft); border: 1px solid var(--warning); border-radius: 5px; line-height: 1.35; }
+    .orders .order-card .order-remark .lbl { display: block; font-size: 9px; opacity: 0.7; margin: 0; }
     .orders .order-card .order-update-log { grid-column: 1 / -1; font-size: 11px; padding: 4px 8px; -webkit-line-clamp: 1 !important; }
-    .orders .order-card .order-assigned-info { grid-column: 1 / -1; padding: 6px 10px; font-size: 11.5px; }
+    .orders .order-card .order-assigned-info { grid-column: 1 / -1; padding: 4px 8px; font-size: 11px; }
     .orders .order-card .rating-block,
     .orders .order-card .rating-empty { grid-column: 1 / -1; }
   }
@@ -1942,44 +1940,12 @@ async function doLoginReal() {
 
 async function loadRealData() {
   if (!currentUser) return;
+  // v22: 先清空 mock data，避免閃現
+  ORDERS.tomorrow.length = 0;
   const ol = document.getElementById('ordersList');
+  if (ol) ol.innerHTML = '<div class="empty" style="padding:40px 20px;"><div class="loading-spin" style="width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;margin:0 auto;animation:spin 0.8s linear infinite;"></div><div style="margin-top:10px;color:var(--muted);font-size:12px;">第一批訂單（近 3 天）載入中...</div></div>';
   const region = currentUser.regionCode;
   console.log('[loadRealData] region =', region);
-
-  // v40: localStorage 快取 — 第 2 次以上進來瞬開
-  const CACHE_KEY = 'dispatch_cache_' + (currentUser.email || currentUser.name || 'default');
-  let usedCache = false;
-  try {
-    const cachedRaw = localStorage.getItem(CACHE_KEY);
-    if (cachedRaw) {
-      const c = JSON.parse(cachedRaw);
-      // 6 小時內的快取就用
-      if (c && c.ts && Date.now() - c.ts < 6 * 3600 * 1000 && c.orders && c.orders.length > 0) {
-        DRIVERS.length = 0; (c.drivers||[]).forEach(d => DRIVERS.push(d));
-        VEHICLES.length = 0; (c.vehicles||[]).forEach(v => VEHICLES.push(v));
-        ORDERS.tomorrow.length = 0; c.orders.forEach(o => ORDERS.tomorrow.push(o));
-        if (c.currentDate) state.currentDate = c.currentDate;
-        renderDateStrip();
-        renderOrders();
-        recomputeQuickStats();
-        usedCache = true;
-        console.log('[Cache] 已用快取載入，背景同步最新中...');
-        if (ol) {
-          const banner = document.createElement('div');
-          banner.id = 'cacheBanner';
-          banner.style.cssText = 'background:#e0f2fe;color:#075985;padding:6px 12px;font-size:11px;text-align:center;border-bottom:1px solid #bae6fd;';
-          banner.textContent = '⚡ 已從本地快取秒開（背景同步最新中... ' + new Date(c.ts).toLocaleTimeString('ja-JP', {timeZone:'Asia/Tokyo', hour:'2-digit', minute:'2-digit'}) + ' 快取）';
-          if (ol.parentElement) ol.parentElement.insertBefore(banner, ol);
-        }
-      }
-    }
-  } catch (e) { console.warn('[Cache] 讀取失敗', e); }
-
-  // 若無快取，顯示原本的 loading 動畫
-  if (!usedCache) {
-    ORDERS.tomorrow.length = 0;
-    if (ol) ol.innerHTML = '<div class="empty" style="padding:40px 20px;"><div class="loading-spin" style="width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;margin:0 auto;animation:spin 0.8s linear infinite;"></div><div style="margin-top:10px;color:var(--muted);font-size:12px;">第一批訂單（近 3 天）載入中...</div></div>';
-  }
 
   // v28: 漸進載入 + 先 sync 派車紀錄
   const today = new Date();
@@ -2064,42 +2030,6 @@ async function loadRealData() {
   renderOrders();
   recomputeQuickStats();  // v24: 確保快速統計也跑
 
-  // v41: 強制保證 spinner 已被清掉（防 renderOrders 內部任何 early return）
-  if (ol && ol.innerHTML.includes('第一批訂單') && ORDERS.tomorrow.length > 0) {
-    console.warn('[v41] Spinner 沒清掉，強制 re-render');
-    renderOrders();
-  }
-  // v41: 若 'all' 該日是 0 但 pending 有資料，自動切到 pending tab（避免空畫面）
-  setTimeout(() => {
-    try {
-      const cntAll = parseInt(document.getElementById('cntAll')?.textContent || '0');
-      const cntPending = parseInt(document.getElementById('cntPending')?.textContent || '0');
-      const list = document.getElementById('ordersList');
-      const looksEmpty = list && (list.innerHTML.includes('第一批訂單') || list.innerHTML.trim() === '' || list.children.length === 0);
-      if (looksEmpty && ORDERS.tomorrow.length > 0) {
-        console.warn('[v41] 初始 render 看起來空，強制 renderOrders 一次');
-        renderOrders();
-      }
-      if (cntAll === 0 && cntPending > 0) {
-        console.log('[v41] all=0 pending>0 → 自動切到 待派');
-        setFilter('pending');
-      }
-    } catch (e) { console.error('[v41 safety] ', e); }
-  }, 200);
-
-  // v40: 第一批 fetch 完成 → 寫入快取 + 移除快取 banner
-  try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify({
-      ts: Date.now(),
-      drivers: DRIVERS,
-      vehicles: VEHICLES,
-      orders: ORDERS.tomorrow,
-      currentDate: state.currentDate
-    }));
-  } catch (e) { console.warn('[Cache] 寫入失敗', e); }
-  const cb = document.getElementById('cacheBanner');
-  if (cb) cb.remove();
-
   // v26: 背景補拉「過去 7 天 ~ 未來 60 天」其他訂單
   setTimeout(async () => {
     try {
@@ -2128,16 +2058,6 @@ async function loadRealData() {
         renderDateStrip();
         renderOrders();
         recomputeQuickStats();
-        // v40: 補拉完成 → 更新快取（含全部訂單）
-        try {
-          localStorage.setItem(CACHE_KEY, JSON.stringify({
-            ts: Date.now(),
-            drivers: DRIVERS,
-            vehicles: VEHICLES,
-            orders: ORDERS.tomorrow,
-            currentDate: state.currentDate
-          }));
-        } catch (e) { console.warn('[Cache] 寫入失敗', e); }
       }
     } catch (err) { console.error('[Orders+] 補拉失敗:', err); }
   }, 100);
@@ -3323,7 +3243,7 @@ function openEditor(idx) {
       if (otherUnassigned.length > 0) {
         multiDayBanner += '<label style="display:flex;align-items:center;gap:8px;background:white;padding:8px 10px;border-radius:6px;margin-top:8px;cursor:pointer;color:var(--text);font-weight:600;"><input type="checkbox" id="bulkAllDays" onchange="document.getElementById(\'bulkFeeDetail\').style.display=this.checked?\'block\':\'none\'" style="width:18px;height:18px;cursor:pointer;"> 🚀 同步派全部 ' + o._multiDayCount + ' 天（含此單 + 其他 ' + otherUnassigned.length + ' 天）</label>';
         multiDayBanner += '<div id="bulkFeeDetail" style="display:none;background:white;padding:8px 10px;border-radius:6px;margin-top:4px;color:var(--text);">';
-        multiDayBanner += '<div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px;">每天費用</div>';
+        multiDayBanner += '<div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px;">每天費用（用訂單收支表 G 欄原費，下方 input 不影響 bulk）</div>';
         multiDayBanner += dayFeeList;
         multiDayBanner += '<div style="display:flex;justify-content:space-between;padding-top:6px;margin-top:4px;border-top:1px dashed var(--border);font-weight:700;color:var(--primary);"><span>合計</span><span style="font-family:monospace;">¥' + totalFee.toLocaleString() + '</span></div>';
         multiDayBanner += '</div>';
@@ -3406,8 +3326,7 @@ function renderCarSlots() {
 
 function renderCarSlot(order, assignment, slotIdx) {
   const usedIds = state.editingAssignments.map((a, i) => i !== slotIdx ? a.driverId : null).filter(Boolean);
-  // v41: 排除停用司機（disabled），不出現在派車選單
-  const allDrivers = DRIVERS.filter(d => !d.disabled).map(d => {
+  const allDrivers = DRIVERS.map(d => {
     const status = getDriverConflictStatus(d.id, order);
     const tagMatch = order.priorityType && d.tags.includes(order.priorityType);
     const langMatch = !order.requireLang || order.requireLang.length === 0 || order.requireLang.every(l => d.languages.includes(l));
@@ -3437,8 +3356,7 @@ function renderCarSlot(order, assignment, slotIdx) {
 
   const selectedDriver = assignment.driverId ? DRIVERS.find(d => d.id === assignment.driverId) : null;
   const history = assignment.driverId ? (DRIVER_VEHICLE_HISTORY[assignment.driverId] || []) : [];
-  // v40: 費用預設順序 = 已存的 fee → 訂單收支表 G 欄原費（最常用）→ 司機預設 → 30000
-  const feeValue = assignment.fee || (order.driverFee > 0 ? order.driverFee : null) || selectedDriver?.defaultFee || 30000;
+  const feeValue = assignment.fee || selectedDriver?.defaultFee || 30000;
   const canRemove = state.editingAssignments.length > 1;
 
   return `
@@ -3474,7 +3392,7 @@ function renderCarSlot(order, assignment, slotIdx) {
           <input type="text" class="form-control driver-search-input" placeholder="🔍 搜尋司機姓名 / 編號..." style="margin-bottom:0;font-size:13px;" oninput="filterDriverPicker(${slotIdx}, this.value)">
           </div>
           <div class="driver-picker" id="driverPicker-${slotIdx}" style="margin-top:6px;">
-            ${assignment.driverId ? (function(){const d=DRIVERS.find(x=>x.id===assignment.driverId);if(!d)return '';return `<div class="driver-group-head" style="background:var(--primary-soft);color:var(--primary);display:flex;justify-content:space-between;align-items:center;">✓ 已選擇司機 <button onclick="clearDriverSelection(${slotIdx})" style="background:white;color:var(--danger);border:1px solid var(--danger);padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;cursor:pointer;">✕ 取消選擇</button></div>${renderDriverRow({d:d,status:'available',tagMatch:false,langMatch:true,jobs:[]},slotIdx,assignment.driverId,false,order)}`;})() : ''}
+            ${assignment.driverId ? (function(){const d=DRIVERS.find(x=>x.id===assignment.driverId);if(!d)return '';return `<div class="driver-group-head" style="background:var(--primary-soft);color:var(--primary);">✓ 已選擇司機</div>${renderDriverRow({d:d,status:'available',tagMatch:false,langMatch:true,jobs:[]},slotIdx,assignment.driverId,false,order)}`;})() : ''}
             ${groups.available.length ? `<div class="driver-group-head"><span class="gh-dot av"></span>可派車（${groups.available.length}）</div>${groups.available.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}` : ''}
             ${groups.partial.length ? `<div class="driver-group-head"><span class="gh-dot partial"></span>同日有班次但時段不衝突（${groups.partial.length}）</div>${groups.partial.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}` : ''}
             ${groups.daytripWarn.length ? `<div class="driver-group-head"><span class="gh-dot daytrip"></span>同日有一日遊/多日（${groups.daytripWarn.length}）</div>${groups.daytripWarn.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}` : ''}
@@ -3498,26 +3416,10 @@ function renderCarSlot(order, assignment, slotIdx) {
                 `).join('')}
               </optgroup>
             `).join('')}
-            <option value="__NEW__" style="font-weight:600;color:var(--primary);">＋ 新增車輛（不在清單）</option>
           </select>
-          <!-- v41: 新增車輛內嵌 input（預設隱藏，select 選 __NEW__ 才顯示）-->
-          <div id="newVehicleBox-${slotIdx}" style="display:none;background:var(--primary-soft);border:1px solid var(--primary);padding:8px;border-radius:6px;margin-top:6px;">
-            <div style="font-size:11px;color:var(--primary);font-weight:600;margin-bottom:6px;">📝 新增車輛資料（暫存本機，後台同步後永久存）</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-              <input class="form-control" id="newVehPlate-${slotIdx}" placeholder="車牌 (例 5566-A)" style="font-size:13px;" oninput="onNewVehicleInput(${slotIdx})">
-              <input class="form-control" id="newVehModel-${slotIdx}" placeholder="車型 (例 Toyota Haice)" style="font-size:13px;" oninput="onNewVehicleInput(${slotIdx})">
-              <select class="form-control" id="newVehCat-${slotIdx}" style="font-size:13px;" onchange="onNewVehicleInput(${slotIdx})">
-                <option value="7座">7座</option>
-                <option value="10座">10座</option>
-                <option value="19座">19座</option>
-              </select>
-              <input class="form-control" id="newVehColor-${slotIdx}" placeholder="顏色 (例 白)" style="font-size:13px;" oninput="onNewVehicleInput(${slotIdx})">
-            </div>
-            <div style="font-size:10.5px;color:var(--muted);margin-top:4px;">✓ 填完車牌後自動帶入</div>
-          </div>
-          ${(history.length && selectedDriver) ? `
+          ${history.length ? `
             <div class="vehicle-recommend">
-              <div class="vr-head">⭐ ${selectedDriver.name}司機常用車輛</div>
+              <div class="vr-head">⭐ ${selectedDriver?.name || ''}司機常用車輛</div>
               <div class="vr-chips">${history.map(h => `<div class="vr-chip" onclick="selectVehicleForSlot(${slotIdx}, '${h.vid}')">${h.plate}<span class="freq">${h.count}次</span></div>`).join('')}</div>
             </div>` : ''}
         </div>
@@ -3666,45 +3568,8 @@ function selectVehicleForSlot(slotIdx, vid) {
   state.editingAssignments[slotIdx].vehicleId = vid;
   document.getElementById(`vehicleSelect-${slotIdx}`).value = vid;
 }
-// v40: 取消已選擇的司機（編輯中）
-function clearDriverSelection(slotIdx) {
-  state.editingAssignments[slotIdx].driverId = null;
-  // 同時把 fee 也清掉，下次選新司機才會用該訂單的原費
-  state.editingAssignments[slotIdx].fee = null;
-  renderCarSlots();
-}
 function onVehicleChange(slotIdx) {
-  const val = document.getElementById(`vehicleSelect-${slotIdx}`).value;
-  const newBox = document.getElementById(`newVehicleBox-${slotIdx}`);
-  if (val === '__NEW__') {
-    // v41: 選了「新增車輛」→ 展開 input
-    if (newBox) newBox.style.display = 'block';
-    state.editingAssignments[slotIdx].vehicleId = '';
-  } else {
-    if (newBox) newBox.style.display = 'none';
-    state.editingAssignments[slotIdx].vehicleId = val;
-  }
-}
-// v41: 新車輛 input — 填完車牌就自動 push 到 VEHICLES 並選定
-function onNewVehicleInput(slotIdx) {
-  const plate = document.getElementById(`newVehPlate-${slotIdx}`)?.value?.trim();
-  const model = document.getElementById(`newVehModel-${slotIdx}`)?.value?.trim() || '';
-  const cat = document.getElementById(`newVehCat-${slotIdx}`)?.value || '7座';
-  const color = document.getElementById(`newVehColor-${slotIdx}`)?.value?.trim() || '';
-  if (!plate) return;
-  // 找看看是否已新增過此車牌（避免重複）
-  let v = VEHICLES.find(x => x.plate === plate);
-  if (!v) {
-    v = { id: 'V_NEW_' + Date.now(), plate, model, category: cat, color, seat: parseInt(cat) || 7 };
-    VEHICLES.push(v);
-    console.log('[v41] 新增車輛:', v);
-  } else {
-    // 更新欄位
-    v.model = model || v.model;
-    v.category = cat;
-    v.color = color || v.color;
-  }
-  state.editingAssignments[slotIdx].vehicleId = v.id;
+  state.editingAssignments[slotIdx].vehicleId = document.getElementById(`vehicleSelect-${slotIdx}`).value;
 }
 // v35: 一鍵設定 fee
 function setFeeQuick(slotIdx, value) {
@@ -4369,19 +4234,9 @@ function openEditDriverSheet(driverId) {
   html += '<label class="pu-btn" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;">📸 拍照<input type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleDriverPhotoFile(event)"></label>';
   html += '<button class="pu-btn" onclick="promptPhotoUrl()">🔗 網址</button>';
   html += '<button class="pu-btn" onclick="removePhoto()">🗑 移除</button>';
-  // v41: 顯眼 ImgBB 設定狀態
-  const _ibKey = window.IMGBB_API_KEY || localStorage.getItem('imgbb_api_key');
-  const _ibStatus = _ibKey ? '<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:600;">✅ ImgBB 已連線</span>' : '<span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:600;">⚠ ImgBB 未連線</span>';
-  html += '</div><div class="pu-hint" id="photoUploadStatus">' + _ibStatus + ' 選擇照片後會自動上傳到 ImgBB 雲端取得永久網址，按「儲存」記入司機檔案。</div></div></div></div>';
+  html += '</div><div class="pu-hint" id="photoUploadStatus">點選照片或拍照即可即時顯示，再按下方「儲存」即會記錄到此司機檔案。<br><span style="color:var(--muted);font-size:10px;">※ 若已設定 ImgBB API Key，會自動上傳並取得永久網址</span></div></div></div></div>';
   html += '<div class="form-group"><label class="form-label"><span>司機編號</span></label><input class="form-control" value="' + driver.id + '" disabled style="background:#F9FAFB;color:var(--muted);"></div>';
   html += '<div class="form-group"><label class="form-label"><span>姓名 <span class="required">*</span></span></label><input class="form-control" id="editDriverName" value="' + driver.name + '"></div>';
-  // v41: 性別欄位
-  html += '<div class="form-group"><label class="form-label"><span>性別</span></label><select class="form-control" id="editDriverGender">';
-  html += '<option value="" ' + (!driver.gender ? 'selected' : '') + '>未設定</option>';
-  html += '<option value="男" ' + (driver.gender === '男' ? 'selected' : '') + '>男</option>';
-  html += '<option value="女" ' + (driver.gender === '女' ? 'selected' : '') + '>女</option>';
-  html += '<option value="其他" ' + (driver.gender === '其他' ? 'selected' : '') + '>其他</option>';
-  html += '</select></div>';
   html += '<div class="form-group"><label class="form-label"><span>聯絡電話</span></label><input class="form-control" id="editDriverPhone" value="' + (driver.phone || '') + '"></div>';
   html += '<div class="form-group"><label class="form-label"><span>預設日費 (¥)</span></label><input class="form-control" type="number" id="editDriverFee" value="' + driver.defaultFee + '" step="1000"></div>';
   html += '<div class="form-group"><label class="form-label"><span>語言能力</span></label><div class="tag-picker" id="editDriverLangPicker">';
@@ -4395,11 +4250,8 @@ function openEditDriverSheet(driverId) {
   });
   html += '</div></div>';
   html += '<div class="form-group"><label class="form-label"><span>狀態</span></label><select class="form-control" id="editDriverStatus">';
-  // v41: 三段狀態 — active / off (短期休假) / disabled (停用)
-  const curStatus = driver.disabled ? 'disabled' : (driver.off ? 'off' : 'active');
-  html += '<option value="active" ' + (curStatus === 'active' ? 'selected' : '') + '>啟用（可派車）</option>';
-  html += '<option value="off" ' + (curStatus === 'off' ? 'selected' : '') + '>休假中（短期不可派）</option>';
-  html += '<option value="disabled" ' + (curStatus === 'disabled' ? 'selected' : '') + '>🛑 停用（長期不再派車）</option>';
+  html += '<option value="active" ' + (!driver.off ? 'selected' : '') + '>啟用（可派車）</option>';
+  html += '<option value="off" ' + (driver.off ? 'selected' : '') + '>休假中</option>';
   html += '</select></div>';
   html += '<input type="hidden" id="editDriverId" value="' + driver.id + '">';
 
@@ -4437,10 +4289,9 @@ function handleDriverPhotoFile(ev) {
         if (j.success && j.data && j.data.url) {
           preview.src = j.data.url;
           preview.dataset.uploadedUrl = j.data.url;
-          // v41: 強化視覺，使用者一眼看出真的上雲端
-          if (status) status.innerHTML = '<div style="background:#dcfce7;border:1px solid #16a34a;color:#166534;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:600;">✅ 已成功上傳到 ImgBB 雲端（永久網址）</div><div style="margin-top:4px;font-size:10px;"><a href="' + j.data.url + '" target="_blank" style="color:var(--primary);">' + j.data.url + '</a></div>';
+          if (status) status.innerHTML = '✅ 已上傳到 ImgBB：<a href="' + j.data.url + '" target="_blank" style="color:var(--primary);text-decoration:underline;font-size:10px;">' + j.data.url.substring(0,50) + '...</a>';
         } else {
-          if (status) status.innerHTML = '<div style="background:#fee2e2;border:1px solid #dc2626;color:#991b1b;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:600;">❌ ImgBB 上傳失敗</div><div style="font-size:10px;margin-top:4px;">先用本地 base64 預覽（儲存後重整可能會掉）</div>';
+          if (status) status.innerHTML = '⚠ ImgBB 上傳失敗，先用本地預覽。儲存後仍會記錄 base64（注意大小）。';
         }
       } catch (err) {
         console.error('ImgBB upload error:', err);
@@ -4506,12 +4357,7 @@ function saveEditDriver() {
   driver.defaultFee = parseInt(document.getElementById('editDriverFee').value) || 30000;
   driver.languages = [...document.getElementById('editDriverLangPicker').querySelectorAll('.tag-option.selected')].map(el => el.dataset.lang);
   driver.tags = [...document.getElementById('editDriverTagPicker').querySelectorAll('.tag-option.selected')].map(el => el.dataset.tag);
-  // v41: 處理三段狀態 + 性別
-  const statusVal = document.getElementById('editDriverStatus').value;
-  driver.off = statusVal === 'off';
-  driver.disabled = statusVal === 'disabled';
-  const genderEl = document.getElementById('editDriverGender');
-  if (genderEl) driver.gender = genderEl.value;
+  driver.off = document.getElementById('editDriverStatus').value === 'off';
   // v37: 優先用 ImgBB 上傳後的永久網址，沒有才用 src（可能是 base64）
   const previewEl = document.getElementById('editPhotoPreview');
   const newPhoto = (previewEl && previewEl.dataset && previewEl.dataset.uploadedUrl) || previewEl.src;
@@ -4549,4 +4395,165 @@ function saveAdjustment() {
   if (!amount || amount <= 0) { alert('金額需大於 0'); return; }
   if (!reason) { alert('請填寫原因'); return; }
   const slot = state.editingAssignments[pendingAdjustSlot];
-  if (!slot.adjustments) slot.adjustments = []
+  if (!slot.adjustments) slot.adjustments = [];
+  slot.adjustments.push({ type, amount, reason, at: new Date().toISOString().slice(0,16).replace('T',' '), by: '林小姐' });
+  closeConfirm();
+  renderCarSlots();
+}
+function removeAdjustment(slotIdx, adjIdx) {
+  if (!confirm('確定刪除此筆獎懲記錄？')) return;
+  state.editingAssignments[slotIdx].adjustments.splice(adjIdx, 1);
+  renderCarSlots();
+}
+function renderAdjustmentsSection(slotIdx, assignment) {
+  const adjustments = assignment.adjustments || [];
+  const baseFee = assignment.fee || 0;
+  const dT = adjustments.filter(a => a.type === 'deduct').reduce((s, a) => s + a.amount, 0);
+  const bT = adjustments.filter(a => a.type === 'bonus').reduce((s, a) => s + a.amount, 0);
+  const finalFee = baseFee - dT + bT;
+  let html = '<div id="adjustBlock-' + slotIdx + '" class="adjust-block"><div class="adjust-title"><span>獎懲調整（' + adjustments.length + ' 筆）</span><span class="adjust-add-btn" onclick="openAddAdjustment(' + slotIdx + ')">+ 新增獎懲</span></div>';
+  if (adjustments.length === 0) {
+    html += '<div style="text-align:center;padding:8px;color:var(--muted-2);font-size:11px;">尚無獎懲紀錄</div>';
+  } else {
+    adjustments.forEach((adj, ai) => {
+      html += '<div class="adjust-item"><span class="adjust-type-tag ' + adj.type + '">' + (adj.type === 'deduct' ? '扣費' : '獎金') + '</span>';
+      html += '<div class="adjust-info"><div class="adjust-reason">' + adj.reason + '</div><div class="adjust-meta">' + adj.at + ' ・ ' + adj.by + '</div></div>';
+      html += '<div class="adjust-amount ' + (adj.type === 'deduct' ? 'minus' : 'plus') + '">' + (adj.type === 'deduct' ? '−' : '+') + '¥' + adj.amount.toLocaleString() + '</div>';
+      html += '<button class="adjust-delete" onclick="removeAdjustment(' + slotIdx + ', ' + ai + ')">×</button></div>';
+    });
+    html += '<div class="fee-summary">';
+    html += '<div class="fs-row"><span>原約定費用</span><span class="val">¥' + baseFee.toLocaleString() + '</span></div>';
+    if (dT > 0) html += '<div class="fs-row"><span>扣費小計</span><span class="val minus">−¥' + dT.toLocaleString() + '</span></div>';
+    if (bT > 0) html += '<div class="fs-row"><span>獎金小計</span><span class="val plus">+¥' + bT.toLocaleString() + '</span></div>';
+    html += '<div class="fs-row total"><span>司機實領</span><span class="val">¥' + finalFee.toLocaleString() + '</span></div>';
+    html += '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+/* ============ v7 通知歷史 ============ */
+let notifyHistoryFilter = 'all';
+function renderNotifyHistory() {
+  const filters = [{key:'all',name:'全部'},{key:'unread',name:'未讀'},{key:'read',name:'已讀'},{key:'handled',name:'已處理'}];
+  const counts = {all:NOTIFICATIONS.length, unread:NOTIFICATIONS.filter(n=>n.state==='unread').length, read:NOTIFICATIONS.filter(n=>n.state==='read').length, handled:NOTIFICATIONS.filter(n=>n.state==='handled').length};
+  document.getElementById('notifyHistoryBar').innerHTML = filters.map(f => '<div class="nh-filter ' + (notifyHistoryFilter === f.key ? 'active' : '') + '" onclick="setNotifyHistoryFilter(\'' + f.key + '\')">' + f.name + ' (' + counts[f.key] + ')</div>').join('');
+  let list = NOTIFICATIONS;
+  if (notifyHistoryFilter !== 'all') list = list.filter(n => n.state === notifyHistoryFilter);
+  document.getElementById('notifyHistoryList').innerHTML = list.length === 0 ? '<div class="empty">沒有通知</div>' : list.map(n => {
+    const typeText = {'new':'新訂單','modified':'已修改','cancelled':'已取消','assigned':'已派車'}[n.type];
+    return '<div class="nh-item ' + n.state + '"><div class="nh-item-row"><span class="row-tag ' + n.type + '">' + typeText + '</span><span style="font-size:11px;color:var(--muted);">' + n.timestamp + '</span></div><div class="nh-item-content"><strong>' + n.orderNo + '</strong> ・ ' + n.content + '</div><div class="nh-item-meta">' + (n.state === 'unread' ? '🔴 未讀' : (n.state === 'read' ? '✓ 已讀' : '✅ 已處理 ・ ' + n.handledBy + ' ・ ' + n.handledAt)) + '</div></div>';
+  }).join('');
+}
+function setNotifyHistoryFilter(f) { notifyHistoryFilter = f; renderNotifyHistory(); }
+
+/* ============ v7 統計排行 ============ */
+function renderStatsMonthNav() {
+  const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  // -3 月 ~ +3 月（共 7 個月，5 月為基準）
+  const _now = new Date();
+  const baseMonth = _now.getMonth() + 1;
+  const baseYear = _now.getFullYear();
+  const months = [];
+  for (let offset = -3; offset <= 3; offset++) {
+    let m = baseMonth + offset;
+    let y = baseYear;
+    if (m < 1) { m += 12; y--; }
+    if (m > 12) { m -= 12; y++; }
+    months.push({offset, month:m, year:y, name:monthNames[m-1]});
+  }
+  document.getElementById('statsMonthRow').innerHTML = months.map(m => {
+    let cls = '';
+    if (m.offset < 0) cls = 'past';
+    else if (m.offset === 0) cls = 'current';
+    else cls = 'future';
+    const isSelected = m.offset === state.statsMonthOffset;
+    return '<div class="stats-month-chip ' + cls + (isSelected ? ' selected' : '') + '" onclick="setStatsMonth(' + m.offset + ')" ' +
+      (isSelected ? 'style="box-shadow:0 0 0 2px var(--primary-soft);"' : '') + '>' +
+      m.name + '<span class="lbl">' + (m.offset === 0 ? '本月' : (m.offset === -1 ? '上月' : (m.offset === 1 ? '下月' : (m.offset < 0 ? Math.abs(m.offset)+'月前' : m.offset+'月後')))) + '</span></div>';
+  }).join('');
+}
+function setStatsMonth(offset) {
+  state.statsMonthOffset = offset;
+  renderStatsMonthNav();
+  renderStatsDriverRank();
+}
+function renderStatsDriverRank() {
+  renderStatsMonthNav();
+  const isPast = state.statsMonthOffset < 0;
+  const isFuture = state.statsMonthOffset > 0;
+  // 模擬不同月份的數據（offset 不同會有不同數字）
+  const factor = 1 + state.statsMonthOffset * 0.05;
+  const ranked = [...DRIVERS].sort((a,b) => b.servedCount - a.servedCount).slice(0, 5);
+  const maxCount = Math.round((ranked[0]?.servedCount || 1) * factor);
+  document.getElementById('statsDriverRank').innerHTML = (isFuture ?
+    '<div style="padding:12px;text-align:center;color:var(--muted);font-size:12px;background:var(--primary-soft);border-radius:8px;">📈 未來月份為「預估數據」，根據過去 3 個月平均推估</div>' : '') +
+    ranked.map(d => {
+      const c = Math.round(d.servedCount * factor);
+      return '<div class="stats-bar-item"><div style="display:flex;align-items:center;gap:6px;width:90px;">' + renderDriverAvatar(d, 'xs') + '<span style="font-size:11px;font-weight:600;">' + d.name + '</span></div><div class="sbi-bar"><div class="sbi-fill" style="width:' + (c/maxCount*100).toFixed(0) + '%;"></div></div><span class="sbi-val">' + c + ' 趟</span></div>';
+    }).join('');
+  // 更新統計卡的數字（簡單 mock）
+  const cards = document.querySelectorAll('#page-stats .stats-card-value');
+  if (cards.length >= 4) {
+    cards[0].textContent = Math.round(128 * factor);
+    cards[1].textContent = '¥' + (4.2 * factor).toFixed(1) + 'M';
+    cards[2].innerHTML = (4.7 + state.statsMonthOffset * 0.1).toFixed(1) + ' <span style="color:var(--gold);font-size:14px;">★</span>';
+    cards[3].textContent = Math.max(0.5, 2.3 - state.statsMonthOffset * 0.3).toFixed(1) + '%';
+  }
+}
+
+/* ============ 切頁 ============ */
+/* ============ 切頁 ============ */
+function switchPage(page) {
+  state.page = page;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector(`.nav-btn[data-page="${page}"]`);
+  if (btn) btn.classList.add('active');
+  if (page === 'schedule') {
+    renderScheduleGrid();
+    // v23: 提示資料尚未接真實
+    const sg = document.getElementById('scheduleGrid');
+    // v28+v35: 排班 banner 已拿掉 (排班已接真實資料)
+  }
+  if (page === 'drivers') { renderTagFilterBar(); renderDriversList(); }
+  if (page === 'vehicles') renderVehiclesList();
+  if (page === 'search') { document.getElementById('searchInput').focus(); renderSearchResults(); renderSearchDriverChips(); }
+  if (page === 'notify-history') renderNotifyHistory();
+  if (page === 'stats') {
+    renderStatsDriverRank();
+    // 已加 banner 標示為示範
+  }
+}
+
+function doLogin() {
+  doLoginReal();
+}
+function doLoginMock() {
+  document.getElementById('loginMask').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+}
+function logoutConfirm() {
+  if (confirm('確定要登出？')) {
+    document.getElementById('loginMask').style.display = 'flex';
+    document.getElementById('mainApp').style.display = 'none';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.filter-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      if (t.classList.contains('disabled')) return;
+      setFilter(t.dataset.filter);
+    });
+  });
+  renderDateStrip();
+  if (typeof dpv38Render === 'function') dpv38Render();  // v38
+  renderNotifyBanner();
+  renderOrders();
+  console.log('%c🚐 旅乘派車系統 v39', 'background:#3570a8;color:white;padding:4px 12px;border-radius:4px;font-weight:700;', '\n  • 全裝置流式 RWD\n  • orders auto-fill grid\n  • 司機詳情流式寬度');
+});
+</script>
+</body>
+</html>
