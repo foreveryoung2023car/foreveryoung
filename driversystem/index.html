@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v47</title>
+<title>旅乘派車系統 v48</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -87,6 +87,48 @@
     color: white; opacity: 0.85; cursor: pointer; padding: 2px 0;
   }
   .header-info .logout:hover { opacity: 1; }
+
+  /* ====== v48 桌機版 header 完整呈現 ====== */
+  .brand-sub-v48 {
+    display: none; margin-left: 10px; padding-left: 10px;
+    border-left: 1px solid rgba(255,255,255,0.3);
+    font-size: 12.5px; font-weight: 500; opacity: 0.9;
+    font-family: ui-monospace, monospace;
+  }
+  .header-metrics-v48 {
+    display: none; gap: 18px; align-items: center;
+    margin-right: 16px; padding-right: 16px;
+    border-right: 1px solid rgba(255,255,255,0.2);
+  }
+  .header-metrics-v48 .hm-item {
+    display: flex; flex-direction: column; align-items: center; gap: 0;
+    line-height: 1.1;
+  }
+  .header-metrics-v48 .hm-num {
+    font-size: 18px; font-weight: 700; color: white;
+    font-family: ui-monospace, monospace;
+  }
+  .header-metrics-v48 .hm-num.warn { color: #FED7AA; }
+  .header-metrics-v48 .hm-num.danger { color: #FCA5A5; }
+  .header-metrics-v48 .hm-lbl {
+    font-size: 10.5px; color: rgba(255,255,255,0.75); font-weight: 500;
+  }
+  .header-metrics-v48 .hm-status { flex-direction: row; gap: 6px; }
+  .header-metrics-v48 .hm-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: #4ade80;
+    box-shadow: 0 0 0 0 rgba(74,222,128,0.7); animation: hmPulse 2s infinite;
+  }
+  .header-metrics-v48 .hm-dot.offline { background: #f87171; animation: none; }
+  @keyframes hmPulse {
+    0% { box-shadow: 0 0 0 0 rgba(74,222,128,0.6); }
+    70% { box-shadow: 0 0 0 6px rgba(74,222,128,0); }
+    100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); }
+  }
+
+  @media (min-width: 900px) {
+    .brand-sub-v48 { display: inline-block; }
+    .header-metrics-v48 { display: flex; }
+  }
 
   .page { display: none; padding-bottom: 80px; }
   .page.active { display: block; }
@@ -1512,6 +1554,59 @@
   .orders.list-view .order-card .order-tags { grid-column: 4 / 5; flex-wrap: wrap; gap: 2px; }
   .orders.list-view .order-card .order-actions { grid-column: 5 / 6; margin-top: 0 !important; }
   .orders.list-view .order-card .order-tags .tag { font-size: 10px; padding: 1px 6px; }
+
+  /* ====== v48 表格密集視圖 ====== */
+  .orders.table-view {
+    display: block !important; padding: 6px 16px !important;
+    background: white; border-radius: 8px; border: 1px solid var(--border);
+    margin: 0 16px 16px; overflow-x: auto;
+  }
+  .orders.table-view .ov-table {
+    width: 100%; border-collapse: collapse; font-size: 12px;
+  }
+  .orders.table-view .ov-table thead th {
+    position: sticky; top: 0; background: #F0F9FF; color: #075985;
+    padding: 8px 10px; text-align: left; font-weight: 700;
+    font-size: 11px; border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+  }
+  .orders.table-view .ov-table tbody tr {
+    border-bottom: 1px solid var(--border); cursor: pointer;
+    transition: background 0.1s;
+  }
+  .orders.table-view .ov-table tbody tr:hover { background: #F0F9FF; }
+  .orders.table-view .ov-table tbody tr.row-pending { background: #FFFBEB; }
+  .orders.table-view .ov-table tbody tr.row-pending:hover { background: #FEF3C7; }
+  .orders.table-view .ov-table tbody tr.row-conflict { background: #FEE2E2; }
+  .orders.table-view .ov-table td {
+    padding: 7px 10px; vertical-align: middle; line-height: 1.4;
+  }
+  .orders.table-view .ov-table .tv-time { font-weight: 700; color: var(--primary); font-family: ui-monospace, monospace; }
+  .orders.table-view .ov-table .tv-date { font-size: 10.5px; color: var(--muted); font-family: ui-monospace, monospace; }
+  .orders.table-view .ov-table .tv-no { font-family: ui-monospace, monospace; font-size: 11px; color: var(--text-2); }
+  .orders.table-view .ov-table .tv-leader { font-weight: 600; color: var(--text); }
+  .orders.table-view .ov-table .tv-route { color: var(--muted); font-size: 11px; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .orders.table-view .ov-table .tv-driver { font-size: 11.5px; }
+  .orders.table-view .ov-table .tv-status-chip {
+    display: inline-block; padding: 2px 8px; border-radius: 10px;
+    font-size: 10.5px; font-weight: 700; color: white; white-space: nowrap;
+  }
+  .orders.table-view .ov-table .tv-status-chip.pending { background: #fa8c16; }
+  .orders.table-view .ov-table .tv-status-chip.assigned { background: #1677ff; }
+  .orders.table-view .ov-table .tv-status-chip.completed { background: #52c41a; }
+  .orders.table-view .ov-table .tv-status-chip.confirmed { background: #722ed1; }
+  .orders.table-view .ov-table .tv-cars { color: var(--text-2); font-size: 11px; }
+  .orders.table-view .ov-table .tv-fee { font-family: ui-monospace, monospace; color: var(--text); font-size: 11px; }
+  .orders.table-view .tv-section-head {
+    background: linear-gradient(90deg, var(--primary), #4096ff); color: white;
+    padding: 6px 12px; font-weight: 700; font-size: 12px;
+    border-radius: 6px; margin: 8px 0 4px; display: flex; justify-content: space-between;
+  }
+  /* 桌機才顯示完整欄位；手機隱藏次要欄 */
+  @media (max-width: 640px) {
+    .orders.table-view .ov-col-no, .orders.table-view .ov-col-cars, .orders.table-view .ov-col-fee { display: none; }
+  }
+
   .orders.list-view .order-card .order-remark,
   .orders.list-view .order-card .order-assigned-info,
   .orders.list-view .order-card .rating-block,
@@ -1683,15 +1778,23 @@
     <div class="brand">
       <div class="mark">旅</div>
       <span>旅乘派車系統</span>
+      <span class="brand-sub-v48" id="brandDateLabel">—</span>
+    </div>
+    <!-- v48: 桌機版 header quick metrics -->
+    <div class="header-metrics-v48" id="headerMetrics">
+      <div class="hm-item"><span class="hm-num" id="hmPending">-</span><span class="hm-lbl">明日待派</span></div>
+      <div class="hm-item"><span class="hm-num" id="hmConflict">-</span><span class="hm-lbl">衝突</span></div>
+      <div class="hm-item"><span class="hm-num" id="hmTotal">-</span><span class="hm-lbl">明日訂單</span></div>
+      <div class="hm-item hm-status"><span class="hm-dot" id="hmStatusDot"></span><span class="hm-lbl" id="hmStatusLbl">連線中</span></div>
     </div>
     <div class="header-actions">
       <button class="header-search-btn" onclick="switchPage('search')" title="全域搜尋">
         <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
       </button>
       <div class="header-info">
-        <span class="region">東京</span>
+        <span class="region" id="headerRegion">東京</span>
         <span class="divider">│</span>
-        <span class="user">林</span>
+        <span class="user" id="headerUser">林</span>
         <span class="divider">│</span>
         <span class="logout" onclick="logoutConfirm()">登出</span>
       </div>
@@ -3230,6 +3333,32 @@ function getOrdersForDate() {
 }
 
 // v42: 抽出單張訂單卡 HTML 給「今+明」分組模式用
+function renderOrderRowTable(o) {
+  // v48: 表格密集模式 - 一行濃縮顯示
+  const driverInfo = (o.assignments && o.assignments.length > 0)
+    ? o.assignments.map(a => {
+        const drv = DRIVERS.find(d => d.id === a.driverId);
+        const veh = VEHICLES.find(v => v.id === a.vehicleId);
+        const dn = drv ? drv.name : (a.driverNameRaw || a.driverId || '');
+        const vp = veh ? String(veh.plate || '') : '';
+        return dn + (vp ? ' / ' + vp : '');
+      }).filter(s => s.trim()).join('｜')
+    : '<span style="color:#fa8c16;">⚠ 未派</span>';
+  const statusClass = o.status || 'pending';
+  const statusLabel = o.status === 'pending' ? '待派' : (o.status === 'completed' ? '完成' : (o.status === 'assigned' ? '已派' : (o.status === 'confirmed' ? '已確' : (o.status||''))));
+  const rowClass = o.status === 'pending' ? 'row-pending' : '';
+  const totalFee = (o.assignments || []).reduce((s, a) => s + (a.fee || 0), 0);
+  return '<tr class="' + rowClass + '" onclick="openOrderDetail(\'' + (o.no||'') + '\',\'' + (o.date||'') + '\')">' +
+    '<td><div class="tv-time">' + (o.time || '--:--') + '</div><div class="tv-date">' + (o.date || '').slice(5) + '</div></td>' +
+    '<td class="ov-col-no"><span class="tv-no">' + (o.no || '') + '</span>' + (o._multiDayCount > 1 ? '<div style="font-size:10px;color:#3B82F6;margin-top:2px;">📅 ' + o._multiDayCount + '日 D' + (o._multiDayIndex||1) + '</div>' : '') + '</td>' +
+    '<td><div class="tv-leader">' + (o.leader || '') + (o.source ? ' <span style="font-size:10px;color:var(--muted);font-weight:400;">' + o.source + '</span>' : '') + '</div><div class="tv-route">' + (o.route || o.to || '') + '</div></td>' +
+    '<td class="ov-col-cars tv-cars">' + (o.carCount > 1 ? o.carCount + ' 台' : '1台') + '</td>' +
+    '<td class="tv-driver">' + driverInfo + '</td>' +
+    '<td class="ov-col-fee tv-fee">' + (totalFee > 0 ? '¥' + totalFee.toLocaleString() : '-') + '</td>' +
+    '<td><span class="tv-status-chip ' + statusClass + '">' + statusLabel + '</span></td>' +
+  '</tr>';
+}
+
 function renderOrderCard(o) {
   // 簡化版卡片（足以給「今+明」模式使用）— 點擊開詳情
   const driverInfo = (o.assignments && o.assignments.length > 0)
@@ -3287,8 +3416,19 @@ function renderOrders() {
     const _container = document.getElementById('ordersList');
     if (_container) {
       let _h = '';
+      const _isTable = (state.viewMode === 'table');
       const _renderSection = (label, color, items) => {
         if (items.length === 0) return '';
+        if (_isTable) {
+          // v48: 表格模式 — 標題列 + table rows
+          let s = '<div class="tv-section-head" style="background:' + color + ';"><span>' + label + '</span><span style="background:rgba(255,255,255,0.25);padding:2px 10px;border-radius:10px;font-size:12px;">' + items.length + ' 筆</span></div>';
+          s += '<table class="ov-table"><thead><tr>';
+          s += '<th>時間</th><th class="ov-col-no">訂單</th><th>姓名/路線</th><th class="ov-col-cars">車數</th><th>司機/車牌</th><th class="ov-col-fee">費用</th><th>狀態</th>';
+          s += '</tr></thead><tbody>';
+          s += items.map(o => renderOrderRowTable(o)).join('');
+          s += '</tbody></table>';
+          return s;
+        }
         let s = '<div style="background:' + color + ';color:white;padding:8px 14px;font-weight:700;font-size:13px;border-radius:6px;margin:8px 0 4px;display:flex;justify-content:space-between;align-items:center;"><span>' + label + '</span><span style="background:rgba(255,255,255,0.25);padding:2px 10px;border-radius:10px;font-size:12px;">' + items.length + ' 筆</span></div>';
         s += '<div class="orders-section">' + items.map(o => renderOrderCard(o)).join('') + '</div>';
         return s;
@@ -3856,12 +3996,73 @@ function filterDriverPicker(slotIdx, query) {
   });
 }
 
-// v24: 切換卡片/條列檢視
+// v48: header metrics 更新（桌機）
+function updateHeaderMetricsV48() {
+  try {
+    const _td = (function(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })();
+    const _tmr = (function(){ const d=new Date(Date.now()+86400000); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })();
+    const ords = (typeof ORDERS !== 'undefined' && ORDERS.tomorrow) ? ORDERS.tomorrow : [];
+    const tmrOrds = ords.filter(o => o.date === _tmr);
+    const pending = tmrOrds.filter(o => o.status === 'pending').length;
+    const total = tmrOrds.length;
+    // 衝突計算（簡單版 — 待派 + 同司機被分配多次）
+    let conflict = 0;
+    const driverDay = {};
+    ords.forEach(o => {
+      (o.assignments || []).forEach(a => {
+        if (!a.driverId) return;
+        const k = o.date + '|' + a.driverId;
+        driverDay[k] = (driverDay[k] || 0) + 1;
+      });
+    });
+    Object.values(driverDay).forEach(c => { if (c > 1) conflict++; });
+    const _set = (id, v, cls) => { const e = document.getElementById(id); if (e) { e.textContent = v; if (cls !== undefined) { e.className = 'hm-num ' + cls; } } };
+    _set('hmPending', pending, pending > 0 ? 'warn' : '');
+    _set('hmConflict', conflict, conflict > 0 ? 'danger' : '');
+    _set('hmTotal', total, '');
+    // 日期 label
+    const dLbl = document.getElementById('brandDateLabel');
+    if (dLbl) {
+      const today = new Date();
+      const wd = ['日','一','二','三','四','五','六'][today.getDay()];
+      dLbl.textContent = _td + ' (週' + wd + ')';
+    }
+    // user / region
+    if (typeof currentUser !== 'undefined' && currentUser) {
+      const rU = document.getElementById('headerUser');
+      if (rU && currentUser.name) rU.textContent = currentUser.name;
+      const rR = document.getElementById('headerRegion');
+      if (rR && currentUser.region) rR.textContent = currentUser.region;
+    }
+    // status dot
+    const dot = document.getElementById('hmStatusDot');
+    const lbl = document.getElementById('hmStatusLbl');
+    if (dot && lbl) {
+      const onLine = navigator.onLine !== false;
+      dot.classList.toggle('offline', !onLine);
+      lbl.textContent = onLine ? '已連線' : '離線';
+    }
+  } catch (e) { console.warn('[updateHeaderMetricsV48]', e); }
+}
+
+// v24: 切換卡片/條列檢視 (v48 改三段循環)
+
 function toggleListView() {
-  state.listView = !state.listView;
+  // state.viewMode: 'card' / 'list' / 'table'
+  const order = ['card', 'list', 'table'];
+  const cur = state.viewMode || 'card';
+  const idx = order.indexOf(cur);
+  const next = order[(idx + 1) % order.length];
+  state.viewMode = next;
+  state.listView = (next === 'list');  // 向下相容
   const btn = document.getElementById('viewToggleBtn');
-  if (btn) btn.textContent = state.listView ? '🎴 卡片檢視' : '📋 條列檢視';
-  document.getElementById('ordersList').classList.toggle('list-view', state.listView);
+  if (btn) {
+    btn.textContent = next === 'card' ? '🎴 卡片' : (next === 'list' ? '📋 條列' : '📊 表格');
+    btn.title = '目前：' + (next === 'card' ? '卡片檢視' : (next === 'list' ? '條列檢視' : '表格密集視圖')) + ' (點切換)';
+  }
+  const ol = document.getElementById('ordersList');
+  ol.classList.toggle('list-view', next === 'list');
+  ol.classList.toggle('table-view', next === 'table');
   renderOrders();
 }
 
@@ -3913,6 +4114,18 @@ function applySameDriver(driverId, vehicleId, fee) {
   renderCarSlots();
   alert('✓ 已沿用同訂單其他日的司機 ' + driverId);
 }
+
+// v48: hook renderOrders 結尾自動更新 header metrics
+(function(){
+  const _origRO = window.renderOrders;
+  if (typeof _origRO === 'function') {
+    window.renderOrders = function(...args) {
+      const r = _origRO.apply(this, args);
+      if (typeof updateHeaderMetricsV48 === 'function') updateHeaderMetricsV48();
+      return r;
+    };
+  }
+})();
 
 // v34: 計算最近派此 leader 訂單的司機 (Top 5 by frequency)
 function computeRecentDrivers(currentOrder) {
@@ -4884,7 +5097,26 @@ function saveEditDriver() {
 let pendingAdjustSlot = null;
 function openAddAdjustment(slotIdx) {
   pendingAdjustSlot = slotIdx;
-  let html = '<h3>新增獎懲</h3><p style="font-size:12px;color:var(--muted);">記錄會保留在訂單歷史與司機檔案中</p>';
+  // v48: 顯示 context（哪天哪台車哪個司機）
+  const o = state.editingOrder ? state.editingOrder.data : {};
+  const a = state.editingAssignments[slotIdx] || {};
+  const drv = a.driverId ? DRIVERS.find(d => d.id === a.driverId) : null;
+  const veh = a.vehicleId ? VEHICLES.find(v => v.id === a.vehicleId) : null;
+  const dayIdx = o._multiDayIndex || 1;
+  const dayTotal = o._multiDayCount || 1;
+  const dayBadge = dayTotal > 1 ? ('Day ' + dayIdx + '/' + dayTotal + ' (' + (o.date||'') + ')') : (o.date||'');
+  const carBadge = (o.carCount > 1) ? ('第 ' + (slotIdx + 1) + ' 台 / 共 ' + o.carCount + ' 台') : '單車';
+  let html = '<h3>新增獎懲</h3>';
+  html += '<div style="background:#F0F9FF;border:1px solid #BAE6FD;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;line-height:1.6;">';
+  html += '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-weight:600;color:#075985;">';
+  html += '<span style="background:#1677ff;color:white;padding:2px 8px;border-radius:10px;font-size:11px;">📅 ' + dayBadge + '</span>';
+  html += '<span style="background:#722ed1;color:white;padding:2px 8px;border-radius:10px;font-size:11px;">🚗 ' + carBadge + '</span>';
+  if (drv) html += '<span style="background:#16a34a;color:white;padding:2px 8px;border-radius:10px;font-size:11px;">👤 ' + drv.name + '</span>';
+  if (veh) html += '<span style="background:#6B7280;color:white;padding:2px 8px;border-radius:10px;font-size:11px;">🚐 ' + String(veh.plate||'?') + '</span>';
+  html += '</div>';
+  html += '<div style="font-size:11px;color:var(--muted);margin-top:4px;">📌 此筆獎懲將標註於上述司機 + 車輛 + 日期，便於日後對帳</div>';
+  html += '</div>';
+  html += '<p style="font-size:12px;color:var(--muted);">記錄會保留在訂單歷史與司機檔案中</p>';
   html += '<div class="form-group"><label class="form-label"><span>類型 <span class="required">*</span></span></label>';
   html += '<div style="display:flex;gap:8px;">';
   html += '<label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border:2px solid var(--danger);border-radius:8px;cursor:pointer;background:var(--danger-soft);color:var(--danger);font-weight:600;"><input type="radio" name="adjType" value="deduct" checked> 扣費</label>';
@@ -4904,7 +5136,20 @@ function saveAdjustment() {
   if (!reason) { alert('請填寫原因'); return; }
   const slot = state.editingAssignments[pendingAdjustSlot];
   if (!slot.adjustments) slot.adjustments = [];
-  slot.adjustments.push({ type, amount, reason, at: new Date().toISOString().slice(0,16).replace('T',' '), by: '林小姐' });
+  // v48: 儲存當前 day + car + driver + vehicle context（多日多車辨別）
+  const _o = state.editingOrder ? state.editingOrder.data : {};
+  slot.adjustments.push({
+    type, amount, reason,
+    at: new Date().toISOString().slice(0,16).replace('T',' '),
+    by: '林小姐',
+    dayKey: _o.date || '',
+    dayIndex: _o._multiDayIndex || 1,
+    dayTotal: _o._multiDayCount || 1,
+    carIndex: pendingAdjustSlot + 1,
+    carTotal: state.editingAssignments.length,
+    driverId: slot.driverId || '',
+    vehicleId: slot.vehicleId || ''
+  });
   closeConfirm();
   renderCarSlots();
 }
@@ -4924,8 +5169,16 @@ function renderAdjustmentsSection(slotIdx, assignment) {
     html += '<div style="text-align:center;padding:8px;color:var(--muted-2);font-size:11px;">尚無獎懲紀錄</div>';
   } else {
     adjustments.forEach((adj, ai) => {
+      // v48: 顯示 dayKey + carIndex 標籤（多日多車辨別）
+      let ctxBadge = '';
+      if (adj.dayTotal > 1 || adj.carTotal > 1) {
+        const parts = [];
+        if (adj.dayTotal > 1) parts.push('D' + (adj.dayIndex || 1) + ' (' + (adj.dayKey || '').slice(5) + ')');
+        if (adj.carTotal > 1) parts.push('第' + (adj.carIndex || 1) + '台');
+        ctxBadge = '<span style="display:inline-block;background:#E0F2FE;color:#075985;font-size:10px;font-weight:600;padding:1px 6px;border-radius:8px;margin-right:6px;font-family:ui-monospace,monospace;">' + parts.join(' · ') + '</span>';
+      }
       html += '<div class="adjust-item"><span class="adjust-type-tag ' + adj.type + '">' + (adj.type === 'deduct' ? '扣費' : '獎金') + '</span>';
-      html += '<div class="adjust-info"><div class="adjust-reason">' + adj.reason + '</div><div class="adjust-meta">' + adj.at + ' ・ ' + adj.by + '</div></div>';
+      html += '<div class="adjust-info"><div class="adjust-reason">' + ctxBadge + adj.reason + '</div><div class="adjust-meta">' + adj.at + ' ・ ' + adj.by + '</div></div>';
       html += '<div class="adjust-amount ' + (adj.type === 'deduct' ? 'minus' : 'plus') + '">' + (adj.type === 'deduct' ? '−' : '+') + '¥' + adj.amount.toLocaleString() + '</div>';
       html += '<button class="adjust-delete" onclick="removeAdjustment(' + slotIdx + ', ' + ai + ')">×</button></div>';
     });
