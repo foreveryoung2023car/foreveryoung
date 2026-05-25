@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v39</title>
+<title>旅乘派車系統 v41</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -1940,9 +1940,32 @@ async function doLoginReal() {
 
 async function loadRealData() {
   if (!currentUser) return;
-  // v22: 先清空 mock data，避免閃現
-  ORDERS.tomorrow.length = 0;
   const ol = document.getElementById('ordersList');
+  // v41: localStorage 快取秒開
+  const CACHE_KEY = 'dispatch_cache_' + (currentUser.email || currentUser.name || 'default');
+  let usedCache = false;
+  try {
+    const cachedRaw = localStorage.getItem(CACHE_KEY);
+    if (cachedRaw) {
+      const c = JSON.parse(cachedRaw);
+      if (c && c.ts && Date.now() - c.ts < 6 * 3600 * 1000 && c.orders && c.orders.length > 0) {
+        DRIVERS.length = 0; (c.drivers||[]).forEach(d => DRIVERS.push(d));
+        VEHICLES.length = 0; (c.vehicles||[]).forEach(v => VEHICLES.push(v));
+        ORDERS.tomorrow.length = 0; c.orders.forEach(o => ORDERS.tomorrow.push(o));
+        if (c.currentDate) state.currentDate = c.currentDate;
+        renderDateStrip(); renderOrders(); recomputeQuickStats();
+        usedCache = true;
+        if (ol && ol.parentElement) {
+          const banner = document.createElement('div');
+          banner.id = 'cacheBanner';
+          banner.style.cssText = 'background:#e0f2fe;color:#075985;padding:6px 12px;font-size:11px;text-align:center;';
+          banner.textContent = '⚡ 已從本地快取秒開（背景同步最新中）';
+          ol.parentElement.insertBefore(banner, ol);
+        }
+      }
+    }
+  } catch (e) { console.warn('[Cache]', e); }
+  if (!usedCache) ORDERS.tomorrow.length = 0;
   if (ol) ol.innerHTML = '<div class="empty" style="padding:40px 20px;"><div class="loading-spin" style="width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;margin:0 auto;animation:spin 0.8s linear infinite;"></div><div style="margin-top:10px;color:var(--muted);font-size:12px;">第一批訂單（近 3 天）載入中...</div></div>';
   const region = currentUser.regionCode;
   console.log('[loadRealData] region =', region);
@@ -2028,7 +2051,24 @@ async function loadRealData() {
   }
   renderDateStrip();
   renderOrders();
-  recomputeQuickStats();  // v24: 確保快速統計也跑
+  recomputeQuickStats();
+  // v41: 寫快取 + 移除 banner
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({
+      ts: Date.now(), drivers: DRIVERS, vehicles: VEHICLES,
+      orders: ORDERS.tomorrow, currentDate: state.currentDate
+    }));
+  } catch (e) {}
+  const _cb = document.getElementById('cacheBanner');
+  if (_cb) _cb.remove();
+  // v41: 防呆 — 若 all=0 但 pending>0 自動切到待派
+  setTimeout(() => {
+    try {
+      const cntAll = parseInt(document.getElementById('cntAll')?.textContent || '0');
+      const cntPending = parseInt(document.getElementById('cntPending')?.textContent || '0');
+      if (cntAll === 0 && cntPending > 0) setFilter('pending');
+    } catch (e) {}
+  }, 200);
 
   // v26: 背景補拉「過去 7 天 ~ 未來 60 天」其他訂單
   setTimeout(async () => {
@@ -3243,7 +3283,7 @@ function openEditor(idx) {
       if (otherUnassigned.length > 0) {
         multiDayBanner += '<label style="display:flex;align-items:center;gap:8px;background:white;padding:8px 10px;border-radius:6px;margin-top:8px;cursor:pointer;color:var(--text);font-weight:600;"><input type="checkbox" id="bulkAllDays" onchange="document.getElementById(\'bulkFeeDetail\').style.display=this.checked?\'block\':\'none\'" style="width:18px;height:18px;cursor:pointer;"> 🚀 同步派全部 ' + o._multiDayCount + ' 天（含此單 + 其他 ' + otherUnassigned.length + ' 天）</label>';
         multiDayBanner += '<div id="bulkFeeDetail" style="display:none;background:white;padding:8px 10px;border-radius:6px;margin-top:4px;color:var(--text);">';
-        multiDayBanner += '<div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px;">每天費用（用訂單收支表 G 欄原費，下方 input 不影響 bulk）</div>';
+        multiDayBanner += '<div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px;">每天費用</div>';
         multiDayBanner += dayFeeList;
         multiDayBanner += '<div style="display:flex;justify-content:space-between;padding-top:6px;margin-top:4px;border-top:1px dashed var(--border);font-weight:700;color:var(--primary);"><span>合計</span><span style="font-family:monospace;">¥' + totalFee.toLocaleString() + '</span></div>';
         multiDayBanner += '</div>';
@@ -3326,7 +3366,7 @@ function renderCarSlots() {
 
 function renderCarSlot(order, assignment, slotIdx) {
   const usedIds = state.editingAssignments.map((a, i) => i !== slotIdx ? a.driverId : null).filter(Boolean);
-  const allDrivers = DRIVERS.map(d => {
+  const allDrivers = DRIVERS.filter(d => !d.disabled).map(d => {
     const status = getDriverConflictStatus(d.id, order);
     const tagMatch = order.priorityType && d.tags.includes(order.priorityType);
     const langMatch = !order.requireLang || order.requireLang.length === 0 || order.requireLang.every(l => d.languages.includes(l));
@@ -3356,7 +3396,8 @@ function renderCarSlot(order, assignment, slotIdx) {
 
   const selectedDriver = assignment.driverId ? DRIVERS.find(d => d.id === assignment.driverId) : null;
   const history = assignment.driverId ? (DRIVER_VEHICLE_HISTORY[assignment.driverId] || []) : [];
-  const feeValue = assignment.fee || selectedDriver?.defaultFee || 30000;
+  // v41: 費用順序 = 已存 fee → 訂單 G 欄 → 司機預設 → 30000
+  const feeValue = assignment.fee || (order.driverFee > 0 ? order.driverFee : null) || selectedDriver?.defaultFee || 30000;
   const canRemove = state.editingAssignments.length > 1;
 
   return `
@@ -3392,7 +3433,7 @@ function renderCarSlot(order, assignment, slotIdx) {
           <input type="text" class="form-control driver-search-input" placeholder="🔍 搜尋司機姓名 / 編號..." style="margin-bottom:0;font-size:13px;" oninput="filterDriverPicker(${slotIdx}, this.value)">
           </div>
           <div class="driver-picker" id="driverPicker-${slotIdx}" style="margin-top:6px;">
-            ${assignment.driverId ? (function(){const d=DRIVERS.find(x=>x.id===assignment.driverId);if(!d)return '';return `<div class="driver-group-head" style="background:var(--primary-soft);color:var(--primary);">✓ 已選擇司機</div>${renderDriverRow({d:d,status:'available',tagMatch:false,langMatch:true,jobs:[]},slotIdx,assignment.driverId,false,order)}`;})() : ''}
+            ${assignment.driverId ? (function(){const d=DRIVERS.find(x=>x.id===assignment.driverId);if(!d)return '';return `<div class="driver-group-head" style="background:var(--primary-soft);color:var(--primary);display:flex;justify-content:space-between;align-items:center;">✓ 已選擇司機 <button onclick="clearDriverSelection(${slotIdx})" style="background:white;color:var(--danger);border:1px solid var(--danger);padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;cursor:pointer;">✕ 取消選擇</button></div>${renderDriverRow({d:d,status:'available',tagMatch:false,langMatch:true,jobs:[]},slotIdx,assignment.driverId,false,order)}`;})() : ''}
             ${groups.available.length ? `<div class="driver-group-head"><span class="gh-dot av"></span>可派車（${groups.available.length}）</div>${groups.available.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}` : ''}
             ${groups.partial.length ? `<div class="driver-group-head"><span class="gh-dot partial"></span>同日有班次但時段不衝突（${groups.partial.length}）</div>${groups.partial.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}` : ''}
             ${groups.daytripWarn.length ? `<div class="driver-group-head"><span class="gh-dot daytrip"></span>同日有一日遊/多日（${groups.daytripWarn.length}）</div>${groups.daytripWarn.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}` : ''}
@@ -3416,7 +3457,19 @@ function renderCarSlot(order, assignment, slotIdx) {
                 `).join('')}
               </optgroup>
             `).join('')}
+            <option value="__NEW__" style="font-weight:600;color:var(--primary);">＋ 新增車輛（不在清單）</option>
           </select>
+          <div id="newVehicleBox-${slotIdx}" style="display:none;background:var(--primary-soft);border:1px solid var(--primary);padding:8px;border-radius:6px;margin-top:6px;">
+            <div style="font-size:11px;color:var(--primary);font-weight:600;margin-bottom:6px;">📝 新增車輛資料</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+              <input class="form-control" id="newVehPlate-${slotIdx}" placeholder="車牌" style="font-size:13px;" oninput="onNewVehicleInput(${slotIdx})">
+              <input class="form-control" id="newVehModel-${slotIdx}" placeholder="車型" style="font-size:13px;" oninput="onNewVehicleInput(${slotIdx})">
+              <select class="form-control" id="newVehCat-${slotIdx}" style="font-size:13px;" onchange="onNewVehicleInput(${slotIdx})">
+                <option value="7座">7座</option><option value="10座">10座</option><option value="19座">19座</option>
+              </select>
+              <input class="form-control" id="newVehColor-${slotIdx}" placeholder="顏色" style="font-size:13px;" oninput="onNewVehicleInput(${slotIdx})">
+            </div>
+          </div>
           ${history.length ? `
             <div class="vehicle-recommend">
               <div class="vr-head">⭐ ${selectedDriver?.name || ''}司機常用車輛</div>
@@ -3568,8 +3621,36 @@ function selectVehicleForSlot(slotIdx, vid) {
   state.editingAssignments[slotIdx].vehicleId = vid;
   document.getElementById(`vehicleSelect-${slotIdx}`).value = vid;
 }
+function clearDriverSelection(slotIdx) {
+  state.editingAssignments[slotIdx].driverId = null;
+  state.editingAssignments[slotIdx].fee = null;
+  renderCarSlots();
+}
 function onVehicleChange(slotIdx) {
-  state.editingAssignments[slotIdx].vehicleId = document.getElementById(`vehicleSelect-${slotIdx}`).value;
+  const val = document.getElementById(`vehicleSelect-${slotIdx}`).value;
+  const newBox = document.getElementById(`newVehicleBox-${slotIdx}`);
+  if (val === '__NEW__') {
+    if (newBox) newBox.style.display = 'block';
+    state.editingAssignments[slotIdx].vehicleId = '';
+  } else {
+    if (newBox) newBox.style.display = 'none';
+    state.editingAssignments[slotIdx].vehicleId = val;
+  }
+}
+function onNewVehicleInput(slotIdx) {
+  const plate = document.getElementById(`newVehPlate-${slotIdx}`)?.value?.trim();
+  const model = document.getElementById(`newVehModel-${slotIdx}`)?.value?.trim() || '';
+  const cat = document.getElementById(`newVehCat-${slotIdx}`)?.value || '7座';
+  const color = document.getElementById(`newVehColor-${slotIdx}`)?.value?.trim() || '';
+  if (!plate) return;
+  let v = VEHICLES.find(x => x.plate === plate);
+  if (!v) {
+    v = { id: 'V_NEW_' + Date.now(), plate, model, category: cat, color, seat: parseInt(cat) || 7 };
+    VEHICLES.push(v);
+  } else {
+    v.model = model || v.model; v.category = cat; v.color = color || v.color;
+  }
+  state.editingAssignments[slotIdx].vehicleId = v.id;
 }
 // v35: 一鍵設定 fee
 function setFeeQuick(slotIdx, value) {
@@ -4234,9 +4315,15 @@ function openEditDriverSheet(driverId) {
   html += '<label class="pu-btn" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;">📸 拍照<input type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleDriverPhotoFile(event)"></label>';
   html += '<button class="pu-btn" onclick="promptPhotoUrl()">🔗 網址</button>';
   html += '<button class="pu-btn" onclick="removePhoto()">🗑 移除</button>';
-  html += '</div><div class="pu-hint" id="photoUploadStatus">點選照片或拍照即可即時顯示，再按下方「儲存」即會記錄到此司機檔案。<br><span style="color:var(--muted);font-size:10px;">※ 若已設定 ImgBB API Key，會自動上傳並取得永久網址</span></div></div></div></div>';
+  html += '</div><div class="pu-hint" id="photoUploadStatus">點選照片或拍照即可即時顯示，再按下方「儲存」即會記錄到此司機檔案。<br><span style="color:var(--muted);font-size:10px;">※ ImgBB 已內建 API Key，會自動上傳取得永久網址</span></div></div></div></div>';
   html += '<div class="form-group"><label class="form-label"><span>司機編號</span></label><input class="form-control" value="' + driver.id + '" disabled style="background:#F9FAFB;color:var(--muted);"></div>';
   html += '<div class="form-group"><label class="form-label"><span>姓名 <span class="required">*</span></span></label><input class="form-control" id="editDriverName" value="' + driver.name + '"></div>';
+  html += '<div class="form-group"><label class="form-label"><span>性別</span></label><select class="form-control" id="editDriverGender">';
+  html += '<option value="" ' + (!driver.gender ? 'selected' : '') + '>未設定</option>';
+  html += '<option value="男" ' + (driver.gender === '男' ? 'selected' : '') + '>男</option>';
+  html += '<option value="女" ' + (driver.gender === '女' ? 'selected' : '') + '>女</option>';
+  html += '<option value="其他" ' + (driver.gender === '其他' ? 'selected' : '') + '>其他</option>';
+  html += '</select></div>';
   html += '<div class="form-group"><label class="form-label"><span>聯絡電話</span></label><input class="form-control" id="editDriverPhone" value="' + (driver.phone || '') + '"></div>';
   html += '<div class="form-group"><label class="form-label"><span>預設日費 (¥)</span></label><input class="form-control" type="number" id="editDriverFee" value="' + driver.defaultFee + '" step="1000"></div>';
   html += '<div class="form-group"><label class="form-label"><span>語言能力</span></label><div class="tag-picker" id="editDriverLangPicker">';
@@ -4250,8 +4337,10 @@ function openEditDriverSheet(driverId) {
   });
   html += '</div></div>';
   html += '<div class="form-group"><label class="form-label"><span>狀態</span></label><select class="form-control" id="editDriverStatus">';
-  html += '<option value="active" ' + (!driver.off ? 'selected' : '') + '>啟用（可派車）</option>';
-  html += '<option value="off" ' + (driver.off ? 'selected' : '') + '>休假中</option>';
+  const curStatus = driver.disabled ? 'disabled' : (driver.off ? 'off' : 'active');
+  html += '<option value="active" ' + (curStatus === 'active' ? 'selected' : '') + '>啟用（可派車）</option>';
+  html += '<option value="off" ' + (curStatus === 'off' ? 'selected' : '') + '>休假中（短期）</option>';
+  html += '<option value="disabled" ' + (curStatus === 'disabled' ? 'selected' : '') + '>🛑 停用（長期）</option>';
   html += '</select></div>';
   html += '<input type="hidden" id="editDriverId" value="' + driver.id + '">';
 
@@ -4289,7 +4378,7 @@ function handleDriverPhotoFile(ev) {
         if (j.success && j.data && j.data.url) {
           preview.src = j.data.url;
           preview.dataset.uploadedUrl = j.data.url;
-          if (status) status.innerHTML = '✅ 已上傳到 ImgBB：<a href="' + j.data.url + '" target="_blank" style="color:var(--primary);text-decoration:underline;font-size:10px;">' + j.data.url.substring(0,50) + '...</a>';
+          if (status) status.innerHTML = '<div style="background:#dcfce7;border:1px solid #16a34a;color:#166534;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:600;">✅ 已成功上傳到 ImgBB 雲端（永久網址）</div><div style="margin-top:4px;font-size:10px;"><a href="' + j.data.url + '" target="_blank" style="color:var(--primary);">' + j.data.url + '</a></div>';
         } else {
           if (status) status.innerHTML = '⚠ ImgBB 上傳失敗，先用本地預覽。儲存後仍會記錄 base64（注意大小）。';
         }
@@ -4357,7 +4446,11 @@ function saveEditDriver() {
   driver.defaultFee = parseInt(document.getElementById('editDriverFee').value) || 30000;
   driver.languages = [...document.getElementById('editDriverLangPicker').querySelectorAll('.tag-option.selected')].map(el => el.dataset.lang);
   driver.tags = [...document.getElementById('editDriverTagPicker').querySelectorAll('.tag-option.selected')].map(el => el.dataset.tag);
-  driver.off = document.getElementById('editDriverStatus').value === 'off';
+  const statusVal = document.getElementById('editDriverStatus').value;
+  driver.off = statusVal === 'off';
+  driver.disabled = statusVal === 'disabled';
+  const genderEl = document.getElementById('editDriverGender');
+  if (genderEl) driver.gender = genderEl.value;
   // v37: 優先用 ImgBB 上傳後的永久網址，沒有才用 src（可能是 base64）
   const previewEl = document.getElementById('editPhotoPreview');
   const newPhoto = (previewEl && previewEl.dataset && previewEl.dataset.uploadedUrl) || previewEl.src;
