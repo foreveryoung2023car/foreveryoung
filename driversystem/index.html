@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v46</title>
+<title>旅乘派車系統 v47</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -605,27 +605,56 @@
   }
   .vi-new-btn:hover { background: #DBEAFE; }
 
-  /* v46: 多日 per-day checkbox grid */
+  /* v47: 多日 per-day checkbox grid（精緻版） */
   .day-pick-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 6px; margin-top: 8px;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 8px; margin-top: 10px;
   }
   .day-pick-item {
-    display: flex; align-items: center; gap: 6px;
-    background: white; padding: 8px 10px; border-radius: 6px;
+    display: flex; flex-direction: column; gap: 4px;
+    background: white; padding: 8px 10px; border-radius: 8px;
     border: 1.5px solid var(--border); cursor: pointer;
     font-size: 12px; transition: all 0.15s;
+    position: relative;
   }
-  .day-pick-item.checked { border-color: var(--primary); background: var(--primary-soft); color: var(--primary); font-weight: 600; }
+  .day-pick-item:hover:not(.taken) { border-color: var(--primary); box-shadow: 0 1px 3px rgba(22,119,255,0.15); }
+  .day-pick-item .dp-row1 { display: flex; align-items: center; gap: 6px; }
+  .day-pick-item .dp-check-icon { margin-left: auto; opacity: 0; color: var(--primary); font-weight: 700; font-size: 14px; transition: opacity 0.15s; }
+  .day-pick-item.checked .dp-check-icon { opacity: 1; }
+  .day-pick-item.checked {
+    border-color: var(--primary); background: var(--primary-soft); color: var(--primary); font-weight: 600;
+    box-shadow: 0 1px 4px rgba(22,119,255,0.18);
+  }
   .day-pick-item.current { border-color: #F59E0B; background: #FEF3C7; color: #92400E; font-weight: 600; }
-  .day-pick-item input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
-  .day-pick-item .dp-date { font-family: ui-monospace, monospace; font-weight: 600; }
-  .day-pick-item .dp-fee { font-size: 10.5px; color: var(--muted); margin-left: auto; font-family: ui-monospace, monospace; }
-  .day-pick-actions { display: flex; gap: 6px; margin-top: 8px; }
+  .day-pick-item.current .dp-check-icon { color: #F59E0B; }
+  .day-pick-item.current.checked { border-color: #F59E0B; background: #FEF3C7; color: #92400E; box-shadow: 0 1px 4px rgba(245,158,11,0.18); }
+  .day-pick-item.taken { opacity: 0.55; cursor: not-allowed; background: #F9FAFB; }
+  .day-pick-item input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: #1677ff; }
+  .day-pick-item.current input[type="checkbox"] { accent-color: #F59E0B; }
+  .day-pick-item .dp-date { font-weight: 700; font-size: 12.5px; }
+  .day-pick-item .dp-mmdd { font-family: ui-monospace, monospace; font-size: 11px; color: var(--muted); font-weight: 500; }
+  .day-pick-item.checked .dp-mmdd { color: var(--primary); }
+  .day-pick-item.current .dp-mmdd { color: #92400E; }
+  .day-pick-item .dp-route {
+    font-size: 10.5px; color: var(--text-2); line-height: 1.35;
+    padding-left: 22px; min-height: 14px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .day-pick-item.checked .dp-route { color: #1E3A8A; }
+  .day-pick-item.current .dp-route { color: #78350F; }
+  .day-pick-item .dp-row3 { padding-left: 22px; display: flex; justify-content: space-between; align-items: center; }
+  .day-pick-item .dp-fee { font-size: 10.5px; color: var(--muted); font-family: ui-monospace, monospace; font-weight: 600; }
+  .day-pick-item.checked .dp-fee { color: var(--primary); }
+  .day-pick-item .dp-taken-by {
+    font-size: 10.5px; color: var(--muted); font-weight: 600;
+    background: white; padding: 1px 6px; border-radius: 10px; border: 1px solid var(--border);
+  }
+  .day-pick-actions { display: flex; gap: 6px; margin-top: 10px; align-items: center; }
   .day-pick-actions button {
     background: white; border: 1px solid var(--border-2);
-    padding: 4px 10px; border-radius: 4px; cursor: pointer;
+    padding: 5px 12px; border-radius: 4px; cursor: pointer;
     font-size: 11px; color: var(--text-2); font-weight: 600;
+    transition: all 0.15s;
   }
   .day-pick-actions button:hover { background: var(--primary-soft); color: var(--primary); border-color: var(--primary); }
 
@@ -3444,14 +3473,27 @@ function openEditor(idx) {
           const hasOtherDriver = (d.assignments && d.assignments.length > 0 && d.assignments[0].driverId);
           const dayLabel = 'Day ' + (i+1);
           const fee = (d.driverFee || 0).toLocaleString();
-          const cls = isCurrent ? 'day-pick-item current checked' : (hasOtherDriver ? 'day-pick-item' : 'day-pick-item');
+          const cls = isCurrent ? 'day-pick-item current checked' : (hasOtherDriver ? 'day-pick-item taken' : 'day-pick-item');
           const disabledAttr = hasOtherDriver ? 'disabled title="此日已派其他司機"' : '';
           const checkedAttr = isCurrent ? 'checked' : '';
           const otherInfo = hasOtherDriver ? (function(){const drv = DRIVERS.find(x => x.id === d.assignments[0].driverId); return drv ? drv.name : d.assignments[0].driverId;})() : '';
-          return '<label class="' + cls + (hasOtherDriver ? '" style="opacity:0.55;cursor:not-allowed;' : '') + '" data-day-key="' + d.date + '">' +
-            '<input type="checkbox" class="day-checkbox-v46" data-day="' + d.date + '"' + (isCurrent ? ' data-current="1"' : '') + ' ' + checkedAttr + ' ' + disabledAttr + ' onchange="updateDayPickItemV46(this)">' +
-            '<span class="dp-date">' + dayLabel + ' ' + d.date.slice(5) + '</span>' +
-            (hasOtherDriver ? '<span style="font-size:10px;color:var(--muted);margin-left:auto;">' + otherInfo + '</span>' : '<span class="dp-fee">¥' + fee + '</span>') +
+          const routeSummary = (function(){
+            const r = String(d.to || d.route || '').replace(/[→>＞]/g, ' › ').replace(/\s+/g, ' ').trim();
+            if (!r) return '';
+            return r.length > 22 ? r.slice(0, 22) + '…' : r;
+          })();
+          const timeLabel = (d.start || d.time || '').slice(0, 5);
+          return '<label class="' + cls + '" data-day-key="' + d.date + '">' +
+            '<div class="dp-row1">' +
+              '<input type="checkbox" class="day-checkbox-v46" data-day="' + d.date + '"' + (isCurrent ? ' data-current="1"' : '') + ' ' + checkedAttr + ' ' + disabledAttr + ' onchange="updateDayPickItemV46(this)">' +
+              '<span class="dp-date">' + dayLabel + '</span>' +
+              '<span class="dp-mmdd">' + d.date.slice(5) + (timeLabel ? ' ' + timeLabel : '') + '</span>' +
+              '<span class="dp-check-icon">✓</span>' +
+            '</div>' +
+            (routeSummary ? '<div class="dp-route">' + routeSummary + '</div>' : '') +
+            '<div class="dp-row3">' +
+              (hasOtherDriver ? '<span class="dp-taken-by">👤 ' + otherInfo + '</span>' : '<span class="dp-fee">¥' + fee + '</span>') +
+            '</div>' +
           '</label>';
         }).join('');
         bulkLine = '<div style="margin-top:10px;font-size:11.5px;color:#1E3A8A;font-weight:600;">勾選要派這位司機的日子（可跳著選）：</div>' +
@@ -3472,10 +3514,22 @@ function openEditor(idx) {
         const fee = (d.driverFee || 0).toLocaleString();
         const checkedAttr = isCurrent ? 'checked' : '';
         const cls = isCurrent ? 'day-pick-item current checked' : 'day-pick-item';
+        // v47: 抓行程簡述（取 to 欄位前 20 字）
+        const routeSummary = (function(){
+          const r = String(d.to || d.route || '').replace(/[→>＞]/g, ' › ').replace(/\s+/g, ' ').trim();
+          if (!r) return '';
+          return r.length > 22 ? r.slice(0, 22) + '…' : r;
+        })();
+        const timeLabel = (d.start || d.time || '').slice(0, 5);
         return '<label class="' + cls + '" data-day-key="' + d.date + '" onclick="event.stopPropagation()">' +
-          '<input type="checkbox" class="day-checkbox-v46" data-day="' + d.date + '"' + (isCurrent ? ' data-current="1"' : '') + ' ' + checkedAttr + ' onchange="updateDayPickItemV46(this)">' +
-          '<span class="dp-date">' + dayLabel + ' ' + d.date.slice(5) + '</span>' +
-          '<span class="dp-fee">¥' + fee + '</span>' +
+          '<div class="dp-row1">' +
+            '<input type="checkbox" class="day-checkbox-v46" data-day="' + d.date + '"' + (isCurrent ? ' data-current="1"' : '') + ' ' + checkedAttr + ' onchange="updateDayPickItemV46(this)">' +
+            '<span class="dp-date">' + dayLabel + '</span>' +
+            '<span class="dp-mmdd">' + d.date.slice(5) + (timeLabel ? ' ' + timeLabel : '') + '</span>' +
+            '<span class="dp-check-icon">✓</span>' +
+          '</div>' +
+          (routeSummary ? '<div class="dp-route">' + routeSummary + '</div>' : '') +
+          '<div class="dp-row3"><span class="dp-fee">¥' + fee + '</span></div>' +
         '</label>';
       }).join('');
       multiDayBanner = '<div style="background:#FEF3C7;border:1px solid #F59E0B;color:#92400E;padding:10px 14px;border-radius:8px;margin:0 0 12px;font-size:12px;line-height:1.6;">' +
@@ -3549,6 +3603,11 @@ function openEditor(idx) {
   renderCarSlots();
   document.getElementById('sheetMask').classList.add('show');
   document.getElementById('sheet').classList.add('show');
+  // v47: 開啟派車面板時 scroll 到頂（但之後 renderCarSlots 不會再強制）
+  setTimeout(() => {
+    const sh = document.getElementById('sheet');
+    if (sh) sh.scrollTop = 0;
+  }, 80);
   } catch(err) {
     console.error('[openEditor] error:', err);
     alert('開啟派車面板時發生錯誤：\n' + err.message + '\n\n請按 F12 開 console 看完整錯誤訊息。');
@@ -3556,18 +3615,15 @@ function openEditor(idx) {
 }
 
 function renderCarSlots() {
-  // v43: 開派車面板自動 scroll 到最頂部
-  setTimeout(() => {
-    const candidates = ['sheetBody', 'sheetCard', 'sheetContent'];
-    for (const id of candidates) {
-      const el = document.getElementById(id);
-      if (el) el.scrollTop = 0;
-    }
-    document.querySelectorAll('.sheet, .sheet-content, .sheet-body').forEach(el => el.scrollTop = 0);
-  }, 50);
+  // v47: 拿掉強制 scroll-to-top（會干擾選司機/車輛操作）
+  // 改：只記住當前 scrollTop，重渲後復原
+  const sheet = document.getElementById('sheet');
+  const savedScroll = sheet ? sheet.scrollTop : 0;
   const o = state.editingOrder.data;
   document.getElementById('carSlotsContainer').innerHTML =
     state.editingAssignments.map((a, i) => renderCarSlot(o, a, i)).join('');
+  // 復原 scroll（避免跳到最上面）
+  if (sheet) sheet.scrollTop = savedScroll;
 }
 
 function renderCarSlot(order, assignment, slotIdx) {
@@ -4020,34 +4076,65 @@ function toggleRawMsg(e) {
 }
 // v31: 渲染同訂單所有日子的時間軸（當前高亮）
 function renderFullOrderTimeline(currentO) {
-  // 找同訂單號的所有日子
+  // v47: 重寫照使用者貼的「raw message」格式，欄位順序：日期/時間 → 起始 → 行程(含時數) → 車款
   const allDays = ORDERS.tomorrow.filter(x => x.no === currentO.no).sort((a, b) => a.date.localeCompare(b.date));
   if (allDays.length === 0) return escapeHtml(currentO.rawMessage || '');
+
+  // 訂單頭（姓名/人數/行李 — 全訂單共通）
+  const orderHead = currentO;
   let html = '';
+  // 訂單基本資訊 header
+  html += '<div style="background:white;border:1px solid var(--border);border-radius:6px;padding:10px 12px;margin-bottom:10px;font-size:12.5px;line-height:1.6;">';
+  html += '<div style="font-weight:700;color:var(--primary);font-size:13px;margin-bottom:4px;">訂單：' + (orderHead.no || '') + '</div>';
+  if (orderHead.leader || orderHead.leaderName) html += '<div><strong>姓名：</strong>' + (orderHead.leaderName || orderHead.leader || '') + (orderHead.source ? ' - ' + orderHead.source : '') + '</div>';
+  if (orderHead.pax && orderHead.pax.raw) html += '<div><strong>成人：</strong>' + orderHead.pax.raw + '</div>';
+  if (orderHead.luggage) html += '<div><strong>行李：</strong>' + orderHead.luggage + '</div>';
+  if (orderHead.carSeat) html += '<div><strong>汽座：</strong>' + orderHead.carSeat + '</div>';
+  html += '</div>';
+
+  // 每日獨立卡片
   allDays.forEach((day, idx) => {
     const isCurrent = day.date === currentO.date && day.carIndex === currentO.carIndex;
     const dayLabel = 'Day ' + (idx + 1);
-    const bg = isCurrent ? 'background:#FEF3C7;border-left:4px solid #F59E0B;' : 'background:#F9FAFB;border-left:4px solid #E5E7EB;';
-    const headBg = isCurrent ? 'background:#F59E0B;color:white;' : 'background:#E5E7EB;color:#6B7280;';
+    const bg = isCurrent ? 'background:#FFFBEB;border:1px solid #F59E0B;' : 'background:white;border:1px solid var(--border);';
     const dispatchInfo = (day.assignments && day.assignments[0] && day.assignments[0].driverId)
-      ? '<span style="background:var(--success);color:white;padding:1px 6px;border-radius:4px;font-size:10px;margin-left:6px;">✓ 已派 ' + (day.assignments[0].driverNameRaw || day.assignments[0].driverId) + '</span>'
-      : '<span style="background:#FEE2E2;color:#991B1B;padding:1px 6px;border-radius:4px;font-size:10px;margin-left:6px;">待派車</span>';
-    const currentTag = isCurrent ? '<span style="background:#1E40AF;color:white;padding:1px 6px;border-radius:4px;font-size:10px;margin-left:6px;">🎯 當前派車</span>' : '';
-    html += '<div style="' + bg + 'border-radius:6px;padding:0;margin-bottom:8px;overflow:hidden;">';
-    html += '<div style="' + headBg + 'padding:6px 10px;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:12px;">';
-    html += '<span>' + dayLabel + ' ・ ' + day.date + ' ' + (day.start || '時段未定') + '</span>';
-    html += '<span>' + dispatchInfo + currentTag + '</span>';
+      ? '<span style="background:var(--success);color:white;padding:1px 7px;border-radius:10px;font-size:10px;">✓ ' + (day.assignments[0].driverNameRaw || day.assignments[0].driverId) + '</span>'
+      : '<span style="background:#FEE2E2;color:#991B1B;padding:1px 7px;border-radius:10px;font-size:10px;">待派車</span>';
+    const currentTag = isCurrent ? '<span style="background:#1E40AF;color:white;padding:1px 7px;border-radius:10px;font-size:10px;margin-left:4px;">🎯 當前</span>' : '';
+
+    // 時段格式化：日期 + 起始時間
+    const timeStr = (day.start || day.time || '').trim();
+    const dateLine = day.date + (timeStr ? ' ' + timeStr : '');
+
+    // 行程末尾合併時數 (使用者要求：通常時數會直接寫在行程最後面)
+    let routeText = String(day.to || day.route || '').trim();
+    if (day.hours) {
+      const hoursStr = String(day.hours).trim();
+      const hoursTxt = /[小用]時/.test(hoursStr) ? hoursStr : (hoursStr + '小時用車');
+      // 如果 routeText 末尾沒有已含時數，補上
+      if (!/\(\s*\d+\s*小時/.test(routeText) && !/\d+\s*小時用車/.test(routeText)) {
+        routeText = routeText + (routeText ? '  ' : '') + '(' + hoursTxt.replace('小時用車', '') + '小時用車)';
+      }
+    }
+
+    html += '<div style="' + bg + 'border-radius:8px;padding:0;margin-bottom:10px;overflow:hidden;">';
+    // 卡片標題列：Day N · 狀態
+    html += '<div style="background:' + (isCurrent ? 'linear-gradient(90deg,#F59E0B,#FBBF24)' : 'linear-gradient(90deg,#E5E7EB,#F3F4F6)') + ';color:' + (isCurrent ? 'white' : '#374151') + ';padding:6px 12px;display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:12px;">';
+    html += '<span>' + dayLabel + (day.carCount > 1 && day.carIndex ? ' ・ 第 ' + day.carIndex + ' 台' : '') + '</span>';
+    html += '<span style="display:flex;gap:4px;align-items:center;">' + dispatchInfo + currentTag + '</span>';
     html += '</div>';
-    html += '<div style="padding:8px 12px;font-size:12px;line-height:1.6;">';
-    html += '<div><strong>車款：</strong>' + (day.carType || '') + (day.carCount > 1 ? ' (需 ' + day.carCount + ' 台)' : '') + '</div>';
-    html += '<div><strong>起始：</strong>' + (day.from || '') + '</div>';
-    html += '<div><strong>行程：</strong>' + (day.to || '') + '</div>';
-    if (day.pax?.raw) html += '<div><strong>人數：</strong>' + day.pax.raw + (day.childAge ? '（小孩 ' + day.childAge + ' 歲）' : '') + '</div>';
-    if (day.carSeat) html += '<div><strong>汽座：</strong>' + day.carSeat + '</div>';
-    if (day.luggage) html += '<div><strong>行李：</strong>' + day.luggage + '</div>';
-    if (day.hours) html += '<div><strong>時數：</strong>' + day.hours + '</div>';
-    if (day.remarks) html += '<div style="background:#FEF3C7;padding:6px 8px;border-radius:4px;margin-top:4px;"><strong>備註：</strong>' + day.remarks + '</div>';
-    html += '<div style="font-family:monospace;color:var(--muted);font-size:10.5px;margin-top:4px;">司機費：¥' + (day.driverFee || 0).toLocaleString() + ' / 日幣總額：¥' + (day.totalJP || 0).toLocaleString() + '</div>';
+    // 主體欄位（照使用者貼的格式順序）
+    html += '<div style="padding:10px 12px;font-size:12.5px;line-height:1.7;">';
+    html += '<div><strong>日期：</strong><span style="font-family:ui-monospace,monospace;">' + dateLine + '</span></div>';
+    if (day.from) html += '<div><strong>起始：</strong>' + day.from + '</div>';
+    if (routeText) html += '<div><strong>行程：</strong>' + routeText + '</div>';
+    if (day.carType) html += '<div><strong>車款：</strong>' + day.carType + (day.carCount > 1 ? ' （需 ' + day.carCount + ' 台）' : '') + '</div>';
+    if (day.remarks) html += '<div style="background:#FEF3C7;border-left:3px solid #F59E0B;padding:6px 10px;border-radius:4px;margin-top:6px;color:#78350F;"><strong>備註：</strong>' + day.remarks + '</div>';
+    // 內部資訊（小字、淡色、靠右）
+    html += '<div style="display:flex;gap:10px;font-family:ui-monospace,monospace;color:var(--muted);font-size:10.5px;margin-top:6px;padding-top:6px;border-top:1px dashed var(--border);">';
+    html += '<span>司機費：¥' + (day.driverFee || 0).toLocaleString() + '</span>';
+    if (day.totalJP) html += '<span>日幣總額：¥' + day.totalJP.toLocaleString() + '</span>';
+    html += '</div>';
     html += '</div></div>';
   });
   return html;
