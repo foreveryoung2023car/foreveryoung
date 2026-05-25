@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v45</title>
+<title>旅乘派車系統 v46</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -37,7 +37,7 @@
   html, body {
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
     background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5;
-    -webkit-font-smoothing: antialiased; overscroll-behavior: none;
+    -webkit-font-smoothing: antialiased; /* v46: 移除 overscroll-behavior:none，讓滑鼠滾輪 scroll chaining 正常運作 */
     /* v39: 全寬流式 */
     width: 100%; overflow-x: hidden;
   }
@@ -549,6 +549,85 @@
   .gh-dot.daytrip { background: var(--info); }
   .gh-dot.busy { background: var(--danger); }
   .gh-dot.off { background: var(--muted); }
+
+  /* ====== v46: 車輛 picker（仿 driver-picker） ====== */
+  .vehicle-picker {
+    border: 1px solid var(--border); border-radius: 8px;
+    max-height: 360px; overflow-y: auto; background: white;
+    overscroll-behavior: contain;
+  }
+  .veh-group-head {
+    padding: 8px 12px; background: #F0F9FF; font-size: 11.5px;
+    color: #075985; font-weight: 700; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 1;
+    display: flex; align-items: center; gap: 6px; justify-content: space-between;
+  }
+  .veh-group-head .vgh-count {
+    background: #BAE6FD; color: #075985; padding: 1px 8px;
+    border-radius: 10px; font-size: 10.5px;
+  }
+  .vehicle-item {
+    padding: 10px 12px; border-bottom: 1px solid var(--border);
+    cursor: pointer; display: flex; align-items: center; gap: 10px;
+    transition: background 0.1s;
+  }
+  .vehicle-item:last-child { border-bottom: none; }
+  .vehicle-item:hover { background: #F0F9FF; }
+  .vehicle-item.selected { background: var(--primary-soft); }
+  .vehicle-item .vi-radio {
+    width: 16px; height: 16px; border: 2px solid var(--border-2);
+    border-radius: 50%; flex-shrink: 0; position: relative;
+  }
+  .vehicle-item.selected .vi-radio { border-color: var(--primary); }
+  .vehicle-item.selected .vi-radio::after {
+    content: ''; position: absolute; inset: 2px; background: var(--primary); border-radius: 50%;
+  }
+  .vehicle-item .vi-plate {
+    font-size: 14px; font-weight: 700; color: var(--text);
+    font-family: ui-monospace, monospace; letter-spacing: -0.3px;
+    min-width: 68px;
+  }
+  .vehicle-item .vi-meta { flex: 1; min-width: 0; font-size: 12px; color: var(--text-2); }
+  .vehicle-item .vi-meta .vi-model { font-weight: 500; }
+  .vehicle-item .vi-meta .vi-color { color: var(--muted); margin-left: 6px; font-size: 11.5px; }
+  .vehicle-item .vi-cat-chip {
+    background: var(--bg); color: var(--text-2);
+    padding: 2px 8px; border-radius: 10px;
+    font-size: 10.5px; font-weight: 600;
+  }
+  .vehicle-item .vi-check { color: var(--primary); font-weight: 700; font-size: 14px; }
+  .vi-new-btn {
+    padding: 10px 12px; cursor: pointer;
+    background: var(--primary-soft); color: var(--primary);
+    font-weight: 600; text-align: center;
+    border-top: 2px dashed var(--primary);
+    font-size: 13px;
+  }
+  .vi-new-btn:hover { background: #DBEAFE; }
+
+  /* v46: 多日 per-day checkbox grid */
+  .day-pick-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 6px; margin-top: 8px;
+  }
+  .day-pick-item {
+    display: flex; align-items: center; gap: 6px;
+    background: white; padding: 8px 10px; border-radius: 6px;
+    border: 1.5px solid var(--border); cursor: pointer;
+    font-size: 12px; transition: all 0.15s;
+  }
+  .day-pick-item.checked { border-color: var(--primary); background: var(--primary-soft); color: var(--primary); font-weight: 600; }
+  .day-pick-item.current { border-color: #F59E0B; background: #FEF3C7; color: #92400E; font-weight: 600; }
+  .day-pick-item input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
+  .day-pick-item .dp-date { font-family: ui-monospace, monospace; font-weight: 600; }
+  .day-pick-item .dp-fee { font-size: 10.5px; color: var(--muted); margin-left: auto; font-family: ui-monospace, monospace; }
+  .day-pick-actions { display: flex; gap: 6px; margin-top: 8px; }
+  .day-pick-actions button {
+    background: white; border: 1px solid var(--border-2);
+    padding: 4px 10px; border-radius: 4px; cursor: pointer;
+    font-size: 11px; color: var(--text-2); font-weight: 600;
+  }
+  .day-pick-actions button:hover { background: var(--primary-soft); color: var(--primary); border-color: var(--primary); }
 
   .driver-item {
     padding: 10px 12px; border-bottom: 1px solid var(--border);
@@ -2260,16 +2339,32 @@ async function saveDispatchReal() {
     if (!a.driverId) { alert(`第 ${i+1} 台車尚未選擇司機`); return; }
     if (!a.fee || a.fee <= 0) { alert(`第 ${i+1} 台車尚未輸入費用`); return; }
   }
-  // v32: bulk 派全程
-  const bulkCheckbox = document.getElementById('bulkAllDays');
-  const isBulk = bulkCheckbox && bulkCheckbox.checked;
-  // 組要派的日期列表
-  const targetDays = [{ date: (o.date || '').replace(/-/g, '/'), carIndex: o.carIndex || 1 }];
-  if (isBulk) {
-    const sameOrders = ORDERS.tomorrow.filter(x => x.no === o.no && x.date !== o.date);
-    const others = sameOrders.filter(x => !x.assignments || x.assignments.length === 0 || !x.assignments[0].driverId);
-    others.forEach(x => targetDays.push({ date: (x.date || '').replace(/-/g, '/'), carIndex: x.carIndex || 1 }));
+  // v46: per-day checkbox（可跳著選 Day1+Day5 來回接送機）
+  // 收集所有 .day-checkbox-v46 checked 的 date
+  const dayCheckboxes = document.querySelectorAll('.day-checkbox-v46');
+  const targetDays = [];
+  if (dayCheckboxes.length > 0) {
+    // 有 multi-day grid → 用勾選的日子（至少今日永遠在內）
+    dayCheckboxes.forEach(cb => {
+      if (cb.disabled) return;
+      if (!cb.checked) return;
+      const day = cb.dataset.day;
+      if (!day) return;
+      const sameOrd = ORDERS.tomorrow.find(x => x.no === o.no && x.date === day);
+      targetDays.push({
+        date: day.replace(/-/g, '/'),
+        carIndex: (sameOrd && sameOrd.carIndex) || (o.carIndex || 1)
+      });
+    });
+    // safety: 若沒勾任何 → 至少派今日
+    if (targetDays.length === 0) {
+      targetDays.push({ date: (o.date || '').replace(/-/g, '/'), carIndex: o.carIndex || 1 });
+    }
+  } else {
+    // 單日訂單 → 維持原邏輯
+    targetDays.push({ date: (o.date || '').replace(/-/g, '/'), carIndex: o.carIndex || 1 });
   }
+  const isBulk = targetDays.length > 1;
   let allOk = true;
   const messages = [];
   // v33: bulk 時，每天 fee 用該天 order 原本的 driverFee（每天行程不同價格不同）
@@ -3339,30 +3434,59 @@ function openEditor(idx) {
         const dateLabel = '<span style="font-family:monospace;">' + x.date + '</span>';
         return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:white;border-radius:6px;margin-top:6px;"><div>' + dateLabel + ' 派的是 <strong>' + (drv?.name || a.driverNameRaw || a.driverId) + '</strong></div><button onclick="applySameDriver(\'' + a.driverId + '\', \'' + (a.vehicleId || '') + '\', ' + (a.fee || 0) + ')" style="background:var(--primary);color:white;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600;">📋 沿用</button></div>';
       }).join('');
-      // v32: 若仍有未派天數，提供 bulk option
+      // v46: 仍未派的日子 — 改 per-day grid
       const otherUnassigned2 = sameOrders.filter(x => !x.assignments || x.assignments.length === 0 || !x.assignments[0].driverId);
       let bulkLine = '';
       if (otherUnassigned2.length > 0) {
-        bulkLine = '<label style="display:flex;align-items:center;gap:8px;background:white;padding:8px 10px;border-radius:6px;margin-top:8px;cursor:pointer;color:#1E40AF;font-weight:600;"><input type="checkbox" id="bulkAllDays" style="width:18px;height:18px;cursor:pointer;"> 🚀 同步派剩餘 ' + otherUnassigned2.length + ' 天（仍未派車的日子）</label>';
+        const allDaysB = [o].concat(sameOrders).sort((a, b) => a.date.localeCompare(b.date));
+        const dayGridHtmlB = allDaysB.map((d, i) => {
+          const isCurrent = (d.date === o.date);
+          const hasOtherDriver = (d.assignments && d.assignments.length > 0 && d.assignments[0].driverId);
+          const dayLabel = 'Day ' + (i+1);
+          const fee = (d.driverFee || 0).toLocaleString();
+          const cls = isCurrent ? 'day-pick-item current checked' : (hasOtherDriver ? 'day-pick-item' : 'day-pick-item');
+          const disabledAttr = hasOtherDriver ? 'disabled title="此日已派其他司機"' : '';
+          const checkedAttr = isCurrent ? 'checked' : '';
+          const otherInfo = hasOtherDriver ? (function(){const drv = DRIVERS.find(x => x.id === d.assignments[0].driverId); return drv ? drv.name : d.assignments[0].driverId;})() : '';
+          return '<label class="' + cls + (hasOtherDriver ? '" style="opacity:0.55;cursor:not-allowed;' : '') + '" data-day-key="' + d.date + '">' +
+            '<input type="checkbox" class="day-checkbox-v46" data-day="' + d.date + '"' + (isCurrent ? ' data-current="1"' : '') + ' ' + checkedAttr + ' ' + disabledAttr + ' onchange="updateDayPickItemV46(this)">' +
+            '<span class="dp-date">' + dayLabel + ' ' + d.date.slice(5) + '</span>' +
+            (hasOtherDriver ? '<span style="font-size:10px;color:var(--muted);margin-left:auto;">' + otherInfo + '</span>' : '<span class="dp-fee">¥' + fee + '</span>') +
+          '</label>';
+        }).join('');
+        bulkLine = '<div style="margin-top:10px;font-size:11.5px;color:#1E3A8A;font-weight:600;">勾選要派這位司機的日子（可跳著選）：</div>' +
+          '<div class="day-pick-grid">' + dayGridHtmlB + '</div>' +
+          '<div class="day-pick-actions">' +
+            '<button onclick="dayPickSelectAllV46()">全選未派</button>' +
+            '<button onclick="dayPickClearV46()">清除（保留今日）</button>' +
+            '<span style="margin-left:auto;font-size:11px;color:var(--text-2);" id="dayPickSummary">已勾 1 天</span>' +
+          '</div>';
       }
       multiDayBanner = '<div style="background:#DBEAFE;border:1px solid #3B82F6;color:#1E40AF;padding:10px 14px;border-radius:8px;margin:0 0 12px;font-size:12px;line-height:1.5;"><strong>📅 此訂單共 ' + o._multiDayCount + ' 天（這是 Day ' + o._multiDayIndex + '）</strong>' + driverList + bulkLine + '</div>';
     } else {
-      // v32+v33: 加「同步派全部 N 天」checkbox + 每天費用預覽
-      const otherUnassigned = sameOrders.filter(x => !x.assignments || x.assignments.length === 0 || !x.assignments[0].driverId);
+      // v46: per-day checkbox grid（可跳著選 Day1+Day5 來回接送機）
       const allDays = [o].concat(sameOrders).sort((a, b) => a.date.localeCompare(b.date));
-      const dayFeeList = allDays.map((d, i) => '<div style="display:flex;justify-content:space-between;padding:2px 0;font-size:11px;"><span>Day ' + (i+1) + ' (' + d.date + ')</span><span style="font-family:monospace;font-weight:600;">¥' + (d.driverFee || 0).toLocaleString() + '</span></div>').join('');
-      const totalFee = allDays.reduce((s, d) => s + (d.driverFee || 0), 0);
-      multiDayBanner = '<div style="background:#FEF3C7;border:1px solid #F59E0B;color:#92400E;padding:10px 14px;border-radius:8px;margin:0 0 12px;font-size:12px;line-height:1.6;">📅 此訂單共 ' + o._multiDayCount + ' 天（這是 Day ' + o._multiDayIndex + '）— 其他日尚未派車';
-      if (otherUnassigned.length > 0) {
-        multiDayBanner += '<label style="display:flex;align-items:center;gap:8px;background:white;padding:8px 10px;border-radius:6px;margin-top:8px;cursor:pointer;color:var(--text);font-weight:600;"><input type="checkbox" id="bulkAllDays" onchange="document.getElementById(\'bulkFeeDetail\').style.display=this.checked?\'block\':\'none\'" style="width:18px;height:18px;cursor:pointer;"> 🚀 同步派全部 ' + o._multiDayCount + ' 天（含此單 + 其他 ' + otherUnassigned.length + ' 天）</label>';
-        multiDayBanner += '<div id="bulkFeeDetail" style="display:none;background:white;padding:8px 10px;border-radius:6px;margin-top:4px;color:var(--text);">';
-        multiDayBanner += '<div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px;">每天費用</div>';
-        multiDayBanner += dayFeeList;
-        multiDayBanner += '<div style="display:flex;justify-content:space-between;padding-top:6px;margin-top:4px;border-top:1px dashed var(--border);font-weight:700;color:var(--primary);"><span>合計</span><span style="font-family:monospace;">¥' + totalFee.toLocaleString() + '</span></div>';
-        multiDayBanner += '</div>';
-        multiDayBanner += '<div style="font-size:10.5px;opacity:0.8;margin-top:4px;">勾選後，「確認派車」會把這位司機寫入剩餘日子，<strong>每天費用各別保留訂單原價</strong></div>';
-      }
-      multiDayBanner += '</div>';
+      const dayGridHtml = allDays.map((d, i) => {
+        const isCurrent = (d.date === o.date);
+        const dayLabel = 'Day ' + (i+1);
+        const fee = (d.driverFee || 0).toLocaleString();
+        const checkedAttr = isCurrent ? 'checked' : '';
+        const cls = isCurrent ? 'day-pick-item current checked' : 'day-pick-item';
+        return '<label class="' + cls + '" data-day-key="' + d.date + '" onclick="event.stopPropagation()">' +
+          '<input type="checkbox" class="day-checkbox-v46" data-day="' + d.date + '"' + (isCurrent ? ' data-current="1"' : '') + ' ' + checkedAttr + ' onchange="updateDayPickItemV46(this)">' +
+          '<span class="dp-date">' + dayLabel + ' ' + d.date.slice(5) + '</span>' +
+          '<span class="dp-fee">¥' + fee + '</span>' +
+        '</label>';
+      }).join('');
+      multiDayBanner = '<div style="background:#FEF3C7;border:1px solid #F59E0B;color:#92400E;padding:10px 14px;border-radius:8px;margin:0 0 12px;font-size:12px;line-height:1.6;">' +
+        '<div style="font-weight:700;margin-bottom:6px;">📅 此訂單共 ' + o._multiDayCount + ' 天 — 勾選要派這位司機的日子（可跳著選，例如來回接送機）</div>' +
+        '<div class="day-pick-grid">' + dayGridHtml + '</div>' +
+        '<div class="day-pick-actions">' +
+          '<button onclick="dayPickSelectAllV46()">全選</button>' +
+          '<button onclick="dayPickClearV46()">清除（保留今日）</button>' +
+          '<span style="margin-left:auto;font-size:11px;color:var(--text-2);" id="dayPickSummary">已勾 1 天</span>' +
+        '</div>' +
+      '</div>';
     }
   }
 
@@ -3530,19 +3654,46 @@ function renderCarSlot(order, assignment, slotIdx) {
             <span>選擇車輛 <span class="required">*</span></span>
             <span class="hint">${VEHICLES.length} 台可選</span>
           </label>
-          <!-- v44: 回到 native select（解決派車面板打不開）+ 上方搜尋只 filter -->
-          <input type="text" class="form-control" id="vehicleSearch-${slotIdx}" placeholder="🔍 搜尋車牌 / 車型 (打字過濾選單)" style="margin-bottom:6px;font-size:13px;" oninput="filterVehicleSelect(${slotIdx}, this.value)">
-          
-          
-          <!-- v44: 重新顯示 native select，加上 size 讓它變成可見的清單 -->
-          <select class="form-control" id="vehicleSelect-${slotIdx}" onchange="onVehicleChange(${slotIdx})" size="8" style="height:auto;min-height:200px;font-size:13px;font-family:monospace;">
+                    <!-- v46: 卡片式車輛 picker（仿 driver-picker），含搜尋 + 隱藏 select 作為儲存目標 -->
+          <input type="text" class="form-control" id="vehicleSearch-${slotIdx}" placeholder="🔍 搜尋車牌 / 車型..." style="margin-bottom:6px;font-size:13px;" oninput="filterVehiclePickerV46(${slotIdx}, this.value)">
+          <div class="vehicle-picker" id="vehiclePicker-${slotIdx}">
+            ${(function(){
+              const selVeh = assignment.vehicleId ? VEHICLES.find(v => v.id === assignment.vehicleId) : null;
+              let h = '';
+              if (selVeh) {
+                h += '<div class="veh-group-head" style="background:var(--primary-soft);color:var(--primary);">✓ 已選擇車輛<span class="vgh-count" style="background:white;color:var(--primary);">' + String(selVeh.plate || '?') + '</span></div>';
+              }
+              ['7座','10座','19座'].forEach(cat => {
+                const items = VEHICLES.filter(v => v.category === cat);
+                if (items.length === 0) return;
+                h += '<div class="veh-group-head" data-cat="' + cat + '">' + cat + '<span class="vgh-count">' + items.length + ' 台</span></div>';
+                items.forEach(v => {
+                  const isSel = assignment.vehicleId === v.id;
+                  const plateStr = String(v.plate || '?');
+                  const modelStr = String(v.model || '');
+                  const colorStr = String(v.color || '');
+                  h += '<div class="vehicle-item' + (isSel ? ' selected' : '') + '"' +
+                    ' data-vid="' + v.id + '"' +
+                    ' data-plate="' + plateStr.toLowerCase() + '"' +
+                    ' data-model="' + modelStr.toLowerCase() + '"' +
+                    ' onclick="selectVehicleForSlotV46(' + slotIdx + ', \'' + v.id + '\')">' +
+                    '<div class="vi-radio"></div>' +
+                    '<div class="vi-plate">' + plateStr + '</div>' +
+                    '<div class="vi-meta">' + (modelStr ? '<span class="vi-model">' + modelStr + '</span>' : '<span style="color:var(--muted);">—</span>') + (colorStr ? '<span class="vi-color">(' + colorStr + ')</span>' : '') + '</div>' +
+                    '<div class="vi-cat-chip">' + cat + '</div>' +
+                    (isSel ? '<div class="vi-check">✓</div>' : '') +
+                    '</div>';
+                });
+              });
+              h += '<div class="vi-new-btn" onclick="vehicleNewModeV46(' + slotIdx + ')">＋ 新增車輛（不在清單）</div>';
+              return h;
+            })()}
+          </div>
+          <!-- v46: 隱藏 select 保留作為原本邏輯儲存目標（onVehicleChange 等仍可運作） -->
+          <select id="vehicleSelect-${slotIdx}" onchange="onVehicleChange(${slotIdx})" style="display:none;">
             <option value="">請選擇車輛...</option>
-            ${['7座','10座','19座'].map(cat => {
-              const items = VEHICLES.filter(v => v.category === cat);
-              if (items.length === 0) return '';
-              return '<optgroup label="━━ ' + cat + ' (' + items.length + ' 台) ━━">' + items.map(v => '<option value="' + v.id + '" ' + (assignment.vehicleId === v.id ? 'selected' : '') + '>' + (v.plate || '?') + (v.model ? ' · ' + v.model : '') + (v.color ? ' (' + v.color + ')' : '') + '</option>').join('') + '</optgroup>';
-            }).join('')}
-            <option value="__NEW__" style="font-weight:600;color:#1677ff;">＋ 新增車輛（不在清單）</option>
+            ${VEHICLES.map(v => '<option value="' + v.id + '" ' + (assignment.vehicleId === v.id ? 'selected' : '') + '>' + String(v.plate || '?') + '</option>').join('')}
+            <option value="__NEW__">__NEW__</option>
           </select>
           <div id="newVehicleBox-${slotIdx}" style="display:none;background:var(--primary-soft);border:1px solid var(--primary);padding:8px;border-radius:6px;margin-top:6px;">
             <div style="font-size:11px;color:var(--primary);font-weight:600;margin-bottom:6px;">📝 新增車輛資料</div>
@@ -3658,6 +3809,45 @@ function toggleListView() {
   renderOrders();
 }
 
+// v46: per-day checkbox grid helpers
+function updateDayPickItemV46(cb) {
+  const label = cb.closest('.day-pick-item');
+  if (label) {
+    if (cb.checked) label.classList.add('checked');
+    else label.classList.remove('checked');
+  }
+  refreshDayPickSummaryV46();
+}
+function refreshDayPickSummaryV46() {
+  const boxes = document.querySelectorAll('.day-checkbox-v46');
+  const n = Array.from(boxes).filter(b => b.checked).length;
+  const sum = document.getElementById('dayPickSummary');
+  if (sum) sum.textContent = '已勾 ' + n + ' 天';
+}
+function dayPickSelectAllV46() {
+  document.querySelectorAll('.day-checkbox-v46').forEach(cb => {
+    if (cb.disabled) return;
+    cb.checked = true;
+    const label = cb.closest('.day-pick-item');
+    if (label) label.classList.add('checked');
+  });
+  refreshDayPickSummaryV46();
+}
+function dayPickClearV46() {
+  document.querySelectorAll('.day-checkbox-v46').forEach(cb => {
+    if (cb.dataset.current === '1') {
+      cb.checked = true;
+      const label = cb.closest('.day-pick-item');
+      if (label) label.classList.add('checked');
+    } else {
+      cb.checked = false;
+      const label = cb.closest('.day-pick-item');
+      if (label) label.classList.remove('checked');
+    }
+  });
+  refreshDayPickSummaryV46();
+}
+
 // v30: 沿用同訂單其他日的司機
 function applySameDriver(driverId, vehicleId, fee) {
   if (!state.editingAssignments[0]) return;
@@ -3718,7 +3908,45 @@ function onVehicleChange(slotIdx) {
     state.editingAssignments[slotIdx].vehicleId = val;
   }
 }
-// v44: 搜尋過濾 native select 的 options
+// v46: 卡片 picker 過濾
+function filterVehiclePickerV46(slotIdx, query) {
+  const picker = document.getElementById('vehiclePicker-' + slotIdx);
+  if (!picker) return;
+  const q = String(query || '').trim().toLowerCase();
+  picker.querySelectorAll('.vehicle-item').forEach(row => {
+    if (!q) { row.style.display = ''; return; }
+    const plate = (row.dataset.plate || '');
+    const model = (row.dataset.model || '');
+    row.style.display = (plate.includes(q) || model.includes(q)) ? '' : 'none';
+  });
+  // 群組標題：該組無 visible item 就隱藏
+  picker.querySelectorAll('.veh-group-head[data-cat]').forEach(head => {
+    let next = head.nextElementSibling;
+    let anyVisible = false;
+    while (next && next.classList && next.classList.contains('vehicle-item')) {
+      if (next.style.display !== 'none') { anyVisible = true; break; }
+      next = next.nextElementSibling;
+    }
+    head.style.display = anyVisible ? '' : 'none';
+  });
+}
+
+function selectVehicleForSlotV46(slotIdx, vid) {
+  state.editingAssignments[slotIdx].vehicleId = vid;
+  const sel = document.getElementById('vehicleSelect-' + slotIdx);
+  if (sel) sel.value = vid;
+  // 重渲整個 slot 才能反映 selected 樣式 + ✓
+  renderCarSlots();
+}
+
+function vehicleNewModeV46(slotIdx) {
+  // 跟原本 __NEW__ 一樣：顯示新增表單，並把 hidden select 設為 __NEW__
+  const sel = document.getElementById('vehicleSelect-' + slotIdx);
+  if (sel) sel.value = '__NEW__';
+  onVehicleChange(slotIdx);
+}
+
+// v44: 搜尋過濾 native select 的 options (legacy, 保留供舊呼叫)
 function filterVehicleSelect(slotIdx, q) {
   q = (q || '').toLowerCase().trim();
   const sel = document.getElementById('vehicleSelect-' + slotIdx);
