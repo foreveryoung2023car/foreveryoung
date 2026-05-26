@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v57</title>
+<title>旅乘派車系統 v58</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -2518,6 +2518,18 @@
   #page-dispatch .dpv38-strip .date-pill.active .badge {
     background: rgba(255,255,255,0.3) !important; color: white !important;
   }
+
+  /* v58: 訂單號當主標、客人姓名當副標 */
+  .v54b-card .v54b-no-big {
+    font-size: 17px; font-weight: 800; color: var(--text);
+    font-family: ui-monospace, monospace; letter-spacing: -0.3px;
+  }
+  .v54b-card .v54b-customer {
+    font-size: 13px; font-weight: 600; color: var(--text-2);
+  }
+  .v54b-card.pending .v54b-no-big { color: var(--text); }
+  .v54b-card.assigned .v54b-no-big { color: var(--primary); }
+  .v54b-card.completed .v54b-no-big { color: var(--success); }
 </style>
 </head>
 <body>
@@ -3309,19 +3321,21 @@ function adaptOrderFromApi(o) {
     no: o.no || '',
     date: dateNorm,
     carIndex: o.carIndex || 1,  // v28
-    // ===== v55: 補回 API 已回但前端漏掛的欄位 =====
+    // ===== v55-v58: API 欄位掛勾 =====
     leaderName: o.leaderName || '',
-    leader: o.leaderName || '',          // alias (前端兩種寫法都有)
-    driverName: o.driverName || '',      // 原始司機名（從訂單表 W 欄）
-    driverFull: o.driverFull || '',      // 「東京-李勇軍」格式
-    plate: o.plate || '',                // 訂單表 X 欄車牌（原始）
-    carSeat: o.carSeat || '',            // 汽座原始字串
-    childAge: o.childAge || '',          // 小孩年齡
-    orderDate: o.orderDate || '',        // 訂單建立日
-    depositTW: o.depositTW || 0,         // 台幣訂金
-    remainTW: o.remainTW || 0,           // 台幣餘款
-    source: o.source || '',              // 來源 (API 待補)
-    // ===== v55 END =====
+    leader: o.leaderName || '',
+    driverName: o.driverName || '',
+    driverFull: o.driverFull || '',
+    plate: o.plate || '',
+    carSeat: o.carSeat || '',
+    childAge: o.childAge || '',
+    orderDate: o.orderDate || '',
+    depositTW: o.depositTW || 0,
+    remainTW: o.remainTW || 0,
+    // v58: 客人姓名 (訂單收支表 AL 欄) + 來源 (AT 欄) — GAS v21 後才有值
+    customerName: o.customerName || '',  // AL 欄「訂購姓名」
+    source: o.source || '',              // AT 欄「來源」LINE/FB/IG/粉專/BY
+    // ===== END =====
     // v21: 從 L 欄 (API.startTime) 取出發時間，再用 hours 推結束
     start: (o.startTime || '時段未定'),
     end: (function(){
@@ -6529,12 +6543,13 @@ function v49BuildDetailHTML(o, opts) {
   const _carSeat = headO.carSeat || o.carSeat;
   const _carSeatCount = headO.carSeatCount || o.carSeatCount;
   const _requireLang = headO.requireLang || o.requireLang;
-  // v57: rollback v56 — 還原原本顯示
+  // v58: 「姓名」優先用 customerName (AL 欄)，「來源」用 source (AT 欄)
+  const _customer = (o.customerName || headO.customerName || '').trim();
   h += '<div class="wb-detail-section">';
   h += '<div class="wb-detail-section-title">👥 客戶資訊</div>';
   h += '<div class="wb-kv-grid">';
-  h += '<div class="wb-kv-row"><span class="k">姓名</span><span class="v">' + _leader + '</span></div>';
-  if (_source) h += '<div class="wb-kv-row"><span class="k">來源</span><span class="v">' + _source + '</span></div>';
+  h += '<div class="wb-kv-row"><span class="k">姓名</span><span class="v">' + (_customer || '<span style="color:var(--muted);">—</span>') + '</span></div>';
+  h += '<div class="wb-kv-row"><span class="k">來源</span><span class="v">' + (_source || '<span style="color:var(--muted);">—</span>') + '</span></div>';
   if (_pax) h += '<div class="wb-kv-row"><span class="k">人數</span><span class="v">' + (_pax.raw || ((_pax.adult||0) + '人')) + '</span></div>';
   if (_requireLang && _requireLang.length) h += '<div class="wb-kv-row"><span class="k">語言</span><span class="v">' + _requireLang.join('/') + '</span></div>';
   if (_luggage) h += '<div class="wb-kv-row"><span class="k">行李</span><span class="v">' + _luggage + '</span></div>';
@@ -6952,10 +6967,13 @@ function v52BuildOrderRow(o) {
   const stKey = (o.status || 'pending').replace('-', '');
   const activeAssigns = (o.assignments || []).filter(a => a.status === 'active');
 
-  // v57: 訂單頭資料 (Day 1 fallback)
+  // v58: 訂單頭資料 (Day 1 fallback)
   const allDays = ORDERS.tomorrow.filter(x => x.no === o.no);
   const headO = allDays.find(x => x._multiDayIndex === 1) || allDays[0] || o;
-  const leaderName = o.leaderName || o.leader || headO.leaderName || headO.leader || '—';
+  // 客人姓名優先用 customerName (AL 欄)，沒值才顯示空白
+  const customerName = o.customerName || headO.customerName || '';
+  // leaderName 保留為司機 fallback (顯示在司機 block，不顯示在客人位置)
+  const leaderName = customerName || o.leaderName || o.leader || headO.leaderName || headO.leader || '—';
 
   // 司機資訊
   let driverInfo = '<div class="v54b-driver-block unassigned">⚠ 未派車</div>';
@@ -7029,10 +7047,11 @@ function v52BuildOrderRow(o) {
     '</div>' +
     // 中：大姓名 + 路線 + meta
     '<div class="v54b-main">' +
+      // v58: 訂單號當主標(大)，客人姓名當副標
       '<div class="v54b-leader-row">' +
-        '<span class="v54b-leader-big">' + leaderName + '</span>' +
+        '<span class="v54b-no-big">' + displayNo + '</span>' +
         srcChip +
-        '<span class="v54b-no">' + displayNo + '</span>' +
+        (customerName ? '<span class="v54b-customer">' + customerName + '</span>' : '') +
       '</div>' +
       '<div class="v54b-route">' + (routeDisplay || '—') + '</div>' +
       '<div class="v54b-meta-row">' + tags + (metaTxt ? '<span class="v54b-meta-text">' + metaTxt + '</span>' : '') + '</div>' +
