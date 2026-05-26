@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v56</title>
+<title>旅乘派車系統 v57</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -6529,13 +6529,12 @@ function v49BuildDetailHTML(o, opts) {
   const _carSeat = headO.carSeat || o.carSeat;
   const _carSeatCount = headO.carSeatCount || o.carSeatCount;
   const _requireLang = headO.requireLang || o.requireLang;
-  // v56: 「姓名」改「派車負責人」(API 的 leaderName 實為司機/承辦人不是客人)
+  // v57: rollback v56 — 還原原本顯示
   h += '<div class="wb-detail-section">';
-  h += '<div class="wb-detail-section-title">👥 訂單資訊 <span class="helper" style="color:var(--muted);font-size:10px;cursor:default;" title="客人姓名/來源待 GAS 後端補欄位">⚠ 客人姓名/來源待補</span></div>';
+  h += '<div class="wb-detail-section-title">👥 客戶資訊</div>';
   h += '<div class="wb-kv-grid">';
-  h += '<div class="wb-kv-row"><span class="k">派車負責人</span><span class="v">' + _leader + '</span></div>';
-  h += '<div class="wb-kv-row"><span class="k">客人姓名</span><span class="v" style="color:var(--muted);">— (待 GAS 補)</span></div>';
-  h += '<div class="wb-kv-row"><span class="k">來源</span><span class="v">' + (_source || '<span style="color:var(--muted);">— (待 GAS 補)</span>') + '</span></div>';
+  h += '<div class="wb-kv-row"><span class="k">姓名</span><span class="v">' + _leader + '</span></div>';
+  if (_source) h += '<div class="wb-kv-row"><span class="k">來源</span><span class="v">' + _source + '</span></div>';
   if (_pax) h += '<div class="wb-kv-row"><span class="k">人數</span><span class="v">' + (_pax.raw || ((_pax.adult||0) + '人')) + '</span></div>';
   if (_requireLang && _requireLang.length) h += '<div class="wb-kv-row"><span class="k">語言</span><span class="v">' + _requireLang.join('/') + '</span></div>';
   if (_luggage) h += '<div class="wb-kv-row"><span class="k">行李</span><span class="v">' + _luggage + '</span></div>';
@@ -6953,11 +6952,10 @@ function v52BuildOrderRow(o) {
   const stKey = (o.status || 'pending').replace('-', '');
   const activeAssigns = (o.assignments || []).filter(a => a.status === 'active');
 
-  // v56: 訂單頭資料 (Day 1 fallback)，leaderName 是派車負責人/司機名（不是客人）
+  // v57: 訂單頭資料 (Day 1 fallback)
   const allDays = ORDERS.tomorrow.filter(x => x.no === o.no);
   const headO = allDays.find(x => x._multiDayIndex === 1) || allDays[0] || o;
   const leaderName = o.leaderName || o.leader || headO.leaderName || headO.leader || '—';
-  const leaderTitle = '派車負責人/承辦司機（客人姓名待後端補）';
 
   // 司機資訊
   let driverInfo = '<div class="v54b-driver-block unassigned">⚠ 未派車</div>';
@@ -7032,7 +7030,7 @@ function v52BuildOrderRow(o) {
     // 中：大姓名 + 路線 + meta
     '<div class="v54b-main">' +
       '<div class="v54b-leader-row">' +
-        '<span class="v54b-leader-big" title="' + leaderTitle + '">' + leaderName + '</span>' +
+        '<span class="v54b-leader-big">' + leaderName + '</span>' +
         srcChip +
         '<span class="v54b-no">' + displayNo + '</span>' +
       '</div>' +
