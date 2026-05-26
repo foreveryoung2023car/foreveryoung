@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v58</title>
+<title>旅乘派車系統 v59</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -2530,6 +2530,13 @@
   .v54b-card.pending .v54b-no-big { color: var(--text); }
   .v54b-card.assigned .v54b-no-big { color: var(--primary); }
   .v54b-card.completed .v54b-no-big { color: var(--success); }
+
+  /* v59: 訂單列表 100% 寬度 (確保每張卡寬度一致) */
+  .orders.dense-list { padding: 12px 16px 16px !important; }
+  .orders.dense-list .v54b-card { width: 100% !important; box-sizing: border-box; }
+
+  /* v59: 強化 sheet-mask 點擊樣式 (滑鼠移過去顯示 not-allowed 暗示無法關) */
+  .sheet-mask { cursor: default; }
 </style>
 </head>
 <body>
@@ -2710,18 +2717,11 @@
       <div class="dpv38-strip" id="dateStrip"></div>
     </div>
 
-    <!-- v49: 中欄 toolbar (取代頂部 quick-stats，整合 view mode + 新增訂單) -->
+    <!-- v59: 中欄 toolbar 簡化 — 只留標題 + crumb，不再切換 view mode -->
     <div class="wb-center-toolbar" id="wbCenterToolbar" style="display:none;">
       <div class="left">
         <h2 id="wbToolbarTitle">明日訂單</h2>
         <span class="crumb" id="wbToolbarCrumb">—</span>
-      </div>
-      <div class="right">
-        <button class="wb-tool-btn" onclick="toggleTodayTomorrowMode()" id="wbTodayTomorrow">📅 今+明</button>
-        <div class="wb-tool-divider"></div>
-        <button class="wb-tool-btn" onclick="v49SetViewMode('card')" id="wbVmCard">🎴 卡片</button>
-        <button class="wb-tool-btn active" onclick="v49SetViewMode('list')" id="wbVmList">📋 列表</button>
-        <button class="wb-tool-btn" onclick="v49SetViewMode('table')" id="wbVmTable">📊 表格</button>
       </div>
     </div>
 
@@ -2977,7 +2977,7 @@
   </nav>
 </div>
 
-<div class="sheet-mask" id="sheetMask" onclick="closeSheet()"></div>
+<div class="sheet-mask" id="sheetMask"></div>  <!-- v59: 拿掉 onclick，防誤觸 -->
 <div class="sheet" id="sheet">
   <div class="sheet-handle"></div>
   <div class="sheet-header">
@@ -4510,17 +4510,29 @@ function renderOrderCard(o, idx) {
 }
 
 /* ============ 開啟編輯 (v22 by orderNo) ============ */
-function openEditorByNo(orderNo) {
-  const o = ORDERS.tomorrow.find(x => x.no === orderNo);
-  if (!o) { console.warn('[openEditor] no order found:', orderNo); return; }
-  const list = getOrdersForDate();
-  const idx = list.indexOf(o);
-  if (idx >= 0) openEditor(idx);
-  else {
-    // 訂單不在當前日期 → 切換到該訂單的日期
+function openEditorByNo(orderNo, targetDate) {
+  // v59: 加 targetDate 參數 — 多日訂單可指定要編輯哪一天
+  let o;
+  if (targetDate) {
+    // 優先找該日的訂單
+    o = ORDERS.tomorrow.find(x => x.no === orderNo && x.date === targetDate);
+  }
+  if (!o) {
+    o = ORDERS.tomorrow.find(x => x.no === orderNo);
+  }
+  if (!o) { console.warn('[openEditor] no order found:', orderNo, targetDate); return; }
+  // 切到該訂單的日期
+  if (state.currentDate !== o.date) {
     state.currentDate = o.date;
+    state._manualDateClick = true;
     renderDateStrip();
     renderOrders();
+  }
+  const list = getOrdersForDate();
+  const idx = list.indexOf(o);
+  if (idx >= 0) {
+    openEditor(idx);
+  } else {
     setTimeout(() => {
       const list2 = getOrdersForDate();
       const idx2 = list2.indexOf(o);
@@ -6657,11 +6669,11 @@ function v49BuildDetailHTML(o, opts) {
 
   h += '</div>';  // detail-body
 
-  // v53: actions 去除重複 — 只留實用的
+  // v59: actions — 開派車面板帶當前 day
   h += '<div class="wb-detail-actions">';
   h += '<button class="wb-btn wb-btn-secondary" onclick="v53CopyOrderNo(\'' + o.no + '\')" title="複製訂單號">📋</button>';
   h += '<button class="wb-btn wb-btn-secondary" onclick="window.print()" title="列印">🖨</button>';
-  h += '<button class="wb-btn wb-btn-primary" onclick="openEditorByNo(\'' + o.no + '\')">🚐 開派車面板 →</button>';
+  h += '<button class="wb-btn wb-btn-primary" onclick="openEditorByNo(\'' + o.no + '\', \'' + o.date + '\')">🚐 開派車面板 →</button>';
   h += '</div>';
 
   return h;
