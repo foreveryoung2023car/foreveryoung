@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v51</title>
+<title>旅乘派車系統 v52</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -1751,10 +1751,24 @@
 
   /* === 主 grid container (只在 #page-dispatch 套用) === */
   #page-dispatch.workbench-mode {
-    display: grid; grid-template-columns: 260px 1fr 420px;
+    display: grid;
+    grid-template-columns: 260px 1fr 5px var(--wb-right-w, 420px);
     height: calc(100vh - 56px); overflow: hidden;
     padding: 0; margin: 0;
   }
+  /* v52: 右欄寬度可拖曳調整 */
+  .wb-resizer {
+    background: var(--border);
+    cursor: col-resize; position: relative; z-index: 10;
+    transition: background 0.15s;
+  }
+  .wb-resizer:hover, .wb-resizer.dragging { background: var(--primary); }
+  .wb-resizer::after {
+    content: '⋮'; position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%); color: var(--muted);
+    font-size: 14px; line-height: 1;
+  }
+  .wb-resizer:hover::after, .wb-resizer.dragging::after { color: white; }
   /* 非桌機尺寸 fallback：先不啟用 workbench，保留原本垂直 stack */
   @media (max-width: 1199px) {
     #page-dispatch.workbench-mode {
@@ -1880,9 +1894,19 @@
     align-items: center; justify-content: center;
     color: var(--muted); padding: 40px 30px; text-align: center;
   }
-  .wb-right-empty .icon { font-size: 48px; opacity: 0.4; margin-bottom: 12px; }
-  .wb-right-empty .title { font-size: 14px; font-weight: 700; color: var(--text-2); margin-bottom: 4px; }
-  .wb-right-empty .desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  /* v52: 縮小圖示 + 加 line-height 避免蓋住標題 */
+  .wb-right-empty .icon {
+    font-size: 32px; opacity: 0.25; margin-bottom: 14px;
+    line-height: 1; display: block; position: relative; z-index: 0;
+  }
+  .wb-right-empty .title {
+    font-size: 14px; font-weight: 700; color: var(--text-2);
+    margin-bottom: 6px; position: relative; z-index: 1;
+  }
+  .wb-right-empty .desc {
+    font-size: 12px; color: var(--muted); line-height: 1.5;
+    position: relative; z-index: 1;
+  }
 
   .wb-detail-head {
     padding: 14px 16px 12px; background: linear-gradient(135deg, var(--primary), #4096ff);
@@ -2139,7 +2163,7 @@
   /* tablet 900-1199: 兩欄（左收抽屜 + 中 + 右 380px） */
   @media (max-width: 1199px) and (min-width: 900px) {
     #page-dispatch.workbench-mode {
-      grid-template-columns: 1fr 380px;
+      grid-template-columns: 1fr 5px var(--wb-right-w, 380px);
       height: calc(100vh - 56px); overflow: hidden;
     }
     .wb-left-rail { display: none; }
@@ -2152,7 +2176,7 @@
       grid-template-columns: 1fr;
       height: calc(100vh - 56px); overflow: hidden;
     }
-    .wb-left-rail, .wb-right { display: none; }
+    .wb-left-rail, .wb-right, .wb-resizer { display: none; }
     .v49-menu-btn { display: flex; }
     .header-metrics-v48 { display: none !important; }
     .orders.dense-list .order-card,
@@ -2169,7 +2193,7 @@
       grid-template-columns: 1fr;
       height: auto; overflow: visible;
     }
-    .wb-left-rail, .wb-right { display: none; }
+    .wb-left-rail, .wb-right, .wb-resizer { display: none; }
     .v49-menu-btn { display: flex; }
     .header-metrics-v48 { display: none !important; }
     .brand-sub-v48 { display: none !important; }
@@ -2185,6 +2209,105 @@
     .wb-center-toolbar { padding: 8px 12px; }
     .wb-center-toolbar h2 { font-size: 13px; }
     .wb-center-toolbar .crumb { font-size: 10.5px; }
+  }
+
+  /* ====== v52: dense row 設計 ====== */
+  .orders.dense-list { padding: 8px 16px 16px !important; gap: 0 !important; }
+  .v52-row {
+    display: grid !important;
+    grid-template-columns: 62px 130px 1fr 160px 80px 60px;
+    gap: 12px; align-items: center; padding: 10px 14px !important;
+    background: white !important; border: 1px solid var(--border) !important;
+    border-radius: 8px !important; margin-bottom: 6px !important;
+    cursor: pointer; transition: all 0.12s; position: relative;
+  }
+  .v52-row:hover { border-color: var(--primary) !important; box-shadow: 0 2px 6px rgba(22,119,255,0.12); }
+  .v52-row.row-selected { border-color: var(--primary) !important; background: var(--primary-soft) !important; box-shadow: 0 2px 8px rgba(22,119,255,0.2); }
+  .v52-row.pending { border-left: 3px solid var(--warning) !important; }
+  .v52-row.assigned { border-left: 3px solid var(--primary) !important; }
+  .v52-row.confirmed { border-left: 3px solid var(--purple, #7C3AED) !important; }
+  .v52-row.completed { border-left: 3px solid var(--success) !important; opacity: 0.85; }
+  .v52-row.cancelled { border-left: 3px solid var(--muted) !important; opacity: 0.55; }
+  .v52-row.modified::after {
+    content: '⚠ 異動'; position: absolute; top: -7px; right: 12px;
+    background: var(--warning); color: white; font-size: 9.5px;
+    font-weight: 700; padding: 1px 7px; border-radius: 10px;
+  }
+
+  .v52-row .v52-time { display: flex; flex-direction: column; gap: 1px; }
+  .v52-row .v52-t-start { font-weight: 700; color: var(--primary); font-family: ui-monospace, monospace; font-size: 14px; }
+  .v52-row .v52-t-end { font-size: 10.5px; color: var(--muted); font-family: ui-monospace, monospace; }
+
+  .v52-row .v52-no-block { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .v52-row .v52-no { font-family: ui-monospace, monospace; font-size: 11px; color: var(--text-2); font-weight: 600; }
+  .v52-row .v52-tags { display: flex; gap: 3px; flex-wrap: wrap; }
+  .v52-row .v52-mt {
+    font-size: 9.5px; font-weight: 700;
+    padding: 1px 6px; border-radius: 8px; line-height: 1.5;
+  }
+  .v52-mt.multi { background: #DBEAFE; color: #1E40AF; }
+  .v52-mt.transfer { background: var(--info-soft, #ECFEFF); color: #0E7490; }
+  .v52-mt.daytrip { background: var(--warning-soft, #FEF3C7); color: #92400E; }
+  .v52-mt.lang-zh { background: var(--danger-soft, #FEE2E2); color: #991B1B; }
+  .v52-mt.lang-ja { background: #DBEAFE; color: #1E40AF; }
+  .v52-mt.lang-en { background: var(--success-soft, #DCFCE7); color: #065F46; }
+  .v52-mt.car2 { background: var(--text-2); color: white; }
+  .v52-mt.carseat { background: var(--warning-soft, #FEF3C7); color: #92400E; }
+  .v52-mt.modified { background: var(--warning); color: white; }
+
+  .v52-row .v52-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .v52-row .v52-leader-row { display: flex; align-items: center; gap: 6px; }
+  .v52-row .v52-leader { font-weight: 700; font-size: 13px; color: var(--text); }
+  .v52-row .v52-src { font-size: 9.5px; padding: 1px 6px; border-radius: 8px; font-weight: 700; }
+  .v52-src.line { background: #06C755; color: white; }
+  .v52-src.fb { background: #1877F2; color: white; }
+  .v52-src.ig { background: linear-gradient(45deg, #f09433, #dc2743, #bc1888); color: white; }
+  .v52-src.fans { background: #722ed1; color: white; }
+  .v52-src.by { background: #6B7280; color: white; }
+  .v52-row .v52-route { font-size: 11.5px; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.4; }
+  .v52-row .v52-meta { font-size: 10.5px; color: var(--muted); }
+
+  .v52-row .v52-driver { display: flex; flex-direction: column; gap: 3px; }
+  .v52-row .v52-drv { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--success); font-weight: 700; }
+  .v52-row .v52-drv-avatar { width: 22px; height: 22px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+  .v52-row .v52-drv-info { display: flex; flex-direction: column; line-height: 1.3; }
+  .v52-row .v52-drv-name { color: var(--text); font-weight: 600; }
+  .v52-row .v52-drv-veh { color: var(--muted); font-family: ui-monospace, monospace; font-size: 10px; font-weight: 500; }
+  .v52-row .v52-no-drv { color: var(--warning); font-weight: 700; font-size: 11.5px; }
+
+  .v52-row .v52-fee { font-family: ui-monospace, monospace; font-weight: 700; color: var(--text); font-size: 12px; text-align: right; }
+
+  .v52-row .v52-status-cell { text-align: right; }
+  .v52-row .v52-status {
+    display: inline-block; padding: 3px 10px; border-radius: 10px;
+    font-size: 10.5px; font-weight: 700; color: white;
+  }
+  .v52-status.st-pending { background: var(--warning); }
+  .v52-status.st-assigned { background: var(--primary); }
+  .v52-status.st-confirmed { background: var(--purple, #7C3AED); }
+  .v52-status.st-completed { background: var(--success); }
+  .v52-status.st-cancelled { background: var(--muted); }
+  .v52-status.st-inprogress { background: var(--info, #06B6D4); }
+
+  /* 小平板：壓縮欄位 */
+  @media (max-width: 899px) and (min-width: 641px) {
+    .v52-row {
+      grid-template-columns: 60px 1fr 70px !important;
+    }
+    .v52-row .v52-no-block,
+    .v52-row .v52-driver,
+    .v52-row .v52-fee { display: none; }
+  }
+  /* 手機：垂直簡化 */
+  @media (max-width: 640px) {
+    .v52-row {
+      grid-template-columns: 56px 1fr auto !important;
+      gap: 8px !important; padding: 10px 12px !important;
+    }
+    .v52-row .v52-no-block,
+    .v52-row .v52-driver,
+    .v52-row .v52-fee { display: none; }
+    .v52-row .v52-main .v52-route { white-space: normal; }
   }
 </style>
 </head>
@@ -2391,6 +2514,9 @@
 
     <div class="orders" id="ordersList"></div>
     </main>
+
+    <!-- v52: 右欄寬度 resizer -->
+    <div class="wb-resizer" id="wbResizer" title="拖曳調整右欄寬度"></div>
 
     <!-- v49: RIGHT pane (訂單詳情) -->
     <aside class="wb-right" id="wbRightPane">
@@ -3838,29 +3964,27 @@ function dpv38JumpToday() {
   dpv38Render();
 }
 function dpv38Render() {
-  // 重畫日期選擇器內的 strip + title
+  // v52: 改為「今天起 7 天」(不是本週週一~週日)
   const title = document.getElementById('dpv38Title');
   const today = new Date();
-  // 找本週週一
-  const dayOfWeek = today.getDay() || 7;  // 週日 = 0 → 7
-  const monday = new Date(today);
-  monday.setDate(today.getDate() - (dayOfWeek - 1) + dpv38WeekOffset * 7);
-  // 算這週的 7 天
+  // 起點 = 今天 + 7*offset
+  const startDay = new Date(today);
+  startDay.setDate(today.getDate() + dpv38WeekOffset * 7);
   const weekDays = [];
   for (let i = 0; i < 7; i++) {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
+    const d = new Date(startDay);
+    d.setDate(startDay.getDate() + i);
     weekDays.push(d);
   }
-  // 更新 title
-  const mStart = monday.getMonth() + 1;
+  // 標題（左欄已隱藏，這裡仍更新供 fallback）
+  const mStart = startDay.getMonth() + 1;
   const mEnd = weekDays[6].getMonth() + 1;
   let titleText = mStart === mEnd
-    ? (mStart + '月 ' + monday.getDate() + '-' + weekDays[6].getDate() + '日')
-    : (mStart + '/' + monday.getDate() + ' - ' + mEnd + '/' + weekDays[6].getDate());
-  if (dpv38WeekOffset === 0) titleText = '本週 · ' + titleText;
-  else if (dpv38WeekOffset === 1) titleText = '下週 · ' + titleText;
-  else if (dpv38WeekOffset === -1) titleText = '上週 · ' + titleText;
+    ? (mStart + '月 ' + startDay.getDate() + '-' + weekDays[6].getDate() + '日')
+    : (mStart + '/' + startDay.getDate() + ' - ' + mEnd + '/' + weekDays[6].getDate());
+  if (dpv38WeekOffset === 0) titleText = '今起 7 天 · ' + titleText;
+  else if (dpv38WeekOffset > 0) titleText = '+' + (dpv38WeekOffset * 7) + ' 天起 · ' + titleText;
+  else titleText = (dpv38WeekOffset * 7) + ' 天前起 · ' + titleText;
   if (title) title.textContent = titleText;
   // 更新 date input 預設值
   const input = document.getElementById('dpv38DateInput');
@@ -6410,6 +6534,172 @@ function v49UpdateUserChip() {
 })();
 
 console.log('✅ v49 workbench + RWD initialized');
+
+/* ====================================================== */
+/* ==========  v52: 訂單列表重設計 + resizer  ========== */
+/* ====================================================== */
+
+// 把訂單轉成一列 dense row（仿 mockup A v2 樣式）
+function v52BuildOrderRow(o) {
+  const stText = ({pending:'待派', assigned:'已派', confirmed:'已確', completed:'完成', cancelled:'已取消', 'in-progress':'行程中', reconciled:'已對'})[o.status] || (o.status || '');
+  const stKey = (o.status || 'pending').replace('-', '');
+  const activeAssigns = (o.assignments || []).filter(a => a.status === 'active');
+
+  // 司機資訊
+  let driverInfo = '<span class="v52-no-drv">⚠ 未派</span>';
+  if (activeAssigns.length > 0) {
+    driverInfo = activeAssigns.map((a, i) => {
+      const d = DRIVERS.find(x => x.id === a.driverId);
+      const v = VEHICLES.find(x => x.id === a.vehicleId);
+      const dn = d ? d.name : (a.driverNameRaw || a.driverId || '?');
+      const vp = v ? String(v.plate || '') : (a.vehiclePlateRaw || '');
+      const initial = (dn || '?').charAt(0);
+      return '<span class="v52-drv">' +
+        '<span class="v52-drv-avatar">' + initial + '</span>' +
+        '<span class="v52-drv-info"><span class="v52-drv-name">' + dn + '</span>' +
+        (vp ? '<span class="v52-drv-veh">' + vp + '</span>' : '') +
+        '</span></span>';
+    }).join('');
+  }
+
+  // mini tags
+  let tags = '';
+  if (o._multiDayCount > 1) tags += '<span class="v52-mt multi">📅 ' + o._multiDayCount + '日D' + (o._multiDayIndex||1) + '</span>';
+  // 接送機判斷
+  const routeStr = String(o.to || o.route || '');
+  if (/送機|接機|機場/.test(routeStr)) tags += '<span class="v52-mt transfer">✈</span>';
+  // 時數規則
+  if (typeof v50FmtHours === 'function') {
+    const _h = v50FmtHours(o.hours);
+    if (_h) tags += '<span class="v52-mt daytrip">🎌 ' + _h.replace(/[()]/g, '') + '</span>';
+  }
+  // 語言需求
+  if (o.requireLang && o.requireLang.length) {
+    o.requireLang.forEach(l => {
+      const cls = ({zh:'zh', ja:'ja', en:'en'})[l] || 'zh';
+      const lbl = ({zh:'中', ja:'日', en:'英'})[l] || l;
+      tags += '<span class="v52-mt lang-' + cls + '">' + lbl + '</span>';
+    });
+  }
+  // 多車
+  if (o.carCount > 1) tags += '<span class="v52-mt car2">需' + o.carCount + '台</span>';
+  // 汽座
+  if (o.carSeatCount > 0) tags += '<span class="v52-mt carseat">座×' + o.carSeatCount + '</span>';
+  // 修改
+  if (o.isModified) tags += '<span class="v52-mt modified">⚠改</span>';
+
+  // 來源 chip
+  const srcCls = ({LINE:'line', FB:'fb', IG:'ig', '粉專':'fans', BY:'by'})[o.source] || 'fans';
+  const srcChip = o.source ? '<span class="v52-src ' + srcCls + '">' + o.source + '</span>' : '';
+
+  // 路線顯示
+  const routeDisplay = String(o.to || o.route || '').replace(/[→>＞]/g, ' › ');
+
+  // 時間
+  const startT = (o.start && o.start !== '時段未定') ? o.start : '--:--';
+  const endT = o.end || '';
+  const timeBlock = '<div class="v52-time">' +
+    '<span class="v52-t-start">' + startT + '</span>' +
+    (endT ? '<span class="v52-t-end">→' + endT + '</span>' : '') +
+    '</div>';
+
+  // 費用
+  const totalFee = activeAssigns.reduce((s, a) => s + (a.fee || 0), 0) || o.driverFee || 0;
+  const feeBlock = '<div class="v52-fee">' + (totalFee > 0 ? '¥' + totalFee.toLocaleString() : '—') + '</div>';
+
+  // 客人 + 人數 + 車型 — 一行濃縮
+  const pax = o.paxRaw || (o.pax?.raw) || ((o.pax?.adult||0) + '人');
+  const carType = o.carType || '';
+
+  // 訂單號 (去 # 重複)
+  const noStr = String(o.no || '');
+  const displayNo = noStr.startsWith('#') ? noStr : ('#' + noStr);
+
+  return '<div class="v52-row order-card ' + (o.status || '') + ' ' + (o.isModified ? 'modified' : '') + '"' +
+    ' data-order-no="' + noStr + '"' +
+    ' onclick="openEditorByNo(\'' + noStr + '\')">' +
+    timeBlock +
+    '<div class="v52-no-block">' +
+      '<span class="v52-no">' + displayNo + '</span>' +
+      (tags ? '<div class="v52-tags">' + tags + '</div>' : '') +
+    '</div>' +
+    '<div class="v52-main">' +
+      '<div class="v52-leader-row"><span class="v52-leader">' + (o.leaderName || o.leader || '—') + '</span>' + srcChip + '</div>' +
+      '<div class="v52-route">' + routeDisplay + '</div>' +
+      '<div class="v52-meta">👥 ' + pax + (carType ? ' ・ 🚐 ' + carType : '') + '</div>' +
+    '</div>' +
+    '<div class="v52-driver">' + driverInfo + '</div>' +
+    feeBlock +
+    '<div class="v52-status-cell"><span class="v52-status st-' + stKey + '">' + stText + '</span></div>' +
+  '</div>';
+}
+
+// Hook renderOrderCard — view mode 'list' 或 'table' 時用 v52 row
+(function v52HookRenderOrderCard() {
+  const _orig = window.renderOrderCard;
+  if (typeof _orig === 'function') {
+    window.renderOrderCard = function(o, idx) {
+      if (state.viewMode === 'list' || state.viewMode === 'table') {
+        return v52BuildOrderRow(o);
+      }
+      return _orig.call(this, o, idx);
+    };
+  }
+})();
+
+// 確保預設 viewMode 為 list (簡潔)
+if (typeof state !== 'undefined') {
+  state.viewMode = state.viewMode || 'list';
+}
+
+// ====== 右欄寬度 resizer ======
+(function v52InitResizer() {
+  // 從 localStorage 還原寬度
+  try {
+    const saved = parseInt(localStorage.getItem('wbRightW'));
+    if (saved && saved >= 280 && saved <= 800) {
+      document.documentElement.style.setProperty('--wb-right-w', saved + 'px');
+    }
+  } catch(e) {}
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const resizer = document.getElementById('wbResizer');
+    if (!resizer) return;
+    let isDragging = false;
+    let startX = 0, startW = 0;
+    resizer.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      startX = e.clientX;
+      const cur = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--wb-right-w')) || 420;
+      startW = cur;
+      resizer.classList.add('dragging');
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      e.preventDefault();
+    });
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const delta = startX - e.clientX;  // 拖左 → 增寬
+      const newW = Math.max(280, Math.min(800, startW + delta));
+      document.documentElement.style.setProperty('--wb-right-w', newW + 'px');
+    });
+    document.addEventListener('mouseup', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      resizer.classList.remove('dragging');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      // 存 localStorage
+      try {
+        const w = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--wb-right-w'));
+        if (w) localStorage.setItem('wbRightW', w);
+      } catch(e) {}
+    });
+  });
+})();
+
+console.log('✅ v52 dense row + 7 天 strip + resizer initialized');
+
 
 </script>
 </body>
