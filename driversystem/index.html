@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v54</title>
+<title>旅乘派車系統 v55</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -3271,6 +3271,19 @@ function adaptOrderFromApi(o) {
     no: o.no || '',
     date: dateNorm,
     carIndex: o.carIndex || 1,  // v28
+    // ===== v55: 補回 API 已回但前端漏掛的欄位 =====
+    leaderName: o.leaderName || '',
+    leader: o.leaderName || '',          // alias (前端兩種寫法都有)
+    driverName: o.driverName || '',      // 原始司機名（從訂單表 W 欄）
+    driverFull: o.driverFull || '',      // 「東京-李勇軍」格式
+    plate: o.plate || '',                // 訂單表 X 欄車牌（原始）
+    carSeat: o.carSeat || '',            // 汽座原始字串
+    childAge: o.childAge || '',          // 小孩年齡
+    orderDate: o.orderDate || '',        // 訂單建立日
+    depositTW: o.depositTW || 0,         // 台幣訂金
+    remainTW: o.remainTW || 0,           // 台幣餘款
+    source: o.source || '',              // 來源 (API 待補)
+    // ===== v55 END =====
     // v21: 從 L 欄 (API.startTime) 取出發時間，再用 hours 推結束
     start: (o.startTime || '時段未定'),
     end: (function(){
