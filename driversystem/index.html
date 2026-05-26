@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v55</title>
+<title>旅乘派車系統 v56</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -2479,6 +2479,44 @@
     .v54b-card .v54b-route { font-size: 12.5px; white-space: normal; }
     .v54b-card .v54b-fee-big { font-size: 13px; }
     .v54b-card .v54b-status-big { padding: 3px 10px; font-size: 11px; }
+  }
+
+  /* ====== v56: date-pill 一行 inline 排版 ====== */
+  #page-dispatch .dpv38-strip .date-pill {
+    display: inline-flex !important; flex-direction: row !important;
+    align-items: center !important; gap: 6px !important;
+    padding: 8px 10px !important;
+    white-space: nowrap !important;
+    min-height: 36px;
+  }
+  #page-dispatch .dpv38-strip .date-pill .dow {
+    font-size: 12px !important; color: var(--muted); margin: 0 !important;
+    font-weight: 600;
+  }
+  #page-dispatch .dpv38-strip .date-pill .num {
+    font-size: 14px !important; font-weight: 700;
+    margin: 0 !important; line-height: 1;
+  }
+  #page-dispatch .dpv38-strip .date-pill .badge {
+    font-size: 10.5px !important; margin: 0 !important;
+    padding: 1px 7px; border-radius: 8px;
+    background: var(--bg);
+  }
+  #page-dispatch .dpv38-strip .date-pill.has-pending .badge {
+    background: var(--warning); color: white !important; font-weight: 700;
+  }
+  #page-dispatch .dpv38-strip .date-pill.is-today {
+    background: var(--warning-soft);
+  }
+  #page-dispatch .dpv38-strip .date-pill.active {
+    background: var(--primary) !important;
+  }
+  #page-dispatch .dpv38-strip .date-pill.active .dow,
+  #page-dispatch .dpv38-strip .date-pill.active .num {
+    color: white !important;
+  }
+  #page-dispatch .dpv38-strip .date-pill.active .badge {
+    background: rgba(255,255,255,0.3) !important; color: white !important;
   }
 </style>
 </head>
@@ -6284,8 +6322,76 @@ document.addEventListener('DOMContentLoaded', () => {
     // 渲染左欄
     v49RenderLeftRail();
     v49RenderMiniCalendar();
+    // v56: 左欄 filter 綁 click handler
+    v56WireFilterClicks();
   }, 200);
 })();
+
+// v56: 左欄 filter 點擊處理
+function v56WireFilterClicks() {
+  // 狀態 filter
+  document.querySelectorAll('#wbStatusFilter .wb-filter-row').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const st = btn.dataset.st;
+      // 同步到頂部 filter-tab
+      const filterMap = {all:'all', pending:'pending', active:'active', confirmed:'active', completed:'completed', cancelled:'completed'};
+      if (typeof setFilter === 'function') setFilter(filterMap[st] || 'all');
+      // 視覺切換
+      document.querySelectorAll('#wbStatusFilter .wb-filter-row').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+  // 行程類型 / 車型 / 警示 / 來源 / 司機 filter — 暫存 state 並 re-render (本地過濾)
+  document.querySelectorAll('#wbTripFilter .wb-filter-row, #wbCarFilter .wb-filter-row, #wbAlertFilter .wb-filter-row').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      btn.classList.toggle('active');
+      v56ApplyExtraFilters();
+    });
+  });
+  document.querySelectorAll('#wbSourceChips .wb-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      chip.classList.toggle('active');
+      v56ApplyExtraFilters();
+    });
+  });
+  document.querySelectorAll('#wbDriverChips .wb-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      if (chip.dataset.drv) {
+        chip.classList.toggle('active');
+        v56ApplyExtraFilters();
+      }
+    });
+  });
+}
+
+// v56: 套額外 filter (trip/car/alert/source/driver)
+function v56ApplyExtraFilters() {
+  const activeTrip = Array.from(document.querySelectorAll('#wbTripFilter .wb-filter-row.active')).map(b => b.dataset.trip);
+  const activeCar = Array.from(document.querySelectorAll('#wbCarFilter .wb-filter-row.active')).map(b => b.dataset.car);
+  const activeAlert = Array.from(document.querySelectorAll('#wbAlertFilter .wb-filter-row.active')).map(b => b.dataset.alert);
+  const activeSrc = Array.from(document.querySelectorAll('#wbSourceChips .wb-chip.active')).map(b => b.dataset.src);
+  const activeDrv = Array.from(document.querySelectorAll('#wbDriverChips .wb-chip.active')).map(b => b.dataset.drv);
+  state._wbExtraFilters = { trip: activeTrip, car: activeCar, alert: activeAlert, src: activeSrc, drv: activeDrv };
+  // 用 DOM hide 套到 ordersList 上 (簡單版，未來可進 renderOrders 重渲)
+  document.querySelectorAll('#ordersList .order-card').forEach(card => {
+    const no = card.dataset.orderNo || card.getAttribute('data-order-no');
+    const o = ORDERS.tomorrow.find(x => x.no === no);
+    if (!o) return;
+    let show = true;
+    if (activeCar.length && !activeCar.some(c => (o.carType || '').includes(c))) show = false;
+    if (show && activeAlert.length) {
+      if (activeAlert.includes('carseat') && !(o.carSeatCount > 0)) show = false;
+      if (show && activeAlert.includes('modified') && !o.isModified) show = false;
+      if (show && activeAlert.includes('multiCar') && !(o.carCount > 1)) show = false;
+    }
+    if (show && activeSrc.length && !activeSrc.includes(o.source)) show = false;
+    if (show && activeDrv.length) {
+      const oDrvIds = (o.assignments || []).map(a => a.driverId);
+      if (!activeDrv.some(d => oDrvIds.includes(d))) show = false;
+    }
+    card.style.display = show ? '' : 'none';
+  });
+}
 
 // ====== Drawer (mobile filter) ======
 function v49ToggleDrawer(open) {
@@ -6423,11 +6529,13 @@ function v49BuildDetailHTML(o, opts) {
   const _carSeat = headO.carSeat || o.carSeat;
   const _carSeatCount = headO.carSeatCount || o.carSeatCount;
   const _requireLang = headO.requireLang || o.requireLang;
+  // v56: 「姓名」改「派車負責人」(API 的 leaderName 實為司機/承辦人不是客人)
   h += '<div class="wb-detail-section">';
-  h += '<div class="wb-detail-section-title">👥 客戶資訊</div>';
+  h += '<div class="wb-detail-section-title">👥 訂單資訊 <span class="helper" style="color:var(--muted);font-size:10px;cursor:default;" title="客人姓名/來源待 GAS 後端補欄位">⚠ 客人姓名/來源待補</span></div>';
   h += '<div class="wb-kv-grid">';
-  h += '<div class="wb-kv-row"><span class="k">姓名</span><span class="v">' + _leader + '</span></div>';
-  h += '<div class="wb-kv-row"><span class="k">來源</span><span class="v">' + _source + '</span></div>';
+  h += '<div class="wb-kv-row"><span class="k">派車負責人</span><span class="v">' + _leader + '</span></div>';
+  h += '<div class="wb-kv-row"><span class="k">客人姓名</span><span class="v" style="color:var(--muted);">— (待 GAS 補)</span></div>';
+  h += '<div class="wb-kv-row"><span class="k">來源</span><span class="v">' + (_source || '<span style="color:var(--muted);">— (待 GAS 補)</span>') + '</span></div>';
   if (_pax) h += '<div class="wb-kv-row"><span class="k">人數</span><span class="v">' + (_pax.raw || ((_pax.adult||0) + '人')) + '</span></div>';
   if (_requireLang && _requireLang.length) h += '<div class="wb-kv-row"><span class="k">語言</span><span class="v">' + _requireLang.join('/') + '</span></div>';
   if (_luggage) h += '<div class="wb-kv-row"><span class="k">行李</span><span class="v">' + _luggage + '</span></div>';
@@ -6471,7 +6579,7 @@ function v49BuildDetailHTML(o, opts) {
         ' title="點擊查看此日詳情">';
       h += '<div class="wb-day-card-head">';
       // v53: 日期格式統一 05/26
-      h += '<span class="wb-day-card-day">Day ' + (i+1) + ' <span class="date-chip">' + v53FmtDate(d.date, {short:true}) + ' ' + (d.start || d.time || '—') + '</span></span>';
+      h += '<span class="wb-day-card-day">Day ' + (i+1) + ' <span class="date-chip">' + v53FmtDate(d.date, {short:true}) + ' ' + v56PadTime(d.start || d.time || d.startTime) + '</span></span>';
       if (drvName) {
         h += '<span class="wb-day-card-driver"><span class="avatar-tiny">' + drvName.charAt(0) + '</span>' + drvName + '</span>';
       } else {
@@ -6765,6 +6873,19 @@ console.log('✅ v49 workbench + RWD initialized');
 /* ==========  v52: 訂單列表重設計 + resizer  ========== */
 /* ====================================================== */
 
+// v56: 時間補 5 字元 (7:00 → 07:00, 空 → --:--)
+function v56PadTime(t) {
+  if (t === undefined || t === null) return '--:--';
+  const s = String(t).trim();
+  if (!s || s === '時段未定') return '--:--';
+  // 抓 H:MM 或 HH:MM
+  const m = s.match(/^(\d{1,2}):(\d{1,2})$/);
+  if (m) {
+    return m[1].padStart(2,'0') + ':' + m[2].padStart(2,'0');
+  }
+  return s;  // 其他格式原樣 (例如「~19:00」「送機」)
+}
+
 // v53: 統一日期格式 — 把 - 換成 /
 function v53FmtDate(d, opts) {
   if (!d) return '';
@@ -6832,10 +6953,11 @@ function v52BuildOrderRow(o) {
   const stKey = (o.status || 'pending').replace('-', '');
   const activeAssigns = (o.assignments || []).filter(a => a.status === 'active');
 
-  // 訂單頭資料 (Day 1 fallback)
+  // v56: 訂單頭資料 (Day 1 fallback)，leaderName 是派車負責人/司機名（不是客人）
   const allDays = ORDERS.tomorrow.filter(x => x.no === o.no);
   const headO = allDays.find(x => x._multiDayIndex === 1) || allDays[0] || o;
   const leaderName = o.leaderName || o.leader || headO.leaderName || headO.leader || '—';
+  const leaderTitle = '派車負責人/承辦司機（客人姓名待後端補）';
 
   // 司機資訊
   let driverInfo = '<div class="v54b-driver-block unassigned">⚠ 未派車</div>';
@@ -6888,9 +7010,9 @@ function v52BuildOrderRow(o) {
   // 路線
   const routeDisplay = String(o.to || o.route || '').replace(/[→>＞]/g, ' › ');
 
-  // 時間 (大)
-  const startT = (o.start && o.start !== '時段未定') ? o.start : '--:--';
-  const endT = o.end || '';
+  // v56: 時間補齊 5 字元
+  const startT = v56PadTime(o.start || o.startTime);
+  const endT = v56PadTime(o.end);
 
   // 費用
   const totalFee = activeAssigns.reduce((s, a) => s + (a.fee || 0), 0) || o.driverFee || 0;
@@ -6905,12 +7027,12 @@ function v52BuildOrderRow(o) {
     // 左：大時間
     '<div class="v54b-time-block">' +
       '<div class="v54b-time-big">' + startT + '</div>' +
-      (endT ? '<div class="v54b-time-end">→ ' + endT + '</div>' : '') +
+      (endT && endT !== '--:--' ? '<div class="v54b-time-end">→ ' + endT + '</div>' : '') +
     '</div>' +
     // 中：大姓名 + 路線 + meta
     '<div class="v54b-main">' +
       '<div class="v54b-leader-row">' +
-        '<span class="v54b-leader-big">' + leaderName + '</span>' +
+        '<span class="v54b-leader-big" title="' + leaderTitle + '">' + leaderName + '</span>' +
         srcChip +
         '<span class="v54b-no">' + displayNo + '</span>' +
       '</div>' +
