@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v52</title>
+<title>旅乘派車系統 v53</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -1756,6 +1756,8 @@
     height: calc(100vh - 56px); overflow: hidden;
     padding: 0; margin: 0;
   }
+  /* v53: 修切頁 bug — 沒 .active 時強制 hidden */
+  #page-dispatch.workbench-mode:not(.active) { display: none !important; }
   /* v52: 右欄寬度可拖曳調整 */
   .wb-resizer {
     background: var(--border);
@@ -6186,7 +6188,13 @@ function v49BuildDetailHTML(o, opts) {
   // pills
   let pillsHtml = '';
   if (isMulti) pillsHtml += '<span class="wb-dh-pill">📅 ' + allDays.length + '日 D' + (o._multiDayIndex || 1) + '</span>';
-  if (o.hours) pillsHtml += '<span class="wb-dh-pill">🎌 ' + o.hours + '小時包車</span>';
+  // v53: 套時數規則
+  if (typeof v50FmtHours === 'function') {
+    const _hpill = v50FmtHours(o.hours);
+    if (_hpill) pillsHtml += '<span class="wb-dh-pill">🎌 ' + _hpill.replace(/[()]/g, '') + '</span>';
+  } else if (o.hours) {
+    pillsHtml += '<span class="wb-dh-pill">🎌 ' + o.hours + '</span>';
+  }
   if (o.pax) pillsHtml += '<span class="wb-dh-pill">👥 ' + (o.pax.raw || (o.pax.adult + '人')) + ' / ' + (o.carType||'') + '</span>';
   if (o.isModified) pillsHtml += '<span class="wb-dh-pill warn">⚠ 客人異動過</span>';
 
@@ -6261,9 +6269,16 @@ function v49BuildDetailHTML(o, opts) {
       const isCur = (d.date === o.date && d.carIndex === o.carIndex);
       const drv = (d.assignments && d.assignments[0] && d.assignments[0].driverId) ? DRIVERS.find(x => x.id === d.assignments[0].driverId) : null;
       const drvName = drv ? drv.name : (d.assignments?.[0]?.driverNameRaw || '');
-      h += '<div class="wb-day-card' + (isCur ? ' current' : '') + '">';
+      // v53: day-card 可點切換 detail context
+      const dCarIdx = d.carIndex || 1;
+      const dKey = d.date + '|' + dCarIdx;
+      h += '<div class="wb-day-card' + (isCur ? ' current' : '') + '"' +
+        ' style="cursor:pointer;"' +
+        ' onclick="v53SwitchToDay(\'' + o.no + '\',\'' + d.date + '\',' + dCarIdx + ')"' +
+        ' title="點擊查看此日詳情">';
       h += '<div class="wb-day-card-head">';
-      h += '<span class="wb-day-card-day">Day ' + (i+1) + ' <span class="date-chip">' + d.date.slice(5) + ' ' + (d.start || d.time || '—') + '</span></span>';
+      // v53: 日期格式統一 05/26
+      h += '<span class="wb-day-card-day">Day ' + (i+1) + ' <span class="date-chip">' + v53FmtDate(d.date, {short:true}) + ' ' + (d.start || d.time || '—') + '</span></span>';
       if (drvName) {
         h += '<span class="wb-day-card-driver"><span class="avatar-tiny">' + drvName.charAt(0) + '</span>' + drvName + '</span>';
       } else {
@@ -6327,11 +6342,10 @@ function v49BuildDetailHTML(o, opts) {
 
   h += '</div>';  // detail-body
 
-  // actions
+  // v53: actions 去除重複 — 只留實用的
   h += '<div class="wb-detail-actions">';
-  h += '<button class="wb-btn wb-btn-secondary" title="列印">🖨</button>';
-  if (o.status !== 'cancelled') h += '<button class="wb-btn wb-btn-danger" title="取消訂單">取消</button>';
-  h += '<button class="wb-btn wb-btn-secondary" onclick="openEditorByNo(\'' + o.no + '\')">展開完整</button>';
+  h += '<button class="wb-btn wb-btn-secondary" onclick="v53CopyOrderNo(\'' + o.no + '\')" title="複製訂單號">📋</button>';
+  h += '<button class="wb-btn wb-btn-secondary" onclick="window.print()" title="列印">🖨</button>';
   h += '<button class="wb-btn wb-btn-primary" onclick="openEditorByNo(\'' + o.no + '\')">🚐 開派車面板 →</button>';
   h += '</div>';
 
@@ -6396,18 +6410,37 @@ function v49RenderLeftRail() {
   }
 }
 
-// ====== Mini calendar ======
+// v53: 月份切換 offset
+let v53CalMonthOffset = 0;
+function v53ShiftMonth(delta) {
+  v53CalMonthOffset += delta;
+  v49RenderMiniCalendar();
+}
+function v53JumpThisMonth() {
+  v53CalMonthOffset = 0;
+  v49RenderMiniCalendar();
+}
+
+// ====== Mini calendar (v53: 加月份切換) ======
 function v49RenderMiniCalendar() {
   const calEl = document.getElementById('wbCalMini');
   if (!calEl) return;
   const today = new Date();
-  const year = today.getFullYear(), month = today.getMonth();
+  // v53: 用 offset 算實際月份
+  const baseY = today.getFullYear(), baseM = today.getMonth();
+  const targetDate = new Date(baseY, baseM + v53CalMonthOffset, 1);
+  const year = targetDate.getFullYear(), month = targetDate.getMonth();
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
   const startDow = firstDay.getDay();
   const totalDays = lastDay.getDate();
-  // weekdays header 已 inline 寫死
+  // v53: 月份切換頭
   let calHtml = '';
+  calHtml += '<div class="wb-cal-month-head" style="grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;padding:2px 0 6px;font-size:11.5px;font-weight:700;color:var(--text-2);">';
+  calHtml += '<button onclick="v53ShiftMonth(-1)" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:2px 6px;" title="上個月">◀</button>';
+  calHtml += '<span style="cursor:pointer;" onclick="v53JumpThisMonth()" title="跳回本月">' + year + ' 年 ' + (month+1) + ' 月' + (v53CalMonthOffset !== 0 ? ' <span style="color:var(--primary);font-size:10px;">(' + (v53CalMonthOffset > 0 ? '+' : '') + v53CalMonthOffset + ')</span>' : '') + '</span>';
+  calHtml += '<button onclick="v53ShiftMonth(1)" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:2px 6px;" title="下個月">▶</button>';
+  calHtml += '</div>';
   calHtml += '<div class="wb-cal-weekday">日</div><div class="wb-cal-weekday">一</div><div class="wb-cal-weekday">二</div>';
   calHtml += '<div class="wb-cal-weekday">三</div><div class="wb-cal-weekday">四</div><div class="wb-cal-weekday">五</div><div class="wb-cal-weekday">六</div>';
   // 前月補白
@@ -6538,6 +6571,66 @@ console.log('✅ v49 workbench + RWD initialized');
 /* ====================================================== */
 /* ==========  v52: 訂單列表重設計 + resizer  ========== */
 /* ====================================================== */
+
+// v53: 統一日期格式 — 把 - 換成 /
+function v53FmtDate(d, opts) {
+  if (!d) return '';
+  const s = String(d).trim();
+  // YYYY-MM-DD or MM-DD 或 YYYY/MM/DD
+  const m = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+  if (m) {
+    const short = opts && opts.short;
+    return short ? (m[2].padStart(2,'0') + '/' + m[3].padStart(2,'0')) : (m[1] + '/' + m[2].padStart(2,'0') + '/' + m[3].padStart(2,'0'));
+  }
+  const m2 = s.match(/^(\d{1,2})-(\d{1,2})$/);
+  if (m2) return m2[1].padStart(2,'0') + '/' + m2[2].padStart(2,'0');
+  return s;
+}
+
+// v53: 切換 detail context 到指定日 + carIndex
+function v53SwitchToDay(orderNo, dateKey, carIndex) {
+  const o = ORDERS.tomorrow.find(x => x.no === orderNo && x.date === dateKey && (x.carIndex || 1) === carIndex);
+  if (!o) {
+    // fallback: 找 no 相符的第一個
+    const fallback = ORDERS.tomorrow.find(x => x.no === orderNo && x.date === dateKey);
+    if (fallback) {
+      v49SelectedOrderNo = orderNo;
+      // 直接重渲右欄用 fallback
+      const pane = document.getElementById('wbRightPane');
+      if (pane && window.innerWidth > 899) {
+        pane.innerHTML = v49BuildDetailHTML(fallback, { close: false });
+      } else if (window.innerWidth <= 899) {
+        document.getElementById('wbBsheetContent').innerHTML = v49BuildDetailHTML(fallback, { close: true });
+      }
+    }
+    return;
+  }
+  // 用 o 當作新的 current 重渲
+  v49SelectedOrderNo = orderNo;
+  if (window.innerWidth <= 899) {
+    document.getElementById('wbBsheetContent').innerHTML = v49BuildDetailHTML(o, { close: true });
+  } else {
+    const pane = document.getElementById('wbRightPane');
+    if (pane) pane.innerHTML = v49BuildDetailHTML(o, { close: false });
+  }
+}
+
+function v53CopyOrderNo(orderNo) {
+  const txt = String(orderNo || '').replace(/^#/, '#').startsWith('#') ? orderNo : ('#' + orderNo);
+  try {
+    navigator.clipboard.writeText(txt);
+    alert('已複製訂單號：' + txt);
+  } catch (e) {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = txt;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert('已複製：' + txt);
+  }
+}
 
 // 把訂單轉成一列 dense row（仿 mockup A v2 樣式）
 function v52BuildOrderRow(o) {
