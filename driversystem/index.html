@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v48</title>
+<title>旅乘派車系統 v49</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -1744,6 +1744,415 @@
     background: var(--primary); color: white; font-weight: 600;
   }
   .search-driver-chip svg { margin-right: 4px; }
+
+  /* ====================================================== */
+  /* ====== v49: A v2 桌面三欄 workbench + RWD 手機 ====== */
+  /* ====================================================== */
+
+  /* === 主 grid container (只在 #page-dispatch 套用) === */
+  #page-dispatch.workbench-mode {
+    display: grid; grid-template-columns: 260px 1fr 420px;
+    height: calc(100vh - 56px); overflow: hidden;
+    padding: 0; margin: 0;
+  }
+  /* 非桌機尺寸 fallback：先不啟用 workbench，保留原本垂直 stack */
+  @media (max-width: 1199px) {
+    #page-dispatch.workbench-mode {
+      grid-template-columns: 1fr;
+      height: auto; overflow: visible;
+    }
+  }
+
+  /* === LEFT rail === */
+  .wb-left-rail {
+    background: white; border-right: 1px solid var(--border);
+    overflow-y: auto; padding: 0;
+  }
+  .wb-left-rail::-webkit-scrollbar { width: 6px; }
+  .wb-left-rail::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 3px; }
+  .wb-rail-section { padding: 12px 16px 14px; border-bottom: 1px solid var(--border); }
+  .wb-rail-section:last-child { border-bottom: none; }
+  .wb-rail-title {
+    font-size: 10.5px; font-weight: 700; color: var(--muted);
+    letter-spacing: 0.6px; margin-bottom: 8px; text-transform: uppercase;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .wb-rail-title .helper { color: var(--primary); font-size: 10px; cursor: pointer; font-weight: 500; text-transform: none; letter-spacing: 0; }
+
+  .wb-date-quick { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 6px; }
+  .wb-date-q-btn {
+    background: #F9FAFB; border: 1px solid var(--border);
+    padding: 6px 8px; border-radius: 6px; font-size: 11.5px;
+    cursor: pointer; font-weight: 600; color: var(--text-2); text-align: center;
+  }
+  .wb-date-q-btn:hover { border-color: var(--primary); color: var(--primary); }
+  .wb-date-q-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+  .wb-date-input { width: 100%; padding: 7px 10px; border: 1px solid var(--border-2); border-radius: 6px; font-size: 12px; }
+
+  /* mini calendar */
+  .wb-cal-mini { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-top: 10px; }
+  .wb-cal-weekday { font-size: 9px; color: var(--muted); text-align: center; padding: 2px 0; font-weight: 700; }
+  .wb-cal-day {
+    aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-size: 10.5px; cursor: pointer; border-radius: 4px; position: relative; padding: 2px;
+  }
+  .wb-cal-day:hover { background: var(--primary-soft); }
+  .wb-cal-day.other-month { color: var(--muted-2); }
+  .wb-cal-day.has-orders { background: #FFFBEB; }
+  .wb-cal-day.has-pending { background: #FEE2E2; color: #991B1B; font-weight: 700; }
+  .wb-cal-day.has-conflict { background: #FECACA; color: #7F1D1D; font-weight: 700; }
+  .wb-cal-day.selected { background: var(--primary); color: white !important; font-weight: 700; box-shadow: 0 1px 3px rgba(22,119,255,0.4); }
+  .wb-cal-day .cal-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--primary); margin-top: 1px; }
+  .wb-cal-day.has-pending .cal-dot { background: var(--danger); }
+  .wb-cal-day.selected .cal-dot { background: white; }
+  .wb-cal-legend { display: flex; gap: 8px; font-size: 9.5px; color: var(--muted); margin-top: 6px; flex-wrap: wrap; }
+  .wb-cal-legend .item { display: flex; align-items: center; gap: 3px; }
+  .wb-cal-legend .dot { width: 7px; height: 7px; border-radius: 2px; }
+
+  /* filter list */
+  .wb-filter-list { display: flex; flex-direction: column; gap: 3px; }
+  .wb-filter-row {
+    background: transparent; border: 1px solid transparent;
+    padding: 6px 10px; border-radius: 6px; cursor: pointer; text-align: left;
+    font-size: 12px; color: var(--text-2); font-weight: 500;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .wb-filter-row:hover { background: #F9FAFB; }
+  .wb-filter-row.active { background: var(--primary-soft); color: var(--primary); font-weight: 700; }
+  .wb-filter-row .pill {
+    background: var(--border); color: var(--text-2);
+    padding: 1px 8px; border-radius: 10px; font-size: 10.5px; font-weight: 700; min-width: 22px; text-align: center;
+  }
+  .wb-filter-row.active .pill { background: var(--primary); color: white; }
+  .wb-filter-row.warn .pill { background: var(--warning); color: white; }
+  .wb-filter-row.danger .pill { background: var(--danger); color: white; }
+
+  .wb-chip-row { display: flex; flex-wrap: wrap; gap: 4px; }
+  .wb-chip {
+    background: #F9FAFB; border: 1px solid var(--border);
+    padding: 4px 10px; border-radius: 12px; font-size: 11px; cursor: pointer;
+    color: var(--text-2); font-weight: 500;
+  }
+  .wb-chip:hover { border-color: var(--primary); color: var(--primary); }
+  .wb-chip.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: 700; }
+  .wb-chip.lang-zh { background: #FEE2E2; color: #991B1B; border-color: #FCA5A5; }
+  .wb-chip.lang-ja { background: #DBEAFE; color: #1E40AF; border-color: #93C5FD; }
+  .wb-chip.lang-en { background: #D1FAE5; color: #065F46; border-color: #6EE7B7; }
+
+  /* === CENTER pane === */
+  .wb-center {
+    background: var(--bg); overflow-y: auto;
+    display: flex; flex-direction: column;
+  }
+  .wb-center::-webkit-scrollbar { width: 6px; }
+  .wb-center::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
+
+  .wb-center-toolbar {
+    background: white; border-bottom: 1px solid var(--border);
+    padding: 10px 16px; display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 5; gap: 10px; flex-wrap: wrap;
+  }
+  .wb-center-toolbar .left { display: flex; align-items: center; gap: 10px; }
+  .wb-center-toolbar h2 { font-size: 14px; font-weight: 700; margin: 0; color: var(--text); }
+  .wb-center-toolbar .crumb { font-size: 11.5px; color: var(--muted); }
+  .wb-center-toolbar .right { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .wb-tool-divider { width: 1px; height: 18px; background: var(--border); margin: 0 4px; }
+  .wb-tool-btn {
+    background: white; border: 1px solid var(--border-2);
+    padding: 5px 10px; border-radius: 6px; cursor: pointer;
+    font-size: 11.5px; color: var(--text-2); font-weight: 500;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .wb-tool-btn:hover { border-color: var(--primary); color: var(--primary); }
+  .wb-tool-btn.active { background: var(--primary-soft); color: var(--primary); border-color: var(--primary); font-weight: 700; }
+  .wb-tool-btn.primary { background: var(--primary); color: white; border-color: var(--primary); font-weight: 600; }
+
+  /* === RIGHT pane === */
+  .wb-right {
+    background: white; border-left: 1px solid var(--border);
+    overflow-y: auto; display: flex; flex-direction: column;
+  }
+  .wb-right::-webkit-scrollbar { width: 6px; }
+  .wb-right::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
+
+  .wb-right-empty {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: var(--muted); padding: 40px 30px; text-align: center;
+  }
+  .wb-right-empty .icon { font-size: 48px; opacity: 0.4; margin-bottom: 12px; }
+  .wb-right-empty .title { font-size: 14px; font-weight: 700; color: var(--text-2); margin-bottom: 4px; }
+  .wb-right-empty .desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  .wb-detail-head {
+    padding: 14px 16px 12px; background: linear-gradient(135deg, var(--primary), #4096ff);
+    color: white; position: sticky; top: 0; z-index: 5;
+  }
+  .wb-detail-head .dh-row1 { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .wb-detail-head .dh-no { font-family: ui-monospace, monospace; font-size: 12px; opacity: 0.85; }
+  .wb-detail-head .dh-leader { font-size: 17px; font-weight: 700; margin-top: 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .wb-detail-head .dh-leader .src-badge { background: rgba(255,255,255,0.25); padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+  .wb-detail-head .dh-status-big {
+    background: rgba(255,255,255,0.25); padding: 4px 12px; border-radius: 14px;
+    font-size: 12px; font-weight: 700; white-space: nowrap;
+  }
+  .wb-detail-head .dh-status-big.warn { background: rgba(245,158,11,0.6); }
+  .wb-detail-head .dh-status-big.danger { background: rgba(220,38,38,0.6); }
+  .wb-detail-head .dh-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .wb-dh-pill { background: rgba(255,255,255,0.18); padding: 3px 10px; border-radius: 10px; font-size: 10.5px; font-weight: 600; }
+  .wb-dh-pill.warn { background: rgba(245,158,11,0.5); }
+  .wb-dh-pill.alert { background: rgba(220,38,38,0.5); }
+  .wb-detail-head .dh-close {
+    background: rgba(255,255,255,0.2); border: none; color: white;
+    width: 28px; height: 28px; border-radius: 50%; cursor: pointer; flex-shrink: 0;
+  }
+
+  .wb-detail-tabs {
+    display: flex; gap: 0; background: white;
+    border-bottom: 1px solid var(--border); padding: 0 12px;
+    position: sticky; top: 96px; z-index: 4; overflow-x: auto; scrollbar-width: none;
+  }
+  .wb-detail-tabs::-webkit-scrollbar { display: none; }
+  .wb-detail-tab {
+    padding: 9px 11px; border: none; background: none; cursor: pointer;
+    font-size: 12.5px; color: var(--muted); font-weight: 600;
+    border-bottom: 2px solid transparent; transition: all 0.15s; white-space: nowrap;
+  }
+  .wb-detail-tab:hover { color: var(--primary); }
+  .wb-detail-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+  .wb-detail-tab .pill {
+    background: var(--border); color: var(--text-2);
+    padding: 0 6px; border-radius: 10px; font-size: 9.5px; margin-left: 4px; font-weight: 700;
+  }
+  .wb-detail-tab.active .pill { background: var(--primary); color: white; }
+
+  .wb-detail-body { padding: 14px 16px; flex: 1; }
+  .wb-detail-section { margin-bottom: 14px; }
+  .wb-detail-section-title {
+    font-size: 11px; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .wb-detail-section-title .helper {
+    font-size: 10.5px; color: var(--primary); text-transform: none; letter-spacing: 0;
+    cursor: pointer; font-weight: 500;
+  }
+
+  .wb-kv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
+  .wb-kv-row { display: flex; flex-direction: column; gap: 2px; }
+  .wb-kv-row .k { font-size: 10.5px; color: var(--muted); font-weight: 600; }
+  .wb-kv-row .v { font-size: 12.5px; color: var(--text); font-weight: 500; }
+  .wb-kv-row .v .accent { color: var(--primary); font-weight: 700; }
+
+  .wb-info-row { display: flex; padding: 5px 0; border-bottom: 1px dashed var(--border); font-size: 12.5px; }
+  .wb-info-row:last-child { border-bottom: none; }
+  .wb-info-row .label { color: var(--muted); min-width: 72px; font-weight: 500; }
+  .wb-info-row .val { flex: 1; color: var(--text); font-weight: 500; word-break: break-word; }
+
+  .wb-day-card {
+    background: #F9FAFB; border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px; margin-bottom: 8px;
+  }
+  .wb-day-card.current { background: #FFFBEB; border: 1px solid var(--warning); }
+  .wb-day-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; gap: 8px; }
+  .wb-day-card-day { font-size: 12px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .wb-day-card-day .date-chip { font-family: ui-monospace, monospace; font-size: 11px; background: white; padding: 1px 7px; border-radius: 6px; color: var(--text-2); }
+  .wb-day-card-driver { font-size: 11px; color: var(--success); font-weight: 600; display: flex; align-items: center; gap: 4px; }
+  .wb-day-card-driver.unassigned { color: var(--warning); }
+  .wb-day-card-driver .avatar-tiny { width: 18px; height: 18px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; }
+  .wb-day-card-route { font-size: 11.5px; color: var(--text-2); line-height: 1.5; margin-top: 2px; }
+  .wb-day-card-fee { font-size: 10.5px; color: var(--muted); margin-top: 4px; font-family: ui-monospace, monospace; display: flex; justify-content: space-between; }
+
+  .wb-driver-suggestion {
+    background: #F0F9FF; border: 1px solid #BAE6FD;
+    border-radius: 8px; padding: 10px 12px;
+  }
+  .wb-driver-suggestion-head { font-size: 11.5px; color: #075985; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .wb-driver-suggestion-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .wb-ds-chip {
+    background: white; border: 1px solid #BAE6FD;
+    padding: 4px 10px; border-radius: 14px; font-size: 11px; cursor: pointer;
+    display: flex; align-items: center; gap: 5px; font-weight: 600; color: var(--text);
+  }
+  .wb-ds-chip:hover { background: var(--primary); color: white; border-color: var(--primary); }
+  .wb-ds-chip .count { font-size: 9.5px; opacity: 0.75; font-weight: 500; }
+  .wb-ds-chip .avatar-tiny { width: 18px; height: 18px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; }
+  .wb-ds-chip:hover .avatar-tiny { background: white; color: var(--primary); }
+
+  .wb-remark-box {
+    background: var(--warning-soft); border: 1px solid var(--warning);
+    border-radius: 8px; padding: 8px 12px; color: #78350F;
+    font-size: 12px; line-height: 1.5;
+  }
+  .wb-remark-box .head { font-size: 10.5px; font-weight: 700; color: #92400E; margin-bottom: 3px; }
+
+  .wb-lifecycle { position: relative; padding-left: 16px; }
+  .wb-lifecycle::before { content: ''; position: absolute; left: 4px; top: 4px; bottom: 4px; width: 1px; background: var(--border); }
+  .wb-lc-item { position: relative; padding: 4px 0; font-size: 11.5px; color: var(--text-2); }
+  .wb-lc-item::before {
+    content: ''; position: absolute; left: -16px; top: 9px;
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--primary); border: 2px solid white; box-shadow: 0 0 0 1px var(--border);
+  }
+  .wb-lc-item.success::before { background: var(--success); }
+  .wb-lc-item.warn::before { background: var(--warning); }
+  .wb-lc-item .lc-state { font-weight: 700; color: var(--text); }
+  .wb-lc-item .lc-meta { font-size: 10.5px; color: var(--muted); font-family: ui-monospace, monospace; margin-top: 1px; }
+
+  .wb-detail-actions {
+    padding: 10px 16px; border-top: 1px solid var(--border);
+    background: white; position: sticky; bottom: 0; display: flex; gap: 6px;
+  }
+  .wb-btn { padding: 9px 12px; border-radius: 6px; cursor: pointer; font-size: 12.5px; font-weight: 600; border: none; display: flex; align-items: center; justify-content: center; gap: 4px; }
+  .wb-btn-primary { background: var(--primary); color: white; flex: 2; }
+  .wb-btn-primary:hover { background: #1162d4; }
+  .wb-btn-secondary { background: white; color: var(--text-2); border: 1px solid var(--border-2); }
+  .wb-btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
+  .wb-btn-danger { background: white; color: var(--danger); border: 1px solid var(--danger-soft); }
+
+  /* === ord-row 新樣式（替代舊 .order-card 視覺，但兩者都保留） === */
+  .orders.dense-list { display: flex !important; flex-direction: column; gap: 5px; padding: 8px 16px 16px; }
+  .orders.dense-list .order-card,
+  .orders.dense-list .ord-row-v49 {
+    display: grid !important; grid-template-columns: 60px 130px 1fr auto 100px 70px;
+    gap: 10px; align-items: center; padding: 9px 12px; margin-bottom: 0;
+    background: white; border-radius: 8px; border: 1px solid var(--border);
+    transition: all 0.12s; cursor: pointer;
+  }
+  .orders.dense-list .order-card:hover,
+  .orders.dense-list .ord-row-v49:hover { border-color: var(--primary); box-shadow: 0 2px 6px rgba(22,119,255,0.12); }
+  .orders.dense-list .order-card.row-selected,
+  .orders.dense-list .ord-row-v49.row-selected {
+    border-color: var(--primary); background: var(--primary-soft);
+    box-shadow: 0 2px 8px rgba(22,119,255,0.2);
+  }
+
+  /* === Mobile drawer (≤ 1199px) === */
+  .wb-drawer-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+    z-index: 250; display: none; opacity: 0; transition: opacity 0.25s;
+  }
+  .wb-drawer-overlay.show { display: flex; opacity: 1; }
+  .wb-drawer {
+    background: white; width: 300px; max-width: 85vw; height: 100%;
+    overflow-y: auto; box-shadow: 4px 0 16px rgba(0,0,0,0.18);
+    transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  .wb-drawer-overlay.show .wb-drawer { transform: translateX(0); }
+  .wb-drawer-head {
+    padding: 14px 16px; background: linear-gradient(135deg, var(--primary), #4096ff); color: white;
+    display: flex; justify-content: space-between; align-items: center;
+    position: sticky; top: 0; z-index: 1;
+  }
+  .wb-drawer-head h3 { margin: 0; font-size: 14px; }
+  .wb-drawer-head .close-btn {
+    background: rgba(255,255,255,0.2); border: none; color: white;
+    width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+  }
+
+  /* === Mobile bottom sheet for detail (≤ 640px) === */
+  .wb-bsheet-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    z-index: 260; display: none; opacity: 0; transition: opacity 0.25s;
+    flex-direction: column; justify-content: flex-end;
+  }
+  .wb-bsheet-overlay.show { display: flex; opacity: 1; }
+  .wb-bsheet {
+    background: white; border-radius: 18px 18px 0 0;
+    max-height: 92%; display: flex; flex-direction: column;
+    overflow: hidden;
+    transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  .wb-bsheet-overlay.show .wb-bsheet { transform: translateY(0); }
+  .wb-bsheet-handle {
+    width: 36px; height: 4px; background: var(--border-2);
+    border-radius: 999px; margin: 8px auto 0;
+  }
+
+  /* === Header v49: A v2 升級版 === */
+  .topbar-v49-extra {
+    display: none; gap: 26px; align-items: center;
+    justify-content: center;
+  }
+  .v49-region-switcher {
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+    color: white; padding: 6px 10px; border-radius: 6px;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+  }
+  .v49-region-switcher:hover { background: rgba(255,255,255,0.2); }
+  .v49-user-chip {
+    display: flex; align-items: center; gap: 8px;
+    padding: 4px 10px 4px 4px; background: rgba(255,255,255,0.1); border-radius: 20px; cursor: pointer;
+  }
+  .v49-user-chip:hover { background: rgba(255,255,255,0.18); }
+  .v49-user-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: white; color: var(--primary);
+    display: flex; align-items: center; justify-content: center; font-weight: 700;
+  }
+  .v49-user-meta { display: flex; flex-direction: column; line-height: 1.2; }
+  .v49-user-meta .nm { font-size: 12px; font-weight: 600; }
+  .v49-user-meta .ro { font-size: 10px; opacity: 0.8; }
+  .v49-menu-btn {
+    display: none; background: rgba(255,255,255,0.15); border: none; color: white;
+    width: 34px; height: 34px; border-radius: 50%; font-size: 16px; cursor: pointer;
+    align-items: center; justify-content: center;
+  }
+
+  /* ===== RWD breakpoints ===== */
+  @media (min-width: 1200px) {
+    .topbar-v49-extra { display: flex; }
+  }
+  /* tablet 900-1199: 兩欄（左收抽屜 + 中 + 右 380px） */
+  @media (max-width: 1199px) and (min-width: 900px) {
+    #page-dispatch.workbench-mode {
+      grid-template-columns: 1fr 380px;
+      height: calc(100vh - 56px); overflow: hidden;
+    }
+    .wb-left-rail { display: none; }
+    .v49-menu-btn { display: flex; }
+    .header-metrics-v48 { display: flex !important; }
+  }
+  /* small tablet 641-899: 一欄訂單，詳情變 bottom-sheet */
+  @media (max-width: 899px) and (min-width: 641px) {
+    #page-dispatch.workbench-mode {
+      grid-template-columns: 1fr;
+      height: calc(100vh - 56px); overflow: hidden;
+    }
+    .wb-left-rail, .wb-right { display: none; }
+    .v49-menu-btn { display: flex; }
+    .header-metrics-v48 { display: none !important; }
+    .orders.dense-list .order-card,
+    .orders.dense-list .ord-row-v49 {
+      grid-template-columns: 60px 1fr auto !important;
+    }
+    .orders.dense-list .order-card .ord-tags-col,
+    .orders.dense-list .order-card .ord-fee,
+    .orders.dense-list .order-card .ord-driver-block { display: none; }
+  }
+  /* mobile ≤ 640 */
+  @media (max-width: 640px) {
+    #page-dispatch.workbench-mode {
+      grid-template-columns: 1fr;
+      height: auto; overflow: visible;
+    }
+    .wb-left-rail, .wb-right { display: none; }
+    .v49-menu-btn { display: flex; }
+    .header-metrics-v48 { display: none !important; }
+    .brand-sub-v48 { display: none !important; }
+    .orders.dense-list { padding: 4px 10px 10px; }
+    .orders.dense-list .order-card,
+    .orders.dense-list .ord-row-v49 {
+      grid-template-columns: 1fr auto !important;
+      gap: 6px; padding: 10px 12px;
+    }
+    .topbar { padding: 0 10px !important; height: 52px !important; }
+    .brand span { font-size: 13px !important; }
+    .brand .mark { width: 24px !important; height: 24px !important; }
+    .wb-center-toolbar { padding: 8px 12px; }
+    .wb-center-toolbar h2 { font-size: 13px; }
+    .wb-center-toolbar .crumb { font-size: 10.5px; }
+  }
 </style>
 </head>
 <body>
@@ -1787,11 +2196,23 @@
       <div class="hm-item"><span class="hm-num" id="hmTotal">-</span><span class="hm-lbl">明日訂單</span></div>
       <div class="hm-item hm-status"><span class="hm-dot" id="hmStatusDot"></span><span class="hm-lbl" id="hmStatusLbl">連線中</span></div>
     </div>
+    <!-- v49: 新增 Mobile menu button (≤1199px 顯示) -->
+    <button class="v49-menu-btn" onclick="v49ToggleDrawer()" title="篩選選單" id="v49MenuBtn">☰</button>
     <div class="header-actions">
+      <!-- v49: 區域切換 + 使用者卡片（大螢幕顯示） -->
+      <button class="v49-region-switcher" id="v49RegionSwitcher" onclick="v49OpenRegionPicker()" title="切換區域">東京 ▾</button>
       <button class="header-search-btn" onclick="switchPage('search')" title="全域搜尋">
         <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
       </button>
-      <div class="header-info">
+      <!-- v49: 升級版 user chip（大螢幕顯示，原 header-info 在小螢幕保留） -->
+      <div class="v49-user-chip" id="v49UserChip" onclick="logoutConfirm()" title="點擊登出">
+        <div class="v49-user-avatar" id="v49UserAvatar">林</div>
+        <div class="v49-user-meta">
+          <span class="nm" id="v49UserName">林小姐</span>
+          <span class="ro" id="v49UserRole">派車主管</span>
+        </div>
+      </div>
+      <div class="header-info" style="display:none;">
         <span class="region" id="headerRegion">東京</span>
         <span class="divider">│</span>
         <span class="user" id="headerUser">林</span>
@@ -1801,9 +2222,94 @@
     </div>
   </header>
 
-  <!-- ============ 派車頁 ============ -->
-  <section class="page active" id="page-dispatch">
-    <div id="notifyBannerWrap"></div>
+  <!-- ============ 派車頁 (v49: workbench 三欄) ============ -->
+  <section class="page active workbench-mode" id="page-dispatch">
+
+    <!-- v49: LEFT rail (篩選 / 日期 / 月曆) -->
+    <aside class="wb-left-rail" id="wbLeftRail">
+      <div class="wb-rail-section">
+        <div class="wb-rail-title">📅 日期 <span class="helper" onclick="dpv38JumpToday()">今日</span></div>
+        <div class="wb-date-quick">
+          <button class="wb-date-q-btn" onclick="dpv38JumpToday()" id="wbDqToday">今日</button>
+          <button class="wb-date-q-btn active" onclick="wbJumpTomorrow()" id="wbDqTomorrow">明日</button>
+          <button class="wb-date-q-btn" onclick="wbJumpAfterTomorrow()" id="wbDqAfter">後天</button>
+          <button class="wb-date-q-btn" onclick="wbJumpNextWeek()" id="wbDqNextWeek">下週</button>
+        </div>
+        <input class="wb-date-input" type="date" id="wbDateInput" onchange="selectDate(this.value);">
+        <div class="wb-cal-mini" id="wbCalMini">
+          <div class="wb-cal-weekday">日</div><div class="wb-cal-weekday">一</div><div class="wb-cal-weekday">二</div>
+          <div class="wb-cal-weekday">三</div><div class="wb-cal-weekday">四</div><div class="wb-cal-weekday">五</div><div class="wb-cal-weekday">六</div>
+          <!-- JS 會 populate 真實月曆 -->
+        </div>
+        <div class="wb-cal-legend">
+          <div class="item"><span class="dot" style="background:#FFFBEB;"></span>有訂單</div>
+          <div class="item"><span class="dot" style="background:#FEE2E2;"></span>待派</div>
+          <div class="item"><span class="dot" style="background:#FECACA;"></span>衝突</div>
+        </div>
+      </div>
+
+      <div class="wb-rail-section">
+        <div class="wb-rail-title">🚩 狀態</div>
+        <div class="wb-filter-list" id="wbStatusFilter">
+          <button class="wb-filter-row active" data-st="all">全部 <span class="pill" id="wbCntAll">0</span></button>
+          <button class="wb-filter-row warn" data-st="pending">待派車 <span class="pill" id="wbCntPending">0</span></button>
+          <button class="wb-filter-row" data-st="active">已派車 <span class="pill" id="wbCntActive">0</span></button>
+          <button class="wb-filter-row" data-st="confirmed">已確認 <span class="pill" id="wbCntConfirmed">0</span></button>
+          <button class="wb-filter-row" data-st="completed">已完成 <span class="pill" id="wbCntCompleted">0</span></button>
+          <button class="wb-filter-row" data-st="cancelled">已取消 <span class="pill" id="wbCntCancelled">0</span></button>
+        </div>
+      </div>
+
+      <div class="wb-rail-section">
+        <div class="wb-rail-title">🏷 行程類型</div>
+        <div class="wb-filter-list" id="wbTripFilter">
+          <button class="wb-filter-row" data-trip="transfer">✈ 接送機 <span class="pill" id="wbCntTransfer">0</span></button>
+          <button class="wb-filter-row" data-trip="daytrip">🎌 一日遊 <span class="pill" id="wbCntDaytrip">0</span></button>
+          <button class="wb-filter-row" data-trip="multiday">📅 多日遊 <span class="pill" id="wbCntMultiday">0</span></button>
+        </div>
+      </div>
+
+      <div class="wb-rail-section">
+        <div class="wb-rail-title">🚐 車型</div>
+        <div class="wb-filter-list" id="wbCarFilter">
+          <button class="wb-filter-row" data-car="7座">7座 <span class="pill" id="wbCnt7">0</span></button>
+          <button class="wb-filter-row" data-car="10座">10座 <span class="pill" id="wbCnt10">0</span></button>
+          <button class="wb-filter-row" data-car="19座">19座 <span class="pill" id="wbCnt19">0</span></button>
+        </div>
+      </div>
+
+      <div class="wb-rail-section">
+        <div class="wb-rail-title">⚠ 警示</div>
+        <div class="wb-filter-list" id="wbAlertFilter">
+          <button class="wb-filter-row danger" data-alert="conflict">時段衝突 <span class="pill" id="wbCntConflict">0</span></button>
+          <button class="wb-filter-row warn" data-alert="carseat">需汽座 <span class="pill" id="wbCntCarseat">0</span></button>
+          <button class="wb-filter-row warn" data-alert="modified">客人異動 <span class="pill" id="wbCntModified">0</span></button>
+          <button class="wb-filter-row" data-alert="multiCar">需多台車 <span class="pill" id="wbCntMultiCar">0</span></button>
+        </div>
+      </div>
+
+      <div class="wb-rail-section">
+        <div class="wb-rail-title">📥 來源</div>
+        <div class="wb-chip-row" id="wbSourceChips">
+          <div class="wb-chip" data-src="LINE">LINE <span id="wbCntLINE">0</span></div>
+          <div class="wb-chip" data-src="FB">FB <span id="wbCntFB">0</span></div>
+          <div class="wb-chip" data-src="IG">IG <span id="wbCntIG">0</span></div>
+          <div class="wb-chip" data-src="粉專">粉專 <span id="wbCntFans">0</span></div>
+          <div class="wb-chip" data-src="BY">BY <span id="wbCntBY">0</span></div>
+        </div>
+      </div>
+
+      <div class="wb-rail-section">
+        <div class="wb-rail-title">👤 司機快篩 <span class="helper" onclick="switchPage('drivers')">+全部</span></div>
+        <div class="wb-chip-row" id="wbDriverChips">
+          <!-- JS populate -->
+        </div>
+      </div>
+    </aside>
+
+    <!-- v49: CENTER pane -->
+    <main class="wb-center" id="wbCenter">
+      <div id="notifyBannerWrap"></div>
 
     <div class="quick-stats">
       <div class="qstat"><div class="qstat-num warn" id="qsTomorrowPending">-</div><div class="qstat-label">明日待派</div></div>
@@ -1827,6 +2333,21 @@
       <div class="dpv38-strip" id="dateStrip"></div>
     </div>
 
+    <!-- v49: 中欄 toolbar (取代頂部 quick-stats，整合 view mode + 新增訂單) -->
+    <div class="wb-center-toolbar" id="wbCenterToolbar" style="display:none;">
+      <div class="left">
+        <h2 id="wbToolbarTitle">明日訂單</h2>
+        <span class="crumb" id="wbToolbarCrumb">—</span>
+      </div>
+      <div class="right">
+        <button class="wb-tool-btn" onclick="toggleTodayTomorrowMode()" id="wbTodayTomorrow">📅 今+明</button>
+        <div class="wb-tool-divider"></div>
+        <button class="wb-tool-btn" onclick="v49SetViewMode('card')" id="wbVmCard">🎴 卡片</button>
+        <button class="wb-tool-btn active" onclick="v49SetViewMode('list')" id="wbVmList">📋 列表</button>
+        <button class="wb-tool-btn" onclick="v49SetViewMode('table')" id="wbVmTable">📊 表格</button>
+      </div>
+    </div>
+
     <div class="filter-bar" id="filterBar" style="display:flex;align-items:center;">
       <button onclick="toggleTodayTomorrowMode()" id="ttMode" style="background:#1677ff;color:white;border:none;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;margin-right:8px;white-space:nowrap;">📅 今+明</button>
       <div class="filter-tab active" data-filter="all">全部<span class="pill" id="cntAll">0</span></div>
@@ -1836,7 +2357,42 @@
       </div>
 
     <div class="orders" id="ordersList"></div>
+    </main>
+
+    <!-- v49: RIGHT pane (訂單詳情) -->
+    <aside class="wb-right" id="wbRightPane">
+      <div class="wb-right-empty" id="wbRightEmpty">
+        <div class="icon">📋</div>
+        <div class="title">選一張訂單查看詳情</div>
+        <div class="desc">點左側列表的任一張訂單<br>右側會顯示完整客戶資訊、行程、派車狀況</div>
+      </div>
+      <!-- 詳情內容會由 JS 動態插入 -->
+    </aside>
+
   </section>
+
+  <!-- v49: Mobile filter drawer overlay -->
+  <div class="wb-drawer-overlay" id="wbDrawerOverlay" onclick="v49ToggleDrawer(false)">
+    <aside class="wb-drawer" id="wbDrawer" onclick="event.stopPropagation()">
+      <div class="wb-drawer-head">
+        <h3>📁 篩選 / 導航</h3>
+        <button class="close-btn" onclick="v49ToggleDrawer(false)">✕</button>
+      </div>
+      <div id="wbDrawerBody">
+        <!-- JS clone wb-left-rail 內容到這 -->
+      </div>
+    </aside>
+  </div>
+
+  <!-- v49: Mobile bottom-sheet for detail -->
+  <div class="wb-bsheet-overlay" id="wbBsheetOverlay" onclick="v49CloseBsheet()">
+    <div class="wb-bsheet" id="wbBsheet" onclick="event.stopPropagation()">
+      <div class="wb-bsheet-handle"></div>
+      <div id="wbBsheetContent">
+        <!-- JS populate -->
+      </div>
+    </div>
+  </div>
 
   <!-- ============ 全域搜尋頁 ============ -->
   <section class="page" id="page-search">
@@ -5313,7 +5869,440 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof dpv38Render === 'function') dpv38Render();  // v38
   renderNotifyBanner();
   renderOrders();
-  console.log('%c🚐 旅乘派車系統 v39', 'background:#3570a8;color:white;padding:4px 12px;border-radius:4px;font-weight:700;', '\n  • 全裝置流式 RWD\n  • orders auto-fill grid\n  • 司機詳情流式寬度');
+  console.log('%c🚐 旅乘派車系統 v39', 'background:#3570a8;color:white;padding:4px 12px;border-radius:4px;font-weight:700;', '\n  • 全裝置流式 RWD\n  • orders auto-fill grid\n  • 司機詳情流式寬度\n  • v49 workbench + RWD');
+/* ====================================================== */
+/* ==========  v49: workbench + RWD helpers  ============ */
+/* ====================================================== */
+
+// 啟用 workbench (套用 class，原本 #page-dispatch 已加 .workbench-mode)
+(function v49Init() {
+  // 顯示 v49 toolbar
+  setTimeout(() => {
+    const tb = document.getElementById('wbCenterToolbar');
+    if (tb) tb.style.display = '';
+    // dense-list 預設 view mode
+    const ol = document.getElementById('ordersList');
+    if (ol) ol.classList.add('dense-list');
+    state.viewMode = state.viewMode || 'list';
+    // 渲染左欄
+    v49RenderLeftRail();
+    v49RenderMiniCalendar();
+  }, 200);
+})();
+
+// ====== Drawer (mobile filter) ======
+function v49ToggleDrawer(open) {
+  const ov = document.getElementById('wbDrawerOverlay');
+  if (!ov) return;
+  const shouldOpen = (typeof open === 'boolean') ? open : !ov.classList.contains('show');
+  if (shouldOpen) {
+    // clone left-rail 內容到 drawer body
+    const rail = document.getElementById('wbLeftRail');
+    const body = document.getElementById('wbDrawerBody');
+    if (rail && body) {
+      body.innerHTML = rail.innerHTML;
+    }
+    ov.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  } else {
+    ov.classList.remove('show');
+    document.body.style.overflow = '';
+  }
+}
+
+// ====== Bottom sheet (mobile detail) ======
+function v49OpenBsheet(orderNo) {
+  const o = ORDERS.tomorrow.find(x => x.no === orderNo);
+  if (!o) return;
+  const html = v49BuildDetailHTML(o, { close: true });
+  document.getElementById('wbBsheetContent').innerHTML = html;
+  document.getElementById('wbBsheetOverlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function v49CloseBsheet() {
+  document.getElementById('wbBsheetOverlay').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+// ====== Right pane (desktop detail) ======
+let v49SelectedOrderNo = null;
+function v49SelectOrderForDetail(orderNo) {
+  v49SelectedOrderNo = orderNo;
+  // 標示 row 選中
+  document.querySelectorAll('.orders .order-card, .orders .ord-row-v49').forEach(r => {
+    r.classList.toggle('row-selected', r.dataset.orderNo === orderNo || r.getAttribute('data-order-no') === orderNo);
+  });
+  // 視窗寬度判斷：≤899px 用 bottom sheet
+  if (window.innerWidth <= 899) {
+    v49OpenBsheet(orderNo);
+    return;
+  }
+  // 桌機：渲染右欄
+  const o = ORDERS.tomorrow.find(x => x.no === orderNo);
+  if (!o) return;
+  const pane = document.getElementById('wbRightPane');
+  pane.innerHTML = v49BuildDetailHTML(o, { close: false });
+}
+
+// ====== Build detail HTML (right pane / bottom sheet 共用) ======
+function v49BuildDetailHTML(o, opts) {
+  const close = (opts && opts.close) || false;
+  // 統一所有日的訂單
+  const allDays = ORDERS.tomorrow.filter(x => x.no === o.no).sort((a,b) => a.date.localeCompare(b.date));
+  const isMulti = allDays.length > 1;
+  const stClass = o.status === 'pending' ? 'warn' : (o.status === 'cancelled' ? 'danger' : '');
+  const stText = o.status === 'pending' ? '⚠ 待派車' : (o.status === 'assigned' ? '已派車' : (o.status === 'completed' ? '已完成' : (o.status === 'confirmed' ? '已確認' : (o.status === 'cancelled' ? '已取消' : o.status))));
+  // pills
+  let pillsHtml = '';
+  if (isMulti) pillsHtml += '<span class="wb-dh-pill">📅 ' + allDays.length + '日 D' + (o._multiDayIndex || 1) + '</span>';
+  if (o.hours) pillsHtml += '<span class="wb-dh-pill">🎌 ' + o.hours + '小時包車</span>';
+  if (o.pax) pillsHtml += '<span class="wb-dh-pill">👥 ' + (o.pax.raw || (o.pax.adult + '人')) + ' / ' + (o.carType||'') + '</span>';
+  if (o.isModified) pillsHtml += '<span class="wb-dh-pill warn">⚠ 客人異動過</span>';
+
+  // 客戶資訊
+  const recent = (typeof computeRecentDrivers === 'function') ? computeRecentDrivers(o) : [];
+
+  let h = '';
+  h += '<div class="wb-detail-head">';
+  h += '<div class="dh-row1">';
+  h += '<div>';
+  h += '<div class="dh-no">#' + o.no + (isMulti ? ' ・ ' + allDays.length + ' 日 ・ Day ' + (o._multiDayIndex||1) + '/' + allDays.length : '') + '</div>';
+  h += '<div class="dh-leader">' + (o.leaderName || o.leader || '') + (o.source ? ' <span class="src-badge">' + o.source + '</span>' : '') + '</div>';
+  h += '</div>';
+  h += '<div style="display:flex;gap:6px;align-items:center;">';
+  h += '<span class="dh-status-big ' + stClass + '">' + stText + '</span>';
+  if (close) h += '<button class="dh-close" onclick="v49CloseBsheet()">✕</button>';
+  h += '</div>';
+  h += '</div>';
+  if (pillsHtml) h += '<div class="dh-pills">' + pillsHtml + '</div>';
+  h += '</div>';
+
+  // tabs (預設只顯示「概覽」內容，可以未來擴充)
+  h += '<div class="wb-detail-tabs">';
+  h += '<button class="wb-detail-tab active">概覽</button>';
+  h += '<button class="wb-detail-tab">三日行程<span class="pill">' + allDays.length + '</span></button>';
+  h += '<button class="wb-detail-tab">派車</button>';
+  h += '<button class="wb-detail-tab">獎懲</button>';
+  h += '<button class="wb-detail-tab">異動' + (o.isModified ? '<span class="pill">!</span>' : '') + '</button>';
+  if (o.status === 'completed') h += '<button class="wb-detail-tab">評分</button>';
+  h += '</div>';
+
+  // body
+  h += '<div class="wb-detail-body">';
+
+  // 客戶資訊 KV grid
+  h += '<div class="wb-detail-section">';
+  h += '<div class="wb-detail-section-title">👥 客戶資訊</div>';
+  h += '<div class="wb-kv-grid">';
+  h += '<div class="wb-kv-row"><span class="k">姓名</span><span class="v">' + (o.leaderName || o.leader || '—') + '</span></div>';
+  h += '<div class="wb-kv-row"><span class="k">來源</span><span class="v">' + (o.source || '—') + '</span></div>';
+  if (o.pax) h += '<div class="wb-kv-row"><span class="k">人數</span><span class="v">' + (o.pax.raw || ((o.pax.adult||0) + '人')) + '</span></div>';
+  if (o.requireLang && o.requireLang.length) h += '<div class="wb-kv-row"><span class="k">語言</span><span class="v">' + o.requireLang.join('/') + '</span></div>';
+  if (o.luggage) h += '<div class="wb-kv-row"><span class="k">行李</span><span class="v">' + o.luggage + '</span></div>';
+  if (o.carSeat || o.carSeatCount) h += '<div class="wb-kv-row"><span class="k">汽座</span><span class="v">' + (o.carSeat || ('需 ' + o.carSeatCount + ' 個')) + '</span></div>';
+  h += '</div>';
+  h += '</div>';
+
+  // 行程概要
+  h += '<div class="wb-detail-section">';
+  h += '<div class="wb-detail-section-title">🚗 行程概要</div>';
+  if (o.from) h += '<div class="wb-info-row"><span class="label">起始</span><span class="val">' + o.from + '</span></div>';
+  if (o.carType) h += '<div class="wb-info-row"><span class="label">車款</span><span class="v val">' + o.carType + (o.carCount > 1 ? ' （需 ' + o.carCount + ' 台）' : '') + '</span></div>';
+  if (o.hours) h += '<div class="wb-info-row"><span class="label">時數</span><span class="val">' + o.hours + ' 小時' + (isMulti ? ' × ' + allDays.length + ' 日' : '') + '</span></div>';
+  if (o.driverFee) {
+    const totalFee = isMulti ? allDays.reduce((s, d) => s + (d.driverFee || 0), 0) : o.driverFee;
+    h += '<div class="wb-info-row"><span class="label">收費</span><span class="val"><span class="accent">¥' + (o.driverFee||0).toLocaleString() + '</span>' + (isMulti ? ' / 日 × ' + allDays.length + ' = <span class="accent">¥' + totalFee.toLocaleString() + '</span>' : '') + '</span></div>';
+  }
+  h += '</div>';
+
+  // 三日行程預覽（多日）
+  if (isMulti) {
+    h += '<div class="wb-detail-section">';
+    h += '<div class="wb-detail-section-title">📅 ' + allDays.length + ' 日行程預覽</div>';
+    allDays.forEach((d, i) => {
+      const isCur = (d.date === o.date && d.carIndex === o.carIndex);
+      const drv = (d.assignments && d.assignments[0] && d.assignments[0].driverId) ? DRIVERS.find(x => x.id === d.assignments[0].driverId) : null;
+      const drvName = drv ? drv.name : (d.assignments?.[0]?.driverNameRaw || '');
+      h += '<div class="wb-day-card' + (isCur ? ' current' : '') + '">';
+      h += '<div class="wb-day-card-head">';
+      h += '<span class="wb-day-card-day">Day ' + (i+1) + ' <span class="date-chip">' + d.date.slice(5) + ' ' + (d.start || d.time || '—') + '</span></span>';
+      if (drvName) {
+        h += '<span class="wb-day-card-driver"><span class="avatar-tiny">' + drvName.charAt(0) + '</span>' + drvName + '</span>';
+      } else {
+        h += '<span class="wb-day-card-driver unassigned">⚠ 待派</span>';
+      }
+      h += '</div>';
+      const routeText = String(d.to || d.route || '').replace(/[→>＞]/g, ' › ');
+      h += '<div class="wb-day-card-route">' + routeText + (d.hours ? ' (' + d.hours + '小時)' : '') + '</div>';
+      h += '<div class="wb-day-card-fee"><span>司機費 ¥' + (d.driverFee||0).toLocaleString() + '</span>' + (d.totalJP ? '<span>總額 ¥' + d.totalJP.toLocaleString() + '</span>' : '') + '</div>';
+      h += '</div>';
+    });
+    h += '</div>';
+  } else {
+    // 單日 — 顯示路線
+    h += '<div class="wb-detail-section">';
+    h += '<div class="wb-detail-section-title">📍 行程路線</div>';
+    h += '<div class="wb-day-card current">';
+    h += '<div class="wb-day-card-route">' + String(o.to || o.route || '').replace(/[→>＞]/g, ' › ') + (o.hours ? ' (' + o.hours + '小時)' : '') + '</div>';
+    h += '</div>';
+    h += '</div>';
+  }
+
+  // 客人備註
+  if (o.remarks) {
+    h += '<div class="wb-detail-section">';
+    h += '<div class="wb-detail-section-title">⚠ 客人備註</div>';
+    h += '<div class="wb-remark-box"><div class="head">⚠ 派車注意事項</div>' + o.remarks + '</div>';
+    h += '</div>';
+  }
+
+  // 推薦司機
+  if (recent.length) {
+    h += '<div class="wb-detail-section">';
+    h += '<div class="wb-detail-section-title">⚡ 推薦司機（基於 leader 派車歷史）</div>';
+    h += '<div class="wb-driver-suggestion">';
+    h += '<div class="wb-driver-suggestion-head">⭐ 此 leader 過去派過</div>';
+    h += '<div class="wb-driver-suggestion-chips">';
+    recent.slice(0, 5).forEach(r => {
+      const d = DRIVERS.find(x => x.id === r.driverId);
+      if (!d) return;
+      h += '<div class="wb-ds-chip" onclick="openEditorByNo(\'' + o.no + '\');"><div class="avatar-tiny">' + d.name.charAt(0) + '</div>' + d.name + '<span class="count">' + r.count + ' 趟</span></div>';
+    });
+    h += '</div></div></div>';
+  }
+
+  // lifecycle
+  if (o.lifecycle && o.lifecycle.length) {
+    h += '<div class="wb-detail-section">';
+    h += '<div class="wb-detail-section-title">📋 訂單狀態變動歷程</div>';
+    h += '<div class="wb-lifecycle">';
+    o.lifecycle.forEach(lc => {
+      const cls = lc.state === 'completed' ? 'success' : (lc.state === 'modified' ? 'warn' : '');
+      const lbl = ({ created: '已建立訂單', assigned: '已派車', confirmed: '已確認', completed: '已完成', cancelled: '已取消', modified: '已修改' })[lc.state] || lc.state;
+      h += '<div class="wb-lc-item ' + cls + '"><span class="lc-state">' + lbl + '</span><div class="lc-meta">' + (lc.at||'') + (lc.by ? ' ・ ' + lc.by : '') + '</div></div>';
+    });
+    h += '</div>';
+    h += '</div>';
+  }
+
+  h += '</div>';  // detail-body
+
+  // actions
+  h += '<div class="wb-detail-actions">';
+  h += '<button class="wb-btn wb-btn-secondary" title="列印">🖨</button>';
+  if (o.status !== 'cancelled') h += '<button class="wb-btn wb-btn-danger" title="取消訂單">取消</button>';
+  h += '<button class="wb-btn wb-btn-secondary" onclick="openEditorByNo(\'' + o.no + '\')">展開完整</button>';
+  h += '<button class="wb-btn wb-btn-primary" onclick="openEditorByNo(\'' + o.no + '\')">🚐 開派車面板 →</button>';
+  h += '</div>';
+
+  return h;
+}
+
+// ====== Left rail counts ======
+function v49RenderLeftRail() {
+  if (typeof ORDERS === 'undefined' || !ORDERS.tomorrow) return;
+  const orders = ORDERS.tomorrow;
+  // 取當前日 (state.currentDate) 或今+明
+  let dayOrders;
+  if (state._manualDateClick) {
+    dayOrders = orders.filter(o => o.date === state.currentDate);
+  } else {
+    const td = new Date(); const tdK = td.getFullYear()+'-'+String(td.getMonth()+1).padStart(2,'0')+'-'+String(td.getDate()).padStart(2,'0');
+    const tmr = new Date(Date.now()+86400000); const tmrK = tmr.getFullYear()+'-'+String(tmr.getMonth()+1).padStart(2,'0')+'-'+String(tmr.getDate()).padStart(2,'0');
+    dayOrders = orders.filter(o => o.date === tdK || o.date === tmrK);
+  }
+  const set = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = n; };
+  // 狀態
+  set('wbCntAll', dayOrders.length);
+  set('wbCntPending', dayOrders.filter(o => o.status === 'pending').length);
+  set('wbCntActive', dayOrders.filter(o => o.status === 'assigned').length);
+  set('wbCntConfirmed', dayOrders.filter(o => o.status === 'confirmed').length);
+  set('wbCntCompleted', dayOrders.filter(o => o.status === 'completed').length);
+  set('wbCntCancelled', dayOrders.filter(o => o.status === 'cancelled').length);
+  // 行程類型
+  set('wbCntTransfer', dayOrders.filter(o => /送機|接機|機場/.test(o.to || o.route || '')).length);
+  set('wbCntDaytrip', dayOrders.filter(o => o.tripType === 'daytrip' || /小時用車|一日遊/.test(o.to || '')).length);
+  set('wbCntMultiday', dayOrders.filter(o => o._multiDayCount > 1).length);
+  // 車型
+  set('wbCnt7', dayOrders.filter(o => /7座|7人/.test(o.carType || '')).length);
+  set('wbCnt10', dayOrders.filter(o => /10座|10人/.test(o.carType || '')).length);
+  set('wbCnt19', dayOrders.filter(o => /19座|19人/.test(o.carType || '')).length);
+  // 警示
+  set('wbCntCarseat', dayOrders.filter(o => o.carSeatCount > 0 || o.carSeat).length);
+  set('wbCntModified', dayOrders.filter(o => o.isModified).length);
+  set('wbCntMultiCar', dayOrders.filter(o => o.carCount > 1).length);
+  // 來源
+  set('wbCntLINE', dayOrders.filter(o => /LINE/i.test(o.source || '')).length);
+  set('wbCntFB', dayOrders.filter(o => /^FB$/i.test(o.source || '')).length);
+  set('wbCntIG', dayOrders.filter(o => /IG|insta/i.test(o.source || '')).length);
+  set('wbCntFans', dayOrders.filter(o => /粉專|粉絲/i.test(o.source || '')).length);
+  set('wbCntBY', dayOrders.filter(o => /BY|by/i.test(o.source || '')).length);
+  // 司機 chips (取最常派的 5 個)
+  const drvCounts = {};
+  orders.forEach(o => (o.assignments || []).forEach(a => { if (a.driverId) drvCounts[a.driverId] = (drvCounts[a.driverId]||0)+1; }));
+  const topDrvs = Object.entries(drvCounts).sort((a,b) => b[1]-a[1]).slice(0, 6);
+  const dCh = document.getElementById('wbDriverChips');
+  if (dCh) {
+    dCh.innerHTML = topDrvs.map(([did, c]) => {
+      const d = DRIVERS.find(x => x.id === did);
+      return d ? '<div class="wb-chip" data-drv="' + did + '">' + d.name + ' <span style="opacity:0.6;font-size:9.5px;">' + c + '</span></div>' : '';
+    }).join('') + '<div class="wb-chip" onclick="switchPage(\'drivers\')">+全部</div>';
+  }
+  // toolbar crumb
+  const tbCrumb = document.getElementById('wbToolbarCrumb');
+  if (tbCrumb) {
+    const dStr = state._manualDateClick ? state.currentDate : '今+明';
+    tbCrumb.textContent = dStr + ' ・ 共 ' + dayOrders.length + ' 筆';
+  }
+}
+
+// ====== Mini calendar ======
+function v49RenderMiniCalendar() {
+  const calEl = document.getElementById('wbCalMini');
+  if (!calEl) return;
+  const today = new Date();
+  const year = today.getFullYear(), month = today.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const startDow = firstDay.getDay();
+  const totalDays = lastDay.getDate();
+  // weekdays header 已 inline 寫死
+  let calHtml = '';
+  calHtml += '<div class="wb-cal-weekday">日</div><div class="wb-cal-weekday">一</div><div class="wb-cal-weekday">二</div>';
+  calHtml += '<div class="wb-cal-weekday">三</div><div class="wb-cal-weekday">四</div><div class="wb-cal-weekday">五</div><div class="wb-cal-weekday">六</div>';
+  // 前月補白
+  for (let i = 0; i < startDow; i++) {
+    const prevD = new Date(year, month, -startDow + i + 1);
+    calHtml += '<div class="wb-cal-day other-month">' + prevD.getDate() + '</div>';
+  }
+  for (let day = 1; day <= totalDays; day++) {
+    const dStr = year + '-' + String(month+1).padStart(2,'0') + '-' + String(day).padStart(2,'0');
+    const dOrds = (typeof ORDERS !== 'undefined' && ORDERS.tomorrow) ? ORDERS.tomorrow.filter(o => o.date === dStr) : [];
+    const pendingCnt = dOrds.filter(o => o.status === 'pending').length;
+    let cls = 'wb-cal-day';
+    if (dStr === state.currentDate) cls += ' selected';
+    if (pendingCnt > 0) cls += ' has-pending';
+    else if (dOrds.length > 0) cls += ' has-orders';
+    calHtml += '<div class="' + cls + '" onclick="selectDate(\'' + dStr + '\'); v49RenderMiniCalendar();">' + day + (dOrds.length > 0 ? '<div class="cal-dot"></div>' : '') + '</div>';
+  }
+  calEl.innerHTML = calHtml;
+}
+
+// ====== Date quick buttons ======
+function wbJumpTomorrow() {
+  const t = new Date(Date.now()+86400000);
+  const k = t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+  selectDate(k);
+}
+function wbJumpAfterTomorrow() {
+  const t = new Date(Date.now()+86400000*2);
+  const k = t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+  selectDate(k);
+}
+function wbJumpNextWeek() {
+  const t = new Date(Date.now()+86400000*7);
+  const k = t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+  selectDate(k);
+}
+
+// ====== View mode (card/list/table) ======
+function v49SetViewMode(mode) {
+  state.viewMode = mode;
+  state.listView = (mode === 'list');
+  const ol = document.getElementById('ordersList');
+  if (!ol) return;
+  ol.classList.toggle('dense-list', mode === 'list' || mode === 'table');
+  ol.classList.toggle('list-view', mode === 'list');
+  ol.classList.toggle('table-view', mode === 'table');
+  // toolbar buttons
+  ['wbVmCard', 'wbVmList', 'wbVmTable'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active', id === ('wbVm' + mode.charAt(0).toUpperCase() + mode.slice(1)));
+  });
+  renderOrders();
+}
+
+// ====== Region picker (simple alert for now) ======
+function v49OpenRegionPicker() {
+  const regions = ['東京','大阪','名古屋','九州','東北','沖繩','北海道'];
+  const cur = (typeof currentUser !== 'undefined' && currentUser && currentUser.region) ? currentUser.region : '東京';
+  const next = prompt('切換區域（目前：' + cur + '）\n' + regions.join(' / '), cur);
+  if (next && regions.includes(next)) {
+    if (typeof currentUser !== 'undefined' && currentUser) currentUser.region = next;
+    const btn = document.getElementById('v49RegionSwitcher');
+    if (btn) btn.textContent = next + ' ▾';
+    // 重新載入
+    if (typeof loadRealData === 'function') loadRealData();
+  }
+}
+
+// ====== Hook renderOrders → 同時更新 left rail counts + 重渲右欄（若有選中） ======
+(function v49HookRenderOrders() {
+  const _orig = window.renderOrders;
+  if (typeof _orig === 'function') {
+    window.renderOrders = function(...args) {
+      const r = _orig.apply(this, args);
+      try { v49RenderLeftRail(); } catch (e) { console.warn('[v49RenderLeftRail]', e); }
+      try { v49RenderMiniCalendar(); } catch (e) {}
+      // 重新 wire 訂單卡 click → select
+      setTimeout(() => {
+        document.querySelectorAll('#ordersList .order-card').forEach(card => {
+          if (card.dataset.v49Wired) return;
+          card.dataset.v49Wired = '1';
+          // 抓 onclick 的 orderNo 並記錄到 dataset
+          const m = (card.getAttribute('onclick') || '').match(/openEditorByNo\('([^']+)'\)/);
+          if (m) card.dataset.orderNo = m[1];
+          // 改 onclick 為 select（雙擊或 button 點才開派車）
+          const oldOnclick = card.getAttribute('onclick');
+          card.setAttribute('onclick', 'v49SelectOrderForDetail(\'' + (m ? m[1] : '') + '\')');
+          // 如果原本是 openEditorByNo，把它記到 ondblclick
+          if (oldOnclick) card.setAttribute('ondblclick', oldOnclick);
+        });
+        // 若之前有選中，標示它
+        if (v49SelectedOrderNo) {
+          document.querySelectorAll('#ordersList .order-card').forEach(c => {
+            c.classList.toggle('row-selected', c.dataset.orderNo === v49SelectedOrderNo);
+          });
+        }
+      }, 50);
+      return r;
+    };
+  }
+})();
+
+// ====== 更新 v49 user info ======
+function v49UpdateUserChip() {
+  try {
+    if (typeof currentUser !== 'undefined' && currentUser) {
+      const nm = document.getElementById('v49UserName');
+      const av = document.getElementById('v49UserAvatar');
+      const ro = document.getElementById('v49UserRole');
+      const rg = document.getElementById('v49RegionSwitcher');
+      if (nm) nm.textContent = currentUser.name || '使用者';
+      if (av) av.textContent = (currentUser.name || '?').charAt(0);
+      if (ro && currentUser.role) ro.textContent = currentUser.role;
+      if (rg && currentUser.region) rg.textContent = currentUser.region + ' ▾';
+    }
+  } catch (e) {}
+}
+// hook login complete
+(function hookLogin() {
+  const _origDologin = window.doLogin;
+  // doLogin 是 async 函式，hook 它的呼叫結束點：用 MutationObserver 觀察 mainApp 顯示
+  const obs = new MutationObserver(() => {
+    const ma = document.getElementById('mainApp');
+    if (ma && ma.style.display !== 'none') {
+      v49UpdateUserChip();
+    }
+  });
+  setTimeout(() => {
+    const ma = document.getElementById('mainApp');
+    if (ma) obs.observe(ma, { attributes: true, attributeFilter: ['style'] });
+  }, 100);
+})();
+
+console.log('✅ v49 workbench + RWD initialized');
+
 });
 </script>
 </body>
