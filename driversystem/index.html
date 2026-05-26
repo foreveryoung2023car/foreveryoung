@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v59</title>
+<title>旅乘派車系統 v60</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -3941,8 +3941,22 @@ function recomputeMultiDayInfo() {
   });
   ORDERS.tomorrow.forEach(o => {
     const dates = Array.from(new Set(byOrderNo[o.no])).sort();
-    o._multiDayCount = dates.length;
-    o._multiDayIndex = dates.indexOf(o.date) + 1;  // 1-based
+    if (dates.length <= 1) {
+      o._multiDayCount = dates.length;
+      o._multiDayIndex = 1;
+      return;
+    }
+    // v60: 用日期差算 index/count 處理跳天訂單
+    // 例如同訂單號 5/25,5/27,5/28,5/29 → 跨度 5 天 (count=5)
+    // 5/25=D1, 5/27=D3, 5/28=D4, 5/29=D5 (用日期差算 index)
+    const firstD = new Date(dates[0]);
+    const lastD = new Date(dates[dates.length - 1]);
+    const curD = new Date(o.date);
+    const totalSpan = Math.round((lastD - firstD) / 86400000) + 1;
+    const dayOffset = Math.round((curD - firstD) / 86400000);
+    o._multiDayCount = totalSpan;       // 總跨度日數 (含跳過的日子)
+    o._multiDayIndex = dayOffset + 1;   // 該日是跨度中第幾天
+    o._multiDayActual = dates.length;   // 實際有派車的天數
   });
 }
 
@@ -6524,7 +6538,11 @@ function v49BuildDetailHTML(o, opts) {
   // v50: 訂單號 # 去重 — 有些 o.no 已經帶 # 前綴
   const _displayNo = String(o.no || '').startsWith('#') ? o.no : ('#' + o.no);
   h += '<div class="dh-no">' + _displayNo + (isMulti ? ' ・ ' + allDays.length + ' 日 ・ Day ' + (o._multiDayIndex||1) + '/' + allDays.length : '') + '</div>';
-  h += '<div class="dh-leader">' + (o.leaderName || o.leader || headO.leaderName || headO.leader || '') + ((o.source || headO.source) ? ' <span class="src-badge">' + (o.source || headO.source) + '</span>' : '') + '</div>';
+  // v60: 客人姓名優先用 customerName，沒有就顯示提示 (不 fallback 司機名)
+  const _custFromO = (o.customerName || headO.customerName || '').trim();
+  const _srcFromO = (o.source || headO.source || '').trim();
+  const _custDisplay = _custFromO || '<span style="opacity:0.65;font-style:italic;">客人姓名待 GAS 部署</span>';
+  h += '<div class="dh-leader">' + _custDisplay + (_srcFromO ? ' <span class="src-badge">' + _srcFromO + '</span>' : '') + '</div>';
   h += '</div>';
   h += '<div style="display:flex;gap:6px;align-items:center;">';
   h += '<span class="dh-status-big ' + stClass + '">' + stText + '</span>';
@@ -6604,8 +6622,9 @@ function v49BuildDetailHTML(o, opts) {
         ' onclick="v53SwitchToDay(\'' + o.no + '\',\'' + d.date + '\',' + dCarIdx + ')"' +
         ' title="點擊查看此日詳情">';
       h += '<div class="wb-day-card-head">';
-      // v53: 日期格式統一 05/26
-      h += '<span class="wb-day-card-day">Day ' + (i+1) + ' <span class="date-chip">' + v53FmtDate(d.date, {short:true}) + ' ' + v56PadTime(d.start || d.time || d.startTime) + '</span></span>';
+      // v60: 用 d._multiDayIndex 顯示真實天數 (D1, D3, D4, D5 跳天)
+      const _dayIdx = d._multiDayIndex || (i+1);
+      h += '<span class="wb-day-card-day">Day ' + _dayIdx + ' <span class="date-chip">' + v53FmtDate(d.date, {short:true}) + ' ' + v56PadTime(d.start || d.time || d.startTime) + '</span></span>';
       if (drvName) {
         h += '<span class="wb-day-card-driver"><span class="avatar-tiny">' + drvName.charAt(0) + '</span>' + drvName + '</span>';
       } else {
