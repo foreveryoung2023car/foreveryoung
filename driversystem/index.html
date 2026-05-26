@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v50</title>
+<title>旅乘派車系統 v51</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -2730,6 +2730,15 @@ async function doLoginReal() {
   }
   currentUser = Object.assign({}, user, { email: email });
   console.log('[Login] 登入成功', user);
+  // v51: 存 localStorage (auto-login)
+  try {
+    localStorage.setItem('lvchengAuth', JSON.stringify({
+      user: currentUser,
+      email: email,
+      ts: Date.now()
+    }));
+    console.log('[v51] auth saved to localStorage');
+  } catch (e) { console.warn('[v51] localStorage save failed', e); }
   const userEl = document.querySelector('.header-info .user');
   const regionEl = document.querySelector('.header-info .region');
   if (userEl) userEl.textContent = user.name;
@@ -5877,6 +5886,44 @@ function switchPage(page) {
   }
 }
 
+// v51: 嘗試從 localStorage auto-login
+function v51TryAutoLogin() {
+  try {
+    const raw = localStorage.getItem('lvchengAuth');
+    if (!raw) return false;
+    const auth = JSON.parse(raw);
+    if (!auth || !auth.user || !auth.email) return false;
+    // 7 天過期檢查
+    const SEVEN_DAYS = 7 * 24 * 3600 * 1000;
+    if (Date.now() - (auth.ts || 0) > SEVEN_DAYS) {
+      console.log('[v51] auto-login 已過期 (>7 天), 清除');
+      localStorage.removeItem('lvchengAuth');
+      return false;
+    }
+    // 還原 currentUser
+    currentUser = auth.user;
+    console.log('[v51] auto-login 成功:', currentUser.name, '(' + currentUser.email + ')');
+    // 同步 UI
+    const userEl = document.querySelector('.header-info .user');
+    const regionEl = document.querySelector('.header-info .region');
+    if (userEl) userEl.textContent = currentUser.name;
+    if (regionEl) regionEl.textContent = currentUser.region;
+    // 隱藏登入頁、顯示主頁
+    document.getElementById('loginMask').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+    // 跑 loadRealData（背景）
+    if (typeof loadRealData === 'function') {
+      loadRealData().catch(e => {
+        console.warn('[v51] loadRealData 失敗, 可能 session 失效', e);
+      });
+    }
+    return true;
+  } catch (e) {
+    console.warn('[v51] auto-login 失敗', e);
+    return false;
+  }
+}
+
 function doLogin() {
   doLoginReal();
 }
@@ -5886,12 +5933,17 @@ function doLoginMock() {
 }
 function logoutConfirm() {
   if (confirm('確定要登出？')) {
+    // v51: 清除 auto-login
+    try { localStorage.removeItem('lvchengAuth'); console.log('[v51] auth cleared'); } catch(e) {}
+    currentUser = null;
     document.getElementById('loginMask').style.display = 'flex';
     document.getElementById('mainApp').style.display = 'none';
   }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  // v51: 自動登入檢查
+  v51TryAutoLogin();
   document.querySelectorAll('.filter-tab').forEach(t => {
     t.addEventListener('click', () => {
       if (t.classList.contains('disabled')) return;
