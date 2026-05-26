@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v61</title>
+<title>旅乘派車系統 v62</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -6657,6 +6657,49 @@ function v50FmtHours(h) {
   return '(' + s + ')';
 }
 
+
+
+// v62: detail tabs 切換
+function v62SwitchTab(btn, tabName) {
+  const pane = btn.closest('.wb-right, .wb-bsheet');
+  if (!pane) return;
+  // 切 active class
+  pane.querySelectorAll('.wb-detail-tab').forEach(t => t.classList.toggle('active', t === btn));
+  // 切 sections
+  pane.querySelectorAll('[data-section]').forEach(s => {
+    const sec = s.dataset.section;
+    // overview 是預設顯示的；其他 section 只在對應 tab 顯示
+    if (tabName === 'overview') {
+      s.style.display = (sec === 'overview' || sec === 'days') ? '' : 'none';
+    } else {
+      s.style.display = (sec === tabName) ? '' : 'none';
+    }
+  });
+  // 若該 tab 沒任何 section，顯示「無資料」提示
+  const hasContent = Array.from(pane.querySelectorAll('[data-section="' + tabName + '"]'))
+    .some(s => s.style.display !== 'none');
+  let placeholder = pane.querySelector('.v62-empty-tab');
+  if (!hasContent && tabName !== 'overview') {
+    if (!placeholder) {
+      placeholder = document.createElement('div');
+      placeholder.className = 'v62-empty-tab';
+      placeholder.style.cssText = 'padding:30px 20px;text-align:center;color:var(--muted);font-size:13px;line-height:1.6;';
+      const body = pane.querySelector('.wb-detail-body');
+      if (body) body.appendChild(placeholder);
+    }
+    placeholder.innerHTML = ({
+      days: '此訂單只有 1 日行程',
+      dispatch: '尚未派車，點下方「開派車面板」開始',
+      adj: '無獎懲紀錄',
+      modify: '無異動紀錄',
+      rating: '尚未評分'
+    })[tabName] || '無資料';
+    placeholder.style.display = '';
+  } else if (placeholder) {
+    placeholder.style.display = 'none';
+  }
+}
+
 // ====== Build detail HTML (right pane / bottom sheet 共用) ======
 function v49BuildDetailHTML(o, opts) {
   const close = (opts && opts.close) || false;
@@ -6704,14 +6747,14 @@ function v49BuildDetailHTML(o, opts) {
   if (pillsHtml) h += '<div class="dh-pills">' + pillsHtml + '</div>';
   h += '</div>';
 
-  // tabs (預設只顯示「概覽」內容，可以未來擴充)
+  // v62: tabs 可點切換
   h += '<div class="wb-detail-tabs">';
-  h += '<button class="wb-detail-tab active">概覽</button>';
-  h += '<button class="wb-detail-tab">三日行程<span class="pill">' + allDays.length + '</span></button>';
-  h += '<button class="wb-detail-tab">派車</button>';
-  h += '<button class="wb-detail-tab">獎懲</button>';
-  h += '<button class="wb-detail-tab">異動' + (o.isModified ? '<span class="pill">!</span>' : '') + '</button>';
-  if (o.status === 'completed') h += '<button class="wb-detail-tab">評分</button>';
+  h += '<button class="wb-detail-tab active" data-tab="overview" onclick="v62SwitchTab(this,\'overview\')">概覽</button>';
+  h += '<button class="wb-detail-tab" data-tab="days" onclick="v62SwitchTab(this,\'days\')">'+ (allDays.length > 1 ? '多日行程' : '行程') +'<span class="pill">' + allDays.length + '</span></button>';
+  h += '<button class="wb-detail-tab" data-tab="dispatch" onclick="v62SwitchTab(this,\'dispatch\')">派車</button>';
+  h += '<button class="wb-detail-tab" data-tab="adj" onclick="v62SwitchTab(this,\'adj\')">獎懲</button>';
+  h += '<button class="wb-detail-tab" data-tab="modify" onclick="v62SwitchTab(this,\'modify\')">異動' + (o.isModified ? '<span class="pill">!</span>' : '') + '</button>';
+  if (o.status === 'completed') h += '<button class="wb-detail-tab" data-tab="rating" onclick="v62SwitchTab(this,\'rating\')">評分</button>';
   h += '</div>';
 
   // body
@@ -6727,7 +6770,7 @@ function v49BuildDetailHTML(o, opts) {
   const _requireLang = headO.requireLang || o.requireLang;
   // v58: 「姓名」優先用 customerName (AL 欄)，「來源」用 source (AT 欄)
   const _customer = (o.customerName || headO.customerName || '').trim();
-  h += '<div class="wb-detail-section">';
+  h += '<div class="wb-detail-section" data-section="overview">';
   h += '<div class="wb-detail-section-title">👥 客戶資訊</div>';
   h += '<div class="wb-kv-grid">';
   h += '<div class="wb-kv-row"><span class="k">姓名</span><span class="v">' + (_customer || '<span style="color:var(--muted);">—</span>') + '</span></div>';
@@ -6742,7 +6785,7 @@ function v49BuildDetailHTML(o, opts) {
   // v54: 行程概要 — 起始/車款用 headO，時數和費用用 o (該日特有)
   const _from = o.from || headO.from;
   const _carType = o.carType || headO.carType;
-  h += '<div class="wb-detail-section">';
+  h += '<div class="wb-detail-section" data-section="overview">';
   h += '<div class="wb-detail-section-title">🚗 行程概要</div>';
   if (_from) h += '<div class="wb-info-row"><span class="label">起始</span><span class="val">' + _from + '</span></div>';
   if (_carType) h += '<div class="wb-info-row"><span class="label">車款</span><span class="v val">' + _carType + (o.carCount > 1 ? ' （需 ' + o.carCount + ' 台）' : '') + '</span></div>';
@@ -6760,7 +6803,7 @@ function v49BuildDetailHTML(o, opts) {
 
   // 三日行程預覽（多日）
   if (isMulti) {
-    h += '<div class="wb-detail-section">';
+    h += '<div class="wb-detail-section" data-section="days">';
     h += '<div class="wb-detail-section-title">📅 ' + allDays.length + ' 日行程預覽</div>';
     allDays.forEach((d, i) => {
       const isCur = (d.date === o.date && d.carIndex === o.carIndex);
@@ -6792,7 +6835,7 @@ function v49BuildDetailHTML(o, opts) {
     h += '</div>';
   } else {
     // 單日 — 顯示路線
-    h += '<div class="wb-detail-section">';
+    h += '<div class="wb-detail-section" data-section="days">';
     h += '<div class="wb-detail-section-title">📍 行程路線</div>';
     h += '<div class="wb-day-card current">';
     const _oHours = v50FmtHours(o.hours);
@@ -6803,7 +6846,7 @@ function v49BuildDetailHTML(o, opts) {
 
   // 客人備註
   if (o.remarks) {
-    h += '<div class="wb-detail-section">';
+    h += '<div class="wb-detail-section" data-section="overview">';
     h += '<div class="wb-detail-section-title">⚠ 客人備註</div>';
     h += '<div class="wb-remark-box"><div class="head">⚠ 派車注意事項</div>' + o.remarks + '</div>';
     h += '</div>';
@@ -6811,7 +6854,7 @@ function v49BuildDetailHTML(o, opts) {
 
   // 推薦司機
   if (recent.length) {
-    h += '<div class="wb-detail-section">';
+    h += '<div class="wb-detail-section" data-section="dispatch">';
     h += '<div class="wb-detail-section-title">⚡ 推薦司機（基於 leader 派車歷史）</div>';
     h += '<div class="wb-driver-suggestion">';
     h += '<div class="wb-driver-suggestion-head">⭐ 此 leader 過去派過</div>';
@@ -6826,7 +6869,7 @@ function v49BuildDetailHTML(o, opts) {
 
   // lifecycle
   if (o.lifecycle && o.lifecycle.length) {
-    h += '<div class="wb-detail-section">';
+    h += '<div class="wb-detail-section" data-section="modify">';
     h += '<div class="wb-detail-section-title">📋 訂單狀態變動歷程</div>';
     h += '<div class="wb-lifecycle">';
     o.lifecycle.forEach(lc => {
