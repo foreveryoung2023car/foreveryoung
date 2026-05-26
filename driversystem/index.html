@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v49</title>
+<title>旅乘派車系統 v50</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -2099,6 +2099,39 @@
     align-items: center; justify-content: center;
   }
 
+  /* v50: 拿掉中間 .quick-stats (跟頂部 header metrics 重複) */
+  #page-dispatch .quick-stats { display: none !important; }
+
+  /* v50: 日期 strip 一列 — 拿掉標題與 quick toolbar */
+  #page-dispatch .dpv38-header {
+    padding: 0; min-height: auto;
+  }
+  #page-dispatch .dpv38-header .dpv38-title,
+  #page-dispatch .dpv38-header .dpv38-quick {
+    display: none !important;
+  }
+  #page-dispatch .dpv38-header .dpv38-arrow {
+    padding: 4px 8px; font-size: 16px;
+  }
+  #page-dispatch .date-picker-v38 {
+    display: flex; align-items: center; gap: 4px;
+    padding: 6px 14px; background: white;
+    border-bottom: 1px solid var(--border);
+  }
+  #page-dispatch .date-picker-v38 .dpv38-strip {
+    flex: 1; padding: 0;
+  }
+
+  /* v50: 區域 label (read-only, 不再 hover/cursor:pointer) */
+  .v49-region-label {
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+    color: white; padding: 6px 12px; border-radius: 6px;
+    font-size: 12px; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 6px;
+    cursor: default;
+  }
+  .v49-region-label::before { content: '📍'; font-size: 11px; opacity: 0.8; }
+
   /* ===== RWD breakpoints ===== */
   @media (min-width: 1200px) {
     .topbar-v49-extra { display: flex; }
@@ -2200,7 +2233,7 @@
     <button class="v49-menu-btn" onclick="v49ToggleDrawer()" title="篩選選單" id="v49MenuBtn">☰</button>
     <div class="header-actions">
       <!-- v49: 區域切換 + 使用者卡片（大螢幕顯示） -->
-      <button class="v49-region-switcher" id="v49RegionSwitcher" onclick="v49OpenRegionPicker()" title="切換區域">東京 ▾</button>
+      <span class="v49-region-label" id="v49RegionSwitcher" title="您只能查看所屬區域訂單">東京</span>
       <button class="header-search-btn" onclick="switchPage('search')" title="全域搜尋">
         <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
       </button>
@@ -5948,6 +5981,24 @@ function v49SelectOrderForDetail(orderNo) {
   pane.innerHTML = v49BuildDetailHTML(o, { close: false });
 }
 
+// ====== v50: 時數顯示規則 ======
+// - 空白 / null → 不顯示
+// - '-' → '(單程)'
+// - '--' → '(來回)'
+// - 數字 → '(N 小時)'
+// - 其他字串 → 原樣 (例如 '10小時' 或 '半日' 等)
+function v50FmtHours(h) {
+  if (h === undefined || h === null) return '';
+  const s = String(h).trim();
+  if (s === '') return '';
+  if (s === '-') return '(單程)';
+  if (s === '--') return '(來回)';
+  if (/^\d+(\.\d+)?$/.test(s)) return '(' + s + ' 小時)';
+  // 已含「小時」或其他文字 → 原樣
+  if (/小時|時|半日|單程|來回/.test(s)) return '(' + s + ')';
+  return '(' + s + ')';
+}
+
 // ====== Build detail HTML (right pane / bottom sheet 共用) ======
 function v49BuildDetailHTML(o, opts) {
   const close = (opts && opts.close) || false;
@@ -5970,7 +6021,9 @@ function v49BuildDetailHTML(o, opts) {
   h += '<div class="wb-detail-head">';
   h += '<div class="dh-row1">';
   h += '<div>';
-  h += '<div class="dh-no">#' + o.no + (isMulti ? ' ・ ' + allDays.length + ' 日 ・ Day ' + (o._multiDayIndex||1) + '/' + allDays.length : '') + '</div>';
+  // v50: 訂單號 # 去重 — 有些 o.no 已經帶 # 前綴
+  const _displayNo = String(o.no || '').startsWith('#') ? o.no : ('#' + o.no);
+  h += '<div class="dh-no">' + _displayNo + (isMulti ? ' ・ ' + allDays.length + ' 日 ・ Day ' + (o._multiDayIndex||1) + '/' + allDays.length : '') + '</div>';
   h += '<div class="dh-leader">' + (o.leaderName || o.leader || '') + (o.source ? ' <span class="src-badge">' + o.source + '</span>' : '') + '</div>';
   h += '</div>';
   h += '<div style="display:flex;gap:6px;align-items:center;">';
@@ -6012,7 +6065,12 @@ function v49BuildDetailHTML(o, opts) {
   h += '<div class="wb-detail-section-title">🚗 行程概要</div>';
   if (o.from) h += '<div class="wb-info-row"><span class="label">起始</span><span class="val">' + o.from + '</span></div>';
   if (o.carType) h += '<div class="wb-info-row"><span class="label">車款</span><span class="v val">' + o.carType + (o.carCount > 1 ? ' （需 ' + o.carCount + ' 台）' : '') + '</span></div>';
-  if (o.hours) h += '<div class="wb-info-row"><span class="label">時數</span><span class="val">' + o.hours + ' 小時' + (isMulti ? ' × ' + allDays.length + ' 日' : '') + '</span></div>';
+  // v50: 時數規則 (-/--/數字/空白)
+  const _hoursTxt = v50FmtHours(o.hours);
+  if (_hoursTxt) {
+    const _multiSuffix = isMulti ? (' × ' + allDays.length + ' 日') : '';
+    h += '<div class="wb-info-row"><span class="label">時數</span><span class="val">' + _hoursTxt + _multiSuffix + '</span></div>';
+  }
   if (o.driverFee) {
     const totalFee = isMulti ? allDays.reduce((s, d) => s + (d.driverFee || 0), 0) : o.driverFee;
     h += '<div class="wb-info-row"><span class="label">收費</span><span class="val"><span class="accent">¥' + (o.driverFee||0).toLocaleString() + '</span>' + (isMulti ? ' / 日 × ' + allDays.length + ' = <span class="accent">¥' + totalFee.toLocaleString() + '</span>' : '') + '</span></div>';
@@ -6037,7 +6095,8 @@ function v49BuildDetailHTML(o, opts) {
       }
       h += '</div>';
       const routeText = String(d.to || d.route || '').replace(/[→>＞]/g, ' › ');
-      h += '<div class="wb-day-card-route">' + routeText + (d.hours ? ' (' + d.hours + '小時)' : '') + '</div>';
+      const _dHours = v50FmtHours(d.hours);
+      h += '<div class="wb-day-card-route">' + routeText + (_dHours ? ' ' + _dHours : '') + '</div>';
       h += '<div class="wb-day-card-fee"><span>司機費 ¥' + (d.driverFee||0).toLocaleString() + '</span>' + (d.totalJP ? '<span>總額 ¥' + d.totalJP.toLocaleString() + '</span>' : '') + '</div>';
       h += '</div>';
     });
@@ -6047,7 +6106,8 @@ function v49BuildDetailHTML(o, opts) {
     h += '<div class="wb-detail-section">';
     h += '<div class="wb-detail-section-title">📍 行程路線</div>';
     h += '<div class="wb-day-card current">';
-    h += '<div class="wb-day-card-route">' + String(o.to || o.route || '').replace(/[→>＞]/g, ' › ') + (o.hours ? ' (' + o.hours + '小時)' : '') + '</div>';
+    const _oHours = v50FmtHours(o.hours);
+    h += '<div class="wb-day-card-route">' + String(o.to || o.route || '').replace(/[→>＞]/g, ' › ') + (_oHours ? ' ' + _oHours : '') + '</div>';
     h += '</div>';
     h += '</div>';
   }
@@ -6228,16 +6288,8 @@ function v49SetViewMode(mode) {
 
 // ====== Region picker (simple alert for now) ======
 function v49OpenRegionPicker() {
-  const regions = ['東京','大阪','名古屋','九州','東北','沖繩','北海道'];
-  const cur = (typeof currentUser !== 'undefined' && currentUser && currentUser.region) ? currentUser.region : '東京';
-  const next = prompt('切換區域（目前：' + cur + '）\n' + regions.join(' / '), cur);
-  if (next && regions.includes(next)) {
-    if (typeof currentUser !== 'undefined' && currentUser) currentUser.region = next;
-    const btn = document.getElementById('v49RegionSwitcher');
-    if (btn) btn.textContent = next + ' ▾';
-    // 重新載入
-    if (typeof loadRealData === 'function') loadRealData();
-  }
+  // v50: 區域鎖定 — 不允許切換（司機/行政都只能看自己的區域）
+  alert('您只能查看所屬區域的訂單。若需切換區域，請聯絡管理員。');
 }
 
 // ====== Hook renderOrders → 同時更新 left rail counts + 重渲右欄（若有選中） ======
@@ -6285,7 +6337,7 @@ function v49UpdateUserChip() {
       if (nm) nm.textContent = currentUser.name || '使用者';
       if (av) av.textContent = (currentUser.name || '?').charAt(0);
       if (ro && currentUser.role) ro.textContent = currentUser.role;
-      if (rg && currentUser.region) rg.textContent = currentUser.region + ' ▾';
+      if (rg && currentUser.region) rg.textContent = currentUser.region;  // v50: 鎖定不顯示下拉箭頭
     }
   } catch (e) {}
 }
