@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v60</title>
+<title>旅乘派車系統 v61</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -2537,6 +2537,158 @@
 
   /* v59: 強化 sheet-mask 點擊樣式 (滑鼠移過去顯示 not-allowed 暗示無法關) */
   .sheet-mask { cursor: default; }
+
+  /* ====== v61: RWD 平板/手機破版修 ====== */
+
+  /* 中型平板 900-1199px: 三欄 grid 但 center 太窄，ord-row 改 3 cols */
+  @media (max-width: 1199px) and (min-width: 900px) {
+    .v54b-card {
+      grid-template-columns: 72px 1fr 140px 88px !important;
+      gap: 10px !important;
+    }
+    .v54b-card .v54b-no { display: none !important; }
+    .v54b-card .v54b-time-big { font-size: 19px !important; }
+    .v54b-card .v54b-leader-big { font-size: 15px !important; }
+    .v54b-card .v54b-driver-name { font-size: 12px !important; }
+    .v54b-card .v54b-fee-big { font-size: 13px !important; }
+    .v54b-card .v54b-status-big { padding: 4px 10px !important; font-size: 11.5px !important; }
+    /* meta-row 顯示空間有限 → 第二行的 tags 縮小 */
+    .v54b-card .v54b-mt { font-size: 9.5px !important; padding: 1px 5px !important; }
+    /* header metrics 縮一點 */
+    .header-metrics-v48 { gap: 14px !important; }
+    .header-metrics-v48 .hm-num { font-size: 16px !important; }
+    .header-metrics-v48 .hm-lbl { font-size: 10px !important; }
+    .brand-sub-v48 { display: none !important; }
+    /* center toolbar 縮 */
+    .wb-center-toolbar h2 { font-size: 13px !important; }
+    .wb-center-toolbar .crumb { font-size: 10.5px !important; }
+  }
+
+  /* 小平板 641-899px: 一欄 center，ord-row 簡化 */
+  @media (max-width: 899px) and (min-width: 641px) {
+    .v54b-card {
+      grid-template-columns: 64px 1fr 80px !important;
+      gap: 8px !important;
+      padding: 10px 12px !important;
+    }
+    .v54b-card .v54b-driver-block,
+    .v54b-card .v54b-no,
+    .v54b-card .v54b-fee-big { display: none !important; }
+    .v54b-card .v54b-time-big { font-size: 17px !important; }
+    .v54b-card .v54b-leader-big { font-size: 14px !important; }
+    .v54b-card .v54b-route { font-size: 12px !important; }
+    /* center toolbar */
+    .wb-center-toolbar { padding: 8px 12px !important; }
+    .wb-center-toolbar .left { gap: 6px !important; }
+    .wb-center-toolbar h2 { font-size: 13px !important; }
+    .wb-center-toolbar .crumb { font-size: 10px !important; }
+    /* header */
+    .header-metrics-v48 { display: none !important; }
+    .brand-sub-v48 { display: none !important; }
+    .v49-region-switcher { display: none !important; }
+    .v49-user-chip .v49-user-meta { display: none !important; }
+  }
+
+  /* 手機 ≤640px: 全簡化 */
+  @media (max-width: 640px) {
+    .topbar {
+      height: 52px !important;
+      padding: 0 10px !important;
+      grid-template-columns: auto 1fr auto !important;
+      gap: 8px !important;
+    }
+    .header-metrics-v48 { display: none !important; }
+    .brand-sub-v48 { display: none !important; }
+    .v49-region-switcher { display: none !important; }
+    .v49-user-chip { padding: 2px 6px 2px 2px !important; }
+    .v49-user-chip .v49-user-meta { display: none !important; }
+    .v49-user-avatar { width: 28px !important; height: 28px !important; }
+    .header-search-btn { width: 30px !important; height: 30px !important; }
+    .v49-menu-btn { width: 30px !important; height: 30px !important; }
+    .brand { font-size: 13px !important; gap: 6px !important; }
+    .brand span { display: none !important; }
+    .brand .mark { width: 28px !important; height: 28px !important; font-size: 13px !important; }
+    /* ord-row 手機緊湊 — 雙行 */
+    .v54b-card {
+      display: grid !important;
+      grid-template-columns: 60px 1fr auto !important;
+      grid-template-areas: "time main status" "time route status" !important;
+      gap: 4px 10px !important;
+      padding: 10px 12px !important;
+    }
+    .v54b-card .v54b-time-block { grid-area: time; align-self: center; }
+    .v54b-card .v54b-main { grid-area: main; min-width: 0; }
+    .v54b-card .v54b-route { grid-area: route; padding: 0 !important; font-size: 11.5px !important; }
+    .v54b-card .v54b-right-block { grid-area: status; text-align: right; }
+    .v54b-card .v54b-driver-block,
+    .v54b-card .v54b-no,
+    .v54b-card .v54b-fee-big,
+    .v54b-card .v54b-meta-row,
+    .v54b-card .v54b-time-end { display: none !important; }
+    .v54b-card .v54b-time-big { font-size: 17px !important; line-height: 1; }
+    .v54b-card .v54b-leader-big { font-size: 13.5px !important; }
+    .v54b-card .v54b-status-big { padding: 3px 8px !important; font-size: 10.5px !important; }
+    /* 中欄 toolbar 收 */
+    .wb-center-toolbar {
+      padding: 6px 10px !important;
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 4px !important;
+    }
+    .wb-center-toolbar h2 { font-size: 12px !important; }
+    .wb-center-toolbar .crumb { font-size: 10px !important; }
+    /* 日期 strip 緊縮 */
+    .dpv38-strip {
+      grid-template-columns: repeat(7, 1fr) !important;
+      gap: 2px !important;
+    }
+    #page-dispatch .dpv38-strip .date-pill {
+      padding: 6px 4px !important;
+      gap: 4px !important;
+      min-height: 32px !important;
+    }
+    #page-dispatch .dpv38-strip .date-pill .dow { font-size: 10px !important; }
+    #page-dispatch .dpv38-strip .date-pill .num { font-size: 12px !important; }
+    #page-dispatch .dpv38-strip .date-pill .badge { font-size: 9px !important; padding: 1px 4px !important; }
+    /* 日期 picker 整體 padding */
+    #page-dispatch .date-picker-v38 { padding: 4px 8px !important; }
+    /* sheet 派車面板手機全寬 */
+    .sheet { max-height: 95vh !important; }
+    .sheet-body { padding: 8px 10px 10px !important; }
+  }
+
+  /* 超小手機 ≤400px */
+  @media (max-width: 400px) {
+    .topbar { padding: 0 8px !important; }
+    .brand { gap: 4px !important; }
+    .brand .mark { display: none !important; }
+    .v54b-card { padding: 8px 10px !important; gap: 3px 8px !important; }
+    .v54b-card .v54b-time-big { font-size: 15px !important; }
+    .v54b-card .v54b-leader-big { font-size: 13px !important; }
+    .v54b-card .v54b-route { font-size: 11px !important; }
+    .v54b-card .v54b-status-big { padding: 2px 7px !important; font-size: 10px !important; }
+    .header-search-btn, .v49-menu-btn { width: 28px !important; height: 28px !important; }
+    .btn-icon { width: 28px !important; height: 28px !important; }
+  }
+
+  /* 右欄 wb-right 在中型平板顯示時，detail-head 的 dh-leader 不要溢出 */
+  @media (max-width: 1199px) {
+    .wb-detail-head { padding: 12px 14px 10px !important; }
+    .wb-detail-head .dh-leader { font-size: 15px !important; }
+    .wb-detail-head .dh-status-big { font-size: 11px !important; padding: 3px 10px !important; }
+    .wb-detail-head .dh-pills { gap: 4px !important; }
+    .wb-dh-pill { font-size: 10px !important; padding: 2px 8px !important; }
+  }
+
+  /* 防 ord-row 內 mini-tag 撐爆 main 區 */
+  .v54b-card .v54b-meta-row {
+    overflow: hidden;
+    flex-wrap: wrap;
+  }
+  .v54b-card .v54b-route { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* 桌機 detail header 也加 max-width 防 dh-leader 長字串溢出 */
+  .wb-detail-head .dh-leader { word-break: break-word; }
 </style>
 </head>
 <body>
