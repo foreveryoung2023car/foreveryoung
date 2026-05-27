@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v67</title>
+<title>旅乘派車系統 v68</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -5249,7 +5249,11 @@ function renderCarSlot(order, assignment, slotIdx) {
               const selVeh = assignment.vehicleId ? VEHICLES.find(v => v.id === assignment.vehicleId) : null;
               let h = '';
               if (selVeh) {
-                h += '<div class="veh-group-head" style="background:var(--primary-soft);color:var(--primary);">✓ 已選擇車輛<span class="vgh-count" style="background:white;color:var(--primary);">' + String(selVeh.plate || '?') + '</span></div>';
+                // v68: 加取消選擇按鈕 (對齊司機那邊 clearDriverSelection 模式)
+                h += '<div class="veh-group-head" style="background:var(--primary-soft);color:var(--primary);display:flex;justify-content:space-between;align-items:center;">' +
+                  '<span>✓ 已選擇車輛 <span class="vgh-count" style="background:white;color:var(--primary);">' + String(selVeh.plate || '?') + '</span></span>' +
+                  '<button onclick="clearVehicleSelection(' + slotIdx + ')" style="background:white;color:var(--danger);border:1px solid var(--danger);padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;cursor:pointer;">✕ 取消選擇</button>' +
+                  '</div>';
               }
               ['7座','10座','19座'].forEach(cat => {
                 const items = VEHICLES.filter(v => v.category === cat);
@@ -5566,6 +5570,20 @@ function selectDriverForSlot(slotIdx, driverId) {
   }
   renderCarSlots();
 }
+// v68: 清除已選車輛
+function clearVehicleSelection(slotIdx) {
+  if (!state.editingAssignments[slotIdx]) return;
+  state.editingAssignments[slotIdx].vehicleId = null;
+  const sel = document.getElementById('vehicleSelect-' + slotIdx);
+  if (sel) sel.value = '';
+  // hide 新增車輛 box (若有開)
+  const newBox = document.getElementById('newVehicleBox-' + slotIdx);
+  if (newBox) newBox.style.display = 'none';
+  renderCarSlots();
+  // 觸發確認派車按鈕重新檢查
+  if (typeof v66UpdateConfirmBtnState === 'function') setTimeout(v66UpdateConfirmBtnState, 50);
+}
+
 function clearDriverSelection(slotIdx) {
   state.editingAssignments[slotIdx].driverId = null;
   state.editingAssignments[slotIdx].fee = null;
