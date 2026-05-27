@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v64</title>
+<title>旅乘派車系統 v65</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -2755,6 +2755,71 @@
     margin-left: auto; font-size: 11px; color: var(--muted); font-style: italic;
   }
 
+
+  /* ====== v65 ====== */
+  /* Fix 1: 修頁面卷軸 (html/body 固定高度，內部容器自己 scroll) */
+  html, body { height: 100vh !important; overflow: hidden !important; }
+  .device-shell { height: 100vh !important; min-height: 0 !important; display: flex; flex-direction: column; overflow: hidden; }
+  #mainApp { flex: 1 1 auto; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+  /* 內部 scroll 容器 */
+  .pages-wrap, #pages-wrap, .page, .page-content, main { min-height: 0; }
+  .orders, .v52-orders-grid { overflow-y: auto; }
+
+  /* Fix 2: 左 sidebar 上下水平致中 (桌機+) */
+  @media (min-width: 768px) {
+    .bottom-nav {
+      padding-top: 80px !important;  /* 留 header 高 */
+      padding-bottom: 20px !important;
+      justify-content: center !important;  /* 上下置中 */
+      align-items: center !important;       /* 水平置中 */
+    }
+    .bottom-nav .nav-btn {
+      width: 60px !important;
+      margin: 4px auto !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+  }
+
+  /* Fix 3: 恢復卡片日幣費用顯示 (v61 RWD 過度隱藏) */
+  /* 平板 900-1199px: 把 fee 改成精簡顯示而非隱藏 */
+  @media (max-width: 1199px) and (min-width: 900px) {
+    .v54b-card .v54b-fee-big { display: block !important; font-size: 13px !important; }
+    .v54b-card .v54b-fee-label { font-size: 9px !important; }
+  }
+  /* 桌機 1200+ 確保顯示 */
+  @media (min-width: 1200px) {
+    .v54b-card .v54b-fee-big { display: block !important; }
+  }
+  /* 手機 <640px 用緊湊版 */
+  @media (max-width: 640px) {
+    .v54b-card .v54b-fee-big { display: inline-block !important; font-size: 12px !important; margin-top: 2px; }
+  }
+
+  /* v65: 多車警告 dialog */
+  .v65-modal-mask {
+    position: fixed; inset: 0; background: rgba(31,69,102,0.55);
+    z-index: 9999; display: flex; align-items: center; justify-content: center;
+    animation: v65fadeIn 0.2s;
+  }
+  @keyframes v65fadeIn { from { opacity: 0 } to { opacity: 1 } }
+  .v65-modal {
+    background: white; border-radius: 12px; padding: 20px 24px;
+    max-width: 420px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  }
+  .v65-modal h3 { margin: 0 0 12px; font-size: 16px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .v65-modal .v65-msg { font-size: 13.5px; color: var(--text-2); line-height: 1.6; margin-bottom: 18px; }
+  .v65-modal .v65-msg strong { color: #DC2626; font-weight: 700; }
+  .v65-modal .v65-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+  .v65-modal button {
+    padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600;
+    cursor: pointer; border: 1px solid var(--border);
+  }
+  .v65-modal .v65-btn-cancel { background: white; color: var(--text); }
+  .v65-modal .v65-btn-confirm { background: #DC2626; color: white; border-color: #DC2626; }
+  .v65-modal .v65-btn-alt { background: var(--primary); color: white; border-color: var(--primary); }
 </style>
 </head>
 <body>
@@ -7327,6 +7392,117 @@ function v49UpdateUserChip() {
 })();
 
 console.log('✅ v49 workbench + RWD initialized');
+
+// ====== v65: 多車刪除確認 + 座位警告 ======
+function v65Modal(opts) {
+  // opts: { title, msg, buttons: [{label, cls, onClick}] }
+  return new Promise(resolve => {
+    const mask = document.createElement('div');
+    mask.className = 'v65-modal-mask';
+    const modal = document.createElement('div');
+    modal.className = 'v65-modal';
+    let html = '<h3>' + (opts.icon || '⚠️') + ' ' + opts.title + '</h3>';
+    html += '<div class="v65-msg">' + opts.msg + '</div>';
+    html += '<div class="v65-actions">';
+    opts.buttons.forEach((b, i) => {
+      html += '<button data-i="' + i + '" class="' + (b.cls || 'v65-btn-cancel') + '">' + b.label + '</button>';
+    });
+    html += '</div>';
+    modal.innerHTML = html;
+    mask.appendChild(modal);
+    document.body.appendChild(mask);
+    modal.querySelectorAll('button[data-i]').forEach(btn => {
+      btn.onclick = () => {
+        const i = parseInt(btn.dataset.i);
+        document.body.removeChild(mask);
+        resolve(i);
+      };
+    });
+    mask.onclick = (e) => {
+      if (e.target === mask) {
+        document.body.removeChild(mask);
+        resolve(-1);  // cancel by clicking outside
+      }
+    };
+  });
+}
+
+// 解析訂單需要的座位數 (從 carType: "10座豐田海獅" → 10)
+function v65ParseRequiredSeats(carType) {
+  if (!carType) return 0;
+  const m = String(carType).match(/(\d+)\s*座/);
+  return m ? parseInt(m[1]) : 0;
+}
+
+// hook removeCarSlot 加確認
+(function(){
+  if (typeof removeCarSlot !== 'function') return;
+  const _orig = removeCarSlot;
+  window.removeCarSlot = async function(idx) {
+    if (state.editingAssignments.length <= 1) return;
+    const o = state.editingOrder && state.editingOrder.data;
+    const carCount = (o && o.carCount) || 1;
+    const currentLen = state.editingAssignments.length;
+    // 多車訂單時提醒
+    if (carCount > 1) {
+      const slotInfo = state.editingAssignments[idx];
+      const driver = slotInfo && slotInfo.driverId ? (DRIVERS.find(d => d.id === slotInfo.driverId) || {}).name : '';
+      const vehicle = slotInfo && slotInfo.vehicleId ? (VEHICLES.find(v => v.id === slotInfo.vehicleId) || {}).plate : '';
+      const slotDesc = (driver || vehicle) ? '（' + [driver, vehicle].filter(Boolean).join(' / ') + '）' : '';
+      const choice = await v65Modal({
+        icon: '🚗',
+        title: '確定要刪除這台車？',
+        msg: '此訂單需要 <strong>' + carCount + ' 台車</strong>，目前安排 ' + currentLen + ' 台。<br>刪除第 ' + (idx+1) + ' 台車' + slotDesc + ' 後將剩 <strong>' + (currentLen-1) + ' 台</strong>。<br><br>建議：若是想換車，請直接從車輛下拉換另一台，不必先刪除。',
+        buttons: [
+          { label: '取消', cls: 'v65-btn-cancel' },
+          { label: '我要換別台車', cls: 'v65-btn-alt' },
+          { label: '確定刪除', cls: 'v65-btn-confirm' }
+        ]
+      });
+      if (choice === 0 || choice === -1) return;  // 取消
+      if (choice === 1) {
+        // 提示用車輛 dropdown 換
+        alert('請從這台車的「車輛」下拉選單直接換成別台車，不用刪除。');
+        return;
+      }
+      // choice === 2 確定刪除 → 繼續
+    }
+    return _orig(idx);
+  };
+  // 重新 wrap draft save
+  if (typeof wrapWithDraftSave === 'function') wrapWithDraftSave('removeCarSlot');
+})();
+
+// hook selectVehicleForSlot 加座位警告
+(function(){
+  if (typeof selectVehicleForSlot !== 'function') return;
+  const _orig = selectVehicleForSlot;
+  window.selectVehicleForSlot = async function(slotIdx, vid) {
+    const o = state.editingOrder && state.editingOrder.data;
+    const vehicle = VEHICLES.find(v => v.id === vid);
+    if (o && vehicle) {
+      const required = v65ParseRequiredSeats(o.carType);
+      if (required > 0 && vehicle.seat && vehicle.seat < required) {
+        const choice = await v65Modal({
+          icon: '⚠️',
+          title: '車款座位不足',
+          msg: '訂單需要 <strong>' + required + ' 座</strong>（' + (o.carType || '') + '），<br>但這台車「' + vehicle.plate + ' ' + (vehicle.model || '') + '」只有 <strong>' + vehicle.seat + ' 座</strong>。<br><br>客人可能會坐不下，確定要派這台？',
+          buttons: [
+            { label: '取消，選別台', cls: 'v65-btn-cancel' },
+            { label: '我知道，照樣派', cls: 'v65-btn-confirm' }
+          ]
+        });
+        if (choice !== 1) return;  // 取消
+      }
+    }
+    return _orig(slotIdx, vid);
+  };
+  if (typeof wrapWithDraftSave === 'function') wrapWithDraftSave('selectVehicleForSlot');
+})();
+
+console.log('✅ v65 hooks installed (multi-car confirm + seat warning)');
+
+
 
 /* ====================================================== */
 /* ==========  v52: 訂單列表重設計 + resizer  ========== */
