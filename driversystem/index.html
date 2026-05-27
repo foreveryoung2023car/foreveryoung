@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v71</title>
+<title>旅乘派車系統 v72</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -2846,6 +2846,31 @@
   }
   /* sheet body 在 picker 區段加上滑順 scroll */
   .sheet-body { -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
+
+  /* ====== v72: 車輛 picker 智慧 collapse ====== */
+  .v72-veh-group { border-bottom: 1px solid var(--border); }
+  .v72-veh-group:last-child { border-bottom: none; }
+  .v72-veh-group .veh-group-head { cursor: pointer; user-select: none; }
+  .v72-veh-group .veh-group-head:hover { background: #E0F2FE; }
+  .v72-toggle-arrow { transition: transform 0.2s; font-size: 11px; opacity: 0.6; }
+  .v72-veh-group.collapsed .v72-toggle-arrow { transform: rotate(-90deg); }
+  .v72-veh-body { overflow: hidden; transition: max-height 0.25s ease; max-height: 2000px; }
+  .v72-veh-group.collapsed .v72-veh-body { max-height: 0; }
+  /* 訂單需求標籤 */
+  .v72-cat-need {
+    margin-left: 6px;
+    background: #FCD34D;
+    color: #78350F;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 8px;
+    letter-spacing: 0.3px;
+  }
+  /* 「搜尋中」全展開 */
+  .vehicle-picker.v72-searching .v72-veh-group { }
+  .vehicle-picker.v72-searching .v72-veh-group.collapsed .v72-veh-body { max-height: 2000px; }
+  .vehicle-picker.v72-searching .v72-toggle-arrow { transform: rotate(0deg) !important; }
 </style>
 </head>
 <body>
@@ -5281,10 +5306,26 @@ function renderCarSlot(order, assignment, slotIdx) {
                   '<button onclick="clearVehicleSelection(' + slotIdx + ')" style="background:white;color:var(--danger);border:1px solid var(--danger);padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;cursor:pointer;">✕ 取消選擇</button>' +
                   '</div>';
               }
+              // v72: 智慧分組 — 自動展開訂單要求的座位數類, 其他 collapse
+              const carTypeStr = String(order && order.carType || '');
+              const requiredMatch = carTypeStr.match(/(\d+)\s*座/);
+              const requiredCat = requiredMatch ? requiredMatch[1] + '座' : '';
               ['7座','10座','19座'].forEach(cat => {
                 const items = VEHICLES.filter(v => v.category === cat);
                 if (items.length === 0) return;
-                h += '<div class="veh-group-head" data-cat="' + cat + '">' + cat + '<span class="vgh-count">' + items.length + ' 台</span></div>';
+                // 訂單要的座位數 → 展開; 已選車輛在此類 → 展開; 其他 → collapse
+                const hasSelected = items.some(v => assignment.vehicleId === v.id);
+                const isMatch = (cat === requiredCat);
+                const collapsedCls = (isMatch || hasSelected) ? '' : 'collapsed';
+                const reqMark = isMatch ? '<span class="v72-cat-need">訂單需 ' + cat + '</span>' : '';
+                h += '<div class="v72-veh-group ' + collapsedCls + '" data-cat="' + cat + '">';
+                h += '<div class="veh-group-head v72-toggleable" data-cat="' + cat + '" onclick="v72ToggleVehGroup(this.parentElement)">' +
+                  '<span>' + cat + reqMark + '</span>' +
+                  '<span style="display:flex;align-items:center;gap:6px;">' +
+                    '<span class="vgh-count">' + items.length + ' 台</span>' +
+                    '<span class="v72-toggle-arrow">▼</span>' +
+                  '</span></div>';
+                h += '<div class="v72-veh-body">';
                 items.forEach(v => {
                   const isSel = assignment.vehicleId === v.id;
                   const plateStr = String(v.plate || '?');
@@ -5302,6 +5343,7 @@ function renderCarSlot(order, assignment, slotIdx) {
                     (isSel ? '<div class="vi-check">✓</div>' : '') +
                     '</div>';
                 });
+                h += '</div></div>';
               });
               h += '<div class="vi-new-btn" onclick="vehicleNewModeV46(' + slotIdx + ')">＋ 新增車輛（不在清單）</div>';
               return h;
@@ -7688,6 +7730,33 @@ function v66UpdateConfirmBtnState() {
 })();
 
 console.log('✅ v66 dispatch UX hooks installed');
+
+// ====== v72: 車輛 group 折疊/展開 ======
+function v72ToggleVehGroup(groupEl) {
+  if (!groupEl) return;
+  groupEl.classList.toggle('collapsed');
+}
+
+// hook filterVehiclePickerV46 — 搜尋中強制全展開
+(function(){
+  if (typeof filterVehiclePickerV46 !== 'function') return;
+  const _orig = filterVehiclePickerV46;
+  window.filterVehiclePickerV46 = function(slotIdx, query) {
+    const picker = document.getElementById('vehiclePicker-' + slotIdx);
+    if (picker) {
+      if (query && query.trim()) {
+        picker.classList.add('v72-searching');
+      } else {
+        picker.classList.remove('v72-searching');
+      }
+    }
+    return _orig.apply(this, arguments);
+  };
+})();
+
+console.log('✅ v72 vehicle group collapse installed');
+
+
 
 
 
