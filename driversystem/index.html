@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v73</title>
+<title>旅乘派車系統 v74</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -2886,6 +2886,49 @@
   /* 搜尋中強制全展開 */
   .driver-picker.v73-searching .v73-drv-group.collapsed .v73-drv-body { max-height: 4000px; }
   .driver-picker.v73-searching .v72-toggle-arrow { transform: rotate(0deg) !important; }
+
+  /* ====== v74: 車輛 tab 介面 ====== */
+  .v74-veh-tabs {
+    display: flex; gap: 4px; padding: 6px 6px 0;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    background: #F8FAFC;
+  }
+  .v74-veh-tab {
+    background: transparent; border: none; padding: 8px 14px 10px;
+    font-size: 13px; font-weight: 600; color: var(--muted);
+    cursor: pointer; white-space: nowrap;
+    border-bottom: 2.5px solid transparent;
+    transition: all 0.15s; display: inline-flex; align-items: center; gap: 4px;
+    position: relative;
+  }
+  .v74-veh-tab:hover { color: var(--text); background: white; }
+  .v74-veh-tab.active {
+    color: var(--primary); border-bottom-color: var(--primary);
+    background: white;
+  }
+  .v74-veh-tab.required { color: #B45309; }
+  .v74-veh-tab.required.active { color: var(--primary); }
+  .v74-tab-count {
+    background: var(--border);
+    color: var(--muted);
+    font-size: 10px; font-weight: 700;
+    padding: 1px 6px; border-radius: 8px; line-height: 1.4;
+  }
+  .v74-veh-tab.active .v74-tab-count { background: var(--primary-soft); color: var(--primary); }
+  .v74-tab-need { font-size: 11px; }
+  /* panel 顯隱 */
+  .v74-veh-panel { display: none; }
+  .v74-veh-panel.active { display: block; }
+
+  /* ====== v74: 選了之後自動 collapse ====== */
+  /* 司機/車輛已選擇時, 整個 picker 縮成 mini bar */
+  .v74-picker-collapsed .driver-picker,
+  .v74-picker-collapsed .vehicle-picker,
+  .v74-picker-collapsed .driver-search-input,
+  .v74-picker-collapsed input[id^="vehicleSearch-"] {
+    display: none !important;
+  }
 </style>
 </head>
 <body>
@@ -5321,26 +5364,36 @@ function renderCarSlot(order, assignment, slotIdx) {
                   '<button onclick="clearVehicleSelection(' + slotIdx + ')" style="background:white;color:var(--danger);border:1px solid var(--danger);padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;cursor:pointer;">✕ 取消選擇</button>' +
                   '</div>';
               }
-              // v72: 智慧分組 — 自動展開訂單要求的座位數類, 其他 collapse
+              // v74: 改 TAB 介面 — 切換 7/10/19 座, 預設訂單需要的類
               const carTypeStr = String(order && order.carType || '');
               const requiredMatch = carTypeStr.match(/(\d+)\s*座/);
               const requiredCat = requiredMatch ? requiredMatch[1] + '座' : '';
-              ['7座','10座','19座'].forEach(cat => {
+              const cats = ['7座','10座','19座'].filter(c => VEHICLES.some(v => v.category === c));
+              // 決定預設 active tab — 已選車輛所在類 > 訂單需要類 > 第一個有車的類
+              let activeTab = '';
+              if (assignment.vehicleId) {
+                const sv = VEHICLES.find(v => v.id === assignment.vehicleId);
+                if (sv) activeTab = sv.category;
+              }
+              if (!activeTab && cats.includes(requiredCat)) activeTab = requiredCat;
+              if (!activeTab) activeTab = cats[0];
+              // 渲染 tab bar
+              h += '<div class="v74-veh-tabs" id="v74VehTabs-' + slotIdx + '" data-active="' + activeTab + '">';
+              cats.forEach(cat => {
                 const items = VEHICLES.filter(v => v.category === cat);
-                if (items.length === 0) return;
-                // 訂單要的座位數 → 展開; 已選車輛在此類 → 展開; 其他 → collapse
-                const hasSelected = items.some(v => assignment.vehicleId === v.id);
-                const isMatch = (cat === requiredCat);
-                const collapsedCls = (isMatch || hasSelected) ? '' : 'collapsed';
-                const reqMark = isMatch ? '<span class="v72-cat-need">訂單需 ' + cat + '</span>' : '';
-                h += '<div class="v72-veh-group ' + collapsedCls + '" data-cat="' + cat + '">';
-                h += '<div class="veh-group-head v72-toggleable" data-cat="' + cat + '" onclick="v72ToggleVehGroup(this.parentElement)">' +
-                  '<span>' + cat + reqMark + '</span>' +
-                  '<span style="display:flex;align-items:center;gap:6px;">' +
-                    '<span class="vgh-count">' + items.length + ' 台</span>' +
-                    '<span class="v72-toggle-arrow">▼</span>' +
-                  '</span></div>';
-                h += '<div class="v72-veh-body">';
+                const isActive = cat === activeTab;
+                const isRequired = cat === requiredCat;
+                h += '<button class="v74-veh-tab ' + (isActive ? 'active' : '') + (isRequired ? ' required' : '') + '" onclick="v74SwitchVehTab(' + slotIdx + ', \'' + cat + '\')" data-cat="' + cat + '">' +
+                  cat + ' <span class="v74-tab-count">' + items.length + '</span>' +
+                  (isRequired ? '<span class="v74-tab-need" title="訂單需此座位">⚡</span>' : '') +
+                '</button>';
+              });
+              h += '</div>';
+              // 渲染每個類的 panel (CSS 控顯隱)
+              cats.forEach(cat => {
+                const items = VEHICLES.filter(v => v.category === cat);
+                const isActive = cat === activeTab;
+                h += '<div class="v74-veh-panel ' + (isActive ? 'active' : '') + '" data-cat="' + cat + '">';
                 items.forEach(v => {
                   const isSel = assignment.vehicleId === v.id;
                   const plateStr = String(v.plate || '?');
@@ -5358,7 +5411,7 @@ function renderCarSlot(order, assignment, slotIdx) {
                     (isSel ? '<div class="vi-check">✓</div>' : '') +
                     '</div>';
                 });
-                h += '</div></div>';
+                h += '</div>';
               });
               h += '<div class="vi-new-btn" onclick="vehicleNewModeV46(' + slotIdx + ')">＋ 新增車輛（不在清單）</div>';
               return h;
@@ -7795,6 +7848,74 @@ function v73ToggleDrvGroup(groupEl) {
 })();
 
 console.log('✅ v73 driver group collapse installed');
+
+// ====== v74: 車輛 tab 切換 ======
+function v74SwitchVehTab(slotIdx, cat) {
+  const tabsBar = document.getElementById('v74VehTabs-' + slotIdx);
+  if (!tabsBar) return;
+  tabsBar.dataset.active = cat;
+  tabsBar.querySelectorAll('.v74-veh-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.cat === cat);
+  });
+  const picker = document.getElementById('vehiclePicker-' + slotIdx);
+  if (picker) {
+    picker.querySelectorAll('.v74-veh-panel').forEach(p => {
+      p.classList.toggle('active', p.dataset.cat === cat);
+    });
+  }
+}
+
+// 選了車/司機 → 自動 collapse picker (只顯示 "已選擇 + 取消" bar)
+function v74AutoCollapseAfterSelect() {
+  document.querySelectorAll('.car-slot-body').forEach(body => {
+    const assignmentIdx = body.closest('.car-slot')?.dataset?.slotIdx;
+    // 找該 slot 的 driver-picker, vehicle-picker
+    // 若 driver-picker 內最頂 group head 文字含「✓ 已選擇司機」→ 加 collapsed cls
+    const driverHead = body.querySelector('.driver-picker .driver-group-head');
+    const vehicleHead = body.querySelector('.vehicle-picker .veh-group-head');
+    // 個別處理: 若該 picker 第一個 head 是「已選擇」, 隱藏其後內容
+    [driverHead, vehicleHead].forEach((head, i) => {
+      if (head && head.textContent.includes('已選擇')) {
+        // 隱藏這個 head 後面的兄弟元素
+        let next = head.nextElementSibling;
+        while (next) {
+          next.style.display = 'none';
+          next = next.nextElementSibling;
+        }
+      }
+    });
+    // 隱藏 picker 上方的搜尋框 + recent chips section
+    const driverSearch = body.querySelector('input.driver-search-input');
+    if (driverSearch && driverHead && driverHead.textContent.includes('已選擇')) {
+      driverSearch.style.display = 'none';
+      // 隱藏 chips (前一個 sibling)
+      const chipsSection = driverSearch.previousElementSibling;
+      if (chipsSection) chipsSection.style.display = 'none';
+    }
+    const vehicleSearch = body.querySelector('input[id^="vehicleSearch-"]');
+    if (vehicleSearch && vehicleHead && vehicleHead.textContent.includes('已選擇')) {
+      vehicleSearch.style.display = 'none';
+      // 隱藏 tabs bar
+      const tabs = body.querySelector('.v74-veh-tabs');
+      if (tabs) tabs.style.display = 'none';
+    }
+  });
+}
+
+// hook renderCarSlots — render 完後自動 collapse 已選的
+(function(){
+  if (typeof renderCarSlots !== 'function') return;
+  const _orig = renderCarSlots;
+  window.renderCarSlots = function() {
+    const r = _orig.apply(this, arguments);
+    setTimeout(v74AutoCollapseAfterSelect, 30);
+    return r;
+  };
+})();
+
+console.log('✅ v74 vehicle tabs + auto-collapse installed');
+
+
 
 
 
