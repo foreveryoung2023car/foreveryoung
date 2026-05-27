@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v65</title>
+<title>旅乘派車系統 v66</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -4997,10 +4997,13 @@ function openEditor(idx) {
             return r.length > 22 ? r.slice(0, 22) + '…' : r;
           })();
           const timeLabel = (d.start || d.time || '').slice(0, 5);
+          // v66: 用真實 day index
+          const _v66DayIdxB = d._multiDayIndex || (i+1);
+          const _v66DayLabelB = 'Day ' + _v66DayIdxB;
           return '<label class="' + cls + '" data-day-key="' + d.date + '">' +
             '<div class="dp-row1">' +
               '<input type="checkbox" class="day-checkbox-v46" data-day="' + d.date + '"' + (isCurrent ? ' data-current="1"' : '') + ' ' + checkedAttr + ' ' + disabledAttr + ' onchange="updateDayPickItemV46(this)">' +
-              '<span class="dp-date">' + dayLabel + '</span>' +
+              '<span class="dp-date">' + _v66DayLabelB + '</span>' +
               '<span class="dp-mmdd">' + d.date.slice(5) + (timeLabel ? ' ' + timeLabel : '') + '</span>' +
               '<span class="dp-check-icon">✓</span>' +
             '</div>' +
@@ -5018,7 +5021,12 @@ function openEditor(idx) {
             '<span style="margin-left:auto;font-size:11px;color:var(--text-2);" id="dayPickSummary">已勾 1 天</span>' +
           '</div>';
       }
-      multiDayBanner = '<div style="background:#DBEAFE;border:1px solid #3B82F6;color:#1E40AF;padding:10px 14px;border-radius:8px;margin:0 0 12px;font-size:12px;line-height:1.5;"><strong>📅 此訂單共 ' + o._multiDayCount + ' 天（這是 Day ' + o._multiDayIndex + '）</strong>' + driverList + bulkLine + '</div>';
+      const _v66Total = o._multiDayActual || o._multiDayCount;
+      // v66: 用 _multiDayActual 顯示實際派車天數 + 算總代收
+      let _v66CollectTotal = 0;
+      ORDERS.tomorrow.forEach(x => { if (x.no === o.no) _v66CollectTotal += (parseFloat(v63GetCell(x, '司機代收')) || 0); });
+      const _v66CollectMsg = _v66CollectTotal > 0 ? '<div style="margin-top:6px;padding:6px 10px;background:#10B981;color:white;border-radius:4px;font-weight:700;">💰 本次代收合計：¥' + _v66CollectTotal.toLocaleString() + '</div>' : '';
+      multiDayBanner = '<div style="background:#DBEAFE;border:1px solid #3B82F6;color:#1E40AF;padding:10px 14px;border-radius:8px;margin:0 0 12px;font-size:12px;line-height:1.5;"><strong>📅 此訂單共 ' + _v66Total + ' 天（這是 Day ' + o._multiDayIndex + '）</strong>' + _v66CollectMsg + driverList + bulkLine + '</div>';
     } else {
       // v46: per-day checkbox grid（可跳著選 Day1+Day5 來回接送機）
       const allDays = [o].concat(sameOrders).sort((a, b) => a.date.localeCompare(b.date));
@@ -5035,10 +5043,13 @@ function openEditor(idx) {
           return r.length > 22 ? r.slice(0, 22) + '…' : r;
         })();
         const timeLabel = (d.start || d.time || '').slice(0, 5);
+        // v66: 用真實 day index (跳天顯示 D1/D3)
+        const _v66DayIdx = d._multiDayIndex || (i+1);
+        const _v66DayLabel = 'Day ' + _v66DayIdx;
         return '<label class="' + cls + '" data-day-key="' + d.date + '" onclick="event.stopPropagation()">' +
           '<div class="dp-row1">' +
             '<input type="checkbox" class="day-checkbox-v46" data-day="' + d.date + '"' + (isCurrent ? ' data-current="1"' : '') + ' ' + checkedAttr + ' onchange="updateDayPickItemV46(this)">' +
-            '<span class="dp-date">' + dayLabel + '</span>' +
+            '<span class="dp-date">' + _v66DayLabel + '</span>' +
             '<span class="dp-mmdd">' + d.date.slice(5) + (timeLabel ? ' ' + timeLabel : '') + '</span>' +
             '<span class="dp-check-icon">✓</span>' +
           '</div>' +
@@ -5046,8 +5057,12 @@ function openEditor(idx) {
           '<div class="dp-row3"><span class="dp-fee">¥' + fee + '</span></div>' +
         '</label>';
       }).join('');
+      const _v66Total2 = o._multiDayActual || o._multiDayCount;
+      let _v66CollectTotal2 = 0;
+      ORDERS.tomorrow.forEach(x => { if (x.no === o.no) _v66CollectTotal2 += (parseFloat(v63GetCell(x, '司機代收')) || 0); });
+      const _v66CollectMsg2 = _v66CollectTotal2 > 0 ? '<div style="margin-top:4px;padding:5px 9px;background:#10B981;color:white;border-radius:4px;font-weight:700;display:inline-block;">💰 本次代收合計 ¥' + _v66CollectTotal2.toLocaleString() + '</div>' : '';
       multiDayBanner = '<div style="background:#FEF3C7;border:1px solid #F59E0B;color:#92400E;padding:10px 14px;border-radius:8px;margin:0 0 12px;font-size:12px;line-height:1.6;">' +
-        '<div style="font-weight:700;margin-bottom:6px;">📅 此訂單共 ' + o._multiDayCount + ' 天 — 勾選要派這位司機的日子（可跳著選，例如來回接送機）</div>' +
+        '<div style="font-weight:700;margin-bottom:6px;">📅 此訂單共 ' + _v66Total2 + ' 天 — 勾選要派這位司機的日子（可跳著選，例如來回接送機）</div>' + _v66CollectMsg2 +
         '<div class="day-pick-grid">' + dayGridHtml + '</div>' +
         '<div class="day-pick-actions">' +
           '<button onclick="dayPickSelectAllV46()">全選</button>' +
@@ -5068,7 +5083,7 @@ function openEditor(idx) {
 
     <div class="raw-msg-block">
       <div class="raw-msg-head">
-        <div class="source"><span class="src-dot"></span> 訂單完整資訊 ${o._multiDayCount > 1 ? '<span style="background:#3B82F6;color:white;padding:1px 6px;border-radius:4px;font-size:10px;margin-left:6px;">共 ' + o._multiDayCount + ' 日</span>' : ''}</div>
+        <div class="source"><span class="src-dot"></span> 訂單完整資訊 ${o._multiDayCount > 1 ? '<span style="background:#3B82F6;color:white;padding:1px 6px;border-radius:4px;font-size:10px;margin-left:6px;">共 ' + (o._multiDayActual || o._multiDayCount) + ' 日</span>' : ''}</div>
         <span class="raw-msg-toggle" onclick="toggleRawMsg(event)">展開全部 ▾</span>
       </div>
       <div class="raw-msg-body" id="rawMsgBody">${renderFullOrderTimeline(o)}</div>
@@ -5503,18 +5518,31 @@ function applySameDriver(driverId, vehicleId, fee) {
 
 // v34: 計算最近派此 leader 訂單的司機 (Top 5 by frequency)
 function computeRecentDrivers(currentOrder) {
+  // v66: 同時考量「曾服務該客人」(by customerName) + leader 派車歷史
   const leaderName = currentOrder.leaderName || currentOrder.driverName || '';
-  if (!leaderName) return [];
+  const customerName = currentOrder.customerName || '';
   const counts = {};
+  const customerCounts = {};  // 該客人專屬計次
   ORDERS.tomorrow.forEach(o => {
-    if (o.leaderName !== leaderName && o.driverName !== leaderName) return;
+    const matchLeader = leaderName && (o.leaderName === leaderName || o.driverName === leaderName);
+    const matchCustomer = customerName && o.customerName === customerName && o.no !== currentOrder.no;
+    if (!matchLeader && !matchCustomer) return;
     (o.assignments || []).forEach(a => {
-      if (a.driverId) counts[a.driverId] = (counts[a.driverId] || 0) + 1;
+      if (!a.driverId) return;
+      counts[a.driverId] = (counts[a.driverId] || 0) + 1;
+      if (matchCustomer) {
+        customerCounts[a.driverId] = (customerCounts[a.driverId] || 0) + 1;
+      }
     });
   });
   return Object.entries(counts)
-    .map(([driverId, count]) => ({ driverId, count }))
-    .sort((a, b) => b.count - a.count)
+    .map(([driverId, count]) => ({ driverId, count, customerCount: customerCounts[driverId] || 0 }))
+    .sort((a, b) => {
+      // 優先: 曾服務此客人次數高的排前面
+      if (b.customerCount !== a.customerCount) return b.customerCount - a.customerCount;
+      // 同分時, 用 leader 派車總次數
+      return b.count - a.count;
+    })
     .slice(0, 8);
 }
 
@@ -5720,7 +5748,9 @@ function renderFullOrderTimeline(currentO) {
     // 內部資訊（小字、淡色、靠右）
     html += '<div style="display:flex;gap:10px;font-family:ui-monospace,monospace;color:var(--muted);font-size:10.5px;margin-top:6px;padding-top:6px;border-top:1px dashed var(--border);">';
     html += '<span>司機費：¥' + (day.driverFee || 0).toLocaleString() + '</span>';
-    if (day.totalJP) html += '<span>日幣總額：¥' + day.totalJP.toLocaleString() + '</span>';
+    // v66: 拿掉日幣總額顯示 — 改顯示該日司機代收
+    const _collectDay = parseFloat(v63GetCell(day, '司機代收')) || 0;
+    if (_collectDay > 0) html += '<span style="color:#059669;font-weight:700;">💰 代收：¥' + _collectDay.toLocaleString() + '</span>';
     html += '</div>';
     html += '</div></div>';
   });
@@ -7092,7 +7122,9 @@ function v49BuildDetailHTML(o, opts) {
       const routeText = String(d.to || d.route || '').replace(/[→>＞]/g, ' › ');
       const _dHours = v50FmtHours(d.hours);
       h += '<div class="wb-day-card-route">' + routeText + (_dHours ? ' ' + _dHours : '') + '</div>';
-      h += '<div class="wb-day-card-fee"><span>司機費 ¥' + (d.driverFee||0).toLocaleString() + '</span>' + (d.totalJP ? '<span>總額 ¥' + d.totalJP.toLocaleString() + '</span>' : '') + '</div>';
+      // v66: 拿掉總額，改顯示該日司機代收
+      const _dCollect = parseFloat(v63GetCell(d, '司機代收')) || 0;
+      h += '<div class="wb-day-card-fee"><span>司機費 ¥' + (d.driverFee||0).toLocaleString() + '</span>' + (_dCollect > 0 ? '<span style="color:#059669;font-weight:700;">💰 代收 ¥' + _dCollect.toLocaleString() + '</span>' : '') + '</div>';
       h += '</div>';
     });
     h += '</div>';
@@ -7501,6 +7533,104 @@ function v65ParseRequiredSeats(carType) {
 })();
 
 console.log('✅ v65 hooks installed (multi-car confirm + seat warning)');
+
+// ====== v66: 派車按鈕啟用判斷 + 派車結果 dialog ======
+function v66CheckDispatchReady() {
+  if (!state.editingOrder || !state.editingAssignments) return false;
+  for (const a of state.editingAssignments) {
+    if (!a.driverId) return false;
+    if (!a.vehicleId) return false;  // v66: 必須也選車
+    if (!a.fee || a.fee <= 0) return false;
+  }
+  return true;
+}
+
+function v66UpdateConfirmBtnState() {
+  const footer = document.getElementById('sheetFooter');
+  if (!footer) return;
+  const btns = footer.querySelectorAll('button.btn-primary');
+  const ready = v66CheckDispatchReady();
+  btns.forEach(btn => {
+    if (btn.textContent.includes('確認派車')) {
+      btn.disabled = !ready;
+      btn.style.opacity = ready ? '1' : '0.4';
+      btn.style.cursor = ready ? 'pointer' : 'not-allowed';
+      btn.title = ready ? '' : '請先為每台車選好司機 + 車輛 + 費用';
+    }
+  });
+}
+
+// hook renderCarSlots 每次 render 完更新按鈕狀態
+(function(){
+  if (typeof renderCarSlots !== 'function') return;
+  const _orig = renderCarSlots;
+  window.renderCarSlots = function() {
+    const r = _orig.apply(this, arguments);
+    setTimeout(v66UpdateConfirmBtnState, 50);
+    return r;
+  };
+})();
+
+// 監聽 footer DOM 變化 (closeSheet 會 reset footer)
+(function(){
+  const obs = new MutationObserver(() => {
+    setTimeout(v66UpdateConfirmBtnState, 100);
+  });
+  setTimeout(() => {
+    const f = document.getElementById('sheetFooter');
+    if (f) obs.observe(f, { childList: true, subtree: true });
+  }, 1000);
+})();
+
+// hook saveDispatchReal 用 dialog 顯示結果
+(function(){
+  if (typeof saveDispatchReal !== 'function') return;
+  const _orig = saveDispatchReal;
+  window.saveDispatchReal = async function() {
+    // 先檢查 ready
+    if (!v66CheckDispatchReady()) {
+      v65Modal({
+        icon: '⚠️',
+        title: '尚未選齊',
+        msg: '請為每台車選好<strong>司機 + 車輛 + 費用</strong>後再派車。',
+        buttons: [{ label: '我知道了', cls: 'v65-btn-cancel' }]
+      });
+      return;
+    }
+    // 攔截 alert/saveDispatchReal 內的 alert — 改用 modal
+    const _origAlert = window.alert;
+    const captured = [];
+    window.alert = function(msg) { captured.push(String(msg)); };
+    try {
+      await _orig.apply(this, arguments);
+    } finally {
+      window.alert = _origAlert;
+    }
+    // 用 captured msg 組 modal
+    if (captured.length > 0) {
+      const allMsg = captured.join('\n\n');
+      const isOk = allMsg.includes('🎉');
+      const lines = allMsg.split('\n').filter(Boolean);
+      let modalMsg = '';
+      lines.forEach(line => {
+        if (line.startsWith('✓')) modalMsg += '<div style="color:#059669;padding:4px 0;">' + line + '</div>';
+        else if (line.startsWith('✗')) modalMsg += '<div style="color:#DC2626;padding:4px 0;font-weight:600;">' + line + '</div>';
+        else if (line.includes('🎉') || line.includes('⚠')) modalMsg += '<div style="font-weight:700;padding:6px 0;border-bottom:1px solid #eee;margin-bottom:6px;">' + line + '</div>';
+        else modalMsg += '<div style="padding:2px 0;">' + line + '</div>';
+      });
+      v65Modal({
+        icon: isOk ? '✅' : '⚠️',
+        title: isOk ? '派車完成' : '部分派車失敗',
+        msg: '<div style="font-family:ui-monospace,monospace;font-size:12px;max-height:300px;overflow-y:auto;">' + modalMsg + '</div>',
+        buttons: [{ label: '關閉', cls: isOk ? 'v65-btn-alt' : 'v65-btn-cancel' }]
+      });
+    }
+  };
+})();
+
+console.log('✅ v66 dispatch UX hooks installed');
+
+
 
 
 
