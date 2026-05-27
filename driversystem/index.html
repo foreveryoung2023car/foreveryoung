@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v62</title>
+<title>旅乘派車系統 v64</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -2380,7 +2380,9 @@
   .v54b-src.line { background: #06C755; }
   .v54b-src.fb { background: #1877F2; }
   .v54b-src.ig { background: linear-gradient(45deg, #f09433, #dc2743, #bc1888); }
-  .v54b-src.fans { background: #722ed1; }
+  .v54b-src.fans { background: #1877F2; }  /* v64: 粉專改 FB 藍 */
+  /* v64: FB icon (f 字樣) 在粉專 chip 內 */
+  .v54b-src.fans::before { content: 'f '; font-weight: 900; font-family: Georgia, serif; margin-right: 2px; opacity: 0.95; }
   .v54b-src.by { background: #6B7280; }
   .v54b-card .v54b-route {
     font-size: 13.5px; color: var(--text-2); margin-bottom: 4px;
@@ -2689,6 +2691,70 @@
 
   /* 桌機 detail header 也加 max-width 防 dh-leader 長字串溢出 */
   .wb-detail-head .dh-leader { word-break: break-word; }
+
+  /* ====== v64 ====== */
+  /* 司機代收 badge (卡片) */
+  .v54b-collect-badge {
+    background: linear-gradient(135deg, #10B981, #059669);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    box-shadow: 0 1px 3px rgba(16,185,129,0.3);
+    white-space: nowrap;
+  }
+  .v54b-card .v54b-collect-row {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 4px;
+    padding-top: 4px;
+    border-top: 1px dashed var(--border);
+  }
+
+  /* 司機代收 detail section */
+  .v64-collect-section .collect-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 12px; margin-bottom: 4px;
+    background: rgba(16,185,129,0.06);
+    border-left: 3px solid #10B981;
+    border-radius: 4px; font-size: 13px;
+  }
+  .v64-collect-section .collect-date { font-weight: 600; color: var(--text); }
+  .v64-collect-section .collect-amt { font-weight: 700; color: #059669; font-family: ui-monospace, monospace; }
+  .v64-collect-section .collect-total {
+    margin-top: 8px; padding: 8px 12px; background: #10B981; color: white;
+    border-radius: 4px; display: flex; justify-content: space-between;
+    font-size: 14px; font-weight: 700;
+  }
+
+  /* 歷史查詢 bar */
+  .v64-hist-bar {
+    display: flex; align-items: center; gap: 6px; padding: 6px 12px;
+    background: var(--surface-2, #F8FAFC); border-bottom: 1px solid var(--border);
+    font-size: 11.5px; flex-wrap: wrap;
+  }
+  .v64-hist-bar > span:first-child { font-weight: 600; color: var(--muted); margin-right: 4px; }
+  .v64-hist-bar .v64-hist-btn {
+    padding: 4px 10px; border: 1px solid var(--border); border-radius: 6px;
+    background: white; color: var(--text); font-size: 11px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .v64-hist-bar .v64-hist-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+  .v64-hist-bar .v64-hist-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+  .v64-hist-bar input[type="date"] {
+    padding: 3px 6px; border: 1px solid var(--border); border-radius: 4px;
+    font-size: 11px; font-family: inherit;
+  }
+  .v64-hist-bar .v64-hist-sep { color: var(--muted-2); margin: 0 4px; }
+  .v64-hist-bar .v64-hist-status {
+    margin-left: auto; font-size: 11px; color: var(--muted); font-style: italic;
+  }
+
 </style>
 </head>
 <body>
@@ -2863,10 +2929,27 @@
         <div class="dpv38-quick">
           <button class="dpv38-q-btn" onclick="dpv38JumpToday()" id="dqToday">今日</button>
           <input type="date" class="dpv38-date-input" id="dpv38DateInput" onchange="selectDate(this.value); dpv38Render();" title="選日期">
+          <button class="dpv38-q-btn ghost" onclick="v64ToggleHist()" title="切換歷史查詢">📜 歷史</button>
           <button class="dpv38-q-btn ghost" onclick="switchPage('schedule')">排班表 →</button>
         </div>
       </div>
       <div class="dpv38-strip" id="dateStrip"></div>
+    </div>
+
+    <!-- v64: 歷史查詢 bar -->
+    <div class="v64-hist-bar" id="v64HistBar" style="display:none;">
+      <span>📅 歷史:</span>
+      <button class="v64-hist-btn" onclick="v64LoadHistory(7)">過去 7 天</button>
+      <button class="v64-hist-btn" onclick="v64LoadHistory(30)">過去 30 天</button>
+      <button class="v64-hist-btn" onclick="v64LoadHistory(90)">過去 90 天</button>
+      <button class="v64-hist-btn" onclick="v64LoadHistory(0)">全部</button>
+      <span class="v64-hist-sep">|</span>
+      <input type="date" id="v64HistStart" title="起始日">
+      <span class="v64-hist-sep">至</span>
+      <input type="date" id="v64HistEnd" title="結束日">
+      <button class="v64-hist-btn" onclick="v64LoadCustomRange()">查詢</button>
+      <button class="v64-hist-btn" onclick="v64ResetToDefault()" style="background:#FEF2F2;color:#991B1B;border-color:#FCA5A5;">↺ 回今+明</button>
+      <span class="v64-hist-status" id="v64HistStatus"></span>
     </div>
 
     <!-- v59: 中欄 toolbar 簡化 — 只留標題 + crumb，不再切換 view mode -->
@@ -3181,6 +3264,16 @@ const api = {
         console.error('[API error]', action, json.error);
         return null;
       }
+      // v63: getOrders 回傳會帶 _orderHeader, 建立全域 HEADER_MAP
+      if (json.data && json.data._orderHeader && Array.isArray(json.data._orderHeader)) {
+        window.HEADER_MAP = {};
+        json.data._orderHeader.forEach(function(name, i) {
+          if (name != null && String(name).trim()) {
+            window.HEADER_MAP[String(name).trim()] = i;
+          }
+        });
+        console.log('[v63] HEADER_MAP built:', Object.keys(window.HEADER_MAP).length, 'cols');
+      }
       return json.data;
     } catch (err) {
       console.error('[API network error]', action, err);
@@ -3214,6 +3307,16 @@ const api = {
   addRating(p) { return this.call('addRating', p); }
 };
 
+// v63: header-based 動態欄位讀取
+function v63GetCell(o, headerName) {
+  if (!o || !o._raw || !window.HEADER_MAP) return '';
+  const idx = window.HEADER_MAP[headerName];
+  if (idx == null) return '';
+  const v = o._raw[idx];
+  return (v == null) ? '' : v;
+}
+window.v63GetCell = v63GetCell;
+
 let currentUser = null;
 
 async function doLoginReal() {
@@ -3245,6 +3348,71 @@ async function doLoginReal() {
   document.getElementById('loginMask').style.display = 'none';
   document.getElementById('mainApp').style.display = 'block';
   await loadRealData();
+}
+
+
+// ====== v64: 歷史查詢功能 ======
+function v64ToggleHist() {
+  const bar = document.getElementById('v64HistBar');
+  if (!bar) return;
+  bar.style.display = bar.style.display === 'none' ? 'flex' : 'none';
+}
+
+async function v64LoadHistory(daysBack) {
+  if (!currentUser) return;
+  const today = new Date();
+  const fmt = d => d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0');
+  const dateEnd = fmt(new Date(today.getTime() + 60 * 86400000));
+  let dateStart;
+  let label;
+  if (daysBack === 0) {
+    dateStart = '2024/01/01';
+    label = '全部訂單';
+  } else {
+    dateStart = fmt(new Date(today.getTime() - daysBack * 86400000));
+    label = '過去 ' + daysBack + ' 天';
+  }
+  return v64LoadOrdersRange(dateStart, dateEnd, label);
+}
+
+async function v64LoadCustomRange() {
+  if (!currentUser) return;
+  const s = document.getElementById('v64HistStart').value;
+  const e = document.getElementById('v64HistEnd').value;
+  if (!s || !e) { alert('請選起始日和結束日'); return; }
+  const dateStart = s.replace(/-/g, '/');
+  const dateEnd = e.replace(/-/g, '/');
+  return v64LoadOrdersRange(dateStart, dateEnd, s + ' ~ ' + e);
+}
+
+async function v64LoadOrdersRange(dateStart, dateEnd, label) {
+  const status = document.getElementById('v64HistStatus');
+  if (status) status.textContent = '⏳ 載入「' + label + '」中...';
+  // 標記按鈕 active
+  document.querySelectorAll('.v64-hist-bar .v64-hist-btn').forEach(b => b.classList.remove('active'));
+  const ol = document.getElementById('ordersList');
+  if (ol) ol.innerHTML = '<div class="empty" style="padding:40px 20px;text-align:center;color:var(--muted);"><div class="loading-spin" style="width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;margin:0 auto;animation:spin 0.8s linear infinite;"></div><div style="margin-top:10px;">載入「' + label + '」訂單...</div></div>';
+  const orders = await api.getOrders({ dateStart: dateStart, dateEnd: dateEnd, driverName: currentUser.name });
+  if (!orders) { if (status) status.textContent = '❌ 載入失敗'; return; }
+  ORDERS.tomorrow.length = 0;
+  orders.forEach(o => ORDERS.tomorrow.push(adaptOrderFromApi(o)));
+  if (typeof recomputeMultiDayInfo === 'function') recomputeMultiDayInfo();
+  // 切換到全部模式
+  state._manualDateClick = false;
+  renderDateStrip();
+  renderOrders();
+  if (typeof recomputeQuickStats === 'function') recomputeQuickStats();
+  if (status) status.textContent = '✓ ' + label + ' (共 ' + orders.length + ' 筆)';
+}
+
+async function v64ResetToDefault() {
+  const status = document.getElementById('v64HistStatus');
+  if (status) status.textContent = '';
+  document.querySelectorAll('.v64-hist-bar .v64-hist-btn').forEach(b => b.classList.remove('active'));
+  // 重跑 default loadRealData
+  if (typeof loadRealData === 'function') {
+    await loadRealData();
+  }
 }
 
 async function loadRealData() {
@@ -3484,9 +3652,14 @@ function adaptOrderFromApi(o) {
     orderDate: o.orderDate || '',
     depositTW: o.depositTW || 0,
     remainTW: o.remainTW || 0,
-    // v58: 客人姓名 (訂單收支表 AL 欄) + 來源 (AT 欄) — GAS v21 後才有值
-    customerName: o.customerName || '',  // AL 欄「訂購姓名」
-    source: o.source || '',              // AT 欄「來源」LINE/FB/IG/粉專/BY
+    // v63: 客人姓名/來源/聯絡資訊 — 用 v63GetCell header-based 動態讀取
+    customerName: (o.customerName || String(v63GetCell(o, '訂購姓名') || '').trim()),
+    source: (o.source || String(v63GetCell(o, '來源') || '').trim()),
+    customerPhone: String(v63GetCell(o, '訂購人電話') || '').trim(),
+    customerLine: String(v63GetCell(o, '訂購人LINE') || '').trim(),
+    customerEmail: String(v63GetCell(o, '訂購人EMAIL') || '').trim(),
+    fbName: String(v63GetCell(o, 'FB名稱') || '').trim(),
+    exposureChannel: String(v63GetCell(o, '曝光管道') || '').trim(),
     // ===== END =====
     // v21: 從 L 欄 (API.startTime) 取出發時間，再用 hours 推結束
     start: (o.startTime || '時段未定'),
@@ -6733,10 +6906,10 @@ function v49BuildDetailHTML(o, opts) {
   // v50: 訂單號 # 去重 — 有些 o.no 已經帶 # 前綴
   const _displayNo = String(o.no || '').startsWith('#') ? o.no : ('#' + o.no);
   h += '<div class="dh-no">' + _displayNo + (isMulti ? ' ・ ' + allDays.length + ' 日 ・ Day ' + (o._multiDayIndex||1) + '/' + allDays.length : '') + '</div>';
-  // v60: 客人姓名優先用 customerName，沒有就顯示提示 (不 fallback 司機名)
+  // v63: 客人姓名 — 空值就顯示 leader 名 (不再標示「待 GAS 部署」)
   const _custFromO = (o.customerName || headO.customerName || '').trim();
   const _srcFromO = (o.source || headO.source || '').trim();
-  const _custDisplay = _custFromO || '<span style="opacity:0.65;font-style:italic;">客人姓名待 GAS 部署</span>';
+  const _custDisplay = _custFromO || (o.leaderName || headO.leaderName || '<span style="opacity:0.6;">—</span>');
   h += '<div class="dh-leader">' + _custDisplay + (_srcFromO ? ' <span class="src-badge">' + _srcFromO + '</span>' : '') + '</div>';
   h += '</div>';
   h += '<div style="display:flex;gap:6px;align-items:center;">';
@@ -6768,13 +6941,38 @@ function v49BuildDetailHTML(o, opts) {
   const _carSeat = headO.carSeat || o.carSeat;
   const _carSeatCount = headO.carSeatCount || o.carSeatCount;
   const _requireLang = headO.requireLang || o.requireLang;
-  // v58: 「姓名」優先用 customerName (AL 欄)，「來源」用 source (AT 欄)
+  // v63: 姓名/來源 + 聯絡資訊
   const _customer = (o.customerName || headO.customerName || '').trim();
+  const _phone = (o.customerPhone || headO.customerPhone || '').trim();
+  const _line = (o.customerLine || headO.customerLine || '').trim();
+  const _email = (o.customerEmail || headO.customerEmail || '').trim();
+  const _fbName = (o.fbName || headO.fbName || '').trim();
+  const _channel = (o.exposureChannel || headO.exposureChannel || '').trim();
+  const _muted = '<span style="color:var(--muted);">—</span>';
   h += '<div class="wb-detail-section" data-section="overview">';
   h += '<div class="wb-detail-section-title">👥 客戶資訊</div>';
   h += '<div class="wb-kv-grid">';
-  h += '<div class="wb-kv-row"><span class="k">姓名</span><span class="v">' + (_customer || '<span style="color:var(--muted);">—</span>') + '</span></div>';
-  h += '<div class="wb-kv-row"><span class="k">來源</span><span class="v">' + (_source || '<span style="color:var(--muted);">—</span>') + '</span></div>';
+  h += '<div class="wb-kv-row"><span class="k">姓名</span><span class="v">' + (_customer || _muted) + '</span></div>';
+  h += '<div class="wb-kv-row"><span class="k">來源</span><span class="v">' + (_source || _muted) + '</span></div>';
+  if (_phone) h += '<div class="wb-kv-row"><span class="k">電話</span><span class="v">' + _phone + '</span></div>';
+  if (_line) h += '<div class="wb-kv-row"><span class="k">LINE</span><span class="v">' + _line + '</span></div>';
+  if (_email) h += '<div class="wb-kv-row"><span class="k">EMAIL</span><span class="v">' + _email + '</span></div>';
+  if (_fbName) h += '<div class="wb-kv-row"><span class="k">FB名稱</span><span class="v">' + _fbName + '</span></div>';
+  if (_channel) h += '<div class="wb-kv-row"><span class="k">曝光管道</span><span class="v">' + _channel + '</span></div>';
+  // v64: 司機代收明細 (所有 H>0 的日子)
+  const collectDays = allDays.map(d => ({ date: d.date, amt: parseFloat(v63GetCell(d, '司機代收')) || 0 })).filter(x => x.amt > 0);
+  if (collectDays.length > 0) {
+    const total = collectDays.reduce((s, x) => s + x.amt, 0);
+    h += '<div class="wb-kv-row" style="grid-column:1/-1;margin-top:4px;padding-top:6px;border-top:1px dashed var(--border);"><span class="k" style="color:#059669;font-weight:600;">💰 司機代收</span><span class="v"></span></div>';
+    h += '<div class="v64-collect-section" style="grid-column:1/-1;margin-top:4px;">';
+    collectDays.forEach(c => {
+      h += '<div class="collect-row"><span class="collect-date">' + v53FmtDate(c.date, {short:true}) + '</span><span class="collect-amt">¥' + c.amt.toLocaleString() + '</span></div>';
+    });
+    if (collectDays.length > 1) {
+      h += '<div class="collect-total"><span>合計</span><span>¥' + total.toLocaleString() + '</span></div>';
+    }
+    h += '</div>';
+  }
   if (_pax) h += '<div class="wb-kv-row"><span class="k">人數</span><span class="v">' + (_pax.raw || ((_pax.adult||0) + '人')) + '</span></div>';
   if (_requireLang && _requireLang.length) h += '<div class="wb-kv-row"><span class="k">語言</span><span class="v">' + _requireLang.join('/') + '</span></div>';
   if (_luggage) h += '<div class="wb-kv-row"><span class="k">行李</span><span class="v">' + _luggage + '</span></div>';
@@ -6948,6 +7146,27 @@ function v49RenderLeftRail() {
   if (tbCrumb) {
     const dStr = state._manualDateClick ? state.currentDate : '今+明';
     tbCrumb.textContent = dStr + ' ・ 共 ' + dayOrders.length + ' 筆';
+  }
+  // v64: 動態標題
+  const tbTitle = document.getElementById('wbToolbarTitle');
+  if (tbTitle) {
+    const td = new Date(); td.setHours(0,0,0,0);
+    const tw = new Date(td.getTime() + 86400000);
+    let title = '訂單列表';
+    if (state._manualDateClick && state.currentDate) {
+      const cur = new Date(state.currentDate.replace(/\//g, '-'));
+      cur.setHours(0,0,0,0);
+      if (cur.getTime() === td.getTime()) title = '今日訂單';
+      else if (cur.getTime() === tw.getTime()) title = '明日訂單';
+      else {
+        const mm = String(cur.getMonth()+1).padStart(2,'0');
+        const dd = String(cur.getDate()).padStart(2,'0');
+        title = mm + '/' + dd + ' 訂單';
+      }
+    } else {
+      title = '今+明 訂單';
+    }
+    tbTitle.textContent = title;
   }
 }
 
@@ -7281,6 +7500,14 @@ function v52BuildOrderRow(o) {
       '</div>' +
       '<div class="v54b-route">' + (routeDisplay || '—') + '</div>' +
       '<div class="v54b-meta-row">' + tags + (metaTxt ? '<span class="v54b-meta-text">' + metaTxt + '</span>' : '') + '</div>' +
+      // v64: 司機代收 badge (從 _raw H 欄讀)
+      (function(){
+        const collectAmt = parseFloat(v63GetCell(o, '司機代收')) || 0;
+        if (collectAmt > 0) {
+          return '<div class="v54b-collect-row"><span class="v54b-collect-badge">💰 司機代收 ¥' + collectAmt.toLocaleString() + '</span></div>';
+        }
+        return '';
+      })() +
     '</div>' +
     // 右1：司機 block
     driverInfo +
