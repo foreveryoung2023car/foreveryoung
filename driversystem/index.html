@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v70</title>
+<title>旅乘派車系統 v71</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -575,9 +575,10 @@
   .car-slot-body { padding: 12px; }
 
   /* ====== 司機選擇器 ====== */
+  /* v71: 拿掉內部 scroll, 由外層 sheet 統一捲動 (手機觸控不卡) */
   .driver-picker {
     border: 1px solid var(--border); border-radius: 8px;
-    max-height: 320px; overflow-y: auto; background: white;
+    background: white;
   }
   .driver-group-head {
     padding: 8px 12px; background: #F8FAFC; font-size: 11px;
@@ -593,10 +594,10 @@
   .gh-dot.off { background: var(--muted); }
 
   /* ====== v46: 車輛 picker（仿 driver-picker） ====== */
+  /* v71: 拿掉內部 scroll */
   .vehicle-picker {
     border: 1px solid var(--border); border-radius: 8px;
-    max-height: 360px; overflow-y: auto; background: white;
-    overscroll-behavior: contain;
+    background: white;
   }
   .veh-group-head {
     padding: 8px 12px; background: #F0F9FF; font-size: 11.5px;
@@ -2820,6 +2821,31 @@
   .v65-modal .v65-btn-cancel { background: white; color: var(--text); }
   .v65-modal .v65-btn-confirm { background: #DC2626; color: white; border-color: #DC2626; }
   .v65-modal .v65-btn-alt { background: var(--primary); color: white; border-color: var(--primary); }
+
+  /* ====== v71: picker 滑動順暢化 + 搜尋黏頂 ====== */
+  /* 搜尋框 sticky 在派車面板內 */
+  #driverPicker-0 + input,  /* 法 1 */
+  .form-group input[id^="driverSearch-"],
+  .form-group input[id^="vehicleSearch-"] {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+  }
+  /* group head sticky 黏在 picker 頂 */
+  .driver-picker .driver-group-head,
+  .vehicle-picker .veh-group-head {
+    position: sticky;
+    top: 0;
+    z-index: 4;
+  }
+  /* picker 內項目壓縮一點, 在外層 scroll 時更好瀏覽 */
+  .vehicle-item {
+    padding: 8px 12px !important;
+  }
+  /* sheet body 在 picker 區段加上滑順 scroll */
+  .sheet-body { -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
 </style>
 </head>
 <body>
