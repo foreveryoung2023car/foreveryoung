@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v72</title>
+<title>旅乘派車系統 v73</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -2871,6 +2871,21 @@
   .vehicle-picker.v72-searching .v72-veh-group { }
   .vehicle-picker.v72-searching .v72-veh-group.collapsed .v72-veh-body { max-height: 2000px; }
   .vehicle-picker.v72-searching .v72-toggle-arrow { transform: rotate(0deg) !important; }
+
+  /* ====== v73: 司機 group 折疊/展開 (對齊 v72 車輛樣式) ====== */
+  .v73-drv-group { border-bottom: 1px solid var(--border); }
+  .v73-drv-group:last-child { border-bottom: none; }
+  .v73-drv-group .driver-group-head {
+    cursor: pointer; user-select: none;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .v73-drv-group .driver-group-head:hover { background: #F1F5F9; }
+  .v73-drv-group.collapsed .v72-toggle-arrow { transform: rotate(-90deg); }
+  .v73-drv-body { overflow: hidden; transition: max-height 0.25s ease; max-height: 4000px; }
+  .v73-drv-group.collapsed .v73-drv-body { max-height: 0; }
+  /* 搜尋中強制全展開 */
+  .driver-picker.v73-searching .v73-drv-group.collapsed .v73-drv-body { max-height: 4000px; }
+  .driver-picker.v73-searching .v72-toggle-arrow { transform: rotate(0deg) !important; }
 </style>
 </head>
 <body>
@@ -5279,9 +5294,9 @@ function renderCarSlot(order, assignment, slotIdx) {
           </div>
           <div class="driver-picker" id="driverPicker-${slotIdx}" style="margin-top:6px;">
             ${assignment.driverId ? (function(){const d=DRIVERS.find(x=>x.id===assignment.driverId);if(!d)return '';return `<div class="driver-group-head" style="background:var(--primary-soft);color:var(--primary);display:flex;justify-content:space-between;align-items:center;">✓ 已選擇司機 <button onclick="clearDriverSelection(${slotIdx})" style="background:white;color:var(--danger);border:1px solid var(--danger);padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;cursor:pointer;">✕ 取消選擇</button></div>${renderDriverRow({d:d,status:'available',tagMatch:false,langMatch:true,jobs:[]},slotIdx,assignment.driverId,false,order)}`;})() : ''}
-            ${groups.available.length ? `<div class="driver-group-head"><span class="gh-dot av"></span>可派車（${groups.available.length}）</div>${groups.available.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}` : ''}
-            ${groups.partial.length ? `<div class="driver-group-head"><span class="gh-dot partial"></span>同日有班次但時段不衝突（${groups.partial.length}）</div>${groups.partial.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}` : ''}
-            ${groups.daytripWarn.length ? `<div class="driver-group-head"><span class="gh-dot daytrip"></span>同日有一日遊/多日（${groups.daytripWarn.length}）</div>${groups.daytripWarn.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}` : ''}
+            ${groups.available.length ? `<div class="v73-drv-group" data-grp="available"><div class="driver-group-head v73-toggleable" onclick="v73ToggleDrvGroup(this.parentElement)"><span><span class="gh-dot av"></span>可派車</span><span style="display:flex;align-items:center;gap:6px;"><span class="vgh-count" style="background:#D1FAE5;color:#065F46;">${groups.available.length}</span><span class="v72-toggle-arrow">▼</span></span></div><div class="v73-drv-body">${groups.available.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}</div></div>` : ''}
+            ${groups.partial.length ? `<div class="v73-drv-group collapsed" data-grp="partial"><div class="driver-group-head v73-toggleable" onclick="v73ToggleDrvGroup(this.parentElement)"><span><span class="gh-dot partial"></span>同日有班次但時段不衝突</span><span style="display:flex;align-items:center;gap:6px;"><span class="vgh-count" style="background:#FEF3C7;color:#92400E;">${groups.partial.length}</span><span class="v72-toggle-arrow">▼</span></span></div><div class="v73-drv-body">${groups.partial.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}</div></div>` : ''}
+            ${groups.daytripWarn.length ? `<div class="v73-drv-group collapsed" data-grp="daytrip"><div class="driver-group-head v73-toggleable" onclick="v73ToggleDrvGroup(this.parentElement)"><span><span class="gh-dot daytrip"></span>同日有一日遊/多日</span><span style="display:flex;align-items:center;gap:6px;"><span class="vgh-count" style="background:#DBEAFE;color:#1E40AF;">${groups.daytripWarn.length}</span><span class="v72-toggle-arrow">▼</span></span></div><div class="v73-drv-body">${groups.daytripWarn.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}</div></div>` : ''}
             ${groups.busy.length ? `<details style="margin-top:6px;"><summary style="cursor:pointer;padding:6px 10px;background:var(--danger-soft);border-radius:6px;font-size:12px;font-weight:600;color:var(--danger);">⚠ 時段衝突無法派車（${groups.busy.length}）</summary>${groups.busy.map(g => renderDriverRow(g, slotIdx, assignment.driverId, true, order)).join('')}</details>` : ''}
             ${groups.used.length ? `<details style="margin-top:6px;"><summary style="cursor:pointer;padding:6px 10px;background:#FEE2E2;border-radius:6px;font-size:12px;font-weight:600;color:#991B1B;">🚫 已被本訂單其他車指派（${groups.used.length}）</summary>${groups.used.map(g => renderDriverRow(g, slotIdx, assignment.driverId, true, order)).join('')}</details>` : ''}
             ${groups.off.length ? `<details style="margin-top:6px;"><summary style="cursor:pointer;padding:6px 10px;background:var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--muted);">🛏 休假中（${groups.off.length}） — 點開展開</summary>${groups.off.map(g => renderDriverRow(g, slotIdx, assignment.driverId, true, order)).join('')}</details>` : ''}
@@ -7755,6 +7770,33 @@ function v72ToggleVehGroup(groupEl) {
 })();
 
 console.log('✅ v72 vehicle group collapse installed');
+
+// ====== v73: 司機 group 折疊/展開 ======
+function v73ToggleDrvGroup(groupEl) {
+  if (!groupEl) return;
+  groupEl.classList.toggle('collapsed');
+}
+
+// hook filterDriverPicker — 搜尋中全展開
+(function(){
+  if (typeof filterDriverPicker !== 'function') return;
+  const _orig = filterDriverPicker;
+  window.filterDriverPicker = function(slotIdx, query) {
+    const picker = document.getElementById('driverPicker-' + slotIdx);
+    if (picker) {
+      if (query && query.trim()) {
+        picker.classList.add('v73-searching');
+      } else {
+        picker.classList.remove('v73-searching');
+      }
+    }
+    return _orig.apply(this, arguments);
+  };
+})();
+
+console.log('✅ v73 driver group collapse installed');
+
+
 
 
 
