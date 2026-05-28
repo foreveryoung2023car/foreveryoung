@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v76</title>
+<title>旅乘派車系統 v77</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -3096,6 +3096,44 @@
     background: #F97316; color: white;
     box-shadow: 0 2px 6px rgba(249,115,22,0.35);
   }
+
+  /* ====== v77: 多日進系統狀態 ====== */
+  .v77-md-status {
+    margin: 8px 0;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    line-height: 1.55;
+  }
+  .v77-md-status.incomplete {
+    background: #FEF2F2;
+    border: 1.5px solid #DC2626;
+    color: #7F1D1D;
+  }
+  .v77-md-status.complete {
+    background: #D1FAE5;
+    border: 1.5px solid #10B981;
+    color: #064E3B;
+  }
+  .v77-md-status b { color: inherit; font-weight: 800; font-size: 13px; }
+
+  /* ====== v77: 換司機/換車 按鈕 ====== */
+  .v77-change-btn {
+    background: #3B82F6; color: white;
+    border: 1.5px solid #2563EB;
+    padding: 3px 12px;
+    border-radius: 14px;
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-right: 6px;
+    transition: all 0.15s;
+  }
+  .v77-change-btn:hover {
+    background: #2563EB;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(37,99,235,0.3);
+  }
 </style>
 </head>
 <body>
@@ -4183,6 +4221,15 @@ async function saveDispatchReal() {
   } else {
     alert('⚠ 部分派車失敗\n\n' + messages.join('\n'));
   }
+  // v77: 派車後立即更新 localStorage cache, 讓重整也能秒看到剛派的車
+  try {
+    const _v77Key = 'dispatch_cache_' + ((currentUser && (currentUser.email || currentUser.name)) || 'default');
+    localStorage.setItem(_v77Key, JSON.stringify({
+      ts: Date.now(), drivers: DRIVERS, vehicles: VEHICLES,
+      orders: ORDERS.tomorrow, currentDate: state.currentDate
+    }));
+    console.log('[v77] cache refreshed after dispatch save');
+  } catch (e) { console.warn('[v77] cache write failed', e); }
   closeSheet();
   renderOrders();
 }
@@ -5304,7 +5351,13 @@ function openEditor(idx) {
       let _v66CollectTotal = 0;
       ORDERS.tomorrow.forEach(x => { if (x.no === o.no) _v66CollectTotal += (parseFloat(v63GetCell(x, '司機代收')) || 0); });
       const _v66CollectMsg = _v66CollectTotal > 0 ? '<div style="margin-top:6px;padding:6px 10px;background:#10B981;color:white;border-radius:4px;font-weight:700;">💰 本次代收合計：¥' + _v66CollectTotal.toLocaleString() + '</div>' : '';
-      multiDayBanner = '<div style="background:#DBEAFE;border:1px solid #3B82F6;color:#1E40AF;padding:10px 14px;border-radius:8px;margin:0 0 12px;font-size:12px;line-height:1.5;"><strong>📅 此訂單共 ' + _v66Total + ' 天（這是 Day ' + o._multiDayIndex + '）</strong>' + _v66CollectMsg + driverList + bulkLine + '</div>';
+      // v77: 計算進系統 vs 跨度天數
+      const _v77ActualDays = (function(){ const s = new Set(); ORDERS.tomorrow.forEach(x => { if (x.no === o.no) s.add(x.date); }); return s.size; })();
+      const _v77MissingDays = _v66Total - _v77ActualDays;
+      const _v77StatusHtml = _v77MissingDays > 0
+        ? '<div class="v77-md-status incomplete">⏳ 目前進系統 <b>' + _v77ActualDays + '/' + _v66Total + '</b> 天 (還有 <b>' + _v77MissingDays + '</b> 天資料未到) — 💡 建議：<b>先派今天</b>的，其他天資料補進來後再派</div>'
+        : '<div class="v77-md-status complete">✅ <b>' + _v66Total + '</b> 天資料都齊了 — 可一次派齊全程</div>';
+      multiDayBanner = '<div style="background:#DBEAFE;border:1px solid #3B82F6;color:#1E40AF;padding:10px 14px;border-radius:8px;margin:0 0 12px;font-size:12px;line-height:1.5;"><strong>📅 此訂單共 ' + _v66Total + ' 天（這是 Day ' + o._multiDayIndex + '）</strong>' + _v77StatusHtml + _v66CollectMsg + driverList + bulkLine + '</div>';
     } else {
       // v46: per-day checkbox grid（可跳著選 Day1+Day5 來回接送機）
       const allDays = [o].concat(sameOrders).sort((a, b) => a.date.localeCompare(b.date));
@@ -5340,8 +5393,14 @@ function openEditor(idx) {
       let _v66CollectTotal2 = 0;
       ORDERS.tomorrow.forEach(x => { if (x.no === o.no) _v66CollectTotal2 += (parseFloat(v63GetCell(x, '司機代收')) || 0); });
       const _v66CollectMsg2 = _v66CollectTotal2 > 0 ? '<div style="margin-top:4px;padding:5px 9px;background:#10B981;color:white;border-radius:4px;font-weight:700;display:inline-block;">💰 本次代收合計 ¥' + _v66CollectTotal2.toLocaleString() + '</div>' : '';
+      // v77: 計算進系統 vs 跨度天數
+      const _v77ActualDays2 = (function(){ const s = new Set(); ORDERS.tomorrow.forEach(x => { if (x.no === o.no) s.add(x.date); }); return s.size; })();
+      const _v77MissingDays2 = _v66Total2 - _v77ActualDays2;
+      const _v77StatusHtml2 = _v77MissingDays2 > 0
+        ? '<div class="v77-md-status incomplete">⏳ 目前進系統 <b>' + _v77ActualDays2 + '/' + _v66Total2 + '</b> 天 (還有 <b>' + _v77MissingDays2 + '</b> 天資料未到) — 💡 建議：<b>先派今天</b>的，其他天資料補進來後系統會自動出現再回來派</div>'
+        : '<div class="v77-md-status complete">✅ <b>' + _v66Total2 + '</b> 天資料都齊了 — 可一次勾選派齊全程, 或一天一天派</div>';
       multiDayBanner = '<div style="background:#FEF3C7;border:1px solid #F59E0B;color:#92400E;padding:10px 14px;border-radius:8px;margin:0 0 12px;font-size:12px;line-height:1.6;">' +
-        '<div style="font-weight:700;margin-bottom:6px;">📅 此訂單共 ' + _v66Total2 + ' 天 — 勾選要派這位司機的日子（可跳著選，例如來回接送機）</div>' + _v66CollectMsg2 +
+        '<div style="font-weight:700;margin-bottom:6px;">📅 此訂單共 ' + _v66Total2 + ' 天 — 勾選要派這位司機的日子（可跳著選，例如來回接送機）</div>' + _v77StatusHtml2 + _v66CollectMsg2 +
         '<div class="day-pick-grid">' + dayGridHtml + '</div>' +
         '<div class="day-pick-actions">' +
           '<button onclick="dayPickSelectAllV46()">全選</button>' +
@@ -8099,20 +8158,91 @@ function v74SwitchVehTab(slotIdx, cat) {
   }
 }
 
-// v76: v74AutoCollapseAfterSelect 改為 no-op
-// (用「已選擇司機/車輛」info card 取代藏 picker, 用戶可隨時看到選了誰 + 切換)
+// v77: 選完司機/車輛 → 收合下方 picker (info card 留著), 加「換司機/換車」按鈕
 function v74AutoCollapseAfterSelect() {
-  // 改成在已選擇的 slot 自動把 v73 司機 groups 收合, 讓畫面變短
   document.querySelectorAll('.car-slot').forEach(slot => {
     const slotBody = slot.querySelector('.car-slot-body');
     if (!slotBody) return;
-    // 判斷此 slot 是否已選司機 (從 info card 看)
-    const hasDriverCard = slotBody.querySelector('.v76-selected-driver');
-    if (hasDriverCard) {
-      // 把所有 v73-drv-group 強制 collapsed (用戶若要換司機可點開)
-      slotBody.querySelectorAll('.v73-drv-group').forEach(g => g.classList.add('collapsed'));
+    // ====== 司機區 ======
+    const drvCard = slotBody.querySelector('.v76-selected-driver');
+    if (drvCard) {
+      // 全收合 group + details + 隱藏 search
+      slotBody.querySelectorAll('.v73-drv-group').forEach(g => { g.style.display = 'none'; });
+      slotBody.querySelectorAll('.driver-picker details').forEach(d => { d.style.display = 'none'; });
+      const drvSearch = slotBody.querySelector('input.driver-search-input');
+      if (drvSearch) {
+        const sticky = drvSearch.parentElement;
+        if (sticky) sticky.style.display = 'none';
+      }
+      // 加 換司機 按鈕 (在 clear-btn 旁)
+      if (!drvCard.querySelector('.v77-change-btn')) {
+        const clearBtn = drvCard.querySelector('.v76-sc-clear-btn');
+        if (clearBtn) {
+          const changeBtn = document.createElement('button');
+          changeBtn.className = 'v77-change-btn';
+          changeBtn.type = 'button';
+          changeBtn.textContent = '🔄 換';
+          changeBtn.onclick = function(e){ e.preventDefault(); v77ExpandDriverPicker(slot); };
+          clearBtn.parentNode.insertBefore(changeBtn, clearBtn);
+        }
+      }
+    }
+    // ====== 車輛區 ======
+    const vehCard = slotBody.querySelector('.v76-selected-vehicle');
+    if (vehCard) {
+      slotBody.querySelectorAll('.v74-veh-tabs').forEach(el => el.style.display = 'none');
+      slotBody.querySelectorAll('.v74-veh-panel').forEach(el => el.style.display = 'none');
+      slotBody.querySelectorAll('.vi-new-btn').forEach(el => el.style.display = 'none');
+      const vehSearch = slotBody.querySelector('input[id^="vehicleSearch-"]');
+      if (vehSearch) vehSearch.style.display = 'none';
+      const vrTop = slotBody.querySelector('.v76-vr-top');
+      if (vrTop) vrTop.style.display = 'none';
+      if (!vehCard.querySelector('.v77-change-btn')) {
+        const clearBtn = vehCard.querySelector('.v76-sc-clear-btn');
+        if (clearBtn) {
+          const changeBtn = document.createElement('button');
+          changeBtn.className = 'v77-change-btn';
+          changeBtn.type = 'button';
+          changeBtn.textContent = '🔄 換';
+          changeBtn.onclick = function(e){ e.preventDefault(); v77ExpandVehiclePicker(slot); };
+          clearBtn.parentNode.insertBefore(changeBtn, clearBtn);
+        }
+      }
     }
   });
+}
+
+// 「換司機」展開: 顯示原 picker, 並隱藏 info card
+function v77ExpandDriverPicker(slot) {
+  const body = slot.querySelector('.car-slot-body');
+  if (!body) return;
+  body.querySelectorAll('.v73-drv-group').forEach(g => { g.style.display = ''; g.classList.remove('collapsed'); });
+  body.querySelectorAll('.driver-picker details').forEach(d => { d.style.display = ''; });
+  const drvSearch = body.querySelector('input.driver-search-input');
+  if (drvSearch) {
+    const sticky = drvSearch.parentElement;
+    if (sticky) sticky.style.display = '';
+  }
+  const drvCard = body.querySelector('.v76-selected-driver');
+  if (drvCard) drvCard.style.display = 'none';
+}
+
+// 「換車」展開
+function v77ExpandVehiclePicker(slot) {
+  const body = slot.querySelector('.car-slot-body');
+  if (!body) return;
+  body.querySelectorAll('.v74-veh-tabs').forEach(el => el.style.display = '');
+  body.querySelectorAll('.v74-veh-panel').forEach(el => {
+    if (el.classList.contains('active')) el.style.display = '';
+    else el.style.display = '';
+  });
+  body.querySelectorAll('.vi-new-btn').forEach(el => el.style.display = '');
+  const vehSearch = body.querySelector('input[id^="vehicleSearch-"]');
+  if (vehSearch) vehSearch.style.display = '';
+  const vrTop = body.querySelector('.v76-vr-top');
+  if (vrTop) vrTop.style.display = '';
+  const vehCard = body.querySelector('.v76-selected-vehicle');
+  if (vehCard) vehCard.style.display = 'none';
 }
 
 // hook renderCarSlots — render 完後自動 collapse 已選的
@@ -8128,11 +8258,13 @@ function v74AutoCollapseAfterSelect() {
 
 console.log('✅ v74 vehicle tabs + auto-collapse installed');
 
-// ====== v76: 車牌 sanitize (擋 ISO Date 字串 / 空值) ======
+// ====== v76+v77: 車牌 sanitize (擋 ISO Date 字串 / 空值, 日文中文車牌白名單) ======
 function v76SanitizePlate(plate) {
   if (plate === undefined || plate === null || plate === '') return '(無)';
   const s = String(plate).trim();
   if (!s) return '(無)';
+  // v77 白名單: 含日文假名 (ひらがな U+3040-309F / カタカナ U+30A0-30FF) 或漢字 (U+4E00-9FFF) → 必是車牌, 直接通過
+  if (/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/.test(s)) return s;
   // ISO Date: 2026-10-16T16:00:00.000Z
   if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(s)) return '(資料異常)';
   // 純數字日期序列 (Excel 序列)
@@ -8143,6 +8275,7 @@ function v76SanitizePlate(plate) {
 }
 
 console.log('✅ v76 UX fixes installed');
+console.log('✅ v77 多日狀態 + 收合 + 換鈕 + 派後快取 installed');
 
 
 
