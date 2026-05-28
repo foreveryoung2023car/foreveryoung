@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v78</title>
+<title>旅乘派車系統 v79</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -453,6 +453,11 @@
     border-radius: 16px 16px 0 0; z-index: 210;
     max-height: 92vh; overflow-y: auto;
     transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    /* v79: 強化 scroll */
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
   }
   .sheet.show { transform: translateY(0); }
   .sheet-handle { width: 36px; height: 4px; background: var(--border-2); border-radius: 999px; margin: 8px auto 4px; }
@@ -462,11 +467,15 @@
   }
   .sheet-title { font-size: 15px; font-weight: 700; }
   .sheet-close { background: none; border: none; color: var(--muted); cursor: pointer; padding: 4px; }
-  .sheet-body { padding: 12px 14px 14px; }
+  .sheet-body { padding: 12px 14px 14px; flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
   .sheet-footer {
     padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
     border-top: 1px solid var(--border); background: white;
     position: sticky; bottom: 0; display: flex; gap: 8px;
+    /* v79: 不要被 flex container 擠掉 */
+    flex-shrink: 0;
+    z-index: 5;
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
   }
 
   /* ====== 原始訊息 ====== */
@@ -650,10 +659,12 @@
   }
   .vi-new-btn:hover { background: #DBEAFE; }
 
-  /* v47: 多日 per-day checkbox grid（精緻版） */
+  /* v47/v79: 多日 per-day checkbox grid (v79: 改直立優先) */
   .day-pick-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 8px; margin-top: 10px;
+    display: grid;
+    /* v79: 桌機 2-3 欄, 平板/手機 從上往下單欄 */
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 6px; margin-top: 10px;
   }
   .day-pick-item {
     display: flex; flex-direction: column; gap: 4px;
@@ -3184,11 +3195,15 @@
     .v77-md-status { font-size: 11px !important; padding: 6px 10px !important; }
     .v77-md-status b { font-size: 12px !important; }
 
-    /* --- day-pick-grid 三欄 ~ 自動 --- */
+    /* v79: day-pick-grid 直立 — 一日一列, 看得清楚 */
     .day-pick-grid {
-      grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)) !important;
-      gap: 6px !important;
+      grid-template-columns: 1fr !important;
+      gap: 5px !important;
     }
+    .day-pick-item { flex-direction: row !important; flex-wrap: wrap !important; align-items: center !important; }
+    .day-pick-item .dp-row1 { flex: 1 1 auto; }
+    .day-pick-item .dp-route { padding-left: 0 !important; min-height: 0 !important; flex: 1 1 100%; }
+    .day-pick-item .dp-row3 { padding-left: 0 !important; flex: 1 1 100%; }
     .day-pick-item { padding: 7px 9px !important; font-size: 11.5px !important; }
     .day-pick-item .dp-date { font-size: 12px !important; }
     .day-pick-item .dp-mmdd { font-size: 10.5px !important; }
@@ -3221,8 +3236,8 @@
     .v76-selected-card { padding: 8px 10px !important; }
     .v76-sc-head { padding-bottom: 6px !important; margin-bottom: 6px !important; }
 
-    /* --- 訂單 raw-msg-body 高度給更多 --- */
-    .raw-msg-body { max-height: 200px !important; }
+    /* --- v79: 訂單 raw-msg-body 在平板縮短, 給下面派車欄位更多空間 --- */
+    .raw-msg-body { max-height: 130px !important; }
   }
 
   /* ===== 平板直立 (640-899) 特化 — 更窄, info card 改成直立堆疊 ===== */
@@ -3258,7 +3273,9 @@
   /* ===== 大平板 (900-1199) 細修: 派車 sheet 居中時不要擠到右欄 ===== */
   @media (max-width: 1199px) and (min-width: 900px) {
     /* sheet 寬度: 比 sheet-mask 浮現時, 留個邊 */
-    .sheet { width: min(720px, 88vw) !important; }
+    .sheet { width: min(820px, 90vw) !important; }
+    /* day-pick-grid 在大平板用 2 欄 */
+    .day-pick-grid { grid-template-columns: repeat(2, 1fr) !important; }
   }
 
   /* ===== 手機 (≤640) 也順手把新元素縮一下 ===== */
@@ -3274,7 +3291,7 @@
       min-width: 64px !important; letter-spacing: 0.5px !important;
     }
     .day-pick-grid {
-      grid-template-columns: repeat(2, 1fr) !important;
+      grid-template-columns: 1fr !important;
     }
     .v76-collect-pill {
       margin-left: 0 !important; margin-top: 4px !important;
@@ -3286,6 +3303,63 @@
     /* fee 雙按鈕在手機強制 wrap */
     .v78-fee-quick-btn { font-size: 11px !important; padding: 5px 8px !important; }
     .v76-day-key-summary { font-size: 11px !important; }
+  }
+
+  /* v79: centered modal sheet 從 600px 起 (中型平板也彈出視窗, 不在底部) */
+  @media (min-width: 600px) {
+    .sheet {
+      width: min(900px, 94vw) !important;
+      max-width: none !important;
+      max-height: 90vh !important;
+      top: 50%; left: 50%; bottom: auto !important; right: auto !important;
+      transform: translate(-50%, -50%) scale(0.9) !important;
+      opacity: 0;
+      pointer-events: none;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      transition: opacity 0.2s, transform 0.2s !important;
+      overflow-y: auto !important;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      display: flex !important;
+      flex-direction: column !important;
+    }
+    .sheet.show {
+      transform: translate(-50%, -50%) scale(1) !important;
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .sheet-handle { display: none; }
+  }
+
+  /* ====================================================== */
+  /* ==========  v79: sheet scroll 終極保險  ============ */
+  /* ====================================================== */
+
+  /* 防止 sheet 不能 scroll 的種種情境 */
+  .sheet {
+    -ms-overflow-style: -ms-autohiding-scrollbar;
+  }
+  .sheet::-webkit-scrollbar {
+    width: 6px;
+  }
+  .sheet::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.2);
+    border-radius: 3px;
+  }
+
+  /* sheet-body 同樣保險 scroll */
+  .sheet-body::-webkit-scrollbar {
+    width: 6px;
+  }
+  .sheet-body::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.15);
+    border-radius: 3px;
+  }
+
+  /* v79: day-pick-item 在直立模式時 row1 + route + row3 排版優化 */
+  .day-pick-item.v79-horizontal {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
   }
 </style>
 </head>
@@ -8430,6 +8504,7 @@ function v76SanitizePlate(plate) {
 console.log('✅ v76 UX fixes installed');
 console.log('✅ v77 多日狀態 + 收合 + 換鈕 + 派後快取 installed');
 console.log('✅ v78 平板 RWD 全面修 installed');
+console.log('✅ v79 sheet scroll 修 + day-pick 直立 installed');
 
 
 
