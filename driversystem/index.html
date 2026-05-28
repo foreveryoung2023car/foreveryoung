@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v80</title>
+<title>旅乘派車系統 v81</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -3361,6 +3361,114 @@
     flex-direction: row !important;
     flex-wrap: wrap !important;
   }
+
+  /* ====================================================== */
+  /* ==========  v81: 訂單變動偵測 樣式  =================== */
+  /* ====================================================== */
+
+  /* 訂單列表頂端 banner */
+  .v81-top-banner {
+    background: linear-gradient(90deg, #FEF3C7 0%, #FDE68A 100%);
+    color: #78350F;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 2px solid #F59E0B;
+    box-shadow: 0 2px 6px rgba(245,158,11,0.2);
+  }
+  .v81-top-banner .v81-tb-icon { font-size: 18px; }
+  .v81-top-banner b { color: #92400E; font-weight: 800; font-size: 14px; }
+  .v81-top-banner .v81-tb-btn {
+    background: white; color: #92400E; border: 1.5px solid #F59E0B;
+    padding: 5px 12px; border-radius: 14px; font-size: 12px; font-weight: 700;
+    cursor: pointer; transition: all 0.15s; margin-left: auto;
+  }
+  .v81-top-banner .v81-tb-btn:hover { background: #FCD34D; }
+  .v81-top-banner .v81-tb-x {
+    margin-left: 6px; padding: 5px 10px; background: transparent; border: 1px solid #D97706;
+  }
+
+  /* 訂單卡 變動 badge */
+  .v54b-mt.v81-changed,
+  .v52-mt.v81-changed,
+  .modified-tag.v81-changed {
+    background: linear-gradient(135deg, #DC2626 0%, #F59E0B 100%) !important;
+    color: white !important;
+    font-weight: 800 !important;
+    padding: 2px 8px !important;
+    border-radius: 10px !important;
+    font-size: 10.5px !important;
+    box-shadow: 0 1px 3px rgba(220,38,38,0.3);
+    animation: v81PulseChange 1.8s ease-in-out infinite;
+    cursor: help;
+  }
+  @keyframes v81PulseChange {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+  }
+
+  /* 派車面板 變動 banner */
+  .v81-diff-banner {
+    background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+    border: 2px solid #F59E0B;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    font-family: -apple-system, "Noto Sans TC", sans-serif !important;
+    box-shadow: 0 2px 6px rgba(245,158,11,0.15);
+  }
+  .v81-diff-head {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12.5px; font-weight: 700; color: #78350F;
+    margin-bottom: 8px; padding-bottom: 6px;
+    border-bottom: 1px dashed rgba(245,158,11,0.4);
+  }
+  .v81-diff-head b { color: #92400E; font-weight: 800; font-size: 14px; }
+  .v81-diff-icon { font-size: 16px; }
+  .v81-ack-btn {
+    background: #10B981; color: white; border: none;
+    padding: 4px 12px; border-radius: 12px; font-size: 11.5px; font-weight: 700;
+    cursor: pointer; margin-left: auto;
+    box-shadow: 0 1px 3px rgba(16,185,129,0.3);
+    transition: all 0.15s;
+  }
+  .v81-ack-btn:hover { background: #059669; transform: translateY(-1px); }
+
+  .v81-diff-list { display: flex; flex-direction: column; gap: 4px; }
+  .v81-diff-item {
+    display: flex; align-items: center; gap: 6px;
+    background: white;
+    padding: 6px 10px; border-radius: 6px;
+    font-size: 12px;
+    border-left: 3px solid #F59E0B;
+    flex-wrap: wrap;
+  }
+  .v81-df-fld {
+    background: #FEF3C7; color: #78350F;
+    padding: 1px 8px; border-radius: 8px;
+    font-weight: 700; font-size: 11px;
+    min-width: 60px; text-align: center;
+  }
+  .v81-df-old {
+    color: #991B1B; text-decoration: line-through;
+    font-family: monospace; font-weight: 600;
+  }
+  .v81-df-arrow { color: #6B7280; font-weight: 700; }
+  .v81-df-new {
+    color: #065F46; font-weight: 800;
+    font-family: monospace;
+    background: #D1FAE5;
+    padding: 1px 7px; border-radius: 6px;
+  }
+  .v81-diff-ts {
+    font-size: 11px; color: #92400E; margin-top: 6px;
+    padding-top: 6px; border-top: 1px dashed rgba(245,158,11,0.4);
+    font-style: italic;
+  }
 </style>
 </head>
 <body>
@@ -4143,6 +4251,8 @@ async function loadRealData() {
   // v80: 移除舊 banner, 顯示綠色「載入完成」短暫提示
   const _cb = document.getElementById('cacheBanner');
   if (_cb) _cb.remove();
+  // v81: 載入完成後跑 diff 偵測
+  try { v81DetectChanges(); } catch(e){ console.warn('[v81] diff err', e); }
   if (ol && ol.parentElement) {
     const doneBanner = document.createElement('div');
     doneBanner.id = 'v80DoneBanner';
@@ -5626,6 +5736,21 @@ function openEditor(idx) {
         <span class="raw-msg-toggle" onclick="toggleRawMsg(event)">展開全部 ▾</span>
       </div>
       <div class="raw-msg-body" id="rawMsgBody">${(function(){
+        // v81: 變動 banner (有 _v81Diff 才出現)
+        let v81Banner = '';
+        if (o._v81Diff && o._v81Diff.length > 0) {
+          v81Banner = '<div class="v81-diff-banner">' +
+            '<div class="v81-diff-head">' +
+              '<span class="v81-diff-icon">🔔</span>' +
+              '<span>偵測到 <b>' + o._v81Diff.length + '</b> 項變動 — 確認後可清除提示</span>' +
+              '<button onclick="v81AckOrder(\'' + (o.no || '') + '\',\'' + (o.date || '') + '\')" class="v81-ack-btn">✓ 已確認</button>' +
+            '</div>' +
+            '<div class="v81-diff-list">' +
+              o._v81Diff.map(d => '<div class="v81-diff-item"><span class="v81-df-fld">' + d.field + '</span><span class="v81-df-old">' + (d.old || '(空)') + '</span><span class="v81-df-arrow">→</span><span class="v81-df-new">' + (d.new || '(空)') + '</span></div>').join('') +
+            '</div>' +
+            (o._v81LastModifiedAgo ? '<div class="v81-diff-ts">⏰ 後端紀錄: ' + o._v81LastModifiedAgo + '</div>' : '') +
+          '</div>';
+        }
         // v76: 收合時 一定看得到的「目前日重點」摘要
         const cust = v63GetCell(o, '客人姓名') || o.customerName || '';
         const dayLbl = o._multiDayIndex ? ('Day ' + o._multiDayIndex) : '';
@@ -5634,7 +5759,7 @@ function openEditor(idx) {
         const fee = o.driverFee ? '¥' + Number(o.driverFee).toLocaleString() : '';
         const collect = parseFloat(v63GetCell(o, '司機代收')) || 0;
         const collectHtml = collect > 0 ? '<span class="v76-key-collect">💰 代收 ¥' + collect.toLocaleString() + '</span>' : '';
-        return '<div class="v76-day-key-summary">' +
+        return v81Banner + '<div class="v76-day-key-summary">' +
           '<div class="v76-dks-row1">' +
             '<span class="v76-dks-orderno">' + (o.no || '') + '</span>' +
             (cust ? '<span class="v76-dks-cust">👤 ' + cust + '</span>' : '') +
@@ -5692,6 +5817,7 @@ function openEditor(idx) {
   renderCarSlots();
   document.getElementById('sheetMask').classList.add('show');
   document.getElementById('sheet').classList.add('show');
+  // v81: 開啟即視為「看過了」, 但 ack 動作交給用戶按按鈕 (不自動)
   // v47: 開啟派車面板時 scroll 到頂（但之後 renderCarSlots 不會再強制）
   setTimeout(() => {
     const sh = document.getElementById('sheet');
@@ -8482,6 +8608,172 @@ console.log('✅ v79 sheet scroll 修 + day-pick 直立 installed');
 console.log('✅ v80 訂單一次拿齊 (loadRealData -3~+30 days) installed');
 
 
+// ====== v81: 訂單變動偵測 (前端 hash + localStorage snapshot) ======
+function v81OrderKey(o) {
+  return (o.no || '?') + '|' + (o.date || '');
+}
+// 計算「會被注意的關鍵欄位」snapshot (純值, 比對用)
+function v81Snapshot(o) {
+  return {
+    start: String(o.start || ''),
+    end: String(o.end || ''),
+    to: String(o.to || ''),
+    from: String(o.from || ''),
+    driverFee: Number(o.driverFee || 0),
+    carType: String(o.carType || ''),
+    carCount: Number(o.carCount || 1),
+    remarks: String(o.remarks || ''),
+    pax: (o.pax ? (Number(o.pax.adult||0) + '+' + Number(o.pax.child||0)) : ''),
+    collect: Number(parseFloat((window.v63GetCell ? v63GetCell(o, '司機代收') : 0)) || 0),
+  };
+}
+const V81_FIELD_LABELS = {
+  start: '出車時間', end: '結束時間', to: '行程', from: '上車點',
+  driverFee: '司機費', carType: '車型', carCount: '車數',
+  remarks: '客人備註', pax: '人數', collect: '司機代收'
+};
+function v81FormatVal(field, v) {
+  if (v == null || v === '') return '(空)';
+  if (field === 'driverFee' || field === 'collect') return '¥' + Number(v).toLocaleString();
+  return String(v);
+}
+function v81LoadSnapshots() {
+  try {
+    const k = 'v81_snapshots_' + ((currentUser && (currentUser.email || currentUser.name)) || 'default');
+    const raw = localStorage.getItem(k);
+    return raw ? JSON.parse(raw) : {};
+  } catch(e){ return {}; }
+}
+function v81SaveSnapshots(snaps) {
+  try {
+    const k = 'v81_snapshots_' + ((currentUser && (currentUser.email || currentUser.name)) || 'default');
+    localStorage.setItem(k, JSON.stringify(snaps));
+  } catch(e){ console.warn('[v81] save snap fail', e); }
+}
+
+// 主入口: 比對當前 ORDERS.tomorrow vs localStorage snapshots
+function v81DetectChanges() {
+  if (!ORDERS || !ORDERS.tomorrow || ORDERS.tomorrow.length === 0) return;
+  const snaps = v81LoadSnapshots();
+  let changedCount = 0;
+  ORDERS.tomorrow.forEach(o => {
+    const key = v81OrderKey(o);
+    const cur = v81Snapshot(o);
+    const prev = snaps[key];
+    if (!prev) {
+      // 首次見此訂單 — 不算變動, 直接記
+      snaps[key] = { snap: cur, ts: Date.now() };
+      return;
+    }
+    // 比對逐欄位
+    const diffs = [];
+    Object.keys(cur).forEach(f => {
+      if (String(cur[f]) !== String(prev.snap[f])) {
+        diffs.push({
+          field: V81_FIELD_LABELS[f] || f,
+          old: v81FormatVal(f, prev.snap[f]),
+          new: v81FormatVal(f, cur[f])
+        });
+      }
+    });
+    if (diffs.length > 0) {
+      o._v81Diff = diffs;
+      changedCount++;
+      // 不立即更新 snap — 等用戶 ack
+    }
+    // 後端 lastModified 支援 (若 GAS 有送)
+    if (o._raw && window.HEADER_MAP) {
+      const lmIdx = window.HEADER_MAP['修改時間'] || window.HEADER_MAP['lastModified'];
+      if (lmIdx != null) {
+        const lm = o._raw[lmIdx];
+        if (lm) {
+          const t = (lm instanceof Date) ? lm.getTime() : new Date(lm).getTime();
+          if (!isNaN(t)) {
+            const ageMin = Math.round((Date.now() - t) / 60000);
+            o._v81LastModifiedAgo = (ageMin < 1 ? '剛剛' : (ageMin < 60 ? ageMin + ' 分鐘前' : Math.round(ageMin/60) + ' 小時前'));
+          }
+        }
+      }
+    }
+  });
+  v81SaveSnapshots(snaps);
+  console.log('[v81] diff 完成 — 變動訂單:', changedCount);
+  // 顯示頂部 banner
+  if (changedCount > 0) v81ShowTopBanner(changedCount);
+}
+
+// 頂部 banner
+function v81ShowTopBanner(n) {
+  // 移除舊的
+  const old = document.getElementById('v81TopBanner');
+  if (old) old.remove();
+  const ol = document.getElementById('ordersList');
+  if (!ol || !ol.parentElement) return;
+  const banner = document.createElement('div');
+  banner.id = 'v81TopBanner';
+  banner.className = 'v81-top-banner';
+  banner.innerHTML = '<span class="v81-tb-icon">🔔</span>' +
+    '<span>本次同步發現 <b>' + n + '</b> 筆訂單有變動 — 開啟訂單可看變動明細並確認</span>' +
+    '<button onclick="v81FilterChanged()" class="v81-tb-btn">只看變動</button>' +
+    '<button onclick="v81DismissTop()" class="v81-tb-btn v81-tb-x">✕</button>';
+  ol.parentElement.insertBefore(banner, ol);
+}
+function v81DismissTop() {
+  const b = document.getElementById('v81TopBanner');
+  if (b) b.remove();
+}
+// 篩選只看變動
+function v81FilterChanged() {
+  const cards = document.querySelectorAll('.v54b-card, .order-card, .v52-row');
+  cards.forEach(c => {
+    const hasV81 = c.querySelector('.v81-changed');
+    c.style.display = hasV81 ? '' : 'none';
+  });
+  // 加「還原」按鈕
+  if (!document.getElementById('v81RestoreBtn')) {
+    const btn = document.createElement('button');
+    btn.id = 'v81RestoreBtn';
+    btn.className = 'v81-tb-btn';
+    btn.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:1000;background:#1E40AF;color:white;padding:8px 18px;border:none;border-radius:20px;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.2);';
+    btn.textContent = '🔙 還原顯示全部訂單';
+    btn.onclick = () => {
+      document.querySelectorAll('.v54b-card, .order-card, .v52-row').forEach(c => c.style.display = '');
+      btn.remove();
+    };
+    document.body.appendChild(btn);
+  }
+}
+
+// 用戶按「✓ 已確認」 — 更新該訂單 snapshot
+function v81AckOrder(orderNo, date) {
+  const key = orderNo + '|' + date;
+  const snaps = v81LoadSnapshots();
+  const o = ORDERS.tomorrow.find(x => x.no === orderNo && x.date === date);
+  if (o) {
+    snaps[key] = { snap: v81Snapshot(o), ts: Date.now() };
+    v81SaveSnapshots(snaps);
+    delete o._v81Diff;
+    // 重渲 (派車面板和卡片)
+    if (typeof renderCarSlots === 'function' && state.editingOrder && state.editingOrder.data && state.editingOrder.data.no === orderNo) {
+      // 改回 - 重新 openEditor 不必, 直接消掉 banner
+      const body = document.getElementById('sheetBody');
+      if (body) {
+        const banner = body.querySelector('.v81-diff-banner');
+        if (banner) banner.remove();
+      }
+    }
+    if (typeof renderOrders === 'function') renderOrders();
+    console.log('[v81] 已確認', orderNo, date);
+  }
+}
+window.v81AckOrder = v81AckOrder;
+window.v81FilterChanged = v81FilterChanged;
+window.v81DismissTop = v81DismissTop;
+
+console.log('✅ v81 變動偵測 (前端 hash diff) installed');
+
+
+
 
 
 
@@ -8622,6 +8914,7 @@ function v52BuildOrderRow(o) {
   if (o.carCount > 1) tags += '<span class="v54b-mt car2">需 ' + o.carCount + ' 台</span>';
   if (o.carSeatCount > 0) tags += '<span class="v54b-mt carseat">座×' + o.carSeatCount + '</span>';
   if (o.isModified) tags += '<span class="v54b-mt modified">⚠ 改</span>';
+  if (o._v81Diff && o._v81Diff.length > 0) tags += '<span class="v54b-mt v81-changed" title="' + o._v81Diff.map(d => d.field + ': ' + d.old + ' → ' + d.new).join('; ').replace(/"/g, '&quot;') + '">⚠ ' + o._v81Diff.length + ' 項變動</span>';
 
   // 人數 / 車型 meta
   const pax = (o.paxRaw) || (o.pax && o.pax.raw) || (o.pax && ((o.pax.adult||0) + '人')) || (headO.paxRaw) || (headO.pax && headO.pax.raw) || '';
