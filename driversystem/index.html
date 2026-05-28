@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v75</title>
+<title>旅乘派車系統 v76</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -484,7 +484,7 @@
   .raw-msg-toggle { color: var(--primary); cursor: pointer; font-size: 11px; font-weight: 500; }
   .raw-msg-body {
     padding: 10px 12px; font-size: 12px; color: var(--text-2); line-height: 1.55;
-    max-height: 100px; overflow: hidden; position: relative;
+    max-height: 180px; overflow: hidden; position: relative;
     font-family: -apple-system, "Noto Sans TC", monospace;
   }
   .raw-msg-body.expanded { max-height: none; }
@@ -2929,6 +2929,173 @@
   .v74-picker-collapsed input[id^="vehicleSearch-"] {
     display: none !important;
   }
+
+  /* ====== v76: 已選擇司機/車輛 info card ====== */
+  .v76-selected-card {
+    background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+    border: 2px solid #10B981;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(16,185,129,0.15);
+  }
+  .v76-sc-head {
+    display: flex; align-items: center; gap: 6px;
+    padding-bottom: 8px; margin-bottom: 8px;
+    border-bottom: 1px dashed rgba(16,185,129,0.3);
+  }
+  .v76-sc-check {
+    background: #10B981; color: white;
+    width: 20px; height: 20px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 12px;
+  }
+  .v76-sc-label { font-weight: 700; color: #065F46; font-size: 13px; flex: 1; }
+  .v76-sc-clear-btn {
+    background: white; color: #DC2626; border: 1.5px solid #DC2626;
+    padding: 3px 12px; border-radius: 14px; font-size: 11.5px; font-weight: 600;
+    cursor: pointer;
+  }
+  .v76-sc-clear-btn:hover { background: #FEE2E2; }
+  .v76-sc-body { display: flex; align-items: center; gap: 12px; }
+  .v76-sc-avatar { flex-shrink: 0; }
+  .v76-sc-avatar .avatar-img,
+  .v76-sc-avatar .avatar-fallback {
+    width: 54px !important; height: 54px !important;
+    font-size: 22px !important; font-weight: 700;
+    border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  .v76-sc-info { flex: 1; min-width: 0; }
+  .v76-sc-name {
+    font-size: 16px; font-weight: 700; color: #064E3B;
+    margin-bottom: 4px; line-height: 1.3;
+  }
+  .v76-sc-id {
+    font-size: 11px; font-weight: 500; color: #065F46; opacity: 0.7;
+    font-family: monospace; margin-left: 4px;
+  }
+  .v76-sc-meta {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px;
+    font-size: 11.5px;
+  }
+  .v76-sc-rating {
+    background: #F59E0B; color: white;
+    padding: 2px 7px; border-radius: 10px; font-weight: 700;
+  }
+  .v76-sc-served, .v76-sc-fee, .v76-sc-cat, .v76-sc-color {
+    background: white; color: #065F46;
+    padding: 2px 7px; border-radius: 10px; font-weight: 600;
+    border: 1px solid rgba(16,185,129,0.3);
+  }
+  .v76-sc-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+  .v76-info-tag {
+    background: rgba(16,185,129,0.15); color: #065F46;
+    padding: 1px 7px; border-radius: 8px; font-size: 10.5px; font-weight: 600;
+  }
+
+  /* 車輛 info card 大車牌 */
+  .v76-selected-vehicle .v76-veh-body-row { gap: 14px; }
+  .v76-veh-plate-big {
+    background: white;
+    border: 3px solid #047857;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 24px;
+    font-weight: 900;
+    font-family: -apple-system, monospace;
+    color: #064E3B;
+    letter-spacing: 1px;
+    text-align: center;
+    min-width: 100px;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+  }
+
+  /* ====== v76: H 欄代收 pill (car-slot-head) ====== */
+  .v76-collect-pill {
+    display: inline-block;
+    margin-left: 8px;
+    background: linear-gradient(135deg, #DC2626 0%, #F59E0B 100%);
+    color: white;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 4px rgba(220,38,38,0.25);
+    animation: v76PulseCollect 2s ease-in-out infinite;
+  }
+  @keyframes v76PulseCollect {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+  }
+
+  /* ====== v76: 訂單摘要 收合時 也看得到的「目前日重點」 ====== */
+  .v76-day-key-summary {
+    background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+    border: 1.5px solid #F59E0B;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    font-family: -apple-system, "Noto Sans TC", sans-serif !important;
+  }
+  .v76-dks-row1 {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    margin-bottom: 6px;
+  }
+  .v76-dks-orderno {
+    background: #1E40AF; color: white;
+    padding: 2px 9px; border-radius: 10px; font-size: 12px; font-weight: 700;
+    font-family: monospace;
+  }
+  .v76-dks-cust {
+    color: #92400E; font-weight: 700; font-size: 13px;
+  }
+  .v76-dks-day {
+    background: white; color: #1E40AF;
+    padding: 2px 9px; border-radius: 10px; font-size: 11.5px; font-weight: 700;
+    border: 1px solid #93C5FD;
+  }
+  .v76-dks-route {
+    color: #78350F; font-size: 12px; font-weight: 600;
+    margin-bottom: 6px; line-height: 1.4;
+  }
+  .v76-dks-row3 {
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .v76-dks-fee {
+    background: white; color: #065F46;
+    padding: 2px 9px; border-radius: 10px; font-size: 11.5px; font-weight: 700;
+    border: 1px solid #6EE7B7;
+  }
+  .v76-key-collect {
+    background: linear-gradient(135deg, #DC2626 0%, #F59E0B 100%);
+    color: white;
+    padding: 2px 9px; border-radius: 10px; font-size: 11.5px; font-weight: 700;
+    box-shadow: 0 1px 3px rgba(220,38,38,0.25);
+  }
+
+  /* ====== v76: 常用車輛 chip 移到上方時加強樣式 ====== */
+  .v76-vr-top {
+    background: linear-gradient(135deg, #FFF7ED 0%, #FED7AA 100%);
+    border: 1.5px solid #F97316;
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+  }
+  .v76-vr-top .vr-head {
+    color: #9A3412; font-weight: 700; font-size: 12px; margin-bottom: 6px;
+  }
+  .v76-vr-top .vr-chip {
+    background: white; border: 1.5px solid #F97316; color: #7C2D12;
+    transition: all 0.15s;
+  }
+  .v76-vr-top .vr-chip:hover {
+    background: #F97316; color: white; transform: translateY(-1px);
+  }
+  .v76-vr-top .vr-chip.selected {
+    background: #F97316; color: white;
+    box-shadow: 0 2px 6px rgba(249,115,22,0.35);
+  }
 </style>
 </head>
 <body>
@@ -5198,7 +5365,28 @@ function openEditor(idx) {
         <div class="source"><span class="src-dot"></span> 訂單完整資訊 ${o._multiDayCount > 1 ? '<span style="background:#3B82F6;color:white;padding:1px 6px;border-radius:4px;font-size:10px;margin-left:6px;">共 ' + (o._multiDayActual || o._multiDayCount) + ' 日</span>' : ''}</div>
         <span class="raw-msg-toggle" onclick="toggleRawMsg(event)">展開全部 ▾</span>
       </div>
-      <div class="raw-msg-body" id="rawMsgBody">${renderFullOrderTimeline(o)}</div>
+      <div class="raw-msg-body" id="rawMsgBody">${(function(){
+        // v76: 收合時 一定看得到的「目前日重點」摘要
+        const cust = v63GetCell(o, '客人姓名') || o.customerName || '';
+        const dayLbl = o._multiDayIndex ? ('Day ' + o._multiDayIndex) : '';
+        const route = String(o.to || o.route || '').replace(/[→>＞]/g, ' › ').trim();
+        const tStart = (o.start || o.time || '').slice(0,5);
+        const fee = o.driverFee ? '¥' + Number(o.driverFee).toLocaleString() : '';
+        const collect = parseFloat(v63GetCell(o, '司機代收')) || 0;
+        const collectHtml = collect > 0 ? '<span class="v76-key-collect">💰 代收 ¥' + collect.toLocaleString() + '</span>' : '';
+        return '<div class="v76-day-key-summary">' +
+          '<div class="v76-dks-row1">' +
+            '<span class="v76-dks-orderno">' + (o.no || '') + '</span>' +
+            (cust ? '<span class="v76-dks-cust">👤 ' + cust + '</span>' : '') +
+            (dayLbl ? '<span class="v76-dks-day">' + dayLbl + ' · ' + (o.date || '').slice(5) + (tStart ? ' ' + tStart : '') + '</span>' : '<span class="v76-dks-day">' + (o.date || '').slice(5) + (tStart ? ' ' + tStart : '') + '</span>') +
+          '</div>' +
+          (route ? '<div class="v76-dks-route">📍 ' + route + '</div>' : '') +
+          '<div class="v76-dks-row3">' +
+            (fee ? '<span class="v76-dks-fee">司機費 ' + fee + '</span>' : '') +
+            collectHtml +
+          '</div>' +
+        '</div>' + renderFullOrderTimeline(o);
+      })()}</div>
     </div>
 
     ${o.remarks ? `<div class="remark-highlight"><div class="rh-head">⚠ 客人備註 / 派車注意事項</div>${o.remarks}</div>` : ''}
@@ -5301,6 +5489,8 @@ function renderCarSlot(order, assignment, slotIdx) {
   const history = assignment.driverId ? (DRIVER_VEHICLE_HISTORY[assignment.driverId] || []) : [];
   // v41: 費用順序 = 已存 fee → 訂單 G 欄 → 司機預設 → 30000
   const feeValue = assignment.fee || (order.driverFee > 0 ? order.driverFee : null) || selectedDriver?.defaultFee || 30000;
+  // v76: 自動把 feeValue 寫回 assignment, 省去手動點「帶入訂單原費」
+  if (!assignment.fee && feeValue) { assignment.fee = feeValue; }
   const canRemove = state.editingAssignments.length > 1;
 
   return `
@@ -5309,6 +5499,12 @@ function renderCarSlot(order, assignment, slotIdx) {
         <div class="car-slot-title">
           <span class="car-slot-no">${slotIdx + 1}</span>
           ${order.carCount > 1 ? `第 ${slotIdx + 1} 台車` : '派車安排'}
+          ${(function(){
+            // v76: 顯示「當日 H 代收」金額 (從 order._raw 對應 H 欄)
+            const c = parseFloat(v63GetCell(order, '司機代收')) || 0;
+            if (c > 0) return '<span class="v76-collect-pill" title="客人會在這天當場付給司機">💰 司機向客人收 ¥' + c.toLocaleString() + '</span>';
+            return '';
+          })()}
         </div>
         ${canRemove ? `<button class="car-slot-remove" onclick="removeCarSlot(${slotIdx})">移除</button>` : ''}
       </div>
@@ -5336,7 +5532,28 @@ function renderCarSlot(order, assignment, slotIdx) {
           <input type="text" class="form-control driver-search-input" placeholder="🔍 搜尋司機姓名 / 編號..." style="margin-bottom:0;font-size:13px;" oninput="filterDriverPicker(${slotIdx}, this.value)">
           </div>
           <div class="driver-picker" id="driverPicker-${slotIdx}" style="margin-top:6px;">
-            ${assignment.driverId ? (function(){const d=DRIVERS.find(x=>x.id===assignment.driverId);if(!d)return '';return `<div class="driver-group-head" style="background:var(--primary-soft);color:var(--primary);display:flex;justify-content:space-between;align-items:center;">✓ 已選擇司機 <button onclick="clearDriverSelection(${slotIdx})" style="background:white;color:var(--danger);border:1px solid var(--danger);padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;cursor:pointer;">✕ 取消選擇</button></div>${renderDriverRow({d:d,status:'available',tagMatch:false,langMatch:true,jobs:[]},slotIdx,assignment.driverId,false,order)}`;})() : ''}
+            ${assignment.driverId ? (function(){const d=DRIVERS.find(x=>x.id===assignment.driverId);if(!d)return '';
+              const tagsHtml = (d.tags || []).slice(0,3).map(t=>`<span class="v76-info-tag">${t}</span>`).join('');
+              const rating = (d.avgRating ?? d.rating);
+              return `<div class="v76-selected-card v76-selected-driver">
+                <div class="v76-sc-head">
+                  <span class="v76-sc-check">✓</span>
+                  <span class="v76-sc-label">已選擇司機</span>
+                  <button onclick="clearDriverSelection(${slotIdx})" class="v76-sc-clear-btn">✕ 取消選擇</button>
+                </div>
+                <div class="v76-sc-body">
+                  <div class="v76-sc-avatar">${renderDriverAvatar(d, 'lg')}</div>
+                  <div class="v76-sc-info">
+                    <div class="v76-sc-name">${d.name || '?'} <span class="v76-sc-id">${d.id || ''}</span></div>
+                    <div class="v76-sc-meta">
+                      ${rating ? `<span class="v76-sc-rating">★ ${rating.toFixed(1)}</span>` : ''}
+                      <span class="v76-sc-served">服務 ${d.servedCount || 0} 趟</span>
+                      <span class="v76-sc-fee">預設 ¥${(d.defaultFeeDay ?? d.defaultFee ?? 0).toLocaleString()}</span>
+                    </div>
+                    <div class="v76-sc-tags">${tagsHtml}</div>
+                  </div>
+                </div>
+              </div>`;})() : ''}
             ${groups.available.length ? `<div class="v73-drv-group" data-grp="available"><div class="driver-group-head v73-toggleable" onclick="v73ToggleDrvGroup(this.parentElement)"><span><span class="gh-dot av"></span>可派車</span><span style="display:flex;align-items:center;gap:6px;"><span class="vgh-count" style="background:#D1FAE5;color:#065F46;">${groups.available.length}</span><span class="v72-toggle-arrow">▼</span></span></div><div class="v73-drv-body">${groups.available.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}</div></div>` : ''}
             ${groups.partial.length ? `<div class="v73-drv-group collapsed" data-grp="partial"><div class="driver-group-head v73-toggleable" onclick="v73ToggleDrvGroup(this.parentElement)"><span><span class="gh-dot partial"></span>同日有班次但時段不衝突</span><span style="display:flex;align-items:center;gap:6px;"><span class="vgh-count" style="background:#FEF3C7;color:#92400E;">${groups.partial.length}</span><span class="v72-toggle-arrow">▼</span></span></div><div class="v73-drv-body">${groups.partial.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}</div></div>` : ''}
             ${groups.daytripWarn.length ? `<div class="v73-drv-group collapsed" data-grp="daytrip"><div class="driver-group-head v73-toggleable" onclick="v73ToggleDrvGroup(this.parentElement)"><span><span class="gh-dot daytrip"></span>同日有一日遊/多日</span><span style="display:flex;align-items:center;gap:6px;"><span class="vgh-count" style="background:#DBEAFE;color:#1E40AF;">${groups.daytripWarn.length}</span><span class="v72-toggle-arrow">▼</span></span></div><div class="v73-drv-body">${groups.daytripWarn.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}</div></div>` : ''}
@@ -5351,6 +5568,11 @@ function renderCarSlot(order, assignment, slotIdx) {
             <span>選擇車輛 <span class="required">*</span></span>
             <span class="hint">${VEHICLES.length} 台可選</span>
           </label>
+          ${history.length ? `
+            <div class="vehicle-recommend v76-vr-top">
+              <div class="vr-head">⭐ ${selectedDriver?.name || ''}司機常用車輛（點即選）</div>
+              <div class="vr-chips">${history.map(h => `<div class="vr-chip${assignment.vehicleId === h.vid ? ' selected' : ''}" onclick="selectVehicleForSlot(${slotIdx}, '${h.vid}')">${v76SanitizePlate(h.plate)}<span class="freq">${h.count}次</span></div>`).join('')}</div>
+            </div>` : ''}
                     <!-- v46: 卡片式車輛 picker（仿 driver-picker），含搜尋 + 隱藏 select 作為儲存目標 -->
           <input type="text" class="form-control" id="vehicleSearch-${slotIdx}" placeholder="🔍 搜尋車牌 / 車型..." style="margin-bottom:6px;font-size:13px;" oninput="filterVehiclePickerV46(${slotIdx}, this.value)">
           <div class="vehicle-picker" id="vehiclePicker-${slotIdx}">
@@ -5358,10 +5580,27 @@ function renderCarSlot(order, assignment, slotIdx) {
               const selVeh = assignment.vehicleId ? VEHICLES.find(v => v.id === assignment.vehicleId) : null;
               let h = '';
               if (selVeh) {
-                // v68: 加取消選擇按鈕 (對齊司機那邊 clearDriverSelection 模式)
-                h += '<div class="veh-group-head" style="background:var(--primary-soft);color:var(--primary);display:flex;justify-content:space-between;align-items:center;">' +
-                  '<span>✓ 已選擇車輛 <span class="vgh-count" style="background:white;color:var(--primary);">' + String(selVeh.plate || '?') + '</span></span>' +
-                  '<button onclick="clearVehicleSelection(' + slotIdx + ')" style="background:white;color:var(--danger);border:1px solid var(--danger);padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;cursor:pointer;">✕ 取消選擇</button>' +
+                // v76: 車輛 info card (大車牌 + 車型 + 顏色 + 座位)
+                const plateClean = v76SanitizePlate(selVeh.plate);
+                const modelClean = String(selVeh.model || '');
+                const colorClean = String(selVeh.color || '');
+                const catClean = String(selVeh.category || '');
+                h += '<div class="v76-selected-card v76-selected-vehicle">' +
+                  '<div class="v76-sc-head">' +
+                    '<span class="v76-sc-check">✓</span>' +
+                    '<span class="v76-sc-label">已選擇車輛</span>' +
+                    '<button onclick="clearVehicleSelection(' + slotIdx + ')" class="v76-sc-clear-btn">✕ 取消選擇</button>' +
+                  '</div>' +
+                  '<div class="v76-sc-body v76-veh-body-row">' +
+                    '<div class="v76-veh-plate-big">' + plateClean + '</div>' +
+                    '<div class="v76-sc-info">' +
+                      '<div class="v76-sc-name">' + (modelClean || '—') + '</div>' +
+                      '<div class="v76-sc-meta">' +
+                        (catClean ? '<span class="v76-sc-cat">' + catClean + '</span>' : '') +
+                        (colorClean ? '<span class="v76-sc-color">' + colorClean + '</span>' : '') +
+                      '</div>' +
+                    '</div>' +
+                  '</div>' +
                   '</div>';
               }
               // v74: 改 TAB 介面 — 切換 7/10/19 座, 預設訂單需要的類
@@ -5396,7 +5635,7 @@ function renderCarSlot(order, assignment, slotIdx) {
                 h += '<div class="v74-veh-panel ' + (isActive ? 'active' : '') + '" data-cat="' + cat + '">';
                 items.forEach(v => {
                   const isSel = assignment.vehicleId === v.id;
-                  const plateStr = String(v.plate || '?');
+                  const plateStr = v76SanitizePlate(v.plate);
                   const modelStr = String(v.model || '');
                   const colorStr = String(v.color || '');
                   h += '<div class="vehicle-item' + (isSel ? ' selected' : '') + '"' +
@@ -5420,7 +5659,7 @@ function renderCarSlot(order, assignment, slotIdx) {
           <!-- v46: 隱藏 select 保留作為原本邏輯儲存目標（onVehicleChange 等仍可運作） -->
           <select id="vehicleSelect-${slotIdx}" onchange="onVehicleChange(${slotIdx})" style="display:none;">
             <option value="">請選擇車輛...</option>
-            ${VEHICLES.map(v => '<option value="' + v.id + '" ' + (assignment.vehicleId === v.id ? 'selected' : '') + '>' + String(v.plate || '?') + '</option>').join('')}
+            ${VEHICLES.map(v => '<option value="' + v.id + '" ' + (assignment.vehicleId === v.id ? 'selected' : '') + '>' + v76SanitizePlate(v.plate) + '</option>').join('')}
             <option value="__NEW__">__NEW__</option>
           </select>
           <div id="newVehicleBox-${slotIdx}" style="display:none;background:var(--primary-soft);border:1px solid var(--primary);padding:8px;border-radius:6px;margin-top:6px;">
@@ -5434,11 +5673,6 @@ function renderCarSlot(order, assignment, slotIdx) {
               <input class="form-control" id="newVehColor-${slotIdx}" placeholder="顏色" style="font-size:13px;" oninput="onNewVehicleInput(${slotIdx})">
             </div>
           </div>
-          ${history.length ? `
-            <div class="vehicle-recommend">
-              <div class="vr-head">⭐ ${selectedDriver?.name || ''}司機常用車輛</div>
-              <div class="vr-chips">${history.map(h => `<div class="vr-chip" onclick="selectVehicleForSlot(${slotIdx}, '${h.vid}')">${h.plate}<span class="freq">${h.count}次</span></div>`).join('')}</div>
-            </div>` : ''}
         </div>
 
         <div class="form-group">
@@ -7865,39 +8099,18 @@ function v74SwitchVehTab(slotIdx, cat) {
   }
 }
 
-// 選了車/司機 → 自動 collapse picker (只顯示 "已選擇 + 取消" bar)
+// v76: v74AutoCollapseAfterSelect 改為 no-op
+// (用「已選擇司機/車輛」info card 取代藏 picker, 用戶可隨時看到選了誰 + 切換)
 function v74AutoCollapseAfterSelect() {
-  document.querySelectorAll('.car-slot-body').forEach(body => {
-    const assignmentIdx = body.closest('.car-slot')?.dataset?.slotIdx;
-    // 找該 slot 的 driver-picker, vehicle-picker
-    // 若 driver-picker 內最頂 group head 文字含「✓ 已選擇司機」→ 加 collapsed cls
-    const driverHead = body.querySelector('.driver-picker .driver-group-head');
-    const vehicleHead = body.querySelector('.vehicle-picker .veh-group-head');
-    // 個別處理: 若該 picker 第一個 head 是「已選擇」, 隱藏其後內容
-    [driverHead, vehicleHead].forEach((head, i) => {
-      if (head && head.textContent.includes('已選擇')) {
-        // 隱藏這個 head 後面的兄弟元素
-        let next = head.nextElementSibling;
-        while (next) {
-          next.style.display = 'none';
-          next = next.nextElementSibling;
-        }
-      }
-    });
-    // 隱藏 picker 上方的搜尋框 + recent chips section
-    const driverSearch = body.querySelector('input.driver-search-input');
-    if (driverSearch && driverHead && driverHead.textContent.includes('已選擇')) {
-      driverSearch.style.display = 'none';
-      // 隱藏 chips (前一個 sibling)
-      const chipsSection = driverSearch.previousElementSibling;
-      if (chipsSection) chipsSection.style.display = 'none';
-    }
-    const vehicleSearch = body.querySelector('input[id^="vehicleSearch-"]');
-    if (vehicleSearch && vehicleHead && vehicleHead.textContent.includes('已選擇')) {
-      vehicleSearch.style.display = 'none';
-      // 隱藏 tabs bar
-      const tabs = body.querySelector('.v74-veh-tabs');
-      if (tabs) tabs.style.display = 'none';
+  // 改成在已選擇的 slot 自動把 v73 司機 groups 收合, 讓畫面變短
+  document.querySelectorAll('.car-slot').forEach(slot => {
+    const slotBody = slot.querySelector('.car-slot-body');
+    if (!slotBody) return;
+    // 判斷此 slot 是否已選司機 (從 info card 看)
+    const hasDriverCard = slotBody.querySelector('.v76-selected-driver');
+    if (hasDriverCard) {
+      // 把所有 v73-drv-group 強制 collapsed (用戶若要換司機可點開)
+      slotBody.querySelectorAll('.v73-drv-group').forEach(g => g.classList.add('collapsed'));
     }
   });
 }
@@ -7914,6 +8127,24 @@ function v74AutoCollapseAfterSelect() {
 })();
 
 console.log('✅ v74 vehicle tabs + auto-collapse installed');
+
+// ====== v76: 車牌 sanitize (擋 ISO Date 字串 / 空值) ======
+function v76SanitizePlate(plate) {
+  if (plate === undefined || plate === null || plate === '') return '(無)';
+  const s = String(plate).trim();
+  if (!s) return '(無)';
+  // ISO Date: 2026-10-16T16:00:00.000Z
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(s)) return '(資料異常)';
+  // 純數字日期序列 (Excel 序列)
+  if (/^\d{5,6}$/.test(s) && Number(s) > 40000 && Number(s) < 60000) return '(資料異常)';
+  // 日期格式 YYYY/MM/DD
+  if (/^\d{4}\/\d{1,2}\/\d{1,2}$/.test(s)) return '(資料異常)';
+  return s;
+}
+
+console.log('✅ v76 UX fixes installed');
+
+
 
 
 
