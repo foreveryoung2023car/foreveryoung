@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v81</title>
+<title>旅乘派車系統 v82</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -1378,12 +1378,14 @@
     font-family: inherit;
     cursor: pointer;
   }
+  /* v82: 改 flex+wrap, 各 pill 自然寬, 可換行 */
   .dpv38-strip {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 6px;
     padding: 0;
     overflow-x: visible;
+    align-items: stretch;
   }
   /* v38: 強制蓋掉舊 date-pill 樣式，讓行事曆排列 */
   .dpv38-strip .date-pill {
@@ -1393,9 +1395,12 @@
     margin: 0 !important;
   }
   @media (max-width: 480px) {
-    .dpv38-strip { grid-template-columns: repeat(7, 1fr); gap: 3px; }
-    .dpv38-strip .date-pill { padding: 6px 0 !important; }
+    /* v82: 480 以下也用 flex+wrap, 縮 padding */
+    .dpv38-strip { gap: 3px !important; }
+    .dpv38-strip .date-pill { padding: 4px 6px !important; min-width: 44px !important; min-height: 48px !important; }
     .dpv38-strip .date-pill .num { font-size: 14px !important; }
+    .dpv38-strip .date-pill .dow { font-size: 10px !important; }
+    .dpv38-strip .date-pill .badge { font-size: 9px !important; padding: 0 4px !important; }
     .dpv38-quick { width: 100%; margin-left: 0; justify-content: space-between; }
     .dpv38-title { min-width: auto; flex: 1; }
   }
@@ -2497,29 +2502,51 @@
     .v54b-card .v54b-status-big { padding: 3px 10px; font-size: 11px; }
   }
 
-  /* ====== v56: date-pill 一行 inline 排版 ====== */
+  /* ====== v82: date-pill 改直立 (週/數字/badge 上下排), 不再黏在一起 ====== */
   #page-dispatch .dpv38-strip .date-pill {
-    display: inline-flex !important; flex-direction: row !important;
-    align-items: center !important; gap: 6px !important;
-    padding: 8px 10px !important;
+    display: flex !important; flex-direction: column !important;
+    align-items: center !important; gap: 2px !important;
+    padding: 6px 8px !important;
     white-space: nowrap !important;
-    min-height: 36px;
+    min-height: 56px;
+    min-width: 56px;
+    flex: 0 0 auto;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    overflow: visible;
+    text-align: center;
+  }
+  #page-dispatch .dpv38-strip .date-pill:hover {
+    background: var(--primary-soft);
+    transform: translateY(-1px);
   }
   #page-dispatch .dpv38-strip .date-pill .dow {
-    font-size: 12px !important; color: var(--muted); margin: 0 !important;
-    font-weight: 600;
+    font-size: 11px !important; color: var(--muted); margin: 0 !important;
+    font-weight: 600; line-height: 1.2;
   }
   #page-dispatch .dpv38-strip .date-pill .num {
-    font-size: 14px !important; font-weight: 700;
+    font-size: 17px !important; font-weight: 800;
     margin: 0 !important; line-height: 1;
+    font-variant-numeric: tabular-nums;
   }
+  /* badge 改小, 不擠 */
   #page-dispatch .dpv38-strip .date-pill .badge {
-    font-size: 10.5px !important; margin: 0 !important;
-    padding: 1px 7px; border-radius: 8px;
-    background: var(--bg);
+    font-size: 9.5px !important; margin: 2px 0 0 !important;
+    padding: 1px 6px; border-radius: 8px;
+    background: var(--bg); color: var(--muted);
+    font-weight: 700; line-height: 1.4;
+    white-space: nowrap;
+    max-width: 100%;
   }
   #page-dispatch .dpv38-strip .date-pill.has-pending .badge {
     background: var(--warning); color: white !important; font-weight: 700;
+    box-shadow: 0 1px 2px rgba(245,158,11,0.25);
+  }
+  /* 有訂單但無待派 — 中性灰 */
+  #page-dispatch .dpv38-strip .date-pill:not(.has-pending) .badge {
+    background: #E5E7EB; color: #6B7280;
   }
   #page-dispatch .dpv38-strip .date-pill.is-today {
     background: var(--warning-soft);
@@ -3468,6 +3495,70 @@
     font-size: 11px; color: #92400E; margin-top: 6px;
     padding-top: 6px; border-top: 1px dashed rgba(245,158,11,0.4);
     font-style: italic;
+  }
+
+  /* ====================================================== */
+  /* ==========  v82: date-strip RWD 強化  ================ */
+  /* ====================================================== */
+
+  /* month-divider 在 flex 也能斷行 */
+  .dpv38-strip .month-divider {
+    flex: 0 0 100% !important;
+    text-align: left;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    background: var(--bg);
+    border-radius: 4px;
+    margin-top: 4px;
+  }
+
+  /* 桌機 (≥1200px): pill 寬一點 */
+  @media (min-width: 1200px) {
+    #page-dispatch .dpv38-strip .date-pill {
+      min-width: 64px !important;
+    }
+  }
+
+  /* 中型平板 (900-1199): pill 緊一點 */
+  @media (max-width: 1199px) and (min-width: 900px) {
+    #page-dispatch .dpv38-strip .date-pill {
+      min-width: 52px !important;
+      padding: 5px 6px !important;
+    }
+    #page-dispatch .dpv38-strip .date-pill .num { font-size: 15px !important; }
+    #page-dispatch .dpv38-strip .date-pill .badge { font-size: 9px !important; padding: 1px 5px !important; }
+  }
+
+  /* 小平板 (640-899): 換行多 */
+  @media (max-width: 899px) and (min-width: 640px) {
+    #page-dispatch .dpv38-strip .date-pill {
+      min-width: 50px !important;
+      padding: 5px 5px !important;
+      min-height: 50px !important;
+    }
+    #page-dispatch .dpv38-strip .date-pill .num { font-size: 14px !important; }
+    #page-dispatch .dpv38-strip .date-pill .badge { font-size: 9px !important; padding: 1px 4px !important; }
+  }
+
+  /* today / active 狀態保留 */
+  #page-dispatch .dpv38-strip .date-pill.active {
+    background: var(--primary) !important;
+    color: white !important;
+  }
+  #page-dispatch .dpv38-strip .date-pill.active .dow,
+  #page-dispatch .dpv38-strip .date-pill.active .num {
+    color: white !important;
+  }
+  #page-dispatch .dpv38-strip .date-pill.active .badge {
+    background: rgba(255,255,255,0.25) !important;
+    color: white !important;
+  }
+  /* today 紅點仍正常 */
+  #page-dispatch .dpv38-strip .date-pill.is-today {
+    background: var(--warning-soft);
+    border: 1.5px solid var(--warning);
   }
 </style>
 </head>
@@ -8771,6 +8862,7 @@ window.v81FilterChanged = v81FilterChanged;
 window.v81DismissTop = v81DismissTop;
 
 console.log('✅ v81 變動偵測 (前端 hash diff) installed');
+console.log('✅ v82 date-strip RWD 修 (flex+wrap+直立 pill) installed');
 
 
 
