@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v77</title>
+<title>旅乘派車系統 v78</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -561,6 +561,8 @@
     margin-bottom: 12px; overflow: hidden; background: white;
   }
   .car-slot-head {
+    flex-wrap: wrap;
+    row-gap: 6px;
     padding: 10px 12px; background: var(--primary-soft);
     display: flex; justify-content: space-between; align-items: center;
     border-bottom: 1px solid #D1E2F0;
@@ -1485,8 +1487,8 @@
     .stats-row, .stats-block { margin: 10px clamp(16px, 3vw, 32px) !important; }
     .search-bar, .tag-filter-bar { padding-left: clamp(16px, 3vw, 32px) !important; padding-right: clamp(16px, 3vw, 32px) !important; }
     .sheet {
-      /* v39: 平板/桌機 sheet 寬度流式（min/max 之間，依視窗大小） */
-      width: min(680px, 70vw) !important;
+      /* v78: 平板/桌機 sheet 寬度 — 平板 92vw 充分用空間, 桌機封頂 880 */
+      width: min(880px, 92vw) !important;
       max-width: none !important;
       max-height: 88vh !important;
       top: 50%; left: 50%; bottom: auto !important; right: auto !important;
@@ -3133,6 +3135,157 @@
     background: #2563EB;
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(37,99,235,0.3);
+  }
+
+  /* ====================================================== */
+  /* ==========  v78: 平板 + 派車面板 RWD 修  ============== */
+  /* ====================================================== */
+
+  /* fee quick 按鈕 base */
+  .v78-fee-quick-btn {
+    flex: 1 1 calc(50% - 3px);
+    min-width: 0;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  /* ===== 平板 portrait (640-899) + 大平板 (900-1199) 共用 ===== */
+  @media (max-width: 1199px) and (min-width: 640px) {
+
+    /* --- 派車面板整體 padding 緊一點 --- */
+    .sheet-body { padding: 10px 12px 12px !important; }
+    .car-slot-body { padding: 10px !important; }
+
+    /* --- v76 已選擇 info card: 直立 layout, 大頭/車牌縮小 --- */
+    .v76-sc-body { gap: 10px !important; }
+    .v76-sc-avatar .avatar-img,
+    .v76-sc-avatar .avatar-fallback {
+      width: 46px !important; height: 46px !important; font-size: 18px !important;
+    }
+    .v76-sc-name { font-size: 15px !important; }
+    .v76-sc-meta { gap: 4px !important; font-size: 11px !important; }
+    .v76-sc-meta span { padding: 2px 6px !important; }
+
+    /* 車輛大車牌縮一級 */
+    .v76-veh-plate-big {
+      font-size: 19px !important; padding: 8px 12px !important;
+      min-width: 82px !important; border-width: 2px !important;
+    }
+    .v76-selected-vehicle .v76-veh-body-row { gap: 10px !important; }
+
+    /* H 欄代收 pill — 平板換行不擠 */
+    .v76-collect-pill {
+      margin-left: 0 !important; font-size: 10.5px !important;
+      padding: 2px 8px !important;
+    }
+
+    /* --- 多日 banner 字級 --- */
+    .v77-md-status { font-size: 11px !important; padding: 6px 10px !important; }
+    .v77-md-status b { font-size: 12px !important; }
+
+    /* --- day-pick-grid 三欄 ~ 自動 --- */
+    .day-pick-grid {
+      grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)) !important;
+      gap: 6px !important;
+    }
+    .day-pick-item { padding: 7px 9px !important; font-size: 11.5px !important; }
+    .day-pick-item .dp-date { font-size: 12px !important; }
+    .day-pick-item .dp-mmdd { font-size: 10.5px !important; }
+
+    /* --- 車輛 picker tabs 字小一點 --- */
+    .v74-veh-tab { padding: 7px 11px 9px !important; font-size: 12px !important; }
+    .v74-tab-count { font-size: 9.5px !important; padding: 1px 5px !important; }
+
+    /* --- 司機 row 緊湊 --- */
+    .driver-item { padding: 8px 10px !important; gap: 8px !important; }
+    .driver-fee-default { font-size: 10px !important; padding-left: 4px !important; }
+    .driver-name { font-size: 13px !important; }
+
+    /* --- 車輛 row 緊湊 --- */
+    .vehicle-item { padding: 7px 10px !important; gap: 8px !important; }
+    .vehicle-item .vi-plate { font-size: 13px !important; }
+    .vehicle-item .vi-meta { font-size: 11px !important; }
+
+    /* --- raw-msg + 多日 banner 整體緊湊 --- */
+    .raw-msg-body { font-size: 11.5px !important; padding: 8px 10px !important; }
+    .v76-day-key-summary { padding: 8px 10px !important; }
+    .v76-dks-row1 { gap: 6px !important; }
+    .v76-dks-route { font-size: 11px !important; }
+
+    /* --- 「換」按鈕緊湊 --- */
+    .v77-change-btn { padding: 2px 9px !important; font-size: 10.5px !important; }
+    .v76-sc-clear-btn { padding: 2px 9px !important; font-size: 10.5px !important; }
+
+    /* --- 多日 banner gap --- */
+    .v76-selected-card { padding: 8px 10px !important; }
+    .v76-sc-head { padding-bottom: 6px !important; margin-bottom: 6px !important; }
+
+    /* --- 訂單 raw-msg-body 高度給更多 --- */
+    .raw-msg-body { max-height: 200px !important; }
+  }
+
+  /* ===== 平板直立 (640-899) 特化 — 更窄, info card 改成直立堆疊 ===== */
+  @media (max-width: 899px) and (min-width: 640px) {
+    /* 已選 司機 info card: avatar+info 改直立 (空間更窄) */
+    .v76-selected-driver .v76-sc-body {
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 8px !important;
+    }
+    .v76-selected-driver .v76-sc-avatar .avatar-img,
+    .v76-selected-driver .v76-sc-avatar .avatar-fallback {
+      width: 40px !important; height: 40px !important; font-size: 16px !important;
+    }
+    /* 車輛 info card 也直立 */
+    .v76-selected-vehicle .v76-sc-body {
+      flex-direction: row !important;
+      flex-wrap: wrap !important;
+      gap: 8px !important;
+    }
+    .v76-veh-plate-big {
+      font-size: 17px !important; padding: 6px 10px !important; min-width: 70px !important;
+    }
+    /* day-pick-grid: 2 欄 */
+    .day-pick-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+    /* car-slot-head H 代收 pill 縮到下一行 */
+    .car-slot-head { align-items: flex-start !important; }
+    .v76-collect-pill { display: block !important; margin-top: 4px !important; width: fit-content; }
+  }
+
+  /* ===== 大平板 (900-1199) 細修: 派車 sheet 居中時不要擠到右欄 ===== */
+  @media (max-width: 1199px) and (min-width: 900px) {
+    /* sheet 寬度: 比 sheet-mask 浮現時, 留個邊 */
+    .sheet { width: min(720px, 88vw) !important; }
+  }
+
+  /* ===== 手機 (≤640) 也順手把新元素縮一下 ===== */
+  @media (max-width: 640px) {
+    .v76-sc-body { gap: 8px !important; flex-wrap: wrap !important; }
+    .v76-sc-avatar .avatar-img,
+    .v76-sc-avatar .avatar-fallback {
+      width: 42px !important; height: 42px !important; font-size: 17px !important;
+    }
+    .v76-sc-name { font-size: 14px !important; }
+    .v76-veh-plate-big {
+      font-size: 16px !important; padding: 6px 10px !important;
+      min-width: 64px !important; letter-spacing: 0.5px !important;
+    }
+    .day-pick-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+    .v76-collect-pill {
+      margin-left: 0 !important; margin-top: 4px !important;
+      display: inline-block !important; font-size: 10px !important;
+    }
+    .car-slot-head { align-items: flex-start !important; }
+    /* 「換」/「取消選擇」按鈕在手機上更小 */
+    .v77-change-btn, .v76-sc-clear-btn { padding: 2px 8px !important; font-size: 10px !important; }
+    /* fee 雙按鈕在手機強制 wrap */
+    .v78-fee-quick-btn { font-size: 11px !important; padding: 5px 8px !important; }
+    .v76-day-key-summary { font-size: 11px !important; }
   }
 </style>
 </head>
@@ -5749,8 +5902,8 @@ function renderCarSlot(order, assignment, slotIdx) {
           </div>
           <!-- v35: 一鍵帶入快捷按鈕 -->
           <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
-            <button type="button" onclick="setFeeQuick(${slotIdx}, ${order.driverFee || 0})" style="flex:1;min-width:140px;background:var(--primary-soft);color:var(--primary);border:1px solid var(--primary);padding:6px 10px;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;">📋 帶入訂單原費 ¥${(order.driverFee || 0).toLocaleString()}</button>
-            ${selectedDriver ? `<button type="button" onclick="setFeeQuick(${slotIdx}, ${(selectedDriver.defaultFeeDay ?? selectedDriver.defaultFee ?? 0)})" style="flex:1;min-width:140px;background:#FEF3C7;color:#92400E;border:1px solid #F59E0B;padding:6px 10px;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;">💰 帶入司機預設 ¥${(selectedDriver.defaultFeeDay ?? selectedDriver.defaultFee ?? 0).toLocaleString()}</button>` : ''}
+            <button type="button" onclick="setFeeQuick(${slotIdx}, ${order.driverFee || 0})" class="v78-fee-quick-btn" style="background:var(--primary-soft);color:var(--primary);border:1px solid var(--primary);padding:6px 10px;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;">📋 帶入訂單原費 ¥${(order.driverFee || 0).toLocaleString()}</button>
+            ${selectedDriver ? `<button type="button" onclick="setFeeQuick(${slotIdx}, ${(selectedDriver.defaultFeeDay ?? selectedDriver.defaultFee ?? 0)})" class="v78-fee-quick-btn" style="background:#FEF3C7;color:#92400E;border:1px solid #F59E0B;padding:6px 10px;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;">💰 帶入司機預設 ¥${(selectedDriver.defaultFeeDay ?? selectedDriver.defaultFee ?? 0).toLocaleString()}</button>` : ''}
           </div>
           <div class="fee-step-hint">每按一次 ±¥1,000</div>
         </div>
@@ -8276,6 +8429,7 @@ function v76SanitizePlate(plate) {
 
 console.log('✅ v76 UX fixes installed');
 console.log('✅ v77 多日狀態 + 收合 + 換鈕 + 派後快取 installed');
+console.log('✅ v78 平板 RWD 全面修 installed');
 
 
 
