@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v83</title>
+<title>旅乘派車系統 v84</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -2543,36 +2543,51 @@
     .v54b-card .v54b-status-big { padding: 3px 10px; font-size: 11px; }
   }
 
-  /* ====== v82/v83: date-pill 直立 + scroll-snap ====== */
+  /* ====== v82/v83/v84: date-pill 直立 + corner badge ====== */
   #page-dispatch .dpv38-strip .date-pill {
     display: flex !important; flex-direction: column !important;
-    align-items: center !important; gap: 2px !important;
-    padding: 6px 8px !important;
+    align-items: center !important; justify-content: center !important;
+    gap: 1px !important;
+    padding: 8px 4px !important;
     white-space: nowrap !important;
-    min-height: 56px;
-    min-width: 58px;
-    flex: 0 0 auto;
-    border-radius: 8px;
+    min-height: 56px !important;
+    /* v84: 固定 54px 寬 */
+    width: 54px !important;
+    min-width: 54px !important;
+    max-width: 54px !important;
+    flex: 0 0 54px !important;
+    border-radius: 10px;
     cursor: pointer;
     transition: all 0.15s;
     position: relative;
     overflow: visible;
     text-align: center;
     scroll-snap-align: start;
-    border: 1.5px solid transparent;
+    border: 1.5px solid var(--border);
+    background: white;
+  }
+  #page-dispatch .dpv38-strip .date-pill:hover {
+    border-color: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.06);
   }
   #page-dispatch .dpv38-strip .date-pill:hover {
     background: var(--primary-soft);
     transform: translateY(-1px);
   }
   #page-dispatch .dpv38-strip .date-pill .dow {
-    font-size: 11px !important; color: var(--muted); margin: 0 !important;
-    font-weight: 600; line-height: 1.2;
+    font-size: 13px !important; color: var(--muted); margin: 0 !important;
+    font-weight: 600; line-height: 1.1;
+  }
+  /* 今/明 強調色 */
+  #page-dispatch .dpv38-strip .date-pill.is-today .dow {
+    color: #92400E; font-weight: 800;
   }
   #page-dispatch .dpv38-strip .date-pill .num {
-    font-size: 17px !important; font-weight: 800;
-    margin: 0 !important; line-height: 1;
+    font-size: 20px !important; font-weight: 800;
+    margin: 0 !important; line-height: 1.1;
     font-variant-numeric: tabular-nums;
+    color: var(--text);
   }
   /* badge 改小, 不擠 */
   #page-dispatch .dpv38-strip .date-pill .badge {
@@ -3607,6 +3622,93 @@
   /* v83: 確保所有 viewport 都 nowrap (避免任何 wrap 設定覆蓋) */
   @media (min-width: 1px) {
     .dpv38-strip { flex-wrap: nowrap !important; }
+  }
+
+  /* ====================================================== */
+  /* ==========  v84: date-pill corner badge  ============= */
+  /* ====================================================== */
+  .v84-corner-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: #6B7280;
+    color: white;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 18px;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    z-index: 2;
+    font-variant-numeric: tabular-nums;
+    border: 1.5px solid white;
+    box-sizing: content-box;
+  }
+  /* 有待派 — 橘色, 加 pulse */
+  .v84-corner-badge.pending {
+    background: linear-gradient(135deg, #F59E0B, #EA580C);
+    animation: v84CornerPulse 2s ease-in-out infinite;
+  }
+  @keyframes v84CornerPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+  /* 有訂單但無待派 — 灰色 */
+  .v84-corner-badge.has-orders {
+    background: #94A3B8;
+  }
+
+  /* 今日 highlight: 暖色背景 + 邊框 */
+  #page-dispatch .dpv38-strip .date-pill.is-today {
+    background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%) !important;
+    border-color: #F59E0B !important;
+  }
+
+  /* active (選中): 藍底 */
+  #page-dispatch .dpv38-strip .date-pill.active {
+    background: var(--primary) !important;
+    border-color: var(--primary-dark, #1d4ed8) !important;
+  }
+  #page-dispatch .dpv38-strip .date-pill.active .dow,
+  #page-dispatch .dpv38-strip .date-pill.active .num {
+    color: white !important;
+  }
+  #page-dispatch .dpv38-strip .date-pill.active .v84-corner-badge {
+    border-color: var(--primary);
+  }
+  /* active + today: 藍底+邊還是橘 */
+  #page-dispatch .dpv38-strip .date-pill.active.is-today {
+    background: var(--primary) !important;
+    border-color: #F59E0B !important;
+    box-shadow: 0 0 0 2px rgba(245,158,11,0.3);
+  }
+
+  /* past 訂單 — 淡化 */
+  #page-dispatch .dpv38-strip .date-pill.past {
+    opacity: 0.55;
+  }
+  #page-dispatch .dpv38-strip .date-pill.past:hover {
+    opacity: 0.85;
+  }
+
+  /* 滑動提示文字 */
+  .v84-scroll-hint {
+    text-align: center;
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 4px;
+    user-select: none;
+    pointer-events: none;
+    letter-spacing: 1px;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+  }
+  /* 桌機看不到 scroll, 提示 fade out */
+  .v83-strip-wrap.scroll-at-start.scroll-at-end + .v84-scroll-hint {
+    opacity: 0;
   }
 </style>
 </head>
@@ -5332,12 +5434,16 @@ function _renderDateStripBody() {
 
   const html = visible.map((d, i) => {
     const monthChange = i > 0 && d.month !== visible[i-1].month;
-    const dowLabel = d.isToday ? '今日' : (d.isTomorrow ? '明日' : '週' + d.dow);
+    // v84: 週幾改單字 (今/明 強調, 其他 一/二/三/四/五/六/日)
+    const dowLabel = d.isToday ? '今' : (d.isTomorrow ? '明' : d.dow);
+    // v84: badge 改 corner pill — 只顯示數字, 有待派橘色, 否則隱藏
+    const cornerBadge = d.pending > 0 ? `<span class="v84-corner-badge pending">${d.pending}</span>`
+                      : (d.total > 0 ? `<span class="v84-corner-badge has-orders">${d.total}</span>` : '');
     return (monthChange ? `<div class="month-divider">${d.month}月</div>` : '') +
     `<div class="date-pill ${d.key === state.currentDate ? 'active' : ''} ${d.pending > 0 ? 'has-pending' : ''} ${d.isPast ? 'past' : ''} ${d.isToday ? 'is-today' : ''}" onclick="selectDate('${d.key}')" data-date="${d.key}">
+      ${cornerBadge}
       <div class="dow">${dowLabel}</div>
       <div class="num">${d.day}</div>
-      <div class="badge">${d.pending > 0 ? '待派 ' + d.pending : (d.total > 0 ? d.total + '趟' : '無')}</div>
     </div>`;
   }).join('');
   document.getElementById('dateStrip').innerHTML = html;
@@ -8912,6 +9018,31 @@ window.v81DismissTop = v81DismissTop;
 console.log('✅ v81 變動偵測 (前端 hash diff) installed');
 console.log('✅ v82 date-strip RWD 修 (flex+wrap+直立 pill) installed');
 console.log('✅ v83 date-strip 單行橫向滑動 installed');
+console.log('✅ v84 date-pill 視覺對齊 demo installed');
+
+// ====== v84: 加底部「← 可左右滑動 →」提示 ======
+(function v84AddScrollHint(){
+  function init() {
+    const strip = document.getElementById('dateStrip');
+    if (!strip) { setTimeout(init, 200); return; }
+    const wrap = strip.closest('.v83-strip-wrap');
+    if (!wrap) { setTimeout(init, 200); return; }
+    // 加 hint (若還沒加)
+    if (wrap.nextElementSibling?.classList?.contains('v84-scroll-hint')) return;
+    const hint = document.createElement('div');
+    hint.className = 'v84-scroll-hint';
+    hint.textContent = '← 可左右滑動 →';
+    wrap.parentNode.insertBefore(hint, wrap.nextSibling);
+    console.log('✅ v84 scroll hint added');
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(init, 500));
+  } else {
+    setTimeout(init, 500);
+  }
+})();
+
+
 
 // ====== v83: date-strip 橫向滑動指示 ======
 (function v83InitStripScroll(){
