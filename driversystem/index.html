@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v86</title>
+<title>旅乘派車系統 v87</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -3815,6 +3815,80 @@
       width: 32px !important; height: 22px !important;
     }
   }
+
+  /* ====================================================== */
+  /* ==========  v87: 衝突司機主清單 + 禁用樣式  ========== */
+  /* ====================================================== */
+  .v87-conflict-group {
+    margin-top: 6px;
+    border: 1px solid #FCA5A5;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .v87-conflict-group[data-grp="off"] {
+    border-color: #D1D5DB;
+  }
+  .v87-conflict-head {
+    background: #FEE2E2 !important;
+    color: #991B1B !important;
+    padding: 6px 10px !important;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .v87-conflict-group[data-grp="off"] .v87-conflict-head {
+    background: #F3F4F6 !important;
+    color: #6B7280 !important;
+  }
+  .v87-disabled-body .driver-item {
+    background: #FEF2F2 !important;
+    opacity: 0.7;
+    cursor: not-allowed !important;
+    position: relative;
+  }
+  .v87-conflict-group[data-grp="off"] .v87-disabled-body .driver-item {
+    background: #F9FAFB !important;
+  }
+  .v87-disabled-body .driver-item .driver-name {
+    text-decoration: line-through;
+    color: #991B1B;
+  }
+  .v87-conflict-group[data-grp="off"] .v87-disabled-body .driver-item .driver-name {
+    color: #6B7280;
+  }
+  .v87-disabled-body .driver-item:hover {
+    background: #FECACA !important;
+    opacity: 0.85;
+  }
+  .v87-conflict-group[data-grp="off"] .v87-disabled-body .driver-item:hover {
+    background: #E5E7EB !important;
+  }
+  /* 在 disabled 司機 row 上加禁用 icon (右上角) */
+  .v87-disabled-body .driver-item::after {
+    content: '✕';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #DC2626;
+    color: white;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+  }
+  .v87-conflict-group[data-grp="off"] .v87-disabled-body .driver-item::after {
+    background: #6B7280;
+    content: '休';
+    font-size: 9px;
+  }
 </style>
 </head>
 <body>
@@ -6296,9 +6370,9 @@ function renderCarSlot(order, assignment, slotIdx) {
             ${groups.available.length ? `<div class="v73-drv-group" data-grp="available"><div class="driver-group-head v73-toggleable" onclick="v73ToggleDrvGroup(this.parentElement)"><span><span class="gh-dot av"></span>可派車</span><span style="display:flex;align-items:center;gap:6px;"><span class="vgh-count" style="background:#D1FAE5;color:#065F46;">${groups.available.length}</span><span class="v72-toggle-arrow">▼</span></span></div><div class="v73-drv-body">${groups.available.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}</div></div>` : ''}
             ${groups.partial.length ? `<div class="v73-drv-group collapsed" data-grp="partial"><div class="driver-group-head v73-toggleable" onclick="v73ToggleDrvGroup(this.parentElement)"><span><span class="gh-dot partial"></span>同日有班次但時段不衝突</span><span style="display:flex;align-items:center;gap:6px;"><span class="vgh-count" style="background:#FEF3C7;color:#92400E;">${groups.partial.length}</span><span class="v72-toggle-arrow">▼</span></span></div><div class="v73-drv-body">${groups.partial.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}</div></div>` : ''}
             ${groups.daytripWarn.length ? `<div class="v73-drv-group collapsed" data-grp="daytrip"><div class="driver-group-head v73-toggleable" onclick="v73ToggleDrvGroup(this.parentElement)"><span><span class="gh-dot daytrip"></span>同日有一日遊/多日</span><span style="display:flex;align-items:center;gap:6px;"><span class="vgh-count" style="background:#DBEAFE;color:#1E40AF;">${groups.daytripWarn.length}</span><span class="v72-toggle-arrow">▼</span></span></div><div class="v73-drv-body">${groups.daytripWarn.map(g => renderDriverRow(g, slotIdx, assignment.driverId, false, order)).join('')}</div></div>` : ''}
-            ${groups.busy.length ? `<details style="margin-top:6px;"><summary style="cursor:pointer;padding:6px 10px;background:var(--danger-soft);border-radius:6px;font-size:12px;font-weight:600;color:var(--danger);">⚠ 時段衝突無法派車（${groups.busy.length}）</summary>${groups.busy.map(g => renderDriverRow(g, slotIdx, assignment.driverId, true, order)).join('')}</details>` : ''}
-            ${groups.used.length ? `<details style="margin-top:6px;"><summary style="cursor:pointer;padding:6px 10px;background:#FEE2E2;border-radius:6px;font-size:12px;font-weight:600;color:#991B1B;">🚫 已被本訂單其他車指派（${groups.used.length}）</summary>${groups.used.map(g => renderDriverRow(g, slotIdx, assignment.driverId, true, order)).join('')}</details>` : ''}
-            ${groups.off.length ? `<details style="margin-top:6px;"><summary style="cursor:pointer;padding:6px 10px;background:var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--muted);">🛏 休假中（${groups.off.length}） — 點開展開</summary>${groups.off.map(g => renderDriverRow(g, slotIdx, assignment.driverId, true, order)).join('')}</details>` : ''}
+            ${groups.busy.length ? `<div class="v73-drv-group v87-conflict-group" data-grp="busy"><div class="driver-group-head v87-conflict-head"><span><span class="gh-dot" style="background:#DC2626;"></span>⚠ 時段衝突無法派車</span><span class="vgh-count" style="background:#FEE2E2;color:#991B1B;">${groups.busy.length}</span></div><div class="v73-drv-body v87-disabled-body">${groups.busy.map(g => renderDriverRow(g, slotIdx, assignment.driverId, true, order)).join('')}</div></div>` : ''}
+            ${groups.used.length ? `<div class="v73-drv-group v87-conflict-group" data-grp="used"><div class="driver-group-head v87-conflict-head"><span><span class="gh-dot" style="background:#7F1D1D;"></span>🚫 已被本訂單其他車指派</span><span class="vgh-count" style="background:#FEE2E2;color:#7F1D1D;">${groups.used.length}</span></div><div class="v73-drv-body v87-disabled-body">${groups.used.map(g => renderDriverRow(g, slotIdx, assignment.driverId, true, order)).join('')}</div></div>` : ''}
+            ${groups.off.length ? `<div class="v73-drv-group v87-conflict-group collapsed" data-grp="off"><div class="driver-group-head v87-conflict-head v73-toggleable" onclick="v73ToggleDrvGroup(this.parentElement)"><span><span class="gh-dot" style="background:#9CA3AF;"></span>🛏 休假中</span><span style="display:flex;align-items:center;gap:6px;"><span class="vgh-count" style="background:#E5E7EB;color:#6B7280;">${groups.off.length}</span><span class="v72-toggle-arrow">▼</span></span></div><div class="v73-drv-body v87-disabled-body">${groups.off.map(g => renderDriverRow(g, slotIdx, assignment.driverId, true, order)).join('')}</div></div>` : ''}
           </div>
         </div>
 
@@ -6331,8 +6405,7 @@ function renderCarSlot(order, assignment, slotIdx) {
                     '<button onclick="clearVehicleSelection(' + slotIdx + ')" class="v76-sc-clear-btn">✕ 取消選擇</button>' +
                   '</div>' +
                   '<div class="v76-sc-body v76-veh-body-row">' +
-                    /* v85: 加大車型圖 */
-                    '<div class="v85-veh-photo-big">' + v85GetVehiclePhotoHtml(selVeh, 'lg') + '</div>' +
+                    /* v87: 拿掉大圖 */
                     '<div class="v76-veh-plate-big">' + plateClean + '</div>' +
                     '<div class="v76-sc-info">' +
                       '<div class="v76-sc-name">' + (modelClean || '—') + '</div>' +
@@ -6385,8 +6458,7 @@ function renderCarSlot(order, assignment, slotIdx) {
                     ' data-model="' + modelStr.toLowerCase() + '"' +
                     ' onclick="selectVehicleForSlotV46(' + slotIdx + ', \'' + v.id + '\')">' +
                     '<div class="vi-radio"></div>' +
-                    /* v85: 加車型小圖 */
-                    '<div class="v85-vi-thumb">' + v85GetVehiclePhotoHtml(v, 'sm') + '</div>' +
+                    /* v87: 拿掉小圖 */
                     '<div class="vi-plate">' + plateStr + '</div>' +
                     '<div class="vi-meta">' + (modelStr ? '<span class="vi-model">' + modelStr + '</span>' : '<span style="color:var(--muted);">—</span>') + (colorStr ? '<span class="vi-color">(' + colorStr + ')</span>' : '') + '</div>' +
                     '<div class="vi-cat-chip">' + cat + '</div>' +
@@ -6736,11 +6808,28 @@ function filterVehiclePickerV46(slotIdx, query) {
   });
 }
 
-function selectVehicleForSlotV46(slotIdx, vid) {
+async function selectVehicleForSlotV46(slotIdx, vid) {
+  // v87: 加座位數警告 (對齊 v65 邏輯, hook v74 TAB 新版 picker)
+  const o = state.editingOrder && state.editingOrder.data;
+  const vehicle = VEHICLES.find(v => v.id === vid);
+  if (o && vehicle && typeof v65ParseRequiredSeats === 'function' && typeof v65Modal === 'function') {
+    const required = v65ParseRequiredSeats(o.carType);
+    if (required > 0 && vehicle.seat && vehicle.seat < required) {
+      const choice = await v65Modal({
+        icon: '⚠️',
+        title: '車款座位不足',
+        msg: '訂單需要 <strong>' + required + ' 座</strong>（' + (o.carType || '') + '），<br>但這台車「' + (vehicle.plate || '?') + ' ' + (vehicle.model || '') + '」只有 <strong>' + vehicle.seat + ' 座</strong>。<br><br>客人可能會坐不下，確定要派這台？',
+        buttons: [
+          { label: '取消，選別台', cls: 'v65-btn-cancel' },
+          { label: '我知道，照樣派', cls: 'v65-btn-confirm' }
+        ]
+      });
+      if (choice !== 1) return;
+    }
+  }
   state.editingAssignments[slotIdx].vehicleId = vid;
   const sel = document.getElementById('vehicleSelect-' + slotIdx);
   if (sel) sel.value = vid;
-  // 重渲整個 slot 才能反映 selected 樣式 + ✓
   renderCarSlots();
 }
 
@@ -6835,8 +6924,14 @@ function renderFullOrderTimeline(currentO) {
   // 訂單基本資訊 header
   html += '<div style="background:white;border:1px solid var(--border);border-radius:6px;padding:10px 12px;margin-bottom:10px;font-size:12.5px;line-height:1.6;">';
   html += '<div style="font-weight:700;color:var(--primary);font-size:13px;margin-bottom:4px;">訂單：' + (orderHead.no || '') + '</div>';
-  if (orderHead.leader || orderHead.leaderName) html += '<div><strong>姓名：</strong>' + (orderHead.leaderName || orderHead.leader || '') + (orderHead.source ? ' - ' + orderHead.source : '') + '</div>';
-  if (orderHead.pax && orderHead.pax.raw) html += '<div><strong>成人：</strong>' + orderHead.pax.raw + '</div>';
+  // v87: 姓名顯示訂購人 (customerName 優先), 不再串 source
+  const v87CustName = orderHead.customerName || orderHead.leaderName || orderHead.leader || '';
+  if (v87CustName) html += '<div><strong>姓名：</strong>' + v87CustName + (orderHead.source ? ' <span style="font-size:11px;color:var(--muted);">(' + orderHead.source + ')</span>' : '') + '</div>';
+  // v87: 人數改 X 大 X 小 格式 (用 formatPax)
+  if (orderHead.pax && (orderHead.pax.adult || orderHead.pax.child || orderHead.pax.raw)) {
+    const v87PaxStr = (typeof formatPax === 'function' && (orderHead.pax.adult || orderHead.pax.child)) ? formatPax(orderHead.pax) : (orderHead.pax.raw || '');
+    if (v87PaxStr) html += '<div><strong>人數：</strong>' + v87PaxStr + '</div>';
+  }
   if (orderHead.luggage) html += '<div><strong>行李：</strong>' + orderHead.luggage + '</div>';
   if (orderHead.carSeat) html += '<div><strong>汽座：</strong>' + orderHead.carSeat + '</div>';
   html += '</div>';
@@ -8202,7 +8297,7 @@ function v49BuildDetailHTML(o, opts) {
     }
     h += '</div>';
   }
-  if (_pax) h += '<div class="wb-kv-row"><span class="k">人數</span><span class="v">' + (_pax.raw || ((_pax.adult||0) + '人')) + '</span></div>';
+  if (_pax) h += '<div class="wb-kv-row"><span class="k">人數</span><span class="v">' + ((typeof formatPax === 'function' && (_pax.adult || _pax.child)) ? formatPax(_pax) : (_pax.raw || ((_pax.adult||0) + '人'))) + '</span></div>';
   if (_requireLang && _requireLang.length) h += '<div class="wb-kv-row"><span class="k">語言</span><span class="v">' + _requireLang.join('/') + '</span></div>';
   if (_luggage) h += '<div class="wb-kv-row"><span class="k">行李</span><span class="v">' + _luggage + '</span></div>';
   if (_carSeat || _carSeatCount) h += '<div class="wb-kv-row"><span class="k">汽座</span><span class="v">' + (_carSeat || ('需 ' + _carSeatCount + ' 個')) + '</span></div>';
@@ -8764,11 +8859,29 @@ function v66UpdateConfirmBtnState() {
         else if (line.includes('🎉') || line.includes('⚠')) modalMsg += '<div style="font-weight:700;padding:6px 0;border-bottom:1px solid #eee;margin-bottom:6px;">' + line + '</div>';
         else modalMsg += '<div style="padding:2px 0;">' + line + '</div>';
       });
+      // v87: 派車成功時找下一張待派, 加「繼續派下一張」按鈕
+      const v87NextOrder = isOk ? v87FindNextPending() : null;
+      const v87Buttons = isOk
+        ? (v87NextOrder
+            ? [
+                { label: '✕ 關閉', cls: 'v65-btn-alt' },
+                { label: '➡ 繼續派下一張 (' + (v87NextOrder.no || '?') + ')', cls: 'v65-btn-confirm' }
+              ]
+            : [{ label: '✅ 全部派完了, 關閉', cls: 'v65-btn-alt' }])
+        : [{ label: '關閉', cls: 'v65-btn-cancel' }];
       v65Modal({
         icon: isOk ? '✅' : '⚠️',
         title: isOk ? '派車完成' : '部分派車失敗',
         msg: '<div style="font-family:ui-monospace,monospace;font-size:12px;max-height:300px;overflow-y:auto;">' + modalMsg + '</div>',
-        buttons: [{ label: '關閉', cls: isOk ? 'v65-btn-alt' : 'v65-btn-cancel' }]
+        buttons: v87Buttons
+      }).then(choice => {
+        if (isOk && v87NextOrder && choice === 1) {
+          // 開下一張
+          setTimeout(() => {
+            if (typeof openEditorByNo === 'function') openEditorByNo(v87NextOrder.no);
+            else if (typeof openEditor === 'function') openEditor(v87NextOrder);
+          }, 200);
+        }
       });
     }
   };
@@ -9187,6 +9300,59 @@ window.v85GetVehiclePhotoUrl = v85GetVehiclePhotoUrl;
 
 console.log('✅ v85 vehicle photo system installed (model→URL→SVG fallback)');
 console.log('✅ v86 修 SVG fallback btoa 中文 bug (encodeURIComponent + window 掛載) installed');
+
+
+// ====== v87: 找下一張待派訂單 ======
+function v87FindNextPending() {
+  if (!ORDERS || !ORDERS.tomorrow) return null;
+  const current = state.editingOrder && state.editingOrder.data;
+  const currentDate = current ? current.date : null;
+  const currentNo = current ? current.no : null;
+  // 先找今天 (含當前訂單後面的), 再找未來的
+  const pending = ORDERS.tomorrow.filter(o => o.status === 'pending');
+  if (pending.length === 0) return null;
+  // 排序: 日期 asc, 時間 asc
+  pending.sort((a, b) => {
+    if (a.date !== b.date) return a.date.localeCompare(b.date);
+    return String(a.start || '').localeCompare(String(b.start || ''));
+  });
+  // 找「比當前晚」的第一張
+  if (currentDate && currentNo) {
+    const later = pending.find(o => {
+      if (o.no === currentNo && o.date === currentDate) return false;
+      if (o.date > currentDate) return true;
+      if (o.date === currentDate && String(o.start || '') > String(current.start || '')) return true;
+      return false;
+    });
+    if (later) return later;
+  }
+  // 否則回第一張 pending (不是當前)
+  return pending.find(o => !(o.no === currentNo && o.date === currentDate)) || null;
+}
+window.v87FindNextPending = v87FindNextPending;
+
+// ====== v87: 衝突司機點擊提示 (即使禁用也可看) ======
+(function(){
+  document.addEventListener('click', function(e){
+    const item = e.target.closest('.v87-disabled-body .driver-item');
+    if (!item) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const name = item.dataset.driverName || item.querySelector('.driver-name')?.textContent || '司機';
+    const grp = item.closest('.v87-conflict-group');
+    const grpType = grp?.dataset?.grp;
+    const msgMap = {
+      busy: '⚠ ' + name + ' 在此時段有衝突的派車紀錄, 無法選擇.\n若仍要強制指派, 請先到該日修改原派車.',
+      used: '🚫 ' + name + ' 已被本訂單的其他車輛指派.\n同一訂單同一天不可重複派同一司機.',
+      off: '🛏 ' + name + ' 今日休假.\n若要派車, 請先到「司機管理」修改休假狀態.'
+    };
+    alert(msgMap[grpType] || '此司機無法選擇.');
+  }, true);
+})();
+
+console.log('✅ v87 UX 修 (姓名/人數/衝突主清單/座位警告 V46/繼續派下一張) installed');
+
+
 
 
 
