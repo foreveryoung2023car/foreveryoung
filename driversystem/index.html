@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v84</title>
+<title>旅乘派車系統 v85</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -3710,6 +3710,111 @@
   .v83-strip-wrap.scroll-at-start.scroll-at-end + .v84-scroll-hint {
     opacity: 0;
   }
+
+  /* ====================================================== */
+  /* ==========  v85: 出發地 + 車型圖  ==================== */
+  /* ====================================================== */
+
+  /* 出發地 row (在 summary 內) */
+  .v85-dks-from {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(59, 130, 246, 0.08);
+    border-left: 3px solid #3B82F6;
+    padding: 5px 9px;
+    border-radius: 4px;
+    margin: 4px 0 6px;
+    font-size: 11.5px;
+    color: #1E3A8A;
+    line-height: 1.4;
+  }
+  .v85-from-icon { font-size: 13px; }
+  .v85-from-label {
+    background: #3B82F6;
+    color: white;
+    padding: 0 6px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1.6;
+  }
+  .v85-from-addr {
+    color: #1E3A8A;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* 車型小圖 (vehicle-item) */
+  .v85-vi-thumb {
+    width: 42px;
+    height: 28px;
+    flex-shrink: 0;
+    border-radius: 5px;
+    overflow: hidden;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .v85-vp-sm {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .v85-no-photo {
+    font-size: 18px;
+    opacity: 0.6;
+  }
+
+  /* 車型大圖 (info card) */
+  .v85-veh-photo-big {
+    width: 110px;
+    height: 70px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+    border: 2px solid #047857;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .v85-vp-lg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* 平板 RWD: 大圖縮小 */
+  @media (max-width: 1199px) and (min-width: 640px) {
+    .v85-veh-photo-big {
+      width: 90px !important; height: 58px !important;
+    }
+    .v85-vi-thumb {
+      width: 36px !important; height: 24px !important;
+    }
+  }
+  @media (max-width: 899px) and (min-width: 640px) {
+    .v85-veh-photo-big {
+      width: 80px !important; height: 52px !important;
+    }
+  }
+  @media (max-width: 640px) {
+    .v85-veh-photo-big {
+      width: 70px !important; height: 46px !important;
+    }
+    .v85-vi-thumb {
+      width: 32px !important; height: 22px !important;
+    }
+  }
 </style>
 </head>
 <body>
@@ -6000,6 +6105,7 @@ function openEditor(idx) {
         const cust = v63GetCell(o, '客人姓名') || o.customerName || '';
         const dayLbl = o._multiDayIndex ? ('Day ' + o._multiDayIndex) : '';
         const route = String(o.to || o.route || '').replace(/[→>＞]/g, ' › ').trim();
+        const fromLoc = String(o.from || '').trim();
         const tStart = (o.start || o.time || '').slice(0,5);
         const fee = o.driverFee ? '¥' + Number(o.driverFee).toLocaleString() : '';
         const collect = parseFloat(v63GetCell(o, '司機代收')) || 0;
@@ -6010,6 +6116,8 @@ function openEditor(idx) {
             (cust ? '<span class="v76-dks-cust">👤 ' + cust + '</span>' : '') +
             (dayLbl ? '<span class="v76-dks-day">' + dayLbl + ' · ' + (o.date || '').slice(5) + (tStart ? ' ' + tStart : '') + '</span>' : '<span class="v76-dks-day">' + (o.date || '').slice(5) + (tStart ? ' ' + tStart : '') + '</span>') +
           '</div>' +
+          /* v85: 加出發地 */
+          (fromLoc ? '<div class="v85-dks-from"><span class="v85-from-icon">🚗</span><span class="v85-from-label">起</span><span class="v85-from-addr">' + fromLoc + '</span></div>' : '') +
           (route ? '<div class="v76-dks-route">📍 ' + route + '</div>' : '') +
           '<div class="v76-dks-row3">' +
             (fee ? '<span class="v76-dks-fee">司機費 ' + fee + '</span>' : '') +
@@ -6223,6 +6331,8 @@ function renderCarSlot(order, assignment, slotIdx) {
                     '<button onclick="clearVehicleSelection(' + slotIdx + ')" class="v76-sc-clear-btn">✕ 取消選擇</button>' +
                   '</div>' +
                   '<div class="v76-sc-body v76-veh-body-row">' +
+                    /* v85: 加大車型圖 */
+                    '<div class="v85-veh-photo-big">' + v85GetVehiclePhotoHtml(selVeh, 'lg') + '</div>' +
                     '<div class="v76-veh-plate-big">' + plateClean + '</div>' +
                     '<div class="v76-sc-info">' +
                       '<div class="v76-sc-name">' + (modelClean || '—') + '</div>' +
@@ -6275,6 +6385,8 @@ function renderCarSlot(order, assignment, slotIdx) {
                     ' data-model="' + modelStr.toLowerCase() + '"' +
                     ' onclick="selectVehicleForSlotV46(' + slotIdx + ', \'' + v.id + '\')">' +
                     '<div class="vi-radio"></div>' +
+                    /* v85: 加車型小圖 */
+                    '<div class="v85-vi-thumb">' + v85GetVehiclePhotoHtml(v, 'sm') + '</div>' +
                     '<div class="vi-plate">' + plateStr + '</div>' +
                     '<div class="vi-meta">' + (modelStr ? '<span class="vi-model">' + modelStr + '</span>' : '<span style="color:var(--muted);">—</span>') + (colorStr ? '<span class="vi-color">(' + colorStr + ')</span>' : '') + '</div>' +
                     '<div class="vi-cat-chip">' + cat + '</div>' +
@@ -9019,6 +9131,57 @@ console.log('✅ v81 變動偵測 (前端 hash diff) installed');
 console.log('✅ v82 date-strip RWD 修 (flex+wrap+直立 pill) installed');
 console.log('✅ v83 date-strip 單行橫向滑動 installed');
 console.log('✅ v84 date-pill 視覺對齊 demo installed');
+
+
+// ====== v85: 車型圖系列 ======
+// 1. 若 vehicle 有 v.photoUrl → 用真實照片
+// 2. 否則查 VEHICLE_MODEL_PHOTOS by 完整 model 名稱
+// 3. 否則用 SVG fallback by category
+// ----------------------------------------------------------
+// 用戶要換真實照片時, 在這個 dict 加 model → URL 即可
+window.VEHICLE_MODEL_PHOTOS = {
+  // 範例 (請替換為實際 imgbb / Google Drive 公開 URL):
+  // 'Toyota Alphard': 'https://i.imgur.com/abc.jpg',
+  // '7人座舒適款 Alphard': 'https://i.imgur.com/def.jpg',
+  // 'HiAce': 'https://i.imgur.com/ghi.jpg',
+  // '10座豐田海獅': 'https://i.imgur.com/jkl.jpg',
+  // 'Coaster': 'https://i.imgur.com/mno.jpg',
+  // '19座豐田Coaster': 'https://i.imgur.com/pqr.jpg',
+};
+// SVG 剪影 fallback (依 category)
+const V85_SVG_FALLBACK = {
+  '7座': 'data:image/svg+xml;base64,' + btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 70"><defs><linearGradient id="g7" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3B82F6"/><stop offset="1" stop-color="#1E40AF"/></linearGradient></defs><rect width="110" height="70" rx="8" fill="#EFF6FF"/><g transform="translate(8,18)"><path d="M5 30 L5 18 Q5 12 12 10 L20 6 Q25 4 32 4 L62 4 Q70 4 75 8 L85 18 Q90 18 90 24 L90 32" fill="url(#g7)" stroke="#1E3A8A" stroke-width="1.2"/><rect x="15" y="11" width="20" height="8" rx="2" fill="#BFDBFE" opacity="0.85"/><rect x="38" y="11" width="20" height="8" rx="2" fill="#BFDBFE" opacity="0.85"/><rect x="61" y="11" width="20" height="8" rx="2" fill="#BFDBFE" opacity="0.85"/><circle cx="20" cy="34" r="6" fill="#1F2937"/><circle cx="20" cy="34" r="3" fill="#6B7280"/><circle cx="75" cy="34" r="6" fill="#1F2937"/><circle cx="75" cy="34" r="3" fill="#6B7280"/></g><text x="55" y="60" text-anchor="middle" font-size="9" font-weight="700" fill="#1E40AF">7 座 Alphard</text></svg>`),
+  '10座': 'data:image/svg+xml;base64,' + btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 70"><defs><linearGradient id="g10" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#10B981"/><stop offset="1" stop-color="#047857"/></linearGradient></defs><rect width="110" height="70" rx="8" fill="#ECFDF5"/><g transform="translate(5,16)"><path d="M3 32 L3 14 Q3 8 10 6 L18 4 Q22 3 28 3 L88 3 Q94 3 96 7 L98 30" fill="url(#g10)" stroke="#064E3B" stroke-width="1.2"/><rect x="12" y="8" width="16" height="9" rx="1.5" fill="#A7F3D0" opacity="0.85"/><rect x="31" y="8" width="16" height="9" rx="1.5" fill="#A7F3D0" opacity="0.85"/><rect x="50" y="8" width="16" height="9" rx="1.5" fill="#A7F3D0" opacity="0.85"/><rect x="69" y="8" width="16" height="9" rx="1.5" fill="#A7F3D0" opacity="0.85"/><circle cx="18" cy="34" r="6" fill="#1F2937"/><circle cx="18" cy="34" r="3" fill="#6B7280"/><circle cx="80" cy="34" r="6" fill="#1F2937"/><circle cx="80" cy="34" r="3" fill="#6B7280"/></g><text x="55" y="60" text-anchor="middle" font-size="9" font-weight="700" fill="#065F46">10 座 HiAce 海獅</text></svg>`),
+  '19座': 'data:image/svg+xml;base64,' + btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 70"><defs><linearGradient id="g19" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F59E0B"/><stop offset="1" stop-color="#B45309"/></linearGradient></defs><rect width="110" height="70" rx="8" fill="#FEF3C7"/><g transform="translate(2,14)"><path d="M2 34 L2 12 Q2 5 9 4 L100 4 Q104 4 106 8 L106 34" fill="url(#g19)" stroke="#78350F" stroke-width="1.2"/><rect x="10" y="8" width="12" height="9" rx="1" fill="#FDE68A" opacity="0.9"/><rect x="24" y="8" width="12" height="9" rx="1" fill="#FDE68A" opacity="0.9"/><rect x="38" y="8" width="12" height="9" rx="1" fill="#FDE68A" opacity="0.9"/><rect x="52" y="8" width="12" height="9" rx="1" fill="#FDE68A" opacity="0.9"/><rect x="66" y="8" width="12" height="9" rx="1" fill="#FDE68A" opacity="0.9"/><rect x="80" y="8" width="20" height="9" rx="1" fill="#FDE68A" opacity="0.9"/><circle cx="18" cy="36" r="6" fill="#1F2937"/><circle cx="18" cy="36" r="3" fill="#6B7280"/><circle cx="90" cy="36" r="6" fill="#1F2937"/><circle cx="90" cy="36" r="3" fill="#6B7280"/></g><text x="55" y="62" text-anchor="middle" font-size="9" font-weight="700" fill="#92400E">19 座 Coaster</text></svg>`),
+};
+
+function v85GetVehiclePhotoUrl(v) {
+  if (!v) return null;
+  // 1. 個別 photoUrl
+  if (v.photoUrl && String(v.photoUrl).trim()) return String(v.photoUrl).trim();
+  // 2. model 全名 lookup
+  const modelStr = String(v.model || '').trim();
+  if (modelStr && window.VEHICLE_MODEL_PHOTOS[modelStr]) return window.VEHICLE_MODEL_PHOTOS[modelStr];
+  // 3. category SVG fallback
+  const cat = String(v.category || '').trim();
+  if (V85_SVG_FALLBACK[cat]) return V85_SVG_FALLBACK[cat];
+  // 4. 預設 7 座
+  return V85_SVG_FALLBACK['7座'];
+}
+
+function v85GetVehiclePhotoHtml(v, size) {
+  const url = v85GetVehiclePhotoUrl(v);
+  if (!url) return '<span class="v85-no-photo">🚐</span>';
+  const cls = 'v85-vp-' + (size || 'sm');
+  return '<img src="' + url + '" alt="' + String(v.category || v.model || '車輛') + '" class="' + cls + '" onerror="this.outerHTML=&quot;<span class=\\&quot;v85-no-photo\\&quot;>🚐</span>&quot;">';
+}
+
+window.v85GetVehiclePhotoHtml = v85GetVehiclePhotoHtml;
+window.v85GetVehiclePhotoUrl = v85GetVehiclePhotoUrl;
+
+console.log('✅ v85 vehicle photo system installed (model→URL→SVG fallback)');
+
+
 
 // ====== v84: 加底部「← 可左右滑動 →」提示 ======
 (function v84AddScrollHint(){
