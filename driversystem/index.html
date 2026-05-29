@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v82</title>
+<title>旅乘派車系統 v83</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -1378,15 +1378,56 @@
     font-family: inherit;
     cursor: pointer;
   }
-  /* v82: 改 flex+wrap, 各 pill 自然寬, 可換行 */
+  /* v83: 改 flex+nowrap + overflow-x scroll, 單行橫向滑動 */
   .dpv38-strip {
     display: flex !important;
-    flex-wrap: wrap;
+    flex-wrap: nowrap !important;
     gap: 6px;
-    padding: 0;
-    overflow-x: visible;
-    align-items: stretch;
+    padding: 4px 2px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    /* 固定高度 (不會被內容撐高) */
+    min-height: 68px;
+    /* 左右淡出陰影 — 用 mask 或漸層 */
+    position: relative;
   }
+  /* 細自訂捲軸 */
+  .dpv38-strip::-webkit-scrollbar { height: 4px; }
+  .dpv38-strip::-webkit-scrollbar-track { background: transparent; }
+  .dpv38-strip::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.15); border-radius: 2px;
+  }
+  .dpv38-strip::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.3); }
+
+  /* 容器包一層, 左右加淡出陰影提示「還有更多」*/
+  .v83-strip-wrap {
+    position: relative;
+  }
+  .v83-strip-wrap::before,
+  .v83-strip-wrap::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 24px;
+    pointer-events: none;
+    z-index: 2;
+    transition: opacity 0.2s;
+  }
+  .v83-strip-wrap::before {
+    left: 0;
+    background: linear-gradient(90deg, white, transparent);
+  }
+  .v83-strip-wrap::after {
+    right: 0;
+    background: linear-gradient(-90deg, white, transparent);
+  }
+  /* 滑到頭/尾時淡出陰影隱藏 (透過 JS class) */
+  .v83-strip-wrap.scroll-at-start::before { opacity: 0; }
+  .v83-strip-wrap.scroll-at-end::after { opacity: 0; }
   /* v38: 強制蓋掉舊 date-pill 樣式，讓行事曆排列 */
   .dpv38-strip .date-pill {
     flex: none !important;
@@ -2502,14 +2543,14 @@
     .v54b-card .v54b-status-big { padding: 3px 10px; font-size: 11px; }
   }
 
-  /* ====== v82: date-pill 改直立 (週/數字/badge 上下排), 不再黏在一起 ====== */
+  /* ====== v82/v83: date-pill 直立 + scroll-snap ====== */
   #page-dispatch .dpv38-strip .date-pill {
     display: flex !important; flex-direction: column !important;
     align-items: center !important; gap: 2px !important;
     padding: 6px 8px !important;
     white-space: nowrap !important;
     min-height: 56px;
-    min-width: 56px;
+    min-width: 58px;
     flex: 0 0 auto;
     border-radius: 8px;
     cursor: pointer;
@@ -2517,6 +2558,8 @@
     position: relative;
     overflow: visible;
     text-align: center;
+    scroll-snap-align: start;
+    border: 1.5px solid transparent;
   }
   #page-dispatch .dpv38-strip .date-pill:hover {
     background: var(--primary-soft);
@@ -3559,6 +3602,11 @@
   #page-dispatch .dpv38-strip .date-pill.is-today {
     background: var(--warning-soft);
     border: 1.5px solid var(--warning);
+  }
+
+  /* v83: 確保所有 viewport 都 nowrap (避免任何 wrap 設定覆蓋) */
+  @media (min-width: 1px) {
+    .dpv38-strip { flex-wrap: nowrap !important; }
   }
 </style>
 </head>
@@ -8863,6 +8911,44 @@ window.v81DismissTop = v81DismissTop;
 
 console.log('✅ v81 變動偵測 (前端 hash diff) installed');
 console.log('✅ v82 date-strip RWD 修 (flex+wrap+直立 pill) installed');
+console.log('✅ v83 date-strip 單行橫向滑動 installed');
+
+// ====== v83: date-strip 橫向滑動指示 ======
+(function v83InitStripScroll(){
+  function init() {
+    const strip = document.getElementById('dateStrip');
+    if (!strip) { setTimeout(init, 200); return; }
+    // 包一層 .v83-strip-wrap (若還沒包)
+    if (!strip.parentElement.classList.contains('v83-strip-wrap')) {
+      const wrap = document.createElement('div');
+      wrap.className = 'v83-strip-wrap';
+      strip.parentElement.insertBefore(wrap, strip);
+      wrap.appendChild(strip);
+    }
+    const wrap = strip.parentElement;
+    function updateShadow() {
+      const sl = strip.scrollLeft;
+      const max = strip.scrollWidth - strip.clientWidth;
+      wrap.classList.toggle('scroll-at-start', sl <= 2);
+      wrap.classList.toggle('scroll-at-end', sl >= max - 2);
+    }
+    strip.addEventListener('scroll', updateShadow);
+    // 初始狀態 + render 後再判一次
+    setTimeout(updateShadow, 50);
+    setTimeout(updateShadow, 300);
+    // 監聽 strip innerHTML 變動 (renderDateStrip 重渲時)
+    const obs = new MutationObserver(updateShadow);
+    obs.observe(strip, { childList: true });
+    console.log('✅ v83 strip scroll shadow installed');
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+
+
 
 
 
