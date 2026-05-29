@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>旅乘派車系統 v85</title>
+<title>旅乘派車系統 v86</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -9148,12 +9148,17 @@ window.VEHICLE_MODEL_PHOTOS = {
   // 'Coaster': 'https://i.imgur.com/mno.jpg',
   // '19座豐田Coaster': 'https://i.imgur.com/pqr.jpg',
 };
-// SVG 剪影 fallback (依 category)
-const V85_SVG_FALLBACK = {
-  '7座': 'data:image/svg+xml;base64,' + btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 70"><defs><linearGradient id="g7" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3B82F6"/><stop offset="1" stop-color="#1E40AF"/></linearGradient></defs><rect width="110" height="70" rx="8" fill="#EFF6FF"/><g transform="translate(8,18)"><path d="M5 30 L5 18 Q5 12 12 10 L20 6 Q25 4 32 4 L62 4 Q70 4 75 8 L85 18 Q90 18 90 24 L90 32" fill="url(#g7)" stroke="#1E3A8A" stroke-width="1.2"/><rect x="15" y="11" width="20" height="8" rx="2" fill="#BFDBFE" opacity="0.85"/><rect x="38" y="11" width="20" height="8" rx="2" fill="#BFDBFE" opacity="0.85"/><rect x="61" y="11" width="20" height="8" rx="2" fill="#BFDBFE" opacity="0.85"/><circle cx="20" cy="34" r="6" fill="#1F2937"/><circle cx="20" cy="34" r="3" fill="#6B7280"/><circle cx="75" cy="34" r="6" fill="#1F2937"/><circle cx="75" cy="34" r="3" fill="#6B7280"/></g><text x="55" y="60" text-anchor="middle" font-size="9" font-weight="700" fill="#1E40AF">7 座 Alphard</text></svg>`),
-  '10座': 'data:image/svg+xml;base64,' + btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 70"><defs><linearGradient id="g10" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#10B981"/><stop offset="1" stop-color="#047857"/></linearGradient></defs><rect width="110" height="70" rx="8" fill="#ECFDF5"/><g transform="translate(5,16)"><path d="M3 32 L3 14 Q3 8 10 6 L18 4 Q22 3 28 3 L88 3 Q94 3 96 7 L98 30" fill="url(#g10)" stroke="#064E3B" stroke-width="1.2"/><rect x="12" y="8" width="16" height="9" rx="1.5" fill="#A7F3D0" opacity="0.85"/><rect x="31" y="8" width="16" height="9" rx="1.5" fill="#A7F3D0" opacity="0.85"/><rect x="50" y="8" width="16" height="9" rx="1.5" fill="#A7F3D0" opacity="0.85"/><rect x="69" y="8" width="16" height="9" rx="1.5" fill="#A7F3D0" opacity="0.85"/><circle cx="18" cy="34" r="6" fill="#1F2937"/><circle cx="18" cy="34" r="3" fill="#6B7280"/><circle cx="80" cy="34" r="6" fill="#1F2937"/><circle cx="80" cy="34" r="3" fill="#6B7280"/></g><text x="55" y="60" text-anchor="middle" font-size="9" font-weight="700" fill="#065F46">10 座 HiAce 海獅</text></svg>`),
-  '19座': 'data:image/svg+xml;base64,' + btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 70"><defs><linearGradient id="g19" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F59E0B"/><stop offset="1" stop-color="#B45309"/></linearGradient></defs><rect width="110" height="70" rx="8" fill="#FEF3C7"/><g transform="translate(2,14)"><path d="M2 34 L2 12 Q2 5 9 4 L100 4 Q104 4 106 8 L106 34" fill="url(#g19)" stroke="#78350F" stroke-width="1.2"/><rect x="10" y="8" width="12" height="9" rx="1" fill="#FDE68A" opacity="0.9"/><rect x="24" y="8" width="12" height="9" rx="1" fill="#FDE68A" opacity="0.9"/><rect x="38" y="8" width="12" height="9" rx="1" fill="#FDE68A" opacity="0.9"/><rect x="52" y="8" width="12" height="9" rx="1" fill="#FDE68A" opacity="0.9"/><rect x="66" y="8" width="12" height="9" rx="1" fill="#FDE68A" opacity="0.9"/><rect x="80" y="8" width="20" height="9" rx="1" fill="#FDE68A" opacity="0.9"/><circle cx="18" cy="36" r="6" fill="#1F2937"/><circle cx="18" cy="36" r="3" fill="#6B7280"/><circle cx="90" cy="36" r="6" fill="#1F2937"/><circle cx="90" cy="36" r="3" fill="#6B7280"/></g><text x="55" y="62" text-anchor="middle" font-size="9" font-weight="700" fill="#92400E">19 座 Coaster</text></svg>`),
-};
+// SVG 剪影 fallback (依 category) — v86 改 encodeURIComponent + utf8 (支援中文) + window 掛載
+window.V85_SVG_FALLBACK = (function(){
+  function svg(content) {
+    return 'data:image/svg+xml;utf8,' + encodeURIComponent(content);
+  }
+  return {
+    '7座': svg('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 70"><defs><linearGradient id="g7" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3B82F6"/><stop offset="1" stop-color="#1E40AF"/></linearGradient></defs><rect width="110" height="70" rx="8" fill="#EFF6FF"/><g transform="translate(8,18)"><path d="M5 30 L5 18 Q5 12 12 10 L20 6 Q25 4 32 4 L62 4 Q70 4 75 8 L85 18 Q90 18 90 24 L90 32" fill="url(%23g7)" stroke="#1E3A8A" stroke-width="1.2"/><rect x="15" y="11" width="20" height="8" rx="2" fill="#BFDBFE" opacity="0.85"/><rect x="38" y="11" width="20" height="8" rx="2" fill="#BFDBFE" opacity="0.85"/><rect x="61" y="11" width="20" height="8" rx="2" fill="#BFDBFE" opacity="0.85"/><circle cx="20" cy="34" r="6" fill="#1F2937"/><circle cx="20" cy="34" r="3" fill="#6B7280"/><circle cx="75" cy="34" r="6" fill="#1F2937"/><circle cx="75" cy="34" r="3" fill="#6B7280"/></g><text x="55" y="60" text-anchor="middle" font-size="9" font-weight="700" fill="#1E40AF">7 \u5ea7 Alphard</text></svg>'),
+    '10座': svg('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 70"><defs><linearGradient id="g10" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#10B981"/><stop offset="1" stop-color="#047857"/></linearGradient></defs><rect width="110" height="70" rx="8" fill="#ECFDF5"/><g transform="translate(5,16)"><path d="M3 32 L3 14 Q3 8 10 6 L18 4 Q22 3 28 3 L88 3 Q94 3 96 7 L98 30" fill="url(%23g10)" stroke="#064E3B" stroke-width="1.2"/><rect x="12" y="8" width="16" height="9" rx="1.5" fill="#A7F3D0" opacity="0.85"/><rect x="31" y="8" width="16" height="9" rx="1.5" fill="#A7F3D0" opacity="0.85"/><rect x="50" y="8" width="16" height="9" rx="1.5" fill="#A7F3D0" opacity="0.85"/><rect x="69" y="8" width="16" height="9" rx="1.5" fill="#A7F3D0" opacity="0.85"/><circle cx="18" cy="34" r="6" fill="#1F2937"/><circle cx="18" cy="34" r="3" fill="#6B7280"/><circle cx="80" cy="34" r="6" fill="#1F2937"/><circle cx="80" cy="34" r="3" fill="#6B7280"/></g><text x="55" y="60" text-anchor="middle" font-size="9" font-weight="700" fill="#065F46">10 \u5ea7 HiAce</text></svg>'),
+    '19座': svg('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 70"><defs><linearGradient id="g19" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F59E0B"/><stop offset="1" stop-color="#B45309"/></linearGradient></defs><rect width="110" height="70" rx="8" fill="#FEF3C7"/><g transform="translate(2,14)"><path d="M2 34 L2 12 Q2 5 9 4 L100 4 Q104 4 106 8 L106 34" fill="url(%23g19)" stroke="#78350F" stroke-width="1.2"/><rect x="10" y="8" width="12" height="9" rx="1" fill="#FDE68A" opacity="0.9"/><rect x="24" y="8" width="12" height="9" rx="1" fill="#FDE68A" opacity="0.9"/><rect x="38" y="8" width="12" height="9" rx="1" fill="#FDE68A" opacity="0.9"/><rect x="52" y="8" width="12" height="9" rx="1" fill="#FDE68A" opacity="0.9"/><rect x="66" y="8" width="12" height="9" rx="1" fill="#FDE68A" opacity="0.9"/><rect x="80" y="8" width="20" height="9" rx="1" fill="#FDE68A" opacity="0.9"/><circle cx="18" cy="36" r="6" fill="#1F2937"/><circle cx="18" cy="36" r="3" fill="#6B7280"/><circle cx="90" cy="36" r="6" fill="#1F2937"/><circle cx="90" cy="36" r="3" fill="#6B7280"/></g><text x="55" y="62" text-anchor="middle" font-size="9" font-weight="700" fill="#92400E">19 \u5ea7 Coaster</text></svg>')
+  };
+})();
 
 function v85GetVehiclePhotoUrl(v) {
   if (!v) return null;
@@ -9161,12 +9166,13 @@ function v85GetVehiclePhotoUrl(v) {
   if (v.photoUrl && String(v.photoUrl).trim()) return String(v.photoUrl).trim();
   // 2. model 全名 lookup
   const modelStr = String(v.model || '').trim();
-  if (modelStr && window.VEHICLE_MODEL_PHOTOS[modelStr]) return window.VEHICLE_MODEL_PHOTOS[modelStr];
-  // 3. category SVG fallback
+  if (modelStr && window.VEHICLE_MODEL_PHOTOS && window.VEHICLE_MODEL_PHOTOS[modelStr]) return window.VEHICLE_MODEL_PHOTOS[modelStr];
+  // 3. category SVG fallback (v86: 從 window 讀, 並 null-safe)
+  const fb = window.V85_SVG_FALLBACK || {};
   const cat = String(v.category || '').trim();
-  if (V85_SVG_FALLBACK[cat]) return V85_SVG_FALLBACK[cat];
-  // 4. 預設 7 座
-  return V85_SVG_FALLBACK['7座'];
+  if (fb[cat]) return fb[cat];
+  // 4. 預設 7 座 (若也沒, 回 null 讓 caller 顯示 emoji)
+  return fb['7座'] || null;
 }
 
 function v85GetVehiclePhotoHtml(v, size) {
@@ -9180,6 +9186,7 @@ window.v85GetVehiclePhotoHtml = v85GetVehiclePhotoHtml;
 window.v85GetVehiclePhotoUrl = v85GetVehiclePhotoUrl;
 
 console.log('✅ v85 vehicle photo system installed (model→URL→SVG fallback)');
+console.log('✅ v86 修 SVG fallback btoa 中文 bug (encodeURIComponent + window 掛載) installed');
 
 
 
