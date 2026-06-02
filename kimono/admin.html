@@ -7,6 +7,8 @@
 <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="./config.js"></script>
+<script src="./js/constants.js"></script>
+<script src="./js/data-safe.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   /* === 字體分工：標題用宋體、內文用黑體 === */
@@ -994,6 +996,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 
 <script>
 const GAS_URL = typeof KIMONO_CONFIG !== 'undefined' ? KIMONO_CONFIG.APPS_SCRIPT_URL : '';
+const KC = KimonoConstants;
 
 // ============================================================
 // v2.4.23: GAS fetch 防呆 — timeout + cache-bust + 失敗 UI
@@ -1060,6 +1063,18 @@ function clearGoogleCookieAndReload() {
   setTimeout(() => location.reload(true), 100);
 }
 const DEPOSIT_JPY = (typeof KIMONO_CONFIG !== 'undefined' && KIMONO_CONFIG.DEPOSIT_JPY) ? Number(KIMONO_CONFIG.DEPOSIT_JPY) : 1000;
+async function postGAS(payload) {
+  return KimonoDataSafe.postGAS(GAS_URL, payload, { defaultError: '儲存失敗' });
+}
+function rememberPendingAdminUpdate(orderId, payload) {
+  KimonoDataSafe.savePending(KC.pendingKeys.adminUpdatePrefix + orderId, payload);
+}
+function clearPendingAdminUpdate(orderId) {
+  KimonoDataSafe.clearPending(KC.pendingKeys.adminUpdatePrefix + orderId);
+}
+function countPendingAdminUpdates() {
+  return KimonoDataSafe.countPending(KC.pendingKeys.adminUpdatePrefix);
+}
 let currentAgent = '';
 let adminToken = '';
 let currentRole = 'agent';      // v2.5: 'agent' (客服) | 'store' (店家)
@@ -1167,6 +1182,12 @@ function enterDashboard(name, token, role, storeKey) {
   document.getElementById('nav-agent').textContent = roleEmoji + ' ' + name + roleSuffix;
   applyRolePermissions();   // v2.5: hide/show UI based on role
   loadOrders();
+  setTimeout(() => {
+    const pending = countPendingAdminUpdates();
+    if (pending > 0 && typeof toast === 'function') {
+      toast('偵測到 ' + pending + ' 筆上次未確認完成的後台保存，請核對訂單後再操作', 'warning');
+    }
+  }, 800);
   // v2.5: 登入後重新載入天氣，依角色 (agent 全部 / store 自家城市) 抓對的城市
   // v2.5n: setTimeout 包起來避免 IIFE 自動登入時 TDZ error (KIMONO_WX_ALL_CITIES 尚未初始化)
   setTimeout(() => { if (typeof loadWeather === 'function') loadWeather(true); }, 100);
@@ -2392,26 +2413,21 @@ async function batchConfirm(){
 }
 
 async function saveOrderQuick(o, patch){
+  const fields = Object.assign({}, patch);
   const payload = Object.assign({
-    action:'adminUpdate', agent:currentAgent, token:adminToken, orderId:o.orderId,
-    name:o.name||'', phone:o.phone||'', email:o.email||'',
-    bookingDate:(o.bookingDate||'').slice(0,10), pax:o.adults||o.pax||'',
-    plan:o.plan||'', platform:o.platform||'',
-    hair: (o.hair===true||o.hair==='true')?'true':'false',
-    photo: (o.photo===true||o.photo==='true')?'true':'false',
-    confirmed: o.confirmed?'true':'false',
-    deposit:o.deposit||'', kimonoPrice:o.price||o.kimonoPrice||'',
-    hairFee:o.hairFee||'', photoFee:o.photoFee||'',
-    coupon:o.coupon||'', rate:o.rate||'',
-    refundAmt:o.refundAmount||'', refundDate:(o.refundTime||'').slice(0,16),
-    refundReason:o.refundReason||'', note:o.remark||''
-  }, patch);
-  const res = await fetch(GAS_URL, {method:'POST', body:JSON.stringify(payload)});
-  const data = await res.json();
+    action:KC.actions.adminUpdate, agent:currentAgent, token:adminToken, orderId:o.orderId,
+    updateMode:'patch',
+    fields: fields
+  }, fields);
+  rememberPendingAdminUpdate(o.orderId, payload);
+  const data = await postGAS(payload);
   if(data.status==='unauthorized'){ showLogin(); throw new Error('unauthorized'); }
   if(data.status==='ok'||data.status==='success'){
-    Object.assign(o, payload);
-    o.confirmed = patch.confirmed==='true';
+    Object.assign(o, fields, data.order || {});
+    if (Object.prototype.hasOwnProperty.call(patch, 'confirmed')) {
+      o.confirmed = String(patch.confirmed).toLowerCase() === 'true';
+    }
+    clearPendingAdminUpdate(o.orderId);
     filterOrders(); renderDashboard();
     toast('已更新：'+(o.name||o.orderId));
     return data;
@@ -3629,8 +3645,7 @@ function saveOrder() {
   const msg = document.getElementById('save-msg');
   if (!editingOrder) return;
   btn.textContent = '儲存中…'; btn.disabled = true;
-  const payload = {
-    action: 'adminUpdate', agent: currentAgent, token: adminToken, orderId: editingOrder.orderId,
+  const fields = {
     name: document.getElementById('e-name').value, phone: document.getElementById('e-phone').value, email: document.getElementById('e-email').value,
     bookingDate: (function(){ const v=document.getElementById('e-booking-date').value; if(!v) return ''; const m=v.match(/^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/); if(!m) return v; return m[1]+'/'+m[2]+'/'+m[3]+(m[4]?(' '+m[4]+':'+m[5]):''); })(), pax: document.getElementById('e-pax').value,
     plan: document.getElementById('e-plan').value, platform: document.getElementById('e-platform').value,
@@ -3641,7 +3656,13 @@ function saveOrder() {
     refundAmt: document.getElementById('e-refund-amt').value, refundDate: document.getElementById('e-refund-date').value,
     refundReason: composeRefundReason(), note: document.getElementById('e-remark').value,
   };
-  fetch(GAS_URL, { method:'POST', body: JSON.stringify(payload) }).then(r => r.json()).then(data => {
+  const payload = Object.assign({
+    action: KC.actions.adminUpdate, agent: currentAgent, token: adminToken, orderId: editingOrder.orderId,
+    updateMode: 'patch',
+    fields: fields
+  }, fields);
+  rememberPendingAdminUpdate(editingOrder.orderId, payload);
+  postGAS(payload).then(data => {
       btn.textContent = '💾 儲存變更'; btn.disabled = false;
       if (data.status === 'unauthorized') { showLogin(); return; }
       if (data.status === 'ok' || data.status === 'success') {
@@ -3651,6 +3672,7 @@ function saveOrder() {
         msg.className = 'text-center text-sm mt-3 text-slate-600';
         msg.classList.remove('hidden');
         setTimeout(() => {
+          clearPendingAdminUpdate(savedId);
           closeModal();
           toast('已儲存 ' + savedId + '，重新載入中…', 'success');
           if (typeof loadOrders === 'function') {

@@ -18,7 +18,8 @@
 - [九、部署與更新](#九部署與更新)
 - [十、新人接手清單](#十新人接手清單)
 - [十一、常見維護任務](#十一常見維護任務)
-- [十二、安全須知](#十二安全須知)
+- [十二、資料不丟失改造（v2.6）](#十二資料不丟失改造v26)
+- [十三、安全須知](#十三安全須知)
 
 ---
 
@@ -60,6 +61,9 @@ kimono/
 ├── store.html           門市現場後台（手機優化）
 ├── admin.html           客服管理後台（桌機優化）
 ├── config.js            全站共用設定（GAS URL / LINE / 銀行 / 訂金）
+├── js/
+│   ├── constants.js     action、狀態、localStorage key 共用常量
+│   └── data-safe.js     GAS 請求、clientRequestId、失敗暫存共用工具
 ├── gas-additions.gs     ★ GAS 後端追加程式碼（adminLogin + uploadImage）
 └── img/                 共 25 張圖片
     ├── header-bg.jpg                      首頁主視覺
@@ -304,7 +308,44 @@ kimono/
 
 ---
 
-## 十二、安全須知
+## 十二、資料不丟失改造（v2.6）
+
+本版開始，前端不再用 `no-cors` 假送出；下單、退款、自助報到、後台保存都必須等 GAS 回傳 `status: "success"` 或 `status: "ok"` 才會顯示成功。
+
+### 前端變更
+- `js/constants.js` 是共用常量模組，集中管理 GAS action、訂單狀態、暫存 key。
+- `js/data-safe.js` 是資料安全共用模組，集中處理 `clientRequestId`、GAS 回應狀態檢查、失敗暫存、暫存清除、暫存計數。
+- `index.html` 下單送 `action: "createBooking"`、`clientRequestId`，失敗時會把本次填單暫存在 `localStorage.kimono_pending_booking`。
+- `config.js` 可用 `USE_NEW_API` / `API_BASE_URL` 灰度切換到 phase-2 Node API；預設關閉，仍走 GAS。
+- `inquiry.html` 退款 / 自助報到送 `clientRequestId`，失敗時分別暫存在 `kimono_pending_refund` / `kimono_pending_checkin`。
+- `admin.html` 後台更新送 `updateMode: "patch"` + `fields`，避免整筆訂單覆蓋造成未顯示欄位被清空；失敗時暫存在 `kimono_pending_admin_update_<orderId>`。
+- 若 `index.html` 偵測到上一筆未確認送出的預約，會詢問是否將暫存資料填回表單。
+
+### GAS 必接
+把 `gas-additions.gs` 第 5 區塊貼進 Code.gs 後，在既有 `doPost(e)` 內加入：
+
+```js
+if (payload.action === 'createBooking') return jsonOut(createBookingV2(payload));
+```
+
+在既有 `adminUpdate(payload)` 開頭加入：
+
+```js
+if (payload.updateMode === 'patch') return updateOrderPatchV2(payload);
+```
+
+退款 / 報到等流程建議用 `getIdempotentResult_(clientRequestId)` 和 `rememberIdempotentResult_(clientRequestId, result)` 包住，避免重送造成重複寫入。
+
+### 流程日志
+`createBookingV2` 和 `updateOrderPatchV2` 會自動寫入 `流程日志` 分頁；若分頁不存在會自動建立。欄位：
+
+`eventId / orderId / action / actor / before / after / meta / createdAt`
+
+這張表用來追查「哪一步資料消失或被改掉」，不要手動刪除。
+
+---
+
+## 十三、安全須知
 
 1. **`config.js` 是公開檔案**：絕對不要放任何密碼、Token、私鑰。
    現在唯一還在 config.js 的「敏感性」資訊只有 GAS Web App URL，這是 GAS 設計上必須公開的，已用 `verifyAdminToken` 等機制保護。

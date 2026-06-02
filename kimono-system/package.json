@@ -1,0 +1,18 @@
+{
+  "name": "kimono-system",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @kimono/api & npm run dev -w @kimono/admin",
+    "typecheck": "npm run typecheck -w @kimono/shared && npm run typecheck -w @kimono/api && npm run typecheck -w @kimono/admin",
+    "typecheck:firebase": "npm --prefix firebase/functions run typecheck",
+    "backup:postgres": "bash scripts/backup-postgres.sh"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6"
+  }
+}

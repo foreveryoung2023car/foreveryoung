@@ -8,6 +8,8 @@
 <meta name="description" content="旅乘 x Foreveryoung 和服體驗訂單查詢，查看預約狀態、費用明細與申請退款。">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="./config.js"></script>
+<script src="./js/constants.js"></script>
+<script src="./js/data-safe.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
 <style>
   body { font-family:'Noto Serif TC',serif; scroll-behavior:smooth; background:#FDFCF8; }
@@ -490,8 +492,22 @@ input[type="text"], input[type="email"], input[type="tel"], select, textarea { f
 
 <script>
 const GAS_URL = KIMONO_CONFIG.APPS_SCRIPT_URL;
+const KC = KimonoConstants;
 ['floatLine','lineLink','rsLine'].forEach(id => { const el=document.getElementById(id); if(el) el.href=KIMONO_CONFIG.LINE_URL||'#'; });
 ['floatMessenger','messengerLink','rsMessenger'].forEach(id => { const el=document.getElementById(id); if(el) el.href=KIMONO_CONFIG.MESSENGER_URL||'#'; });
+
+function makeClientRequestId(prefix) {
+  return KimonoDataSafe.requestId(prefix);
+}
+function savePendingFlow(key, payload) {
+  KimonoDataSafe.savePending(key, payload);
+}
+function clearPendingFlow(key, clientRequestId) {
+  KimonoDataSafe.clearPending(key, clientRequestId);
+}
+async function postGAS(payload) {
+  return KimonoDataSafe.postGAS(GAS_URL, payload);
+}
 
 let currentOrder = null;
 let refundPanelOpen = false;
@@ -558,10 +574,10 @@ function renderResult(d) {
   document.getElementById('r-orderId').textContent = d.orderId || '—';
 
   const statusMap = {
-    pending  :['核對中',    'badge-pending'],
-    confirmed:['✓ 已確認','badge-confirmed'],
-    refunding:['退款處理中','badge-refunding'],
-    refunded :['已退款',   'badge-refunded'],
+    [KC.orderStatus.pending]  :['核對中',    'badge-pending'],
+    [KC.orderStatus.confirmed]:['✓ 已確認','badge-confirmed'],
+    [KC.orderStatus.refunding]:['退款處理中','badge-refunding'],
+    [KC.orderStatus.refunded] :['已退款',   'badge-refunded'],
   };
   const [txt, cls] = statusMap[d.statusCode] || ['核對中','badge-pending'];
   document.getElementById('r-statusBadge').innerHTML =
@@ -610,7 +626,7 @@ function renderResult(d) {
 
   // v2.4.40: 客人自助報到按鈕：confirmed + 體驗日今天 (JST) 才顯示
   const ciSec = document.getElementById('selfCheckInSection');
-  if (d.statusCode === 'confirmed' && isBookingToday(d.bookingDate)) {
+  if (d.statusCode === KC.orderStatus.confirmed && isBookingToday(d.bookingDate)) {
     ciSec.classList.remove('hidden');
     currentOrder.name = d.name || currentOrder.name || '客人';
     currentOrder.bookingDate = d.bookingDate || '';
@@ -655,17 +671,17 @@ document.getElementById('refundForm').onsubmit = async (e) => {
   const submitDate = new Date(Date.now()+8*60*60*1000).toISOString().slice(0,10);
 
   try {
-    await fetch(GAS_URL, {
-      method:'POST', mode:'no-cors',
-      headers:{ 'Content-Type':'text/plain' },
-      body:JSON.stringify({
-        action:'refund',
+    const payload = {
+        action: KC.actions.refund,
+        clientRequestId: makeClientRequestId('refund'),
         orderId:currentOrder.orderId,
         email:currentOrder.email,
         submitDate, reason, note,
         bankCode, bankName, account, accountName, phone
-      })
-    });
+    };
+    savePendingFlow(KC.pendingKeys.refund, payload);
+    await postGAS(payload);
+    clearPendingFlow(KC.pendingKeys.refund, payload.clientRequestId);
 
     document.getElementById('rs-orderId').textContent = currentOrder.orderId;
     document.getElementById('rs-summary').innerHTML = `
@@ -710,11 +726,10 @@ async function doSelfCheckIn() {
   btn.disabled = true; btn.textContent = '🎌 處理中...';
   try {
     const last5 = String(currentOrder.phone || '').replace(/\D/g, '').slice(-5);
-    await fetch(GAS_URL, {
-      method: 'POST', mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ action:'checkInOrder', source:'self', orderId: currentOrder.orderId, last5: last5 })
-    });
+    const payload = { action: KC.actions.checkInOrder, clientRequestId: makeClientRequestId('checkin'), source:'self', orderId: currentOrder.orderId, last5: last5 };
+    savePendingFlow(KC.pendingKeys.checkin, payload);
+    await postGAS(payload);
+    clearPendingFlow(KC.pendingKeys.checkin, payload.clientRequestId);
     showCheckInSuccess();
   } catch(err) {
     alert('網路錯誤，請稍後再試或直接聯繫 LINE 客服。');

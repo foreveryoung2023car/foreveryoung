@@ -168,3 +168,255 @@ function uploadImage(payload) {
 //     payload.agent = payload.agent || auth.name;  // 防止改別人名字
 //     // ...原本邏輯
 //   }
+
+
+/**
+ * ============================================================
+ *  5. v2.6 資料不丟失改造：createBooking / PATCH / 冪等
+ * ------------------------------------------------------------
+ *  前端現在會：
+ *    - 下單送 action: createBooking + clientRequestId
+ *    - 後台更新送 updateMode: patch + fields
+ *    - 退款 / 報到送 clientRequestId
+ *
+ *  你需要在既有 Code.gs 裡做三個接線：
+ *
+ *    A) doPost(e) 解析 payload 後：
+ *       if (payload.action === 'createBooking') return jsonOut(createBookingV2(payload));
+ *
+ *    B) adminUpdate(payload) 一開始：
+ *       if (payload.updateMode === 'patch') return jsonOut(updateOrderPatchV2(payload));
+ *
+ *    C) refund / checkInOrder 這類流程動作開始時：
+ *       var cached = getIdempotentResult_(payload.clientRequestId);
+ *       if (cached) return cached;
+ *       // 寫入成功後：
+ *       return rememberIdempotentResult_(payload.clientRequestId, result);
+ *
+ *  注意：這段是輔助工具，不會自動取代你原本 Code.gs 的主流程。
+ * ============================================================
+ */
+
+function getPatchFields_(payload) {
+  if (payload && payload.updateMode === 'patch' && payload.fields && typeof payload.fields === 'object') {
+    return payload.fields;
+  }
+  return payload || {};
+}
+
+function kimonoFieldAliases_() {
+  return {
+    couponCode: ['couponCode', 'coupon'],
+    coupon: ['coupon', 'couponCode'],
+    proofImageUrl: ['proofImageUrl', 'proofUrl'],
+    proofUrl: ['proofUrl', 'proofImageUrl'],
+    kimonoPrice: ['kimonoPrice', 'price'],
+    price: ['price', 'kimonoPrice'],
+    refundAmt: ['refundAmt', 'refundAmount'],
+    refundAmount: ['refundAmount', 'refundAmt'],
+    refundDate: ['refundDate', 'refundTime'],
+    refundTime: ['refundTime', 'refundDate'],
+    note: ['note', 'remark'],
+    remark: ['remark', 'note'],
+    confirmed: ['confirmed', 'status']
+  };
+}
+
+function headerIndex_(sheet) {
+  var lastCol = sheet.getLastColumn();
+  var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  var index = {};
+  headers.forEach(function (h, i) {
+    var key = (h || '').toString().trim();
+    if (key) index[key] = i + 1;
+  });
+  return index;
+}
+
+function resolveHeader_(index, key, aliasMap) {
+  var candidates = aliasMap[key] || [key];
+  if (typeof candidates === 'string') candidates = [candidates];
+  for (var i = 0; i < candidates.length; i++) {
+    if (index[candidates[i]]) return candidates[i];
+  }
+  return null;
+}
+
+function setCellsByHeader_(sheet, row, fields, aliasMap) {
+  aliasMap = aliasMap || {};
+  var index = headerIndex_(sheet);
+
+  Object.keys(fields || {}).forEach(function (key) {
+    if (key === 'action' || key === 'token' || key === 'agent' || key === 'orderId' || key === 'fields' || key === 'updateMode') return;
+    var header = resolveHeader_(index, key, aliasMap);
+    if (!header) return;
+    var col = index[header];
+    if (!col) return;
+    sheet.getRange(row, col).setValue(fields[key]);
+  });
+}
+
+function appendRowByHeader_(sheet, fields, aliasMap) {
+  aliasMap = aliasMap || {};
+  var index = headerIndex_(sheet);
+  var lastCol = sheet.getLastColumn();
+  var row = new Array(lastCol).fill('');
+  Object.keys(fields || {}).forEach(function (key) {
+    var header = resolveHeader_(index, key, aliasMap);
+    if (!header) return;
+    row[index[header] - 1] = fields[key];
+  });
+  sheet.appendRow(row);
+  return sheet.getLastRow();
+}
+
+function appendFlowLog_(orderId, action, actor, beforeObj, afterObj, metaObj) {
+  var ss = SpreadsheetApp.getActive();
+  var sheet = ss.getSheetByName('流程日志') || ss.getSheetByName('流程日誌');
+  if (!sheet) {
+    sheet = ss.insertSheet('流程日志');
+    sheet.appendRow(['eventId', 'orderId', 'action', 'actor', 'before', 'after', 'meta', 'createdAt']);
+  }
+  var eventId = 'EVT-' + Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyyMMddHHmmss') + '-' + Math.random().toString(36).slice(2, 8);
+  sheet.appendRow([
+    eventId,
+    orderId || '',
+    action || '',
+    actor || '',
+    beforeObj ? JSON.stringify(beforeObj) : '',
+    afterObj ? JSON.stringify(afterObj) : '',
+    metaObj ? JSON.stringify(metaObj) : '',
+    new Date()
+  ]);
+  return eventId;
+}
+
+function rowObjectByHeader_(sheet, row) {
+  var index = headerIndex_(sheet);
+  var values = sheet.getRange(row, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var obj = {};
+  Object.keys(index).forEach(function (key) {
+    obj[key] = values[index[key] - 1];
+  });
+  return obj;
+}
+
+function findOrderRow_(sheet, orderId) {
+  var index = headerIndex_(sheet);
+  var col = index.orderId || index['訂單編號'];
+  if (!col) throw new Error('訂單表找不到 orderId 欄位');
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return -1;
+  var values = sheet.getRange(2, col, lastRow - 1, 1).getValues();
+  var target = (orderId || '').toString().trim();
+  for (var i = 0; i < values.length; i++) {
+    if ((values[i][0] || '').toString().trim() === target) return i + 2;
+  }
+  return -1;
+}
+
+function rememberIdempotentResult_(clientRequestId, result) {
+  if (!clientRequestId) return result;
+  var props = PropertiesService.getScriptProperties();
+  props.setProperty('REQ_' + clientRequestId, JSON.stringify({
+    ts: Date.now(),
+    result: result
+  }));
+  return result;
+}
+
+function getIdempotentResult_(clientRequestId) {
+  if (!clientRequestId) return null;
+  var props = PropertiesService.getScriptProperties();
+  var raw = props.getProperty('REQ_' + clientRequestId);
+  if (!raw) return null;
+  try {
+    var rec = JSON.parse(raw);
+    // 保留 24 小時，避免使用者重新整理或重送造成重複流程資料。
+    if (rec.ts && Date.now() - rec.ts < 24 * 60 * 60 * 1000) return rec.result;
+  } catch (e) {}
+  props.deleteProperty('REQ_' + clientRequestId);
+  return null;
+}
+
+function nextKimonoOrderId_() {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    return nextKimonoOrderIdUnlocked_();
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function nextKimonoOrderIdUnlocked_() {
+  var now = new Date();
+  var yy = Utilities.formatDate(now, 'Asia/Tokyo', 'yy');
+  var md = Utilities.formatDate(now, 'Asia/Tokyo', 'MMdd');
+  var key = 'ORDER_SEQ_' + yy + md;
+  var props = PropertiesService.getScriptProperties();
+  var seq = parseInt(props.getProperty(key) || '10', 10) + 1;
+  props.setProperty(key, String(seq));
+  return 'K' + yy + md + ('000' + seq).slice(-3);
+}
+
+function createBookingV2(payload) {
+  var cached = getIdempotentResult_(payload.clientRequestId);
+  if (cached) return cached;
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    if (!payload.name || !payload.phone || !payload.bookingDate) {
+      return { status: 'error', message: '缺少姓名、電話或預約日期' };
+    }
+
+    var sheet = SpreadsheetApp.getActive().getSheetByName('訂單表');
+    if (!sheet) return { status: 'error', message: '找不到「訂單表」分頁' };
+
+    payload.orderId = nextKimonoOrderIdUnlocked_();
+    payload.createdAt = payload.createdAt || new Date();
+    payload.status = payload.status || 'pending';
+    payload.confirmed = payload.confirmed || 'FALSE';
+
+    appendRowByHeader_(sheet, payload, kimonoFieldAliases_());
+    appendFlowLog_(payload.orderId, 'booking_created', payload.source || 'web', null, payload, {
+      clientRequestId: payload.clientRequestId || '',
+      clientCreatedAt: payload.clientCreatedAt || ''
+    });
+    var result = {
+      status: 'success',
+      orderId: payload.orderId,
+      message: 'booking created'
+    };
+    return rememberIdempotentResult_(payload.clientRequestId, result);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function updateOrderPatchV2(payload) {
+  var auth = verifyAdminToken(payload);
+  if (!auth.ok) return { status: 'unauthorized', message: '請重新登入' };
+  if (!payload.orderId) return { status: 'error', message: '缺少 orderId' };
+
+  var sheet = SpreadsheetApp.getActive().getSheetByName('訂單表');
+  if (!sheet) return { status: 'error', message: '找不到「訂單表」分頁' };
+
+  var row = findOrderRow_(sheet, payload.orderId);
+  if (row < 0) return { status: 'error', message: '找不到訂單：' + payload.orderId };
+
+  var fields = getPatchFields_(payload);
+  var beforeObj = rowObjectByHeader_(sheet, row);
+  fields.updatedAt = new Date();
+  fields.updatedBy = auth.name;
+  setCellsByHeader_(sheet, row, fields, kimonoFieldAliases_());
+  appendFlowLog_(payload.orderId, 'order_patch', auth.name, beforeObj, fields, {
+    updatedFields: Object.keys(fields)
+  });
+  return {
+    status: 'success',
+    orderId: payload.orderId,
+    updatedFields: Object.keys(fields)
+  };
+}

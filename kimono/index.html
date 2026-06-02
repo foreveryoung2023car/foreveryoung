@@ -12,6 +12,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="./config.js"></script>
+    <script src="./js/constants.js"></script>
+    <script src="./js/data-safe.js"></script>
     <script>
         function initLucide() {
             if (typeof lucide !== 'undefined') { lucide.createIcons(); }
@@ -1227,6 +1229,108 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
         }
 
         const APPS_SCRIPT_URL = KIMONO_CONFIG.APPS_SCRIPT_URL;
+        const KC = KimonoConstants;
+        function makeClientRequestId(prefix) {
+            return KimonoDataSafe.requestId(prefix);
+        }
+        function savePendingBooking(payload) {
+            KimonoDataSafe.savePending(KC.pendingKeys.booking, payload);
+        }
+        function clearPendingBooking(clientRequestId) {
+            KimonoDataSafe.clearPending(KC.pendingKeys.booking, clientRequestId);
+        }
+        function restorePendingBooking(rec) {
+            const p = rec && rec.payload ? rec.payload : {};
+            const setValue = (id, value) => {
+                const el = document.getElementById(id);
+                if (el && value !== undefined && value !== null) el.value = value;
+            };
+            setValue('input-name', p.name || '');
+            setValue('input-phone', p.phone || '');
+            setValue('input-email', p.email || '');
+            setValue('input-store', p.storeKey || '');
+            setValue('input-coupon', p.couponCode || '');
+            setValue('input-last5', p.last5 || '');
+            setValue('input-hair', p.hair === '是' ? 'Yes' : 'No');
+            setValue('input-photo', p.photo === '是' ? 'Yes' : 'No');
+            if (p.bookingDate) {
+                const m = String(p.bookingDate).match(/^(\d{4})[\/-](\d{2})[\/-](\d{2})(?:\s+(\d{2}:\d{2}))?/);
+                if (m) {
+                    setValue('input-date', `${m[1]}-${m[2]}-${m[3]}`);
+                    if (m[4]) setValue('input-time', m[4]);
+                }
+            }
+            if (p.adults !== undefined || p.children !== undefined) {
+                guestData.adults = Math.max(1, Number(p.adults) || 1);
+                guestData.children = Math.max(0, Number(p.children) || 0);
+                updateDepositDisplay();
+                renderPersonKimonoSelects();
+            }
+            if (p.proofImageUrl) {
+                if (String(p.proofImageUrl).indexOf('[TEXT] ') === 0) {
+                    switchProofTab('txt');
+                    setValue('proof-text-input', String(p.proofImageUrl).replace('[TEXT] ', '').replace(/;\s*/g, '\n'));
+                } else {
+                    proofImageUrl = p.proofImageUrl;
+                    const label = document.getElementById('file-label-text');
+                    if (label) {
+                        label.innerHTML = '<img src="' + proofImageUrl + '" style="max-height:40px;border-radius:4px;cursor:pointer" onclick="openProofLightbox(\'' + proofImageUrl + '\')" title="點擊放大">';
+                        label.style.color = '#22c55e';
+                    }
+                }
+            }
+            if (p.clientRequestId) savePendingBooking(p);
+            setStep(1);
+            scrollToId('booking');
+        }
+        async function postGAS(payload) {
+            return KimonoDataSafe.postGAS(APPS_SCRIPT_URL, payload, {
+                parseError: '伺服器回應格式錯誤，請聯繫客服確認是否已建立訂單',
+                missingStatusError: '伺服器未回傳處理狀態，請聯繫客服確認是否已建立訂單'
+            });
+        }
+        async function submitBooking(payload) {
+            if (KIMONO_CONFIG.USE_NEW_API && KIMONO_CONFIG.API_BASE_URL) {
+                return submitBookingToNewApi(payload);
+            }
+            return postGAS(payload);
+        }
+        async function submitBookingToNewApi(payload) {
+            const bookingDate = String(payload.bookingDate || '').replace(/\//g, '-').replace(' ', 'T');
+            const proof = String(payload.proofImageUrl || '');
+            const body = {
+                clientRequestId: payload.clientRequestId,
+                name: payload.name,
+                phone: payload.phone,
+                email: payload.email || undefined,
+                storeCode: payload.storeKey || undefined,
+                bookingAt: bookingDate,
+                adults: Number(payload.adults) || 1,
+                children: Number(payload.children) || 0,
+                hair: payload.hair === '是',
+                photo: payload.photo === '是',
+                source: payload.source || 'web',
+                platform: payload.platform || 'LINE',
+                couponCode: payload.couponCode || undefined,
+                depositJpy: (Number(payload.adults) + Number(payload.children)) * (Number(KIMONO_CONFIG.DEPOSIT_JPY) || 1000),
+                proofUrl: proof && proof.indexOf('[TEXT] ') !== 0 ? proof : undefined,
+                proofNote: proof.indexOf('[TEXT] ') === 0 ? proof.replace('[TEXT] ', '') : undefined,
+                last5: payload.last5 || undefined
+            };
+            const res = await fetch(KIMONO_CONFIG.API_BASE_URL.replace(/\/$/, '') + '/createPublicOrder', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || data.status !== 'success') {
+                throw new Error(data.message || '新 API 建立訂單失敗');
+            }
+            return {
+                status: 'success',
+                orderId: data.order && (data.order.orderNo || data.order.order_no || data.order.id)
+            };
+        }
 
         document.getElementById('booking-form-1').onsubmit = (e) => {
             e.preventDefault();
@@ -1260,6 +1364,9 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             const finalId = 'K' + dateKey + seqStr;
 
             const payload = {
+                action: KC.actions.createBooking,
+                clientRequestId: makeClientRequestId('booking'),
+                clientCreatedAt: new Date().toISOString(),
                 orderId: finalId, submitDate: submitDateTWN,
                 name: document.getElementById('input-name').value.trim(),
                 phone: document.getElementById('input-phone').value.trim(),
@@ -1291,17 +1398,20 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             };
 
             try {
-                await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
-                document.getElementById('finalOrderId').innerText = finalId;
-                document.getElementById('finalOrderIdDisplay').innerText = finalId;
-                document.getElementById('file-name-display').innerText = finalId + '_proof.jpg';
+                savePendingBooking(payload);
+                const data = await submitBooking(payload);
+                const confirmedId = data.orderId || data.id || finalId;
+                document.getElementById('finalOrderId').innerText = confirmedId;
+                document.getElementById('finalOrderIdDisplay').innerText = confirmedId;
+                document.getElementById('file-name-display').innerText = confirmedId + '_proof.jpg';
+                clearPendingBooking(payload.clientRequestId);
                 try { localStorage.setItem('order_date', dateKey); localStorage.setItem('order_seq', todaySeq); } catch(err) {}
                 try { localStorage.setItem('last_booking', Date.now()); } catch(err) {}
                 setStep(3); scrollToId('booking');
             } catch (err) {
                 console.error('送出失敗:', err);
                 btn.disabled = false; btn.innerHTML = '確認提交並取得編號';
-                alert('網路異常，請檢查連線後再試，或直接聯繫 LINE 客服。\n錯誤：' + err.message);
+                alert('送出尚未完成，已暫存本次填單資料。\n請檢查連線後再試，或直接聯繫 LINE 客服。\n錯誤：' + err.message);
             }
         };
 
@@ -1315,6 +1425,20 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             updateDepositDisplay();
             renderPersonKimonoSelects();
             document.getElementById('input-date').setAttribute('min', tomorrowStr);
+            try {
+                const rec = KimonoDataSafe.getPending(KC.pendingKeys.booking);
+                if (rec) {
+                    const p = rec.payload || {};
+                    if (p.name || p.phone || p.orderId) {
+                        console.warn('尚有未完成送出的和服預約資料：', rec);
+                        setTimeout(() => {
+                            if (confirm('偵測到上一筆預約尚未確認送出。\n要將暫存資料填回表單嗎？')) {
+                                restorePendingBooking(rec);
+                            }
+                        }, 800);
+                    }
+                }
+            } catch (err) {}
 
             const container = document.getElementById('sakura-container');
             for (let i = 0; i < 8; i++) {
