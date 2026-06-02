@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+_site/
+dist/
+build/
+**/dist/
+**/build/
+kimono-system/firebase/functions/lib/
+
+# Logs
+*.log
+firebase-debug.log
+*-debug.log
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Firebase local/cache files
+.firebase/
+**/.firebase/
+
+# Accidental local copy created during Firebase setup
+kimono-system/firebase/foreveryoung-kimono-prod
+
+# OS/editor noise
+.DS_Store
+.idea/
+.vscode/
