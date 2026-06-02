@@ -9,6 +9,8 @@ const KIMONO_CONFIG = {
     // ★ Google Apps Script Web App URL
     // 重新部署後只需要改這裡
     APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyevg6UgNaK_H2bJNxDMbQEHO6iC9SdmZCEnyjEATrcM-et341n69JoXXYxutqWju6c/exec',
+    API_BASE_URL:    'https://asia-northeast1-foreveryoung-kimono-prod.cloudfunctions.net',
+    USE_NEW_API:     true,
 
     // ★ 聯繫連結
     LINE_URL:       'https://lin.ee/TgFCvYQ',
@@ -43,7 +45,6 @@ window.addEventListener('load', () => {
         }, 300);
     }
 });
-
 
 
 
