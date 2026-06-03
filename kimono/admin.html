@@ -2549,7 +2549,11 @@ async function checkInOrder(id){
   if (phoneLast3 === null) return;
   const phone = String(o.phone||'').replace(/[^0-9]/g,'');
   const phoneLast3Clean = String(phoneLast3||'').replace(/\D/g,'').slice(-3);
-  if (phoneLast3Clean && !phone.endsWith(phoneLast3Clean)) {
+  if (!/^\d{3}$/.test(phoneLast3Clean)) {
+    alert('請輸入客人手機末 3 碼，必須是 3 位數字。');
+    return;
+  }
+  if (!phone.endsWith(phoneLast3Clean)) {
     if (!confirm('手機末 3 碼不符（客人輸入：'+phoneLast3Clean+'，記錄：'+phone.slice(-3)+'）。仍要報到？')) return;
   }
   if (!confirm('確定為「'+(o.name||id)+'」辦理報到？\n門市：'+storeKey+'\n體驗日：'+(o.bookingDate||'—'))) return;
