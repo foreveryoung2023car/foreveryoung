@@ -1178,6 +1178,30 @@ async function getFreshAdminToken() {
   return adminToken;
 }
 
+function firebaseAdminApiBaseUrl() {
+  return (KIMONO_CONFIG.API_BASE_URL || '').replace(/\/$/, '');
+}
+
+function formatFirebaseAuditTime(value) {
+  if (!value) return '';
+  if (typeof value === 'string') return value.replace('T', ' ').slice(0, 19);
+  if (typeof value._seconds === 'number') return new Date(value._seconds * 1000).toISOString().replace('T', ' ').slice(0, 19);
+  if (typeof value.seconds === 'number') return new Date(value.seconds * 1000).toISOString().replace('T', ' ').slice(0, 19);
+  return String(value);
+}
+
+function firebaseAuditLogToAdminRow(log) {
+  return {
+    time: formatFirebaseAuditTime(log.createdAt),
+    agent: log.actorLabel || log.actorEmail || log.actorUid || 'system',
+    action: log.action || '',
+    orderId: log.orderNo || log.orderId || '',
+    customer: (log.afterData && (log.afterData.customerName || log.afterData.name)) || (log.beforeData && (log.beforeData.customerName || log.beforeData.name)) || '',
+    changes: log.metadata ? JSON.stringify(log.metadata) : '',
+    note: log.id || ''
+  };
+}
+
 function firestoreOrderToAdminOrder(doc) {
   const data = firestoreFieldsToObject(doc.fields || {});
   const status = data.status || '';
@@ -3161,6 +3185,7 @@ function exportReconCSV(){
 
 // ── v2.4.32 自動配對銀行入帳 ──
 async function runAutoReconcile(){
+  if (useFirebaseAdmin()) { toast('Firebase 模式下自動對帳尚未遷移；舊 GAS 寫入已停用', 'warning'); return; }
   if (currentAgent !== 'Jun') { toast('需要主管權限', 'error'); return; }
   toast('正在掃描収款辨識…');
   let res;
@@ -3201,6 +3226,7 @@ async function runAutoReconcile(){
   document.body.appendChild(div.firstChild);
 }
 async function confirmAutoReconcile(btn){
+  if (useFirebaseAdmin()) { toast('Firebase 模式下自動對帳尚未遷移；舊 GAS 寫入已停用', 'warning'); return; }
   btn.disabled = true; btn.textContent = '套用中…';
   try {
     const r = await fetch(GAS_URL + '?_cb=' + Date.now(), {
@@ -3675,6 +3701,7 @@ function renderTrendChart(){
 }
 
 async function quickPreCheckClose(){
+  if (useFirebaseAdmin()) { toast('Firebase 模式下月度關帳尚未遷移；舊 GAS 僅保留只讀備份', 'warning'); return; }
   if (currentAgent !== 'Jun') { toast('只有 Jun 可以執行', 'error'); return; }
   // 找上月份
   const now = new Date();
@@ -3765,6 +3792,7 @@ function openReconHelp(){
 }
 
 async function openCloseMonthDialog() {
+  if (useFirebaseAdmin()) { toast('Firebase 模式下月度關帳尚未遷移；請先用 Firestore 備份策略保留資料', 'warning'); return; }
   if (currentAgent !== 'Jun') { toast('只有 Jun 可以執行關帳', 'error'); return; }
   const month = document.getElementById('recon-month').value;
   if (!month || month === 'all') { toast('請先選擇一個月份', 'warning'); return; }
@@ -3806,6 +3834,16 @@ async function openCloseMonthDialog() {
 async function loadArchivedList() {
   const list = document.getElementById('archived-months-list');
   list.innerHTML = '<div class="text-center text-slate-500 py-6">載入中…</div>';
+  if (useFirebaseAdmin()) {
+    list.innerHTML =
+      '<div class="p-5 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-900 leading-relaxed">' +
+      '<div class="font-bold text-base mb-2">舊 GAS 歸檔資料目前保留為只讀備份</div>' +
+      '<div>Firebase 後台不再使用舊 GAS token，因此不直接讀取舊歸檔表。</div>' +
+      '<div class="mt-2">如需查歷史歸檔，請到舊 Google Sheet / GAS 備份資料查看。</div>' +
+      '<div class="mt-2">新 Firestore 資料請使用每日 Firestore export 備份策略。</div>' +
+      '</div>';
+    return;
+  }
   try {
     const res = await fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'getArchivedList', token:adminToken }) });
     const d = await res.json();
@@ -3865,6 +3903,7 @@ async function showArchivedMonth(month) {
 }
 
 async function unlockArchivedMonth() {
+  if (useFirebaseAdmin()) { toast('Firebase 模式下解凍舊歸檔尚未遷移；舊 GAS 僅保留只讀備份', 'warning'); return; }
   if (currentAgent !== 'Jun') { toast('只有 Jun 可以解凍', 'error'); return; }
   if (!currentArchiveMonth) return;
   const ok = confirm('🔓 確認解凍 ' + currentArchiveMonth + ' 嗎？\n\n所有該月訂單會搬回主表，可以重新編輯。\n編輯完記得再次關帳。確定？');
@@ -4685,7 +4724,7 @@ if (__origSwitchSection) {
 //  v2.4.21 #6 操作紀錄 (audit log) — Jun only
 // ============================================================
 async function loadAuditLog() {
-  if (currentAgent !== 'Jun') {
+  if (!useFirebaseAdmin() && currentAgent !== 'Jun') {
     alert('只有 Jun 可以查看操作紀錄');
     return;
   }
@@ -4695,6 +4734,20 @@ async function loadAuditLog() {
   const limit = limitSel ? parseInt(limitSel.value || '100', 10) : 100;
   if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-400">載入中…</td></tr>';
   try {
+    if (useFirebaseAdmin()) {
+      const token = await getFreshAdminToken();
+      const r = await fetch(firebaseAdminApiBaseUrl() + '/getAuditLogs?limit=' + encodeURIComponent(limit), {
+        method: 'GET',
+        headers: { Authorization: 'Bearer ' + token }
+      });
+      const data = await r.json().catch(()=>({}));
+      if (!r.ok || data.status !== 'success') {
+        if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-red-500">錯誤：' + (data.message || '無法取得 Firebase 操作紀錄') + '</td></tr>';
+        return;
+      }
+      renderAuditLog((data.logs || []).map(firebaseAuditLogToAdminRow));
+      return;
+    }
     const r = await fetch(GAS_URL, {
       method: 'POST',
       body: JSON.stringify({ action:'getAuditLog', token:adminToken, agent:currentAgent, limit:limit })
@@ -4952,6 +5005,16 @@ document.addEventListener('DOMContentLoaded', () => {
   if (ppEl) ppEl.addEventListener('input', () => { ppEl.dataset.userEdited = '1'; });
 });
 async function wiSubmit() {
+  if (useFirebaseAdmin()) {
+    const errBox = document.getElementById('wiErr');
+    if (errBox) {
+      errBox.textContent = 'Firebase 模式下現場訂單尚未遷移；舊 GAS 寫入已停用。';
+      errBox.classList.remove('hidden');
+    } else {
+      alert('Firebase 模式下現場訂單尚未遷移；舊 GAS 寫入已停用。');
+    }
+    return;
+  }
   const name = document.getElementById('wi-name').value.trim();
   const phone = document.getElementById('wi-phone').value.trim();
   const nationality = document.getElementById('wi-nationality').value;
@@ -5025,6 +5088,20 @@ async function renderEmployees() {
   const list = document.getElementById('employees-list');
   if (!list) return;
   list.innerHTML = '<div class="text-center py-6 text-slate-400">載入中...</div>';
+  if (useFirebaseAdmin()) {
+    document.getElementById('emp-stat-total').textContent = '—';
+    document.getElementById('emp-stat-active').textContent = '—';
+    document.getElementById('emp-stat-disabled').textContent = '—';
+    list.innerHTML =
+      '<div class="p-5 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-900 leading-relaxed">' +
+      '<div class="font-bold text-base mb-2">Firebase 帳號管理已改用 Authentication + Firestore users/{uid}</div>' +
+      '<div>目前後台登入、角色、啟用狀態已由 Firebase 控制，不再使用舊 GAS 員工表。</div>' +
+      '<div class="mt-2">新增 / 停用 / 重設密碼請先到 Firebase Console：</div>' +
+      '<div class="mt-2 font-mono text-xs bg-white/70 p-2 rounded">Authentication 建立或停用使用者<br>Firestore users/{uid} 設定 role、active、storeId、displayName</div>' +
+      '<div class="mt-3 text-slate-600">後續若需要在後台直接管理 Firebase 使用者，需要再新增 Admin SDK 專用 Function。</div>' +
+      '</div>';
+    return;
+  }
   try {
     const res = await fetch(GAS_URL, { method:'POST', body: JSON.stringify({
       action: 'listEmployees',
@@ -5074,6 +5151,7 @@ async function renderEmployees() {
 }
 
 function openAddEmployeeModal() {
+  if (useFirebaseAdmin()) { alert('Firebase 模式下請到 Authentication 新增使用者，並在 Firestore users/{uid} 設定角色。'); return; }
   document.getElementById('new-emp-name').value = '';
   document.getElementById('new-emp-pass').value = '';
   document.getElementById('new-emp-role').value = 'staff';
@@ -5083,6 +5161,7 @@ function openAddEmployeeModal() {
 function closeAddEmployeeModal() { document.getElementById('add-emp-modal').classList.add('hidden'); }
 
 async function submitNewEmployee() {
+  if (useFirebaseAdmin()) { alert('Firebase 模式下請到 Authentication 新增使用者。'); return; }
   const name = document.getElementById('new-emp-name').value.trim();
   const pass = document.getElementById('new-emp-pass').value;
   const role = document.getElementById('new-emp-role').value;
@@ -5118,6 +5197,7 @@ async function submitNewEmployee() {
 }
 
 async function disableEmployee(empId, empName) {
+  if (useFirebaseAdmin()) { alert('Firebase 模式下請到 Authentication 停用使用者，或把 users/{uid}.active 設為 false。'); return; }
   if (!confirm('確定停用員工「' + empName + '」？\n停用後該員工無法登入。')) return;
   try {
     const res = await fetch(GAS_URL, { method:'POST', body: JSON.stringify({
@@ -5130,6 +5210,7 @@ async function disableEmployee(empId, empName) {
 }
 
 async function enableEmployee(empId) {
+  if (useFirebaseAdmin()) { alert('Firebase 模式下請到 Authentication 啟用使用者，並確認 users/{uid}.active 為 true。'); return; }
   try {
     const res = await fetch(GAS_URL, { method:'POST', body: JSON.stringify({
       action: 'enableEmployee', agent: currentAgent, token: adminToken, employeeId: empId
@@ -5141,6 +5222,7 @@ async function enableEmployee(empId) {
 }
 
 async function resetEmployeePass(empId, empName) {
+  if (useFirebaseAdmin()) { alert('Firebase 模式下請到 Authentication 發送重設密碼郵件或直接更新密碼。'); return; }
   const newPass = prompt('重設「' + empName + '」的新密碼（至少 6 碼）：');
   if (!newPass) return;
   if (newPass.length < 6) { alert('密碼至少 6 碼'); return; }
@@ -5158,6 +5240,7 @@ async function resetEmployeePass(empId, empName) {
 
 // v2.4.41: 員工自助改密碼
 function openChangePassword() {
+  if (useFirebaseAdmin()) { alert('Firebase 模式下請使用 Authentication 的重設密碼流程。'); return; }
   document.getElementById('cpw-old').value = '';
   document.getElementById('cpw-new').value = '';
   document.getElementById('cpw-new2').value = '';
@@ -5168,6 +5251,7 @@ function closeChangePassword() {
   document.getElementById('change-pw-modal').classList.add('hidden');
 }
 async function submitChangePassword() {
+  if (useFirebaseAdmin()) { alert('Firebase 模式下請使用 Authentication 的重設密碼流程。'); return; }
   const oldPw = document.getElementById('cpw-old').value;
   const newPw = document.getElementById('cpw-new').value;
   const newPw2 = document.getElementById('cpw-new2').value;
