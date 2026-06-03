@@ -1165,6 +1165,42 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
         }
 
         let proofImageUrl = '';
+        async function uploadProofToNewApi(file, base64) {
+            const apiBaseUrl = (KIMONO_CONFIG.API_BASE_URL || '').replace(/\/$/, '');
+            if (!apiBaseUrl) throw new Error('Firebase API_BASE_URL 尚未設定');
+            const res = await fetch(`${apiBaseUrl}/uploadOrderProof`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    image: base64,
+                    filename: file.name || 'proof.jpg',
+                    contentType: file.type || 'image/jpeg',
+                    clientRequestId: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : `proof-${Date.now()}`
+                })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || data.status !== 'success' || !data.url) {
+                throw new Error(data.message || `Firebase 圖片上傳失敗 (${res.status})`);
+            }
+            return data.url;
+        }
+
+        async function uploadProofToGas(file, base64) {
+            const res = await fetch(KIMONO_CONFIG.APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'uploadImage',
+                    image: base64,
+                    filename: file.name || 'proof.jpg'
+                })
+            });
+            const data = await res.json();
+            if (!data || data.status !== 'success' || !data.url) {
+                throw new Error((data && data.message) || '上傳失敗');
+            }
+            return data.url;
+        }
+
         async function handleFileUpload(input) {
             const label = document.getElementById('file-label-text');
             if (!input.files || !input.files[0]) return;
@@ -1186,23 +1222,11 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                     reader.onerror = reject;
                     reader.readAsDataURL(file);
                 });
-                // 改由 GAS 代理上傳，imgbb key 不再出現在前端
-                const res = await fetch(KIMONO_CONFIG.APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'uploadImage',
-                        image: base64,
-                        filename: file.name || 'proof.jpg'
-                    })
-                });
-                const data = await res.json();
-                if (data && data.status === 'success' && data.url) {
-                    proofImageUrl = data.url;
-                    label.innerHTML = '<img src="' + proofImageUrl + '" style="max-height:40px;border-radius:4px;cursor:pointer" onclick="openProofLightbox(\'' + proofImageUrl + '\')" title="點擊放大">';
-                    label.style.color = '#22c55e';
-                } else {
-                    throw new Error((data && data.message) || '上傳失敗');
-                }
+                proofImageUrl = KIMONO_CONFIG.USE_NEW_API
+                    ? await uploadProofToNewApi(file, base64)
+                    : await uploadProofToGas(file, base64);
+                label.innerHTML = '<img src="' + proofImageUrl + '" style="max-height:40px;border-radius:4px;cursor:pointer" onclick="openProofLightbox(\'' + proofImageUrl + '\')" title="點擊放大">';
+                label.style.color = '#22c55e';
             } catch(err) { label.textContent = '❌ 上傳失敗，請重試'; label.style.color = '#ef4444'; proofImageUrl = ''; }
         }
 
