@@ -12,10 +12,13 @@ const KIMONO_CONFIG = {
     API_BASE_URL:    'https://asia-northeast1-foreveryoung-kimono-prod.cloudfunctions.net',
     USE_NEW_API:     true,
     FIREBASE_CONFIG: {
-        apiKey: '',
+        apiKey: 'AIzaSyD6m300aSu4gEcYrorTOK8aKq2pth4rNwo',
         authDomain: 'foreveryoung-kimono-prod.firebaseapp.com',
         projectId: 'foreveryoung-kimono-prod',
-        storageBucket: 'foreveryoung-kimono-prod.firebasestorage.app'
+        storageBucket: 'foreveryoung-kimono-prod.firebasestorage.app',
+        messagingSenderId: '955587286565',
+        appId: '1:955587286565:web:7b58028397b89b7e8811cc',
+        measurementId: 'G-FYK2QVRD2B'
     },
 
     // ★ 聯繫連結
@@ -51,6 +54,5 @@ window.addEventListener('load', () => {
         }, 300);
     }
 });
-
 
 
