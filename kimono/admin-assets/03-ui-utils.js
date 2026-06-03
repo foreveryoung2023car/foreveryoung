@@ -486,6 +486,21 @@ function fmtDateTime(s){
 }
 function fmtY(n){ n = Number(n)||0; return n ? '¥'+n.toLocaleString() : '—'; }
 function fmtY0(n){ n = Number(n)||0; return '¥'+n.toLocaleString(); }
+function formatGuestCount(o) {
+  if (!o) return '—';
+  const adultsRaw = o.adults;
+  const childrenRaw = o.children;
+  const adults = Number(adultsRaw || 0);
+  const children = Number(childrenRaw || 0);
+  if (adults > 0 || children > 0) {
+    return (adults > 0 ? adults + '大' : '') + (children > 0 ? children + '小' : '');
+  }
+  const pax = String(o.pax || '').trim();
+  if (!pax) return '—';
+  if (/[大小]/.test(pax)) return pax;
+  const n = Number(pax);
+  return n > 0 ? n + '大' : pax;
+}
 function fmtDate(s){
   if(!s) return '—';
   // v2.4.20: 字串原樣判斷優先（避免 timezone bug）
