@@ -99,7 +99,7 @@ async function sendConfirmEmailFromModal() {
       '您的和服體驗預約資訊如下：',
       '訂單編號：' + (editingOrder.orderId || '—'),
       '體驗日期：' + (document.getElementById('e-booking-date').value || '—').replace('T', ' '),
-      '人數：' + (document.getElementById('e-pax').value || '—'),
+      '人數：' + ((typeof syncEditPax === 'function' ? syncEditPax().pax : document.getElementById('e-pax').value) || '—'),
       '方案：' + (document.getElementById('e-plan').value || '和服體驗'),
       '妝髮：' + (document.getElementById('e-hair').value === 'true' ? '需要' : '不需要'),
       '攝影：' + (document.getElementById('e-photo').value === 'true' ? '需要' : '不需要'),

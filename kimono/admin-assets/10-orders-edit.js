@@ -8,7 +8,10 @@ function openEdit(orderId) {
   document.getElementById('e-phone').value = o.phone || '';
   document.getElementById('e-email').value = o.email || '';
   document.getElementById('e-booking-date').value = (function(bd){ if(!bd) return ''; const d=parseBookingDate(bd); if(!d||isNaN(d)) return String(bd).slice(0,10); const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes()); })(o.bookingDate);
-  document.getElementById('e-pax').value = o.adults || o.pax || '';
+  const guestCount = parseEditGuestCount(o);
+  document.getElementById('e-adults').value = guestCount.adults;
+  document.getElementById('e-children').value = guestCount.children;
+  syncEditPax();
   document.getElementById('e-plan').value = o.plan || '';
   document.getElementById('e-platform').value = o.platform || '';
   document.getElementById('e-hair').value = (o.hair === true || o.hair === 'true') ? 'true' : 'false';
@@ -51,6 +54,33 @@ function openEdit(orderId) {
   injectAnomalyWarning(o); // v2.6
   document.getElementById('edit-modal').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
+}
+
+function parseEditGuestCount(o) {
+  const adults = Number(o && o.adults || 0);
+  const children = Number(o && o.children || 0);
+  if (adults > 0 || children > 0) return { adults, children };
+  const text = String((o && o.pax) || '').trim();
+  if (!text) return { adults: 0, children: 0 };
+  const adultMatch = text.match(/(\d+)\s*[大成人]/);
+  const childMatch = text.match(/(\d+)\s*[小孩童]/);
+  if (adultMatch || childMatch) {
+    return {
+      adults: adultMatch ? Number(adultMatch[1]) : 0,
+      children: childMatch ? Number(childMatch[1]) : 0
+    };
+  }
+  const n = Number(text);
+  return { adults: n > 0 ? n : 0, children: 0 };
+}
+
+function syncEditPax() {
+  const adults = Math.max(0, Number(document.getElementById('e-adults')?.value || 0));
+  const children = Math.max(0, Number(document.getElementById('e-children')?.value || 0));
+  const pax = (adults > 0 ? adults + '大' : '') + (children > 0 ? children + '小' : '');
+  const legacy = document.getElementById('e-pax');
+  if (legacy) legacy.value = pax || '0大';
+  return { adults, children, pax: pax || '0大' };
 }
 
 // v2.6: 在編輯 modal 上方注入「為什麼這筆是異常」說明橫幅

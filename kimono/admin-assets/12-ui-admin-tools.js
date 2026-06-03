@@ -479,10 +479,13 @@ async function saveOrder() {
   const msg = document.getElementById('save-msg');
   if (!editingOrder) return;
   btn.textContent = '儲存中…'; btn.disabled = true;
+  const guests = typeof syncEditPax === 'function'
+    ? syncEditPax()
+    : { adults: Number(document.getElementById('e-adults')?.value || 0), children: Number(document.getElementById('e-children')?.value || 0), pax: document.getElementById('e-pax')?.value || '' };
   const payload = {
     action: 'adminUpdate', agent: currentAgent, token: adminToken, orderId: editingOrder.orderId,
     name: document.getElementById('e-name').value, phone: document.getElementById('e-phone').value, email: document.getElementById('e-email').value,
-    bookingDate: (function(){ const v=document.getElementById('e-booking-date').value; if(!v) return ''; const m=v.match(/^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/); if(!m) return v; return m[1]+'/'+m[2]+'/'+m[3]+(m[4]?(' '+m[4]+':'+m[5]):''); })(), pax: document.getElementById('e-pax').value,
+    bookingDate: (function(){ const v=document.getElementById('e-booking-date').value; if(!v) return ''; const m=v.match(/^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/); if(!m) return v; return m[1]+'/'+m[2]+'/'+m[3]+(m[4]?(' '+m[4]+':'+m[5]):''); })(), pax: guests.pax,
     plan: document.getElementById('e-plan').value, platform: document.getElementById('e-platform').value,
     hair: document.getElementById('e-hair').value, photo: document.getElementById('e-photo').value, confirmed: (document.getElementById('e-confirmed').value === 'true' ? 'TRUE' : 'FALSE'),
     deposit: document.getElementById('e-deposit').value, kimonoPrice: document.getElementById('e-price').value,
@@ -503,8 +506,8 @@ async function saveOrder() {
         phone: payload.phone,
         email: payload.email,
         bookingAt: bookingValue ? bookingValue + ':00+09:00' : undefined,
-        adults: Number(payload.pax || 0),
-        children: 0,
+        adults: guests.adults,
+        children: guests.children,
         plan: payload.plan,
         platform: payload.platform,
         hair: payload.hair === 'true',
