@@ -13,7 +13,8 @@ export async function checkInOrder(orderId: string, raw: unknown, source: string
     const orderSnap = await tx.get(orderRef);
     if (!orderSnap.exists) throw new HttpError(404, "Order not found");
     const before = orderSnap.data()!;
-    if (before.last5 && input.last5 && before.last5 !== input.last5) {
+    const expectedPhoneLast5 = String(before.customerPhone || "").replace(/\D/g, "").slice(-5);
+    if (source === "self" && (!input.last5 || !expectedPhoneLast5 || expectedPhoneLast5 !== input.last5)) {
       throw new HttpError(400, "Phone verification failed");
     }
     const checkinRef = db.collection("checkins").doc();

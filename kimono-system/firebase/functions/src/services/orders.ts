@@ -118,8 +118,7 @@ export async function queryPublicOrder(raw: unknown) {
   if (input.orderId) {
     snap = await db.collection("orders").where("orderNo", "==", input.orderId.trim().toUpperCase()).limit(1).get();
   } else {
-    const last5 = normalizeDigits(input.phone).slice(-5);
-    snap = await db.collection("orders").where("last5", "==", last5).limit(10).get();
+    snap = await db.collection("orders").where("customerName", "==", input.name?.trim()).limit(20).get();
   }
 
   if (snap.empty) throw new HttpError(404, "Order not found");
