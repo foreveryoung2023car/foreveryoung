@@ -32,6 +32,118 @@ export const createPublicOrderSchema = z.object({
   last5: z.string().optional()
 });
 
+export const queryPublicOrderSchema = z.object({
+  orderId: z.string().optional(),
+  contact: z.string().optional(),
+  name: z.string().optional(),
+  phone: z.string().optional()
+}).refine((input) => {
+  if (input.orderId && input.contact) return true;
+  return Boolean(input.name && input.phone);
+}, "Order number with contact, or name with phone is required");
+
+function normalizeDigits(value: unknown) {
+  return String(value || "").replace(/\D/g, "");
+}
+
+function normalizeText(value: unknown) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function timestampToIso(value: unknown) {
+  if (!value) return "";
+  if (value instanceof Timestamp) return value.toDate().toISOString();
+  if (value instanceof Date) return value.toISOString();
+  return String(value);
+}
+
+function publicStatusCode(status: unknown) {
+  switch (status) {
+    case "confirmed":
+    case "checked_in":
+    case "completed":
+      return "confirmed";
+    case "refund_requested":
+    case "refunding":
+      return "refunding";
+    case "refunded":
+    case "cancelled":
+      return "refunded";
+    default:
+      return "pending";
+  }
+}
+
+function toPublicOrderResponse(orderId: string, order: FirebaseFirestore.DocumentData) {
+  const statusCode = publicStatusCode(order.status);
+  const adults = Number(order.adults || 0);
+  const children = Number(order.children || 0);
+  const planPrice = Number(order.kimonoPriceJpy || 0);
+  const discount = Number(order.discountRate || 10);
+  const planActual = discount > 0 && discount < 10 ? Math.round(planPrice * discount / 10) : planPrice;
+
+  return {
+    status: "success",
+    firestoreId: orderId,
+    orderId: order.orderNo || orderId,
+    name: order.customerName || "",
+    email: order.customerEmail || "",
+    phone: order.customerPhone || "",
+    statusCode,
+    bookingDate: timestampToIso(order.bookingAt),
+    guests: `${adults} 位大人${children ? ` / ${children} 位小孩` : ""}`,
+    adults,
+    children,
+    plan: order.plan || "和服體驗",
+    hair: order.hair ? "是" : "否",
+    photo: order.photo ? "是" : "否",
+    planPrice,
+    planActual,
+    hairFee: Number(order.hairFeeJpy || 0),
+    photoFee: Number(order.photoFeeJpy || 0),
+    depositJPY: Number(order.depositJpy || 0),
+    twdDeposit: "",
+    onsiteDue: Number(order.onsiteDueJpy || 0),
+    couponCode: order.couponCode || "",
+    discount,
+    canRefund: order.status === "confirmed",
+    canCheckIn: order.status === "confirmed"
+  };
+}
+
+export async function queryPublicOrder(raw: unknown) {
+  const input = queryPublicOrderSchema.parse(raw);
+  let snap;
+
+  if (input.orderId) {
+    snap = await db.collection("orders").where("orderNo", "==", input.orderId.trim().toUpperCase()).limit(1).get();
+  } else {
+    const last5 = normalizeDigits(input.phone).slice(-5);
+    snap = await db.collection("orders").where("last5", "==", last5).limit(10).get();
+  }
+
+  if (snap.empty) throw new HttpError(404, "Order not found");
+
+  const contact = normalizeText(input.contact);
+  const phoneDigits = normalizeDigits(input.phone);
+  const name = normalizeText(input.name);
+
+  const match = snap.docs.find((doc) => {
+    const order = doc.data();
+    if (input.orderId) {
+      const emailOk = normalizeText(order.customerEmail) === contact;
+      const phoneOk = normalizeDigits(order.customerPhone).endsWith(normalizeDigits(contact));
+      return emailOk || phoneOk;
+    }
+    const nameOk = normalizeText(order.customerName) === name;
+    const phoneOk = normalizeDigits(order.customerPhone).endsWith(phoneDigits.slice(-5));
+    return nameOk && phoneOk;
+  });
+
+  if (!match) throw new HttpError(404, "Order not found");
+  return toPublicOrderResponse(match.id, match.data());
+}
+
 export async function createPublicOrder(raw: unknown) {
   const input = createPublicOrderSchema.parse(raw);
   const cached = await getIdempotentResponse(input.clientRequestId);

@@ -490,11 +490,26 @@ input[type="text"], input[type="email"], input[type="tel"], select, textarea { f
 
 <script>
 const GAS_URL = KIMONO_CONFIG.APPS_SCRIPT_URL;
+const API_BASE_URL = (KIMONO_CONFIG.API_BASE_URL || '').replace(/\/$/, '');
 ['floatLine','lineLink','rsLine'].forEach(id => { const el=document.getElementById(id); if(el) el.href=KIMONO_CONFIG.LINE_URL||'#'; });
 ['floatMessenger','messengerLink','rsMessenger'].forEach(id => { const el=document.getElementById(id); if(el) el.href=KIMONO_CONFIG.MESSENGER_URL||'#'; });
 
 let currentOrder = null;
 let refundPanelOpen = false;
+
+async function callFirebaseApi(path, body) {
+  if (!API_BASE_URL) throw new Error('Firebase API_BASE_URL 尚未設定');
+  const res = await fetch(`${API_BASE_URL}/${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body || {})
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.status === 'error') {
+    throw new Error(data.message || `Firebase API 錯誤 (${res.status})`);
+  }
+  return data;
+}
 
 function fmtDate(val) {
   if (!val) return '—';
@@ -536,17 +551,25 @@ async function doQuery() {
   }
   showLoading();
   try {
-    const res  = await fetch(GAS_URL, {
-      method:'POST',
-      body:JSON.stringify(payload),
-      headers:{ 'Content-Type':'text/plain;charset=utf-8' }
-    });
-    const data = await res.json();
+    let data;
+    if (KIMONO_CONFIG.USE_NEW_API) {
+      const firebasePayload = queryMode === 'bynamephone'
+        ? { name: payload.name, phone: payload.phone }
+        : { orderId: payload.orderId, contact: payload.contact };
+      data = await callFirebaseApi('queryPublicOrder', firebasePayload);
+    } else {
+      const res  = await fetch(GAS_URL, {
+        method:'POST',
+        body:JSON.stringify(payload),
+        headers:{ 'Content-Type':'text/plain;charset=utf-8' }
+      });
+      data = await res.json();
+    }
     hideLoading();
     if (data.status !== 'success') { showForm(); return showError(data.message || '查無此訂單，請確認資料是否正確'); }
     // v2.4.40: 也記下姓名（byNamePhone 模式從 form 拿；query 模式用 data.name 若 GAS 有回）
     const formName = (queryMode === 'bynamephone') ? document.getElementById('qNamePhoneName').value.trim() : '';
-    currentOrder = { orderId: data.orderId, email: data.email||'', phone: data.phone||'', name: data.name || formName || '' };
+    currentOrder = { orderId: data.orderId, firestoreId: data.firestoreId || '', email: data.email||'', phone: data.phone||'', name: data.name || formName || '' };
     renderResult(data);
   } catch(err) {
     console.error(err); hideLoading(); showForm();
@@ -610,7 +633,7 @@ function renderResult(d) {
 
   // v2.4.40: 客人自助報到按鈕：confirmed + 體驗日今天 (JST) 才顯示
   const ciSec = document.getElementById('selfCheckInSection');
-  if (d.statusCode === 'confirmed' && isBookingToday(d.bookingDate)) {
+  if (d.canCheckIn && isBookingToday(d.bookingDate)) {
     ciSec.classList.remove('hidden');
     currentOrder.name = d.name || currentOrder.name || '客人';
     currentOrder.bookingDate = d.bookingDate || '';
@@ -655,17 +678,29 @@ document.getElementById('refundForm').onsubmit = async (e) => {
   const submitDate = new Date(Date.now()+8*60*60*1000).toISOString().slice(0,10);
 
   try {
-    await fetch(GAS_URL, {
-      method:'POST', mode:'no-cors',
-      headers:{ 'Content-Type':'text/plain' },
-      body:JSON.stringify({
-        action:'refund',
-        orderId:currentOrder.orderId,
-        email:currentOrder.email,
-        submitDate, reason, note,
-        bankCode, bankName, account, accountName, phone
-      })
-    });
+    if (KIMONO_CONFIG.USE_NEW_API) {
+      await callFirebaseApi('requestRefund', {
+        orderId: currentOrder.firestoreId || currentOrder.orderId,
+        reason: note ? `${reason}｜${note}` : reason,
+        bankCode,
+        bankName,
+        bankAccount: account,
+        bankAccountName: accountName,
+        contactPhone: phone
+      });
+    } else {
+      await fetch(GAS_URL, {
+        method:'POST', mode:'no-cors',
+        headers:{ 'Content-Type':'text/plain' },
+        body:JSON.stringify({
+          action:'refund',
+          orderId:currentOrder.orderId,
+          email:currentOrder.email,
+          submitDate, reason, note,
+          bankCode, bankName, account, accountName, phone
+        })
+      });
+    }
 
     document.getElementById('rs-orderId').textContent = currentOrder.orderId;
     document.getElementById('rs-summary').innerHTML = `
@@ -710,11 +745,15 @@ async function doSelfCheckIn() {
   btn.disabled = true; btn.textContent = '🎌 處理中...';
   try {
     const last5 = String(currentOrder.phone || '').replace(/\D/g, '').slice(-5);
-    await fetch(GAS_URL, {
-      method: 'POST', mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ action:'checkInOrder', source:'self', orderId: currentOrder.orderId, last5: last5 })
-    });
+    if (KIMONO_CONFIG.USE_NEW_API) {
+      await callFirebaseApi('checkInOrder', { orderId: currentOrder.firestoreId || currentOrder.orderId, last5 });
+    } else {
+      await fetch(GAS_URL, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action:'checkInOrder', source:'self', orderId: currentOrder.orderId, last5: last5 })
+      });
+    }
     showCheckInSuccess();
   } catch(err) {
     alert('網路錯誤，請稍後再試或直接聯繫 LINE 客服。');
