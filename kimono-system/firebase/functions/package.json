@@ -9,7 +9,9 @@
   "main": "lib/index.js",
   "scripts": {
     "build": "tsc",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "list:test-orders": "node tools/list-test-orders.mjs",
+    "delete:test-orders": "node tools/delete-test-orders.mjs"
   },
   "dependencies": {
     "firebase-admin": "^12.7.0",

@@ -9,6 +9,7 @@ build/
 **/dist/
 **/build/
 kimono-system/firebase/functions/lib/
+kimono-system/firebase/functions/backups/
 
 # Logs
 *.log
