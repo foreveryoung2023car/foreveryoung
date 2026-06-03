@@ -1183,6 +1183,13 @@ function firestoreOrderToAdminOrder(doc) {
     onsiteDueJpy: Number(data.onsiteDueJpy || 0),
     coupon: data.couponCode || '',
     rate: data.discountRate || '',
+    refundAmount: Number(data.refundAmountJpy || 0),
+    refundTime: data.refundTime || '',
+    refundReason: data.refundReason || '',
+    refundBankCode: data.refundBankCode || '',
+    refundBankName: data.refundBankName || '',
+    refundBankAccount: data.refundBankAccount || '',
+    refundBankAccountName: data.refundBankAccountName || '',
     proofImageUrl: data.proofUrl || '',
     remark: data.proofNote || '',
     status
@@ -3237,10 +3244,10 @@ function openEdit(orderId) {
   // v2.4.20: 把 refundReason 拆成 4 個帳戶分欄 + 純原因
   const reason = o.refundReason || '';
   const parsed = parseRefundReason(reason);
-  document.getElementById('e-refund-bankcode').value = parsed.bankCode || '';
-  document.getElementById('e-refund-bankname').value = parsed.bankName || '';
-  document.getElementById('e-refund-account').value = parsed.account || '';
-  document.getElementById('e-refund-accountname').value = parsed.accountName || '';
+  document.getElementById('e-refund-bankcode').value = o.refundBankCode || parsed.bankCode || '';
+  document.getElementById('e-refund-bankname').value = o.refundBankName || parsed.bankName || '';
+  document.getElementById('e-refund-account').value = o.refundBankAccount || parsed.account || '';
+  document.getElementById('e-refund-accountname').value = o.refundBankAccountName || parsed.accountName || '';
   document.getElementById('e-refund-reason').value = parsed.reason || '';
   // 客人原始匯款資訊橘色框
   const infoBox = document.getElementById('refund-customer-info');
@@ -3848,7 +3855,7 @@ async function unlockArchivedMonth() {
 }
 
 
-function saveOrder() {
+async function saveOrder() {
   const btn = document.getElementById('save-btn');
   const msg = document.getElementById('save-msg');
   if (!editingOrder) return;
@@ -3865,6 +3872,66 @@ function saveOrder() {
     refundAmt: document.getElementById('e-refund-amt').value, refundDate: document.getElementById('e-refund-date').value,
     refundReason: composeRefundReason(), note: document.getElementById('e-remark').value,
   };
+  if (useFirebaseAdmin()) {
+    try {
+      const token = await getFreshAdminToken();
+      const apiBaseUrl = (KIMONO_CONFIG.API_BASE_URL || '').replace(/\/$/, '');
+      const bookingValue = document.getElementById('e-booking-date').value;
+      const refundDateValue = document.getElementById('e-refund-date').value;
+      const firebasePayload = {
+        orderId: editingOrder.firebaseDocId || editingOrder.orderId,
+        name: payload.name,
+        phone: payload.phone,
+        email: payload.email,
+        bookingAt: bookingValue ? bookingValue + ':00+09:00' : undefined,
+        adults: Number(payload.pax || 0),
+        children: 0,
+        plan: payload.plan,
+        platform: payload.platform,
+        hair: payload.hair === 'true',
+        photo: payload.photo === 'true',
+        confirmed: payload.confirmed === 'TRUE',
+        depositJpy: Number(payload.deposit || 0),
+        kimonoPriceJpy: Number(payload.kimonoPrice || 0),
+        hairFeeJpy: Number(payload.hairFee || 0),
+        photoFeeJpy: Number(payload.photoFee || 0),
+        couponCode: payload.coupon,
+        discountRate: Number(payload.rate || 0),
+        refundAmountJpy: Number(payload.refundAmt || 0),
+        refundTime: refundDateValue || '',
+        refundReason: payload.refundReason,
+        refundBankCode: document.getElementById('e-refund-bankcode').value.trim(),
+        refundBankName: document.getElementById('e-refund-bankname').value.trim(),
+        refundBankAccount: document.getElementById('e-refund-account').value.trim(),
+        refundBankAccountName: document.getElementById('e-refund-accountname').value.trim(),
+        note: payload.note
+      };
+      const res = await fetch(apiBaseUrl + '/updateOrderByStaff', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + token },
+        body: JSON.stringify(firebasePayload)
+      });
+      const data = await res.json().catch(()=>({}));
+      btn.textContent = '💾 儲存變更'; btn.disabled = false;
+      if (!res.ok || data.status !== 'success') throw new Error(data.message || '儲存失敗');
+      const savedId = editingOrder.orderId;
+      msg.textContent = '正在重新載入…';
+      msg.className = 'text-center text-sm mt-3 text-slate-600';
+      msg.classList.remove('hidden');
+      setTimeout(() => {
+        closeModal();
+        toast('已儲存 ' + savedId + '，重新載入中…', 'success');
+        window.__highlightAfterLoad = savedId;
+        loadOrders();
+      }, 200);
+    } catch (e) {
+      btn.textContent = '💾 儲存變更'; btn.disabled = false;
+      msg.textContent = '❌ ' + (e.message || '儲存失敗');
+      msg.className = 'text-center text-sm mt-3 text-red-600 font-bold';
+      msg.classList.remove('hidden');
+    }
+    return;
+  }
   fetch(GAS_URL, { method:'POST', body: JSON.stringify(payload) }).then(r => r.json()).then(data => {
       btn.textContent = '💾 儲存變更'; btn.disabled = false;
       if (data.status === 'unauthorized') { showLogin(); return; }

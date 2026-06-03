@@ -42,6 +42,35 @@ export const queryPublicOrderSchema = z.object({
   return Boolean(input.name && input.phone);
 }, "Order number with contact, or name with phone is required");
 
+export const updateOrderByStaffSchema = z.object({
+  orderId: z.string().min(1),
+  name: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().optional(),
+  bookingAt: z.string().optional(),
+  adults: z.number().int().min(0).optional(),
+  children: z.number().int().min(0).optional(),
+  plan: z.string().optional(),
+  platform: z.string().optional(),
+  hair: z.boolean().optional(),
+  photo: z.boolean().optional(),
+  confirmed: z.boolean().optional(),
+  depositJpy: z.number().int().min(0).optional(),
+  kimonoPriceJpy: z.number().int().min(0).optional(),
+  hairFeeJpy: z.number().int().min(0).optional(),
+  photoFeeJpy: z.number().int().min(0).optional(),
+  couponCode: z.string().optional(),
+  discountRate: z.number().optional(),
+  refundAmountJpy: z.number().int().min(0).optional(),
+  refundTime: z.string().optional(),
+  refundReason: z.string().optional(),
+  refundBankCode: z.string().optional(),
+  refundBankName: z.string().optional(),
+  refundBankAccount: z.string().optional(),
+  refundBankAccountName: z.string().optional(),
+  note: z.string().optional()
+});
+
 function normalizeDigits(value: unknown) {
   return String(value || "").replace(/\D/g, "");
 }
@@ -213,6 +242,94 @@ export async function createPublicOrder(raw: unknown) {
     metadata: { clientRequestId: input.clientRequestId }
   });
   return result.response;
+}
+
+export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
+  const input = updateOrderByStaffSchema.parse(raw);
+  const result = await db.runTransaction(async (tx) => {
+    const orderRef = db.collection("orders").doc(input.orderId);
+    const orderSnap = await tx.get(orderRef);
+    if (!orderSnap.exists) throw new HttpError(404, "Order not found");
+    const before = orderSnap.data()!;
+    const patch: FirebaseFirestore.UpdateData<FirebaseFirestore.DocumentData> = {
+      updatedBy: actor.uid,
+      updatedAt: FieldValue.serverTimestamp()
+    };
+
+    if (input.name !== undefined) patch.customerName = input.name;
+    if (input.phone !== undefined) patch.customerPhone = input.phone;
+    if (input.email !== undefined) patch.customerEmail = input.email || null;
+    if (input.bookingAt) patch.bookingAt = Timestamp.fromDate(new Date(input.bookingAt));
+    if (input.adults !== undefined) patch.adults = input.adults;
+    if (input.children !== undefined) patch.children = input.children;
+    if (input.plan !== undefined) patch.plan = input.plan;
+    if (input.platform !== undefined) patch.platform = input.platform;
+    if (input.hair !== undefined) patch.hair = input.hair;
+    if (input.photo !== undefined) patch.photo = input.photo;
+    if (input.depositJpy !== undefined) patch.depositJpy = input.depositJpy;
+    if (input.kimonoPriceJpy !== undefined) patch.kimonoPriceJpy = input.kimonoPriceJpy;
+    if (input.hairFeeJpy !== undefined) patch.hairFeeJpy = input.hairFeeJpy;
+    if (input.photoFeeJpy !== undefined) patch.photoFeeJpy = input.photoFeeJpy;
+    if (input.couponCode !== undefined) patch.couponCode = input.couponCode;
+    if (input.discountRate !== undefined) patch.discountRate = input.discountRate;
+    if (input.note !== undefined) patch.proofNote = input.note;
+
+    const refundAmount = input.refundAmountJpy ?? Number(before.refundAmountJpy || 0);
+    const refundTime = input.refundTime || "";
+    if (input.refundAmountJpy !== undefined) patch.refundAmountJpy = input.refundAmountJpy;
+    if (input.refundTime !== undefined) patch.refundTime = input.refundTime || "";
+    if (input.refundReason !== undefined) patch.refundReason = input.refundReason;
+    if (input.refundBankCode !== undefined) patch.refundBankCode = input.refundBankCode;
+    if (input.refundBankName !== undefined) patch.refundBankName = input.refundBankName;
+    if (input.refundBankAccount !== undefined) patch.refundBankAccount = input.refundBankAccount;
+    if (input.refundBankAccountName !== undefined) patch.refundBankAccountName = input.refundBankAccountName;
+
+    if (refundAmount > 0 && refundTime) {
+      patch.status = "refunded";
+    } else if (refundAmount > 0) {
+      patch.status = "refunding";
+    } else if (input.confirmed === true && before.status === "pending_review") {
+      patch.status = "confirmed";
+    } else if (input.confirmed === false && before.status === "confirmed") {
+      patch.status = "pending_review";
+    }
+
+    tx.update(orderRef, patch);
+
+    if (input.refundAmountJpy !== undefined || input.refundReason !== undefined || input.refundTime !== undefined) {
+      const refundRef = db.collection("refundRequests").doc(input.orderId);
+      tx.set(refundRef, {
+        id: refundRef.id,
+        orderId: input.orderId,
+        orderNo: before.orderNo || "",
+        reason: input.refundReason || before.refundReason || "",
+        requestedAmountJpy: refundAmount || null,
+        paidAmountJpy: refundAmount || null,
+        bankCode: input.refundBankCode || before.refundBankCode || "",
+        bankName: input.refundBankName || before.refundBankName || "",
+        bankAccount: input.refundBankAccount || before.refundBankAccount || "",
+        bankAccountName: input.refundBankAccountName || before.refundBankAccountName || "",
+        contactPhone: input.phone || before.customerPhone || "",
+        status: refundAmount > 0 && refundTime ? "paid" : "processing",
+        requestedAt: before.createdAt || FieldValue.serverTimestamp(),
+        paidAt: refundTime ? Timestamp.fromDate(new Date(refundTime)) : null,
+        handledBy: actor.uid,
+        updatedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+    }
+
+    return { before, after: { ...before, ...patch, id: input.orderId } };
+  });
+
+  await writeAuditLog({
+    orderId: input.orderId,
+    actor,
+    action: "order_admin_updated",
+    beforeData: result.before,
+    afterData: result.after,
+    metadata: { source: "admin" }
+  });
+  return { status: "success", order: result.after };
 }
 
 export async function transitionOrder(orderId: string, nextStatus: OrderStatus, actor: AuthContext) {

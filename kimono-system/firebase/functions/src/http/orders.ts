@@ -6,6 +6,7 @@ import { orderStatuses } from "../lib/constants.js";
 import {
   createPublicOrder as createPublicOrderService,
   queryPublicOrder as queryPublicOrderService,
+  updateOrderByStaff as updateOrderByStaffService,
   transitionOrder as transitionOrderService
 } from "../services/orders.js";
 
@@ -17,6 +18,12 @@ export const createPublicOrder = onRequest({ region: "asia-northeast1", cors: tr
 export const queryPublicOrder = onRequest({ region: "asia-northeast1", cors: true }, (req, res) => handleHttp(req, res, async () => {
   requireMethod(req, "POST");
   return queryPublicOrderService(req.body);
+}));
+
+export const updateOrderByStaff = onRequest({ region: "asia-northeast1", cors: true }, (req, res) => handleHttp(req, res, async () => {
+  requireMethod(req, "POST");
+  const actor = await requirePermission(req, "orders:update");
+  return updateOrderByStaffService(req.body, actor);
 }));
 
 export const transitionOrder = onRequest({ region: "asia-northeast1", cors: true }, (req, res) => handleHttp(req, res, async () => {
