@@ -586,6 +586,10 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             <button onclick="closeAddEmployeeModal()" class="text-slate-400 hover:text-slate-700 text-xl">×</button>
           </div>
           <div class="space-y-3">
+            <div id="emp-email-row" class="hidden">
+              <label class="block text-xs font-bold text-slate-600 mb-1">登入 Email</label>
+              <input id="new-emp-email" type="email" class="input-field w-full" placeholder="staff@example.com">
+            </div>
             <div>
               <label class="block text-xs font-bold text-slate-600 mb-1">員工姓名</label>
               <input id="new-emp-name" class="input-field w-full" placeholder="例：小林">
@@ -1180,6 +1184,39 @@ async function getFreshAdminToken() {
 
 function firebaseAdminApiBaseUrl() {
   return (KIMONO_CONFIG.API_BASE_URL || '').replace(/\/$/, '');
+}
+
+function adminEsc(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function adminJsArg(value) {
+  return adminEsc(String(value == null ? '' : value)
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/\r?\n/g, ' '));
+}
+
+async function callFirebaseAdminFunction(path, body, options) {
+  const token = await getFreshAdminToken();
+  const method = (options && options.method) || 'POST';
+  const res = await fetch(firebaseAdminApiBaseUrl() + path, {
+    method,
+    headers: Object.assign({
+      Authorization: 'Bearer ' + token
+    }, method === 'GET' ? {} : { 'Content-Type': 'application/json' }),
+    body: method === 'GET' ? undefined : JSON.stringify(body || {})
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.status === 'error') {
+    throw new Error(data.message || ('HTTP ' + res.status));
+  }
+  return data;
 }
 
 function formatFirebaseAuditTime(value) {
@@ -3184,8 +3221,67 @@ function exportReconCSV(){
 }
 
 // ── v2.4.32 自動配對銀行入帳 ──
+function renderFirebaseReconcilePreview(){
+  const monthEl = document.getElementById('recon-month');
+  const month = monthEl ? monthEl.value : 'all';
+  let list = filterOrdersForRole(allOrders.slice());
+  if(month && month!=='all') list = list.filter(o=>bookingMonth(o)===month);
+  const rows = list.map(o=>{
+    const expect = expectedDeposit(o);
+    const got = Number(o.deposit)||0;
+    const total = totalCharge(o);
+    const due = Math.max(0, total - got);
+    let state = 'ok', label = '已對帳';
+    if (total > 0 && got > total) { state = 'over'; label = '超收異常'; }
+    else if (expect > 0 && got === 0) { state = 'missing'; label = '未收訂金'; }
+    else if (expect > 0 && got < expect) { state = 'partial'; label = '訂金不足'; }
+    else if (!o.confirmed && got > 0) { state = 'review'; label = '已收款待確認'; }
+    return { o, expect, got, total, due, state, label };
+  });
+  const need = rows.filter(r=>r.state!=='ok');
+  const summary = {
+    ok: rows.length - need.length,
+    missing: need.filter(r=>r.state==='missing').length,
+    partial: need.filter(r=>r.state==='partial').length,
+    over: need.filter(r=>r.state==='over').length,
+    review: need.filter(r=>r.state==='review').length
+  };
+  const tableRows = need.slice(0, 30).map(r=>{
+    const cls = r.state === 'over' ? 'text-red-700' : (r.state === 'review' ? 'text-blue-700' : 'text-amber-700');
+    return '<tr class="border-t">' +
+      '<td class="p-2 font-mono text-xs">' + adminEsc(r.o.orderId) + '</td>' +
+      '<td class="p-2 font-bold">' + adminEsc(r.o.name || '—') + '</td>' +
+      '<td class="p-2 text-right">¥' + Number(r.expect||0).toLocaleString() + '</td>' +
+      '<td class="p-2 text-right">¥' + Number(r.got||0).toLocaleString() + '</td>' +
+      '<td class="p-2 text-right">¥' + Number(r.due||0).toLocaleString() + '</td>' +
+      '<td class="p-2 font-bold ' + cls + '">' + r.label + '</td>' +
+      '<td class="p-2 text-right"><button onclick="openEdit(\'' + adminEsc(r.o.orderId) + '\')" class="px-2 py-1 bg-[#1A365D] text-white text-xs rounded">查看</button></td>' +
+    '</tr>';
+  }).join('');
+  const body = '<div class="text-sm space-y-3">' +
+    '<div class="grid grid-cols-2 md:grid-cols-5 gap-2">' +
+      '<div class="p-3 rounded-lg bg-emerald-50"><div class="text-xs text-slate-500">正常</div><div class="font-bold text-emerald-700">' + summary.ok + '</div></div>' +
+      '<div class="p-3 rounded-lg bg-amber-50"><div class="text-xs text-slate-500">未收訂金</div><div class="font-bold text-amber-700">' + summary.missing + '</div></div>' +
+      '<div class="p-3 rounded-lg bg-amber-50"><div class="text-xs text-slate-500">訂金不足</div><div class="font-bold text-amber-700">' + summary.partial + '</div></div>' +
+      '<div class="p-3 rounded-lg bg-red-50"><div class="text-xs text-slate-500">超收</div><div class="font-bold text-red-700">' + summary.over + '</div></div>' +
+      '<div class="p-3 rounded-lg bg-blue-50"><div class="text-xs text-slate-500">待確認</div><div class="font-bold text-blue-700">' + summary.review + '</div></div>' +
+    '</div>' +
+    '<div class="text-xs text-slate-500">Firebase 版目前依訂單中的訂金、總額、確認狀態自動掃描；尚未接銀行流水匯入，因此不會自動改寫入帳資料。</div>' +
+    (need.length ? '<table class="w-full text-xs mt-2 border border-slate-200"><thead><tr class="bg-slate-100"><th class="p-2 text-left">訂單號</th><th class="p-2 text-left">客戶</th><th class="p-2 text-right">應收訂金</th><th class="p-2 text-right">已收</th><th class="p-2 text-right">尾款</th><th class="p-2 text-left">狀態</th><th class="p-2"></th></tr></thead><tbody>' + tableRows + '</tbody></table>' : '<div class="p-4 bg-emerald-50 text-emerald-700 rounded-lg font-bold">目前沒有需要人工處理的對帳異常。</div>') +
+  '</div>';
+  const html = '<div class="modal-overlay" onclick="if(event.target===this)this.remove()" style="display:flex">' +
+    '<div class="modal-box" style="max-width:780px;height:auto;max-height:80vh">' +
+    '<div class="flex justify-between items-center mb-3"><h3 class="font-bold text-lg text-[#1A365D]">🤖 Firebase 自動對帳掃描</h3>' +
+    '<button onclick="this.closest(\'.modal-overlay\').remove()" class="text-2xl text-slate-400 hover:text-slate-700">×</button></div>' +
+    body +
+    '<div class="flex gap-2 mt-4 pt-3 border-t"><button onclick="this.closest(\'.modal-overlay\').remove();showSection(\'reconcile\')" class="flex-1 bg-[#1A365D] hover:bg-blue-900 text-white py-2 rounded-lg font-bold">前往對帳分頁</button><button onclick="this.closest(\'.modal-overlay\').remove()" class="flex-1 bg-slate-200 hover:bg-slate-300 py-2 rounded-lg">關閉</button></div>' +
+    '</div></div>';
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  document.body.appendChild(div.firstChild);
+}
 async function runAutoReconcile(){
-  if (useFirebaseAdmin()) { toast('Firebase 模式下自動對帳尚未遷移；舊 GAS 寫入已停用', 'warning'); return; }
+  if (useFirebaseAdmin()) { renderFirebaseReconcilePreview(); return; }
   if (currentAgent !== 'Jun') { toast('需要主管權限', 'error'); return; }
   toast('正在掃描収款辨識…');
   let res;
@@ -5005,16 +5101,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (ppEl) ppEl.addEventListener('input', () => { ppEl.dataset.userEdited = '1'; });
 });
 async function wiSubmit() {
-  if (useFirebaseAdmin()) {
-    const errBox = document.getElementById('wiErr');
-    if (errBox) {
-      errBox.textContent = 'Firebase 模式下現場訂單尚未遷移；舊 GAS 寫入已停用。';
-      errBox.classList.remove('hidden');
-    } else {
-      alert('Firebase 模式下現場訂單尚未遷移；舊 GAS 寫入已停用。');
-    }
-    return;
-  }
   const name = document.getElementById('wi-name').value.trim();
   const phone = document.getElementById('wi-phone').value.trim();
   const nationality = document.getElementById('wi-nationality').value;
@@ -5043,6 +5129,27 @@ async function wiSubmit() {
   btn.textContent = '建單中…'; btn.disabled = true;
 
   try {
+    if (useFirebaseAdmin()) {
+      const d = await callFirebaseAdminFunction('/createWalkInOrder', {
+        clientRequestId: 'walkin-' + Date.now() + '-' + Math.random().toString(36).slice(2),
+        storeCode: currentStoreKey || undefined,
+        name, phone, nationality,
+        adults: wiCount.adults,
+        children: wiCount.children,
+        plan,
+        hair: document.getElementById('wi-hair').checked,
+        photo: document.getElementById('wi-photo').checked,
+        kimonoPriceJpy: pp,
+        hairFeeJpy: hf,
+        photoFeeJpy: pf,
+        discountRate: wiDiscount,
+        note
+      });
+      closeWalkInModal();
+      await loadOrders();
+      alert('✅ 現場訂單已建立！\n編號：' + ((d.order && d.order.orderNo) || '已寫入'));
+      return;
+    }
     const res = await fetch(GAS_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -5089,17 +5196,53 @@ async function renderEmployees() {
   if (!list) return;
   list.innerHTML = '<div class="text-center py-6 text-slate-400">載入中...</div>';
   if (useFirebaseAdmin()) {
-    document.getElementById('emp-stat-total').textContent = '—';
-    document.getElementById('emp-stat-active').textContent = '—';
-    document.getElementById('emp-stat-disabled').textContent = '—';
-    list.innerHTML =
-      '<div class="p-5 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-900 leading-relaxed">' +
-      '<div class="font-bold text-base mb-2">Firebase 帳號管理已改用 Authentication + Firestore users/{uid}</div>' +
-      '<div>目前後台登入、角色、啟用狀態已由 Firebase 控制，不再使用舊 GAS 員工表。</div>' +
-      '<div class="mt-2">新增 / 停用 / 重設密碼請先到 Firebase Console：</div>' +
-      '<div class="mt-2 font-mono text-xs bg-white/70 p-2 rounded">Authentication 建立或停用使用者<br>Firestore users/{uid} 設定 role、active、storeId、displayName</div>' +
-      '<div class="mt-3 text-slate-600">後續若需要在後台直接管理 Firebase 使用者，需要再新增 Admin SDK 專用 Function。</div>' +
-      '</div>';
+    try {
+      const data = await callFirebaseAdminFunction('/listAdminUsers', null, { method: 'GET' });
+      const emps = data.users || [];
+      const active = emps.filter(e => e.active).length;
+      const disabled = emps.length - active;
+      document.getElementById('emp-stat-total').textContent = emps.length;
+      document.getElementById('emp-stat-active').textContent = active;
+      document.getElementById('emp-stat-disabled').textContent = disabled;
+      if (!emps.length) {
+        list.innerHTML = '<div class="text-center py-8 text-slate-400">尚無 Firebase 後台使用者</div>';
+        return;
+      }
+      const roleLabel = {
+        owner: 'Owner',
+        admin: '管理者',
+        agent: '客服',
+        store_manager: '店長',
+        store_staff: '店員',
+        accountant: '會計',
+        readonly: '唯讀'
+      };
+      let html = '<table class="w-full text-sm"><thead><tr class="bg-slate-100 text-slate-600">';
+      html += '<th class="p-2 text-left">Email</th><th class="p-2 text-left">姓名</th><th class="p-2 text-left">角色</th><th class="p-2 text-left">門市</th><th class="p-2 text-left">狀態</th><th class="p-2 text-left">最後登入</th><th class="p-2 text-right">操作</th></tr></thead><tbody>';
+      emps.forEach(e => {
+        const lastLogin = e.lastSignInAt ? new Date(e.lastSignInAt).toLocaleString('zh-TW', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
+        const statusLabel = e.active ? '<span class="text-emerald-600 font-bold">啟用</span>' : '<span class="text-slate-400">已停用</span>';
+        const toggleBtn = e.active
+          ? '<button onclick="disableEmployee(\'' + adminJsArg(e.uid) + '\',\'' + adminJsArg(e.displayName || e.email) + '\')" class="text-red-600 hover:underline text-xs">停用</button>'
+          : '<button onclick="enableEmployee(\'' + adminJsArg(e.uid) + '\')" class="text-emerald-600 hover:underline text-xs">啟用</button>';
+        html += '<tr class="border-b border-slate-100">';
+        html += '<td class="p-2"><div class="font-bold">' + adminEsc(e.email || '—') + '</div><div class="font-mono text-[10px] text-slate-400">' + adminEsc(e.uid) + '</div></td>';
+        html += '<td class="p-2 font-bold">' + adminEsc(e.displayName || '—') + '</td>';
+        html += '<td class="p-2"><span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-bold">' + adminEsc(roleLabel[e.role] || e.role || '—') + '</span></td>';
+        html += '<td class="p-2">' + adminEsc(e.storeId || '—') + '</td>';
+        html += '<td class="p-2">' + statusLabel + '</td>';
+        html += '<td class="p-2 text-xs text-slate-500">' + adminEsc(lastLogin) + '</td>';
+        html += '<td class="p-2 text-right whitespace-nowrap">' + toggleBtn + ' <button onclick="resetEmployeePass(\'' + adminJsArg(e.uid) + '\',\'' + adminJsArg(e.displayName || e.email) + '\')" class="text-blue-600 hover:underline text-xs ml-2">重設密碼</button></td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      list.innerHTML = html;
+    } catch(err) {
+      document.getElementById('emp-stat-total').textContent = '—';
+      document.getElementById('emp-stat-active').textContent = '—';
+      document.getElementById('emp-stat-disabled').textContent = '—';
+      list.innerHTML = '<div class="text-center py-6 text-red-500">Firebase 使用者載入失敗：' + adminEsc(err.message) + '</div>';
+    }
     return;
   }
   try {
@@ -5151,27 +5294,60 @@ async function renderEmployees() {
 }
 
 function openAddEmployeeModal() {
-  if (useFirebaseAdmin()) { alert('Firebase 模式下請到 Authentication 新增使用者，並在 Firestore users/{uid} 設定角色。'); return; }
+  const emailRow = document.getElementById('emp-email-row');
+  if (emailRow) emailRow.classList.toggle('hidden', !useFirebaseAdmin());
+  const emailEl = document.getElementById('new-emp-email');
+  if (emailEl) emailEl.value = '';
   document.getElementById('new-emp-name').value = '';
   document.getElementById('new-emp-pass').value = '';
-  document.getElementById('new-emp-role').value = 'staff';
+  const roleEl = document.getElementById('new-emp-role');
+  if (useFirebaseAdmin()) {
+    roleEl.innerHTML = [
+      '<option value="store_staff">店員 (store_staff)</option>',
+      '<option value="store_manager">店長 (store_manager)</option>',
+      '<option value="agent">客服 (agent)</option>',
+      '<option value="accountant">會計 (accountant)</option>',
+      '<option value="admin">管理者 (admin)</option>',
+      '<option value="readonly">唯讀 (readonly)</option>'
+    ].join('');
+    roleEl.value = 'store_staff';
+  } else {
+    roleEl.innerHTML = '<option value="staff">店員 (staff)</option><option value="admin">店家管理者 (admin)</option>';
+    roleEl.value = 'staff';
+  }
   document.getElementById('emp-err').classList.add('hidden');
   document.getElementById('add-emp-modal').classList.remove('hidden');
 }
 function closeAddEmployeeModal() { document.getElementById('add-emp-modal').classList.add('hidden'); }
 
 async function submitNewEmployee() {
-  if (useFirebaseAdmin()) { alert('Firebase 模式下請到 Authentication 新增使用者。'); return; }
+  const emailEl = document.getElementById('new-emp-email');
+  const email = emailEl ? emailEl.value.trim() : '';
   const name = document.getElementById('new-emp-name').value.trim();
   const pass = document.getElementById('new-emp-pass').value;
   const role = document.getElementById('new-emp-role').value;
   const err = document.getElementById('emp-err');
+  if (useFirebaseAdmin() && !email) { err.textContent = 'Email 必填'; err.classList.remove('hidden'); return; }
   if (!name || !pass) { err.textContent = '姓名 + 密碼必填'; err.classList.remove('hidden'); return; }
   if (pass.length < 6) { err.textContent = '密碼至少 6 碼'; err.classList.remove('hidden'); return; }
   err.classList.add('hidden');
   const btn = document.getElementById('emp-submit-btn');
   btn.disabled = true; btn.textContent = '處理中...';
   try {
+    if (useFirebaseAdmin()) {
+      await callFirebaseAdminFunction('/createAdminUser', {
+        email,
+        password: pass,
+        displayName: name,
+        role,
+        active: true,
+        storeId: currentStoreKey || null
+      });
+      toast('已新增 Firebase 使用者 ' + name);
+      closeAddEmployeeModal();
+      renderEmployees();
+      return;
+    }
     const res = await fetch(GAS_URL, { method:'POST', body: JSON.stringify({
       action: 'addEmployee',
       agent: currentAgent,
@@ -5197,9 +5373,14 @@ async function submitNewEmployee() {
 }
 
 async function disableEmployee(empId, empName) {
-  if (useFirebaseAdmin()) { alert('Firebase 模式下請到 Authentication 停用使用者，或把 users/{uid}.active 設為 false。'); return; }
   if (!confirm('確定停用員工「' + empName + '」？\n停用後該員工無法登入。')) return;
   try {
+    if (useFirebaseAdmin()) {
+      await callFirebaseAdminFunction('/setAdminUserActive', { uid: empId, active: false });
+      toast('已停用 ' + empName);
+      renderEmployees();
+      return;
+    }
     const res = await fetch(GAS_URL, { method:'POST', body: JSON.stringify({
       action: 'disableEmployee', agent: currentAgent, token: adminToken, employeeId: empId
     })});
@@ -5210,8 +5391,13 @@ async function disableEmployee(empId, empName) {
 }
 
 async function enableEmployee(empId) {
-  if (useFirebaseAdmin()) { alert('Firebase 模式下請到 Authentication 啟用使用者，並確認 users/{uid}.active 為 true。'); return; }
   try {
+    if (useFirebaseAdmin()) {
+      await callFirebaseAdminFunction('/setAdminUserActive', { uid: empId, active: true });
+      toast('已啟用');
+      renderEmployees();
+      return;
+    }
     const res = await fetch(GAS_URL, { method:'POST', body: JSON.stringify({
       action: 'enableEmployee', agent: currentAgent, token: adminToken, employeeId: empId
     })});
@@ -5222,11 +5408,16 @@ async function enableEmployee(empId) {
 }
 
 async function resetEmployeePass(empId, empName) {
-  if (useFirebaseAdmin()) { alert('Firebase 模式下請到 Authentication 發送重設密碼郵件或直接更新密碼。'); return; }
   const newPass = prompt('重設「' + empName + '」的新密碼（至少 6 碼）：');
   if (!newPass) return;
   if (newPass.length < 6) { alert('密碼至少 6 碼'); return; }
   try {
+    if (useFirebaseAdmin()) {
+      await callFirebaseAdminFunction('/resetAdminUserPassword', { uid: empId, password: newPass });
+      toast('密碼已重設');
+      renderEmployees();
+      return;
+    }
     const res = await fetch(GAS_URL, { method:'POST', body: JSON.stringify({
       action: 'updateEmployeePassword', agent: currentAgent, token: adminToken, employeeId: empId, password: newPass
     })});

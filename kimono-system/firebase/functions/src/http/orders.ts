@@ -5,6 +5,7 @@ import { requirePermission } from "../lib/auth.js";
 import { orderStatuses } from "../lib/constants.js";
 import {
   createPublicOrder as createPublicOrderService,
+  createWalkInOrder as createWalkInOrderService,
   queryPublicOrder as queryPublicOrderService,
   updateOrderByStaff as updateOrderByStaffService,
   transitionOrder as transitionOrderService
@@ -18,6 +19,12 @@ export const createPublicOrder = onRequest({ region: "asia-northeast1", cors: tr
 export const queryPublicOrder = onRequest({ region: "asia-northeast1", cors: true }, (req, res) => handleHttp(req, res, async () => {
   requireMethod(req, "POST");
   return queryPublicOrderService(req.body);
+}));
+
+export const createWalkInOrder = onRequest({ region: "asia-northeast1", cors: true }, (req, res) => handleHttp(req, res, async () => {
+  requireMethod(req, "POST");
+  const actor = await requirePermission(req, "orders:create");
+  return createWalkInOrderService(req.body, actor);
 }));
 
 export const updateOrderByStaff = onRequest({ region: "asia-northeast1", cors: true }, (req, res) => handleHttp(req, res, async () => {

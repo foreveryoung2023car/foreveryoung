@@ -71,6 +71,25 @@ export const updateOrderByStaffSchema = z.object({
   note: z.string().optional()
 });
 
+export const createWalkInOrderSchema = z.object({
+  clientRequestId: z.string().optional(),
+  name: z.string().min(1),
+  phone: z.string().optional(),
+  email: z.string().email().optional(),
+  nationality: z.string().optional(),
+  storeCode: z.string().optional(),
+  adults: z.number().int().min(0).default(1),
+  children: z.number().int().min(0).default(0),
+  plan: z.string().optional(),
+  hair: z.boolean().optional(),
+  photo: z.boolean().optional(),
+  discountRate: z.number().optional(),
+  kimonoPriceJpy: z.number().int().min(0).default(0),
+  hairFeeJpy: z.number().int().min(0).default(0),
+  photoFeeJpy: z.number().int().min(0).default(0),
+  note: z.string().optional()
+});
+
 function normalizeDigits(value: unknown) {
   return String(value || "").replace(/\D/g, "");
 }
@@ -240,6 +259,83 @@ export async function createPublicOrder(raw: unknown) {
     action: "booking_created",
     afterData: result.order,
     metadata: { clientRequestId: input.clientRequestId }
+  });
+  return result.response;
+}
+
+export async function createWalkInOrder(raw: unknown, actor: AuthContext) {
+  const input = createWalkInOrderSchema.parse(raw);
+  const cached = await getIdempotentResponse(input.clientRequestId);
+  if (cached) return cached;
+
+  const result = await db.runTransaction(async (tx) => {
+    const orderNo = await nextOrderNo(tx);
+    const orderRef = db.collection("orders").doc();
+    const customerRef = db.collection("customers").doc();
+    const storeId = input.storeCode || actor.storeId || null;
+    const total = calculateOrderTotal({
+      depositJpy: 0,
+      kimonoPriceJpy: input.kimonoPriceJpy,
+      hairFeeJpy: input.hairFeeJpy,
+      photoFeeJpy: input.photoFeeJpy,
+      discountRate: input.discountRate || 10
+    });
+
+    tx.set(customerRef, {
+      name: input.name,
+      phone: input.phone || "",
+      email: input.email || null,
+      nationality: input.nationality || "",
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp()
+    });
+
+    const order = {
+      id: orderRef.id,
+      orderNo,
+      status: "confirmed" satisfies OrderStatus,
+      customerId: customerRef.id,
+      customerName: input.name,
+      customerPhone: input.phone || "",
+      customerEmail: input.email || null,
+      customerNationality: input.nationality || "",
+      storeId,
+      bookingAt: FieldValue.serverTimestamp(),
+      adults: input.adults,
+      children: input.children,
+      plan: input.plan || "walk-in",
+      hair: input.hair || false,
+      photo: input.photo || false,
+      source: "walk-in",
+      platform: storeId ? `walk-in:${storeId}` : "walk-in",
+      couponCode: "",
+      discountRate: input.discountRate || 10,
+      depositJpy: 0,
+      kimonoPriceJpy: input.kimonoPriceJpy,
+      hairFeeJpy: input.hairFeeJpy,
+      photoFeeJpy: input.photoFeeJpy,
+      totalJpy: total.totalJpy,
+      onsiteDueJpy: total.totalJpy,
+      proofUrl: "",
+      proofNote: input.note || "",
+      last5: "",
+      createdBy: actor.uid,
+      updatedBy: actor.uid,
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp()
+    };
+    tx.set(orderRef, order);
+    const response = { status: "success", order: { id: orderRef.id, orderNo } };
+    rememberIdempotentResponse(tx, input.clientRequestId, response);
+    return { response, orderId: orderRef.id, order };
+  });
+
+  await writeAuditLog({
+    orderId: result.orderId,
+    actor,
+    action: "walk_in_order_created",
+    afterData: result.order,
+    metadata: { clientRequestId: input.clientRequestId, source: "admin_walk_in" }
   });
   return result.response;
 }
