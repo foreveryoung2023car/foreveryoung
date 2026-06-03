@@ -1,0 +1,275 @@
+  /* === 字體分工：標題用宋體、內文用黑體 === */
+  body, input, select, textarea, button, table { font-family:'Noto Sans TC', system-ui, -apple-system, sans-serif; font-size:15px; color:#1A365D; }
+  h1, h2, h3, h4, .font-serif, .title-serif { font-family:'Noto Serif TC', serif; }
+  body { background:#FDFCF8; }
+  body.dark { background:#0F172A; color:#E2E8F0 }
+  body.dark .order-card,body.dark .stat-card,body.dark .modal-box,body.dark .panel,body.dark .input-field { background:#1E293B; color:#E2E8F0; border-color:#334155 }
+  body.dark .edit-panel { background:#0F172A }
+  body.dark .text-\[\#1A365D\]{color:#E2E8F0}
+  body.dark .border-slate-100,body.dark .border-slate-200{border-color:#334155}
+
+  .admin-nav { background:#1A365D }
+  .btn-navy { background:#1A365D;color:white;transition:.2s;font-weight:600 }
+  .btn-navy:hover { background:#12274A }
+  .btn-navy:disabled{opacity:.5;cursor:not-allowed}
+  .btn-outline { border:1.5px solid #1A365D;color:#1A365D;background:white;transition:.2s;font-weight:600 }
+  .btn-outline:hover { background:#1A365D;color:white }
+
+  .input-field { border:1.5px solid #94A3B8;border-radius:8px;padding:9px 12px;width:100%;transition:.2s;font-size:15px;background:white;color:#1A365D }
+  .input-field:focus { outline:none;border-color:#1A365D;box-shadow:0 0 0 3px rgba(26,54,93,.12) }
+  .input-field::placeholder{color:#94A3B8}
+  select.input-field { background:white }
+
+  .order-card { background:white;border-radius:14px;box-shadow:0 2px 10px rgba(26,54,93,.08);border:1px solid rgba(26,54,93,.1);margin-bottom:14px;transition:.2s }
+  .order-card:hover { box-shadow:0 4px 18px rgba(26,54,93,.14) }
+  .order-card.selected{border-color:#C9A961;background:linear-gradient(to right,#FFFBEB,white 30%)}
+  .order-card.urgent{border-left:4px solid #EF4444}
+  .order-card.warning{border-left:4px solid #F59E0B}
+
+  /* 字體加深 + 變大 */
+  .badge { display:inline-block;padding:4px 11px;border-radius:20px;font-size:12px;font-weight:700 }
+  .badge-pending { background:#FEF3C7;color:#78350F }
+  .badge-confirmed { background:#A7F3D0;color:#064E3B }
+  .badge-refund { background:#FECACA;color:#7F1D1D }
+  .badge-anomaly{background:#FECACA;color:#7F1D1D}
+  .badge-vip{background:linear-gradient(135deg,#C9A961,#8B7355);color:white}
+  .badge-paid{background:#A7F3D0;color:#064E3B}
+  .badge-unpaid{background:#FED7AA;color:#7C2D12}
+
+  /* section-label 加大、加粗、加深 */
+  .section-label { font-size:11px;font-weight:700;letter-spacing:.1em;color:#475569;text-transform:uppercase;margin-bottom:5px }
+  body.dark .section-label{color:#94A3B8}
+
+  .edit-panel { background:#F8F7F4;border-radius:12px;padding:20px;border:1px solid rgba(26,54,93,.08) }
+
+  .stat-card { background:white;border-radius:14px;padding:16px 20px;box-shadow:0 2px 8px rgba(26,54,93,.08);position:relative;overflow:hidden;transition:.2s }
+  .stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 16px rgba(26,54,93,.12)}
+  .stat-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:#1A365D}
+  .stat-card.gold::before{background:#C9A961}
+  .stat-card.green::before{background:#10B981}
+  .stat-card.red::before{background:#EF4444}
+  .stat-card.blue::before{background:#3B82F6}
+  .stat-card.purple::before{background:#8B5CF6}
+
+  .tab-btn { padding:8px 18px;border-radius:8px;cursor:pointer;font-weight:700;font-size:14px;transition:.2s;border:none }
+  .tab-btn.active { background:#1A365D;color:white }
+  .tab-btn:not(.active) { background:#E2E8F0;color:#334155 }
+  .tab-btn:not(.active):hover { background:#CBD5E1 }
+
+  .nav-tab{padding:8px 10px;font-size:13px;font-weight:700;cursor:pointer;color:rgba(255,255,255,.7);border-bottom:3px solid transparent;transition:.15s;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;font-family:'Noto Sans TC',sans-serif}
+  @media (min-width: 768px) { .nav-tab { padding:13px 18px; font-size:14px; gap:6px; } }
+  .nav-tab.active{color:white;border-color:#C9A961}
+  .nav-tab:hover:not(.active){color:white}
+
+  .modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;display:flex;align-items:center;justify-content:center;padding:8px;backdrop-filter:blur(2px) }
+  @media (min-width: 768px) { .modal-overlay { padding:16px } }
+  .modal-box { background:white;border-radius:14px;padding:16px;max-width:780px;width:100%;height:90vh;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column }
+  @media (min-width: 768px) { .modal-box { padding:28px; border-radius:20px; height:80vh; max-height:80vh } }
+  .modal-box > .edit-tab,.modal-box > div:not(:first-child):not(:last-child) { flex-shrink:0 }
+  .modal-box .edit-tab { min-height:340px }
+
+  .tag { display:inline-block;background:#DBEAFE;color:#1E40AF;border-radius:6px;padding:3px 9px;font-size:12px;margin:2px;border:1px solid #93C5FD;font-weight:600 }
+  .pill{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:600}
+
+  .panel{background:white;border-radius:14px;padding:22px;border:1px solid rgba(26,54,93,.08);box-shadow:0 1px 4px rgba(0,0,0,.04) }
+  .panel h3{font-size:17px;font-weight:700}
+
+  .section{display:none}
+  .section.active{display:block;animation:fadeIn .3s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+  .calendar-day{min-height:84px;border:1px solid #CBD5E1;padding:6px;font-size:12px;background:white;cursor:pointer;transition:.15s;display:flex;flex-direction:column;border-radius:6px;color:#1A365D}
+  .calendar-day:hover{background:#F1F5F9;transform:scale(1.02);z-index:5;box-shadow:0 4px 12px rgba(0,0,0,.12)}
+  .calendar-day.today{background:#FEF3C7;border-color:#C9A961;border-width:2px}
+  .calendar-day.has-orders{background:linear-gradient(135deg,white,#DBEAFE)}
+  .calendar-day.busy{background:linear-gradient(135deg,white,#FECACA);border-color:#FCA5A5}
+  .calendar-day.full{background:linear-gradient(135deg,#FECACA,#FCA5A5);border-color:#DC2626;color:#7F1D1D}
+  .calendar-day.other-month{color:#94A3B8;background:#F8FAFC}
+
+  .heat-bar{height:24px;border-radius:6px;display:flex;align-items:center;padding:0 10px;color:white;font-size:13px;font-weight:700;transition:.3s;min-width:30px}
+
+  .toast{position:fixed;top:80px;right:24px;background:white;border-left:4px solid #10B981;padding:14px 20px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:60;animation:slideIn .3s ease;display:flex;align-items:center;gap:10px;max-width:380px;font-weight:600}
+  .toast.error{border-left-color:#EF4444}
+  .toast.warning{border-left-color:#F59E0B}
+  @keyframes slideIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+  details summary{cursor:pointer;list-style:none}
+  details summary::-webkit-details-marker{display:none}
+
+  .petal { position:fixed;pointer-events:none;border-radius:50% 0 50% 0;opacity:.10;animation:fall linear infinite;z-index:0 }
+  @keyframes fall { 0%{transform:translateY(-20px) rotate(0deg);opacity:.10} 100%{transform:translateY(100vh) rotate(360deg);opacity:0} }
+
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:#94A3B8;border-radius:4px}
+  ::-webkit-scrollbar-thumb:hover{background:#64748B}
+
+  .checkbox-lg{width:20px;height:20px;cursor:pointer;accent-color:#1A365D}
+
+  /* 表格樣式（用於客戶名單、財務對帳）— v2.4.36: 預設 nowrap，避免文字一字一行 */
+  .data-table{width:100%;border-collapse:collapse;font-size:14px}
+  .data-table thead{background:#F1F5F9}
+  .data-table th{padding:11px 12px;text-align:left;font-weight:700;color:#1A365D;border-bottom:2px solid #CBD5E1;font-size:13px;letter-spacing:.02em;white-space:nowrap}
+  .data-table td{padding:11px 12px;border-bottom:1px solid #E2E8F0;color:#1A365D;white-space:nowrap}
+  .data-table td.wrap{white-space:normal}
+  .data-table tbody tr:hover{background:#F8FAFC;cursor:pointer}
+  .data-table .num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+
+  /* 加深所有原本太淺的灰色 */
+  .text-slate-400{color:#475569 !important}
+  .text-slate-500{color:#334155 !important}
+  body.dark .text-slate-400{color:#94A3B8 !important}
+  body.dark .text-slate-500{color:#CBD5E1 !important}
+
+  .stat-num { font-size:28px; font-weight:700; color:#1A365D; }
+  .stat-num.amber{color:#B45309}
+  .stat-num.green{color:#047857}
+  .stat-num.red{color:#B91C1C}
+  body.dark .stat-num{color:#E2E8F0}
+
+  /* 對帳 row 狀態 */
+  .recon-row.match{background:#ECFDF5}
+  .recon-row.mismatch{background:#FEF2F2}
+  .recon-row.pending{background:#FFFBEB}
+
+
+  body, #topNav, .container { max-width: 100vw; overflow-x: clip; }
+  #topNav .max-w-7xl { flex-wrap: nowrap; min-width: 0; }
+  #topNav .max-w-7xl > * { min-width: 0; }
+
+/* v2.5: Walk-in modal overlay (適配 admin.html, 桌機 popup 居中) */
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9000; display: none; align-items: flex-end; justify-content: center; padding: 0; }
+.modal-bg.show { display: flex; }
+.modal-body { background: white; border-radius: 14px 14px 0 0; width: 100%; max-width: 100%; max-height: 92vh; overflow-y: auto; padding: 24px 20px 32px; box-shadow: 0 -8px 30px rgba(0,0,0,0.15); }
+.modal-handle { width: 38px; height: 4px; background: #cbd5e1; border-radius: 2px; margin: 0 auto 16px; }
+@media (min-width: 768px) {
+  .modal-bg { align-items: center; padding: 24px; }
+  .modal-body { max-width: 560px; border-radius: 14px; padding: 28px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+  .modal-handle { display: none; }
+}
+.cnt-btn { width: 36px; height: 36px; border: 1.5px solid #CBD5E1; background: white; border-radius: 8px; font-size: 18px; font-weight: 700; cursor: pointer; transition: 0.15s; color: #1A365D; }
+.cnt-btn:hover { background: #F8FAFC; border-color: #1A365D; }
+
+/* === v2.3 typography accessibility (font size up + darker text) === */
+.text-\[10px\] { font-size: 11.5px !important; }
+.text-\[11px\] { font-size: 12.5px !important; }
+.text-\[12px\] { font-size: 13.5px !important; }
+.text-xs       { font-size: 13.5px !important; }
+.text-sm       { font-size: 15px !important; }
+.text-base     { font-size: 16.5px !important; }
+.text-lg       { font-size: 18px !important; }
+.text-slate-300{ color:#64748B !important; }
+.text-slate-400{ color:#475569 !important; }
+.text-white\/40{ color: rgba(255,255,255,0.62) !important; }
+.text-white\/50{ color: rgba(255,255,255,0.72) !important; }
+.text-white\/60{ color: rgba(255,255,255,0.78) !important; }
+.text-white\/70{ color: rgba(255,255,255,0.85) !important; }
+input.input-field, textarea.input-field, select.input-field { font-size: 15px !important; }
+
+/* === v2.4.33 實體開關 toggle (擺脫 Tailwind CDN peer 不穩定問題) === */
+.perm-switch{ position:relative; display:inline-block; width:44px; height:24px; flex-shrink:0; }
+.perm-switch input{ opacity:0; width:0; height:0; position:absolute; }
+.perm-switch .track{
+  position:absolute; inset:0; cursor:pointer;
+  background:#CBD5E1; border-radius:9999px; transition:background .25s ease;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.12);
+}
+.perm-switch .thumb{
+  position:absolute; top:2px; left:2px; width:20px; height:20px;
+  background:#fff; border-radius:9999px; transition:transform .25s ease, box-shadow .25s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25), 0 1px 2px rgba(0,0,0,0.15);
+}
+.perm-switch input:checked + .track{ background:#10B981; }
+.perm-switch input:checked + .track .thumb{ transform: translateX(20px); }
+.perm-switch input:disabled + .track{ cursor: not-allowed; opacity:0.55; }
+.perm-switch .custom-dot{
+  position:absolute; top:-3px; right:-3px; width:8px; height:8px;
+  background:#F59E0B; border-radius:9999px; box-shadow: 0 0 0 2px #fff;
+}
+
+/* === v2.4.33 modal 共用 === */
+.todo-modal-bg{ position:fixed; inset:0; background:rgba(15,23,42,0.55); z-index:9999; display:flex; align-items:center; justify-content:center; padding:1rem; }
+.todo-modal-card{ background:#fff; border-radius:14px; max-width:640px; width:100%; max-height:80vh; display:flex; flex-direction:column; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35); }
+.todo-modal-head{ padding:14px 18px; border-bottom:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center; }
+.todo-modal-body{ padding:12px 18px; overflow-y:auto; flex:1; }
+
+/* === v2.4.35 雙保險 RWD：用 .smart-2col 和 .smart-3col 強制多欄
+       即使 Tailwind 的 md:/lg:/xl: 因 CDN 配置問題沒生效，這裡的 @media 也會接手。
+       Honor V2 Pad / Galaxy Tab / iPad Mini 等小平板 (CSS 寬約 700~820) 必出 2 欄 === */
+.smart-2col{ display:grid; grid-template-columns:1fr; gap:1rem; }
+.smart-3col{ display:grid; grid-template-columns:1fr; gap:0.75rem; }
+@media (min-width: 600px){
+  .smart-2col{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .smart-3col{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1280px){
+  .smart-3col{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+/* 訂單卡內部資料：手機 2 欄，平板/桌機 4 欄 */
+.order-grid-inner{ display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:0.5rem; }
+@media (min-width: 768px){
+  .order-grid-inner{ gap: 0.75rem; }
+}
+@media (min-width: 1280px){
+  .order-grid-inner{ grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+
+/* v2.5e: 教學導覽 spotlight (修：overlay 透明，靠 highlight 的 box-shadow 做暗化避免重疊雙重變暗) */
+#tour-overlay { background: transparent; }
+#tour-overlay.tour-center-mode { background: rgba(15, 23, 42, 0.7); }
+#tour-highlight {
+  position: absolute;
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 2px #1A365D,
+    0 0 0 9999px rgba(15, 23, 42, 0.6);
+  transition: all 0.25s ease;
+  pointer-events: none;
+  z-index: 9999;
+}
+#tour-tooltip {
+  position: absolute;
+  background: #FFFFFF;
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  padding: 18px;
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  z-index: 10000;
+  transition: all 0.25s ease;
+}
+#tour-tooltip #tour-body { font-size: 13px; line-height: 1.6; }
+#tour-tooltip #tour-body ul { margin: 4px 0 8px 18px; padding: 0; }
+#tour-tooltip #tour-body ul li { margin-bottom: 4px; list-style: disc; }
+#tour-tooltip #tour-body ol { margin: 4px 0 8px 20px; padding: 0; }
+#tour-tooltip #tour-body ol li { margin-bottom: 4px; list-style: decimal; }
+#tour-tooltip #tour-body b, #tour-tooltip #tour-body strong { color: #1A365D; }
+#tour-tooltip #tour-body code { background: #F1F5F9; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; color: #DB2777; }
+#tour-tooltip #tour-body .info-box { background:#F8FAFC; border-left:2px solid #94A3B8; padding:6px 10px; margin:6px 0; font-size:12px; color:#475569; }
+#tour-tooltip #tour-body .danger-box { background:#F8FAFC; border-left:2px solid #1A365D; padding:6px 10px; margin:6px 0; font-size:12px; color:#475569; }
+#tour-tooltip #tour-body .example-box { background:#F8FAFC; border-left:2px solid #94A3B8; padding:6px 10px; margin:6px 0; font-size:12px; color:#475569; }
+#tour-tooltip #tour-body .formula { background:#F8FAFC; padding:6px 10px; margin:6px 0; font-family:monospace; font-size:12px; color:#1A365D; text-align:left; }
+#tour-tooltip #tour-body .mock-card { background:#FAFAFA; border:1px solid #E2E8F0; border-radius:4px; padding:10px; margin:6px 0; font-size:11px; }
+#tour-tooltip #tour-body .mock-card .mc-header { display:flex; justify-content:space-between; margin-bottom:6px; gap:6px; flex-wrap:wrap; }
+#tour-tooltip #tour-body .mock-card .mc-name { font-weight:bold; color:#1A365D; font-size:13px; }
+#tour-tooltip #tour-body .mock-card .mc-id { font-family:monospace; color:#94A3B8; font-size:10px; }
+#tour-tooltip #tour-body .mock-card .mc-badge { padding:2px 8px; border-radius:4px; font-size:10px; font-weight:bold; }
+#tour-tooltip #tour-body .mock-card .mc-row { display:flex; justify-content:space-between; padding:2px 0; }
+#tour-tooltip #tour-body .mock-card .mc-label { color:#94A3B8; font-size:10px; }
+#tour-tooltip #tour-body .mock-card .mc-val { font-weight:600; color:#334155; }
+#tour-tooltip #tour-body .mock-table { width:100%; border-collapse:collapse; font-size:11px; margin:6px 0; }
+#tour-tooltip #tour-body .mock-table th, #tour-tooltip #tour-body .mock-table td { padding:4px 6px; border:1px solid #E2E8F0; }
+#tour-tooltip #tour-body .mock-table th { background:#F1F5F9; color:#475569; font-weight:bold; text-align:left; }
+#tour-tooltip #tour-body .label { display:inline-block; padding:1px 6px; border-radius:3px; font-size:10px; font-weight:bold; vertical-align:middle; }
+#tour-tooltip #tour-body h4 { color:#1A365D; font-weight:bold; margin: 8px 0 4px 0; font-size:12px; text-transform:uppercase; letter-spacing:0.5px; }
+#tour-tooltip::before {
+  content: '';
+  position: absolute;
+  border: 8px solid transparent;
+}
+#tour-tooltip[data-position="bottom"]::before { top: -16px; left: 24px; border-bottom-color: #FFFFFF; }
+#tour-tooltip[data-position="top"]::before    { bottom: -16px; left: 24px; border-top-color: #FFFFFF; }
+#tour-tooltip[data-position="left"]::before   { right: -16px; top: 24px; border-left-color: #FFFFFF; }
+#tour-tooltip[data-position="right"]::before  { left: -16px; top: 24px; border-right-color: #FFFFFF; }
+#tour-tooltip[data-position="center"]::before { display: none; }
