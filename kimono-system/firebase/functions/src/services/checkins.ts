@@ -4,7 +4,11 @@ import { HttpError } from "../lib/constants.js";
 import type { AuthContext } from "../lib/auth.js";
 import { writeAuditLog } from "../lib/audit.js";
 
-export const checkInSchema = z.object({ last5: z.string().optional() });
+export const checkInSchema = z.object({
+  last5: z.string().optional(),
+  phoneLast3: z.string().optional(),
+  phoneLast5: z.string().optional()
+});
 
 export async function checkInOrder(orderId: string, raw: unknown, source: string, actor?: AuthContext) {
   const input = checkInSchema.parse(raw);
@@ -13,8 +17,9 @@ export async function checkInOrder(orderId: string, raw: unknown, source: string
     const orderSnap = await tx.get(orderRef);
     if (!orderSnap.exists) throw new HttpError(404, "Order not found");
     const before = orderSnap.data()!;
-    const expectedPhoneLast5 = String(before.customerPhone || "").replace(/\D/g, "").slice(-5);
-    if (source === "self" && (!input.last5 || !expectedPhoneLast5 || expectedPhoneLast5 !== input.last5)) {
+    const expectedPhone = String(before.customerPhone || "").replace(/\D/g, "");
+    const phoneVerification = String(input.phoneLast5 || input.last5 || "").replace(/\D/g, "");
+    if (source === "self" && (!phoneVerification || !expectedPhone || !expectedPhone.endsWith(phoneVerification))) {
       throw new HttpError(400, "Phone verification failed");
     }
     const checkinRef = db.collection("checkins").doc();
@@ -24,7 +29,8 @@ export async function checkInOrder(orderId: string, raw: unknown, source: string
       storeId: before.storeId || null,
       checkedInBy: actor?.uid || null,
       source,
-      last5: input.last5 || "",
+      phoneLast3: input.phoneLast3 || "",
+      phoneLast5: input.phoneLast5 || input.last5 || "",
       checkedInAt: FieldValue.serverTimestamp()
     };
     tx.set(checkinRef, checkin);

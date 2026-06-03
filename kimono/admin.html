@@ -2538,12 +2538,12 @@ async function checkInOrder(id){
     storeKey = String(storeKey).trim().toLowerCase();
     if (!['kyoto1','kyoto2','osaka1','tokyo1'].includes(storeKey)) { alert('門市代號錯誤'); return; }
   }
-  // 驗證最後 5 碼電話
-  const last5 = prompt('請輸入客人手機末 3 碼（驗證身份）：');
-  if (last5 === null) return;
+  const phoneLast3 = prompt('請輸入客人手機末 3 碼（驗證身份）：');
+  if (phoneLast3 === null) return;
   const phone = String(o.phone||'').replace(/[^0-9]/g,'');
-  if (last5 && !phone.endsWith(String(last5).trim().slice(-3))) {
-    if (!confirm('手機末 3 碼不符（客人輸入：'+last5+'，記錄：'+phone.slice(-3)+'）。仍要報到？')) return;
+  const phoneLast3Clean = String(phoneLast3||'').replace(/\D/g,'').slice(-3);
+  if (phoneLast3Clean && !phone.endsWith(phoneLast3Clean)) {
+    if (!confirm('手機末 3 碼不符（客人輸入：'+phoneLast3Clean+'，記錄：'+phone.slice(-3)+'）。仍要報到？')) return;
   }
   if (!confirm('確定為「'+(o.name||id)+'」辦理報到？\n門市：'+storeKey+'\n體驗日：'+(o.bookingDate||'—'))) return;
   try {
@@ -2553,7 +2553,7 @@ async function checkInOrder(id){
       const res = await fetch(apiBaseUrl + '/checkInOrderByStaff', {
         method:'POST',
         headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + token },
-        body: JSON.stringify({ orderId:o.firebaseDocId || id, last5:String(last5||'').trim() })
+        body: JSON.stringify({ orderId:o.firebaseDocId || id, phoneLast3:phoneLast3Clean })
       });
       const data = await res.json().catch(()=>({}));
       if (!res.ok || data.status !== 'success') throw new Error(data.message || '報到失敗');
@@ -2566,7 +2566,7 @@ async function checkInOrder(id){
     }
     const res = await fetch(GAS_URL, {method:'POST', body:JSON.stringify({
       action:'checkInOrder', agent:currentAgent, token:adminToken,
-      orderId:id, storeKey:storeKey, last5:String(last5||'').trim()
+      orderId:id, storeKey:storeKey, last5:phoneLast3Clean
     })});
     const data = await res.json();
     if(data.status==='unauthorized'){ showLogin(); return; }
