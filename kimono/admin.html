@@ -7,6 +7,8 @@
 <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="./config.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   /* === 字體分工：標題用宋體、內文用黑體 === */
@@ -340,10 +342,10 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
         <span class="text-white text-2xl font-bold title-serif">旅</span>
       </div>
       <h1 class="text-xl font-bold text-[#1A365D] title-serif">客服後台登入</h1>
-      <p class="text-slate-500 text-sm mt-2">請輸入您的姓名與密碼</p>
+      <p class="text-slate-500 text-sm mt-2">請輸入 Firebase 帳號與密碼</p>
     </div>
     <div class="space-y-4">
-      <div><div class="section-label">客服姓名</div><input id="login-name" class="input-field" placeholder="姓名 / 員工 osaka1/小林" autocomplete="off"></div>
+      <div><div class="section-label">Email</div><input id="login-name" class="input-field" type="email" placeholder="admin@example.com" autocomplete="username"></div>
       <div><div class="section-label">密碼</div><input id="login-pass" type="password" class="input-field" placeholder="請輸入密碼" onkeydown="if(event.key==='Enter')doLogin()"></div>
       <div id="login-err" class="text-red-600 text-sm hidden text-center py-1 font-semibold"></div>
       <button onclick="doLogin()" class="btn-navy w-full py-3 rounded-xl text-base">登入後台</button>
@@ -1064,12 +1066,128 @@ let currentAgent = '';
 let adminToken = '';
 let currentRole = 'agent';      // v2.5: 'agent' (客服) | 'store' (店家)
 let currentStoreKey = '';       // v2.5: when role=store, this is the store identifier
+let currentFirebaseUid = '';
 let allOrders = [];
 let currentFilter = 'pending';  // v2.4.33: default to 待確認 for faster execution
 let editingOrder = null;
 let selectedIds = new Set();
 let currentSection = 'dashboard';
 let calCursor = new Date();
+
+function useFirebaseAdmin() {
+  return !!(KIMONO_CONFIG && KIMONO_CONFIG.USE_NEW_API);
+}
+
+function getFirebaseProjectId() {
+  return (KIMONO_CONFIG && KIMONO_CONFIG.FIREBASE_CONFIG && KIMONO_CONFIG.FIREBASE_CONFIG.projectId) || 'foreveryoung-kimono-prod';
+}
+
+function ensureFirebaseAdminApp() {
+  if (!useFirebaseAdmin()) return null;
+  const cfg = KIMONO_CONFIG.FIREBASE_CONFIG || {};
+  if (!cfg.apiKey) throw new Error('Firebase Web API key 尚未設定，請先填寫 config.js 的 FIREBASE_CONFIG.apiKey');
+  if (!window.firebase) throw new Error('Firebase SDK 載入失敗，請重新整理後再試');
+  if (!firebase.apps.length) firebase.initializeApp(cfg);
+  return firebase.app();
+}
+
+async function firebaseSignInAdmin(email, password) {
+  ensureFirebaseAdminApp();
+  const cred = await firebase.auth().signInWithEmailAndPassword(email, password);
+  const user = cred.user;
+  if (!user) throw new Error('登入失敗');
+  const token = await user.getIdToken();
+  const profile = await getFirebaseUserProfile(user.uid, token);
+  if (!profile || profile.active === false) throw new Error('此帳號未啟用');
+  return {
+    user,
+    token,
+    profile,
+    displayName: profile.displayName || user.displayName || user.email || email,
+    role: firebaseRoleToAdminRole(profile.role),
+    storeKey: profile.storeId || profile.storeKey || ''
+  };
+}
+
+async function getFirebaseUserProfile(uid, token) {
+  const url = `https://firestore.googleapis.com/v1/projects/${getFirebaseProjectId()}/databases/(default)/documents/users/${encodeURIComponent(uid)}`;
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) throw new Error('找不到 users/{uid} 角色文檔，請確認 Firestore users/' + uid + ' 已建立');
+  const doc = await res.json();
+  return firestoreFieldsToObject(doc.fields || {});
+}
+
+function firebaseRoleToAdminRole(role) {
+  return ['store_manager', 'store_staff'].includes(role) ? 'store' : 'agent';
+}
+
+function firestoreFieldsToObject(fields) {
+  const out = {};
+  Object.keys(fields || {}).forEach(k => { out[k] = firestoreValue(fields[k]); });
+  return out;
+}
+
+function firestoreValue(v) {
+  if (!v || typeof v !== 'object') return null;
+  if ('stringValue' in v) return v.stringValue;
+  if ('integerValue' in v) return Number(v.integerValue);
+  if ('doubleValue' in v) return Number(v.doubleValue);
+  if ('booleanValue' in v) return !!v.booleanValue;
+  if ('timestampValue' in v) return v.timestampValue;
+  if ('nullValue' in v) return null;
+  if ('arrayValue' in v) return (v.arrayValue.values || []).map(firestoreValue);
+  if ('mapValue' in v) return firestoreFieldsToObject(v.mapValue.fields || {});
+  return null;
+}
+
+async function getFreshAdminToken() {
+  if (!useFirebaseAdmin()) return adminToken;
+  ensureFirebaseAdminApp();
+  const user = firebase.auth().currentUser;
+  if (!user) throw new Error('尚未登入');
+  adminToken = await user.getIdToken();
+  localStorage.setItem('admin_token', adminToken);
+  return adminToken;
+}
+
+function firestoreOrderToAdminOrder(doc) {
+  const data = firestoreFieldsToObject(doc.fields || {});
+  const status = data.status || '';
+  const confirmed = ['confirmed', 'checked_in', 'completed'].includes(status);
+  const checkedInAt = status === 'checked_in' || status === 'completed' ? (data.updatedAt || data.bookingAt || '') : '';
+  return {
+    firebaseDocId: (doc.name || '').split('/').pop(),
+    orderId: data.orderNo || data.id || '',
+    name: data.customerName || '',
+    phone: data.customerPhone || '',
+    email: data.customerEmail || '',
+    bookingDate: data.bookingAt || '',
+    submitDate: data.createdAt || '',
+    platform: data.platform || '',
+    source: data.source || '',
+    storeKey: data.storeId || '',
+    adults: Number(data.adults || 0),
+    children: Number(data.children || 0),
+    pax: Number(data.adults || 0) + Number(data.children || 0),
+    plan: data.plan || '',
+    hair: data.hair ? 'true' : 'false',
+    photo: data.photo ? 'true' : 'false',
+    confirmed,
+    checkedInAt,
+    deposit: Number(data.depositJpy || 0),
+    kimonoPrice: Number(data.kimonoPriceJpy || 0),
+    price: Number(data.kimonoPriceJpy || 0),
+    hairFee: Number(data.hairFeeJpy || 0),
+    photoFee: Number(data.photoFeeJpy || 0),
+    totalJpy: Number(data.totalJpy || 0),
+    onsiteDueJpy: Number(data.onsiteDueJpy || 0),
+    coupon: data.couponCode || '',
+    rate: data.discountRate || '',
+    proofImageUrl: data.proofUrl || '',
+    remark: data.proofNote || '',
+    status
+  };
+}
 
 // v2.5: dark mode removed; clear any leftover state
 try { document.body.classList.remove('dark'); localStorage.removeItem('admin_dark'); } catch(_){}
@@ -1093,20 +1211,33 @@ function showLogin() {
   document.getElementById('section-tabs').classList.add('hidden');
   document.getElementById('global-search-wrap').style.display = 'none';
   document.getElementById('nav-agent').textContent = '';
-  currentAgent = ''; adminToken = ''; currentRole = 'agent'; currentStoreKey = '';
+  if (useFirebaseAdmin() && window.firebase && firebase.apps.length && firebase.auth().currentUser) {
+    firebase.auth().signOut().catch(()=>{});
+  }
+  currentAgent = ''; adminToken = ''; currentRole = 'agent'; currentStoreKey = ''; currentFirebaseUid = '';
   localStorage.removeItem('admin_agent');
   localStorage.removeItem('admin_token');
   localStorage.removeItem('admin_role');
   localStorage.removeItem('admin_storeKey');
+  localStorage.removeItem('admin_uid');
 }
 
 async function doLogin() {
   const name = document.getElementById('login-name').value.trim();
   const pass = document.getElementById('login-pass').value;
   const err = document.getElementById('login-err');
-  if (!name || !pass) { err.textContent='請填入姓名與密碼'; err.classList.remove('hidden'); return; }
+  if (!name || !pass) { err.textContent=useFirebaseAdmin() ? '請填入 Email 與密碼' : '請填入姓名與密碼'; err.classList.remove('hidden'); return; }
   err.classList.add('hidden');
   try {
+    if (useFirebaseAdmin()) {
+      const data = await firebaseSignInAdmin(name, pass);
+      localStorage.removeItem('admin_employeeId');
+      localStorage.removeItem('admin_isStoreAdmin');
+      currentFirebaseUid = data.user.uid;
+      localStorage.setItem('admin_uid', currentFirebaseUid);
+      enterDashboard(data.displayName, data.token, data.role, data.storeKey);
+      return;
+    }
     // v2.4.41: 自動偵測員工子帳號登入。格式：storeKey/姓名 或 storeKey.姓名
     let payload;
     const sep = name.match(/[./]/);
@@ -1133,7 +1264,7 @@ async function doLogin() {
       err.classList.remove('hidden');
     }
   } catch (e) {
-    err.textContent = '無法連線到伺服器，請稍後再試';
+    err.textContent = e && e.message ? e.message : '無法連線到伺服器，請稍後再試';
     err.classList.remove('hidden');
   }
 }
@@ -1248,6 +1379,31 @@ function applyRolePermissions() {
 }
 
 (function() {
+  if (useFirebaseAdmin()) {
+    try {
+      ensureFirebaseAdminApp();
+      firebase.auth().onAuthStateChanged(async (user) => {
+        if (!user) return;
+        try {
+          const token = await user.getIdToken();
+          const profile = await getFirebaseUserProfile(user.uid, token);
+          currentFirebaseUid = user.uid;
+          localStorage.setItem('admin_uid', currentFirebaseUid);
+          enterDashboard(profile.displayName || user.displayName || user.email || 'Admin', token, firebaseRoleToAdminRole(profile.role), profile.storeId || profile.storeKey || '');
+        } catch (e) {
+          console.warn('[Firebase Auth] auto login failed', e);
+          showLogin();
+        }
+      });
+    } catch (e) {
+      const err = document.getElementById('login-err');
+      if (err) {
+        err.textContent = e && e.message ? e.message : 'Firebase Auth 初始化失敗';
+        err.classList.remove('hidden');
+      }
+    }
+    return;
+  }
   const savedName = localStorage.getItem('admin_agent');
   const savedToken = localStorage.getItem('admin_token');
   const savedRole = localStorage.getItem('admin_role') || 'agent';
@@ -1326,6 +1482,10 @@ function loadOrders() {
       window.__firstLoadDone = true;
     }
   }, 12000);
+  if (useFirebaseAdmin()) {
+    loadOrdersFromFirestore();
+    return;
+  }
   fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'adminGetOrders', filter:'all', search:'', token:adminToken, agent:currentAgent }) })
     .then(r => r.json())
     .then(data => {
@@ -1407,7 +1567,35 @@ function loadOrders() {
       if (ov) ov.classList.add('hidden');
       window.__firstLoadDone = true;
       showErr('連線失敗: ' + e.message);
-    });
+	    });
+}
+
+async function loadOrdersFromFirestore() {
+  try {
+    const token = await getFreshAdminToken();
+    const url = `https://firestore.googleapis.com/v1/projects/${getFirebaseProjectId()}/databases/(default)/documents/orders?pageSize=500&orderBy=createdAt%20desc`;
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    const data = await res.json().catch(() => ({}));
+    document.getElementById('orders-loading').classList.add('hidden');
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) { showLogin(); return; }
+      throw new Error(data.error?.message || `Firestore 載入失敗 (${res.status})`);
+    }
+    allOrders = (data.documents || []).map(firestoreOrderToAdminOrder);
+    populateFilters();
+    renderDashboard();
+    filterOrders();
+    const ov = document.getElementById('loading-overlay');
+    if (ov && !window.__firstLoadDone) {
+      ov.classList.add('hidden');
+      window.__firstLoadDone = true;
+    }
+  } catch (e) {
+    document.getElementById('orders-loading').classList.add('hidden');
+    const ov = document.getElementById('loading-overlay');
+    if (ov) ov.classList.add('hidden');
+    toast((e && e.message) || 'Firestore 載入失敗', 'error');
+  }
 }
 
 function showErr(msg) {
@@ -2359,6 +2547,23 @@ async function checkInOrder(id){
   }
   if (!confirm('確定為「'+(o.name||id)+'」辦理報到？\n門市：'+storeKey+'\n體驗日：'+(o.bookingDate||'—'))) return;
   try {
+    if (useFirebaseAdmin()) {
+      const token = await getFreshAdminToken();
+      const apiBaseUrl = (KIMONO_CONFIG.API_BASE_URL || '').replace(/\/$/, '');
+      const res = await fetch(apiBaseUrl + '/checkInOrderByStaff', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + token },
+        body: JSON.stringify({ orderId:o.firebaseDocId || id, last5:String(last5||'').trim() })
+      });
+      const data = await res.json().catch(()=>({}));
+      if (!res.ok || data.status !== 'success') throw new Error(data.message || '報到失敗');
+      o.checkedInAt = new Date().toISOString();
+      o.checkedInBy = storeKey;
+      o.status = 'checked_in';
+      filterOrders();
+      toast('已報到：'+(o.name||id)+' @ '+storeKey);
+      return;
+    }
     const res = await fetch(GAS_URL, {method:'POST', body:JSON.stringify({
       action:'checkInOrder', agent:currentAgent, token:adminToken,
       orderId:id, storeKey:storeKey, last5:String(last5||'').trim()
@@ -2392,6 +2597,25 @@ async function batchConfirm(){
 }
 
 async function saveOrderQuick(o, patch){
+  if (useFirebaseAdmin()) {
+    const apiBaseUrl = (KIMONO_CONFIG.API_BASE_URL || '').replace(/\/$/, '');
+    const token = await getFreshAdminToken();
+    let nextStatus = null;
+    if (patch.confirmed === 'TRUE' || patch.confirmed === 'true') nextStatus = 'confirmed';
+    if (!nextStatus) throw new Error('Firebase 後台目前只支援快速確認；其他編輯稍後遷移');
+    const res = await fetch(apiBaseUrl + '/transitionOrder', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + token },
+      body: JSON.stringify({ orderId:o.firebaseDocId || o.orderId, status:nextStatus })
+    });
+    const data = await res.json().catch(()=>({}));
+    if (!res.ok || data.status !== 'success') throw new Error(data.message || '儲存失敗');
+    o.confirmed = true;
+    o.status = nextStatus;
+    filterOrders(); renderDashboard();
+    toast('已更新：'+(o.name||o.orderId));
+    return data;
+  }
   const payload = Object.assign({
     action:'adminUpdate', agent:currentAgent, token:adminToken, orderId:o.orderId,
     name:o.name||'', phone:o.phone||'', email:o.email||'',
