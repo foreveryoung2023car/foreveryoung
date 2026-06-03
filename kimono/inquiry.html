@@ -497,6 +497,10 @@ const API_BASE_URL = (KIMONO_CONFIG.API_BASE_URL || '').replace(/\/$/, '');
 let currentOrder = null;
 let refundPanelOpen = false;
 
+function legacyGasWritesAllowed() {
+  return !(KIMONO_CONFIG.LEGACY_GAS_READONLY || KIMONO_CONFIG.USE_NEW_API);
+}
+
 async function callFirebaseApi(path, body) {
   if (!API_BASE_URL) throw new Error('Firebase API_BASE_URL 尚未設定');
   const res = await fetch(`${API_BASE_URL}/${path}`, {
@@ -689,6 +693,7 @@ document.getElementById('refundForm').onsubmit = async (e) => {
         contactPhone: phone
       });
     } else {
+      if (!legacyGasWritesAllowed()) throw new Error('舊 GAS 已切為只讀備份，請使用 Firebase 退款');
       await fetch(GAS_URL, {
         method:'POST', mode:'no-cors',
         headers:{ 'Content-Type':'text/plain' },
@@ -748,6 +753,7 @@ async function doSelfCheckIn() {
     if (KIMONO_CONFIG.USE_NEW_API) {
       await callFirebaseApi('checkInOrder', { orderId: currentOrder.firestoreId || currentOrder.orderId, last5 });
     } else {
+      if (!legacyGasWritesAllowed()) throw new Error('舊 GAS 已切為只讀備份，請使用 Firebase 報到');
       await fetch(GAS_URL, {
         method: 'POST', mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain' },

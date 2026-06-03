@@ -1186,6 +1186,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
         }
 
         async function uploadProofToGas(file, base64) {
+            if (!legacyGasWritesAllowed()) throw new Error('舊 GAS 已切為只讀備份，請使用 Firebase Storage 上傳憑證');
             const res = await fetch(KIMONO_CONFIG.APPS_SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({
@@ -1252,6 +1253,10 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 
         const APPS_SCRIPT_URL = KIMONO_CONFIG.APPS_SCRIPT_URL;
         const API_BASE_URL = (KIMONO_CONFIG.API_BASE_URL || '').replace(/\/$/, '');
+
+        function legacyGasWritesAllowed() {
+            return !(KIMONO_CONFIG.LEGACY_GAS_READONLY || KIMONO_CONFIG.USE_NEW_API);
+        }
 
         async function submitBookingToNewApi(payload) {
             if (!API_BASE_URL) throw new Error('Firebase API_BASE_URL 尚未設定');
@@ -1360,6 +1365,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                     ? await submitBookingToNewApi(payload)
                     : finalId;
                 if (!KIMONO_CONFIG.USE_NEW_API) {
+                    if (!legacyGasWritesAllowed()) throw new Error('舊 GAS 已切為只讀備份，請使用 Firebase 建單');
                     await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
                     try { localStorage.setItem('order_date', dateKey); localStorage.setItem('order_seq', todaySeq); } catch(err) {}
                 }

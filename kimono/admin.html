@@ -996,6 +996,30 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 
 <script>
 const GAS_URL = typeof KIMONO_CONFIG !== 'undefined' ? KIMONO_CONFIG.APPS_SCRIPT_URL : '';
+function legacyGasReadonlyEnabled() {
+  return !!(typeof KIMONO_CONFIG !== 'undefined' && KIMONO_CONFIG.USE_NEW_API && KIMONO_CONFIG.LEGACY_GAS_READONLY);
+}
+function getLegacyGasAction(init) {
+  try {
+    if (!init || !init.body || typeof init.body !== 'string') return '';
+    return (JSON.parse(init.body).action || '').toString();
+  } catch (_) {
+    return '';
+  }
+}
+function isLegacyGasReadAction(action) {
+  return [
+    'adminGetOrders',
+    'getArchiveCheck',
+    'getArchivedList',
+    'getArchiveOrders',
+    'getAuditLog',
+    'query',
+    'queryOrder',
+    'queryByNamePhone',
+    'validateCoupon'
+  ].includes(action);
+}
 
 // ============================================================
 // v2.4.23: GAS fetch 防呆 — timeout + cache-bust + 失敗 UI
@@ -1008,6 +1032,10 @@ const GAS_URL = typeof KIMONO_CONFIG !== 'undefined' ? KIMONO_CONFIG.APPS_SCRIPT
   window.fetch = function(input, init) {
     const url = typeof input === 'string' ? input : (input && input.url) || '';
     if (url && url.indexOf('script.google.com') !== -1) {
+      const action = getLegacyGasAction(init);
+      if (legacyGasReadonlyEnabled() && action && !isLegacyGasReadAction(action)) {
+        return Promise.reject(new Error('舊 GAS 已切為只讀備份，禁止寫入 action: ' + action));
+      }
       // 1) 加 cache-bust 強制每次拿新資料
       const cbUrl = url + (url.indexOf('?') !== -1 ? '&' : '?') + '_cb=' + Date.now();
       // 2) 加 8 秒 timeout，超時自動 abort
