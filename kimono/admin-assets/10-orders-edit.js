@@ -23,6 +23,7 @@ function openEdit(orderId) {
   document.getElementById('e-photo-fee').value = o.photoFee || '';
   document.getElementById('e-coupon').value = o.coupon || '';
   document.getElementById('e-rate').value = o.rate || '0.22';
+  renderPaymentProof(o);
   document.getElementById('e-refund-amt').value = o.refundAmount || '';
   document.getElementById('e-refund-date').value = (o.refundTime || '').slice(0,16);
   // v2.4.20: 把 refundReason 拆成 4 個帳戶分欄 + 純原因
@@ -81,6 +82,49 @@ function syncEditPax() {
   const legacy = document.getElementById('e-pax');
   if (legacy) legacy.value = pax || '0大';
   return { adults, children, pax: pax || '0大' };
+}
+
+function renderPaymentProof(o) {
+  const proofUrl = (o && o.proofImageUrl) || '';
+  const note = (o && (o.proofNote || o.proofText || o.paymentNote || o.remark)) || '';
+  const empty = document.getElementById('e-proof-empty');
+  const content = document.getElementById('e-proof-content');
+  const img = document.getElementById('e-proof-image');
+  const link = document.getElementById('e-proof-link');
+  const imgLink = document.getElementById('e-proof-image-link');
+  const noImage = document.getElementById('e-proof-no-image');
+  const noteEl = document.getElementById('e-proof-note');
+  if (!empty || !content) return;
+  if (!proofUrl && !note) {
+    empty.classList.remove('hidden');
+    content.classList.add('hidden');
+    if (link) link.classList.add('hidden');
+    if (imgLink) imgLink.classList.add('hidden');
+    if (noImage) noImage.classList.add('hidden');
+    if (img) img.removeAttribute('src');
+    if (noteEl) noteEl.textContent = note || '—';
+    return;
+  }
+  empty.classList.add('hidden');
+  content.classList.remove('hidden');
+  if (img) {
+    if (proofUrl) img.src = proofUrl;
+    else img.removeAttribute('src');
+  }
+  if (link) {
+    if (proofUrl) {
+      link.href = proofUrl;
+      link.classList.remove('hidden');
+    } else {
+      link.classList.add('hidden');
+    }
+  }
+  if (imgLink) {
+    imgLink.href = proofUrl || '#';
+    imgLink.classList.toggle('hidden', !proofUrl);
+  }
+  if (noImage) noImage.classList.toggle('hidden', !!proofUrl);
+  if (noteEl) noteEl.textContent = note || '—';
 }
 
 // v2.6: 在編輯 modal 上方注入「為什麼這筆是異常」說明橫幅
