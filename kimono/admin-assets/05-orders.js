@@ -599,15 +599,20 @@ function renderOrders(orders){
               (o.storeKey? '<span class="pill bg-purple-100 text-purple-800">🏪 '+o.storeKey+'</span>':'')+
               daysTag+
             '</div>'+
-          '<div class="order-card-details text-sm bg-slate-50 p-2.5 md:p-3 rounded-lg mb-2">'+
-            '<div><div class="text-xs text-slate-600 font-semibold">體驗日期</div><div class="font-bold text-[#1A365D]">'+fmtBookingDateTime(o.bookingDate)+'</div></div>'+
-            '<div class="detail-phone"><div class="text-xs text-slate-600 font-semibold">電話</div><div class="font-bold phone-value">' + (o.phone? '<a href="tel:'+o.phone+'" class="text-[#1A365D] hover:underline">'+o.phone+'</a><button onclick="event.stopPropagation();navigator.clipboard.writeText(\''+o.phone+'\').then(()=>toast(\'已複製電話\'))" class="text-[10px] px-1 bg-slate-100 hover:bg-slate-200 rounded flex-shrink-0" title="複製">📋</button>' : '—') + '</div></div>'+
-            '<div><div class="text-xs text-slate-600 font-semibold">人數</div><div class="font-bold">'+formatGuestCount(o)+'</div></div>'+
-            /* v2.4.42j: hide 和服款式 */ ''+
-            '<div><div class="text-xs text-slate-600 font-semibold">訂金</div><div class="font-bold">'+fmtY(o.deposit)+'</div></div>'+
-            '<div><div class="text-xs text-slate-600 font-semibold">總價</div><div class="font-bold">'+fmtY(total)+'</div></div>'+
-            '<div><div class="text-xs text-slate-600 font-semibold">待收尾款</div><div class="font-bold '+(isPaidFull(o)?'text-emerald-700 line-through':(due>0?'text-amber-700':'text-emerald-700'))+'">'+(isPaidFull(o)?'¥0 ✓':fmtY(due))+'</div></div>'+
-            '<div><div class="text-xs text-slate-600 font-semibold">Email</div><div class="font-bold truncate text-xs" title="'+(o.email||'')+'">'+(o.email||'—')+'</div></div>'+
+          '<div class="order-card-summary text-sm bg-slate-50 p-2.5 md:p-3 rounded-lg mb-2">'+
+            '<div class="summary-row summary-row-main">'+
+              '<div class="summary-item"><div class="summary-label">體驗日期</div><div class="summary-value">'+fmtBookingDateTime(o.bookingDate)+'</div></div>'+
+              '<div class="summary-item"><div class="summary-label">人數</div><div class="summary-value">'+formatGuestCount(o)+'</div></div>'+
+            '</div>'+
+            '<div class="summary-row summary-row-money">'+
+              '<div class="summary-item"><div class="summary-label">訂金</div><div class="summary-value">'+fmtY(o.deposit)+'</div></div>'+
+              '<div class="summary-item"><div class="summary-label">總價</div><div class="summary-value">'+fmtY(total)+'</div></div>'+
+              '<div class="summary-item"><div class="summary-label">待收尾款</div><div class="summary-value '+(isPaidFull(o)?'text-emerald-700 line-through':(due>0?'text-amber-700':'text-emerald-700'))+'">'+(isPaidFull(o)?'¥0 ✓':fmtY(due))+'</div></div>'+
+            '</div>'+
+            '<div class="summary-row summary-row-contact">'+
+              '<div class="summary-item"><div class="summary-label">電話</div><div class="summary-value compact phone-value">' + (o.phone? '<a href="tel:'+o.phone+'" class="text-[#1A365D] hover:underline">'+o.phone+'</a><button onclick="event.stopPropagation();navigator.clipboard.writeText(\''+o.phone+'\').then(()=>toast(\'已複製電話\'))" class="text-[10px] px-1 bg-slate-100 hover:bg-slate-200 rounded flex-shrink-0" title="複製">📋</button>' : '—') + '</div></div>'+
+              '<div class="summary-item"><div class="summary-label">Email</div><div class="summary-value compact truncate" title="'+(o.email||'')+'">'+(o.email||'—')+'</div></div>'+
+            '</div>'+
           '</div>'+
           '<div class="flex flex-wrap gap-1">'+
             (o.coupon? '<span class="tag" style="background:#FCE7F3;color:#9F1239;border-color:#F9A8D4">🎟 '+o.coupon+'</span>':'')+
