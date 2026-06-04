@@ -1,11 +1,124 @@
 import { z } from "zod";
-import { db } from "../lib/firebase.js";
+import { FieldValue, Timestamp, db } from "../lib/firebase.js";
 import { HttpError } from "../lib/constants.js";
 import type { AuthContext } from "../lib/auth.js";
 import { writeAuditLog } from "../lib/audit.js";
 import { sendGmailMessage } from "../lib/gmail.js";
 
-export const sendConfirmEmailSchema = z.object({
+type EmailKind = "confirm" | "refund_confirmed" | "booking_reminder" | "proof_received";
+
+type EmailTemplate = {
+  subject: string;
+  text: string;
+  html?: string;
+};
+
+type RenderedEmail = {
+  to: string;
+  subject: string;
+  text: string;
+  html?: string;
+};
+
+const emailActionMap: Record<EmailKind, { sent: string; failed: string; message: string }> = {
+  confirm: {
+    sent: "confirm_email_sent",
+    failed: "confirm_email_failed",
+    message: "確認信已寄出"
+  },
+  refund_confirmed: {
+    sent: "refund_confirm_email_sent",
+    failed: "refund_confirm_email_failed",
+    message: "退款確認信已寄出"
+  },
+  booking_reminder: {
+    sent: "booking_reminder_email_sent",
+    failed: "booking_reminder_email_failed",
+    message: "預約提醒信已寄出"
+  },
+  proof_received: {
+    sent: "proof_received_email_sent",
+    failed: "proof_received_email_failed",
+    message: "付款憑證收到通知已寄出"
+  }
+};
+
+const defaultTemplates: Record<EmailKind, EmailTemplate> = {
+  confirm: {
+    subject: "【Foreveryoung 和服體驗】訂單確認 {{orderNo}}",
+    text: [
+      "{{name}} 您好：",
+      "",
+      "您的和服體驗預約已確認，資訊如下：",
+      "訂單編號：{{orderNo}}",
+      "體驗日期：{{bookingAt}} (JST)",
+      "人數：{{guests}}",
+      "方案：{{plan}}",
+      "妝髮：{{hair}}",
+      "攝影：{{photo}}",
+      "總額：{{total}}",
+      "已收訂金：{{deposit}}",
+      "現場應收：{{onsiteDue}}",
+      "",
+      "如需更改、取消或有任何問題，請直接聯繫客服。",
+      "",
+      "Foreveryoung 旅乘"
+    ].join("\n")
+  },
+  refund_confirmed: {
+    subject: "【Foreveryoung 和服體驗】退款完成通知 {{orderNo}}",
+    text: [
+      "{{name}} 您好：",
+      "",
+      "您的退款已完成處理，資訊如下：",
+      "訂單編號：{{orderNo}}",
+      "退款金額：{{refundAmount}}",
+      "退款時間：{{refundTime}}",
+      "退款說明：{{refundReason}}",
+      "",
+      "款項實際入帳時間可能依銀行作業而略有延遲。",
+      "",
+      "Foreveryoung 旅乘"
+    ].join("\n")
+  },
+  booking_reminder: {
+    subject: "【Foreveryoung 和服體驗】明日預約提醒 {{orderNo}}",
+    text: [
+      "{{name}} 您好：",
+      "",
+      "提醒您明天有和服體驗預約：",
+      "訂單編號：{{orderNo}}",
+      "體驗日期：{{bookingAt}} (JST)",
+      "人數：{{guests}}",
+      "方案：{{plan}}",
+      "妝髮：{{hair}}",
+      "攝影：{{photo}}",
+      "現場應收：{{onsiteDue}}",
+      "",
+      "請依預約時間前來。如需調整，請提前聯繫客服。",
+      "",
+      "Foreveryoung 旅乘"
+    ].join("\n")
+  },
+  proof_received: {
+    subject: "【Foreveryoung 和服體驗】已收到付款憑證 {{orderNo}}",
+    text: [
+      "{{name}} 您好：",
+      "",
+      "我們已收到您的付款憑證，訂單將由工作人員確認。",
+      "訂單編號：{{orderNo}}",
+      "體驗日期：{{bookingAt}} (JST)",
+      "已收訂金：{{deposit}}",
+      "憑證備註：{{proofNote}}",
+      "",
+      "確認完成後，我們會再寄送訂單確認信。",
+      "",
+      "Foreveryoung 旅乘"
+    ].join("\n")
+  }
+};
+
+export const sendOrderEmailSchema = z.object({
   orderId: z.string().min(1),
   email: z.string().email().optional()
 });
@@ -52,6 +165,16 @@ function escapeHtml(value: unknown) {
     .replace(/'/g, "&#39;");
 }
 
+function isStoreRole(actor: AuthContext) {
+  return actor.role === "store_manager" || actor.role === "store_staff";
+}
+
+function assertOrderAccess(order: FirebaseFirestore.DocumentData, actor: AuthContext) {
+  if (!isStoreRole(actor)) return;
+  if (!actor.storeId) throw new HttpError(403, "Store user has no storeId");
+  if (order.storeId !== actor.storeId) throw new HttpError(403, "Order belongs to another store");
+}
+
 async function findOrder(orderNoOrId: string) {
   const key = orderNoOrId.trim();
   const direct = await db.collection("orders").doc(key).get();
@@ -63,89 +186,214 @@ async function findOrder(orderNoOrId: string) {
   return { id: doc.id, data: doc.data() };
 }
 
-function buildConfirmEmail(orderId: string, order: FirebaseFirestore.DocumentData, to: string) {
+async function loadTemplate(kind: EmailKind) {
+  const snap = await db.collection("settings").doc("emailTemplates").get();
+  const configured = snap.data()?.[kind] || {};
+  return {
+    ...defaultTemplates[kind],
+    ...configured
+  } as EmailTemplate;
+}
+
+function templateVariables(orderId: string, order: FirebaseFirestore.DocumentData) {
   const orderNo = order.orderNo || orderId;
-  const subject = `【旅乘 x 和服體驗】訂單確認 ${orderNo}`;
-  const name = order.customerName || "貴賓";
-  const bookingAt = formatJst(order.bookingAt);
-  const guests = guestLabel(order);
-  const total = money(order.totalJpy);
-  const deposit = money(order.depositJpy);
-  const onsiteDue = money(order.onsiteDueJpy);
-  const plan = order.plan || "和服體驗";
-  const hair = order.hair ? "需要" : "不需要";
-  const photo = order.photo ? "需要" : "不需要";
+  return {
+    name: order.customerName || "貴賓",
+    orderNo,
+    bookingAt: formatJst(order.bookingAt),
+    guests: guestLabel(order),
+    plan: order.plan || "和服體驗",
+    hair: order.hair ? "需要" : "不需要",
+    photo: order.photo ? "需要" : "不需要",
+    total: money(order.totalJpy),
+    deposit: money(order.depositJpy),
+    onsiteDue: money(order.onsiteDueJpy),
+    refundAmount: money(order.refundAmountJpy),
+    refundTime: order.refundTime ? formatJst(order.refundTime) : "—",
+    refundReason: order.refundReason || "—",
+    proofNote: order.proofNote || "—",
+    proofUrl: order.proofUrl || "",
+    phone: order.customerPhone || "",
+    email: order.customerEmail || ""
+  };
+}
 
-  const text = [
-    `${name} 您好：`,
-    "",
-    "您的和服體驗預約已確認，資訊如下：",
-    `訂單編號：${orderNo}`,
-    `體驗日期：${bookingAt} (JST)`,
-    `人數：${guests}`,
-    `方案：${plan}`,
-    `妝髮：${hair}`,
-    `攝影：${photo}`,
-    `總額：${total}`,
-    `已收訂金：${deposit}`,
-    `現場應收：${onsiteDue}`,
-    "",
-    "如需更改、取消或有任何問題，請直接聯繫客服。",
-    "",
-    "Foreveryoung 旅乘"
-  ].join("\n");
+function renderString(template: string, vars: Record<string, unknown>) {
+  return template.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, (_match, key: string) => String(vars[key] ?? ""));
+}
 
-  const rows = [
-    ["訂單編號", orderNo],
-    ["體驗日期", `${bookingAt} (JST)`],
-    ["人數", guests],
-    ["方案", plan],
-    ["妝髮", hair],
-    ["攝影", photo],
-    ["總額", total],
-    ["已收訂金", deposit],
-    ["現場應收", onsiteDue]
-  ];
-  const html = `
-    <div style="font-family:Arial,'Noto Sans TC',sans-serif;color:#1f2937;line-height:1.7">
-      <p>${escapeHtml(name)} 您好：</p>
-      <p>您的和服體驗預約已確認，資訊如下：</p>
-      <table style="border-collapse:collapse;width:100%;max-width:560px">
-        ${rows.map(([label, value]) => `
-          <tr>
-            <th style="text-align:left;background:#f8fafc;border:1px solid #e2e8f0;padding:8px 10px;width:120px">${escapeHtml(label)}</th>
-            <td style="border:1px solid #e2e8f0;padding:8px 10px">${escapeHtml(value)}</td>
-          </tr>
-        `).join("")}
-      </table>
-      <p>如需更改、取消或有任何問題，請直接聯繫客服。</p>
-      <p>Foreveryoung 旅乘</p>
-    </div>
-  `;
+function textToHtml(text: string) {
+  return `<div style="font-family:Arial,'Noto Sans TC',sans-serif;color:#1f2937;line-height:1.7;white-space:pre-line">${escapeHtml(text)}</div>`;
+}
 
+async function buildOrderEmail(kind: EmailKind, orderId: string, order: FirebaseFirestore.DocumentData, to: string): Promise<RenderedEmail> {
+  const template = await loadTemplate(kind);
+  const vars = templateVariables(orderId, order);
+  const subject = renderString(template.subject, vars);
+  const text = renderString(template.text, vars);
+  const html = template.html ? renderString(template.html, vars) : textToHtml(text);
   return { to, subject, text, html };
 }
 
-export async function sendConfirmEmail(raw: unknown, actor: AuthContext) {
-  const input = sendConfirmEmailSchema.parse(raw);
+function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function sendGmailWithRetry(message: RenderedEmail) {
+  let lastError: unknown = null;
+  const delays = [0, 600, 1600];
+  for (let attempt = 1; attempt <= delays.length; attempt += 1) {
+    if (delays[attempt - 1]) await wait(delays[attempt - 1]);
+    try {
+      const result = await sendGmailMessage(message);
+      return { ...result, attempts: attempt };
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError;
+}
+
+async function sendOrderEmail(raw: unknown, actor: AuthContext, kind: EmailKind) {
+  const input = sendOrderEmailSchema.parse(raw);
   const order = await findOrder(input.orderId);
+  assertOrderAccess(order.data, actor);
   const to = input.email || order.data.customerEmail;
   if (!to) throw new HttpError(400, "Order has no customer email");
 
-  const message = buildConfirmEmail(order.id, order.data, to);
-  const result = await sendGmailMessage(message);
+  return sendOrderEmailForOrder(kind, order.id, order.data, to, actor);
+}
 
-  await writeAuditLog({
-    orderId: order.id,
-    actor,
-    action: "confirm_email_sent",
-    afterData: {
-      orderNo: order.data.orderNo || order.id,
-      customerEmail: to,
-      gmailMessageId: result.messageId
-    },
-    metadata: { source: "gmail_api" }
-  });
+async function sendOrderEmailForOrder(
+  kind: EmailKind,
+  orderId: string,
+  order: FirebaseFirestore.DocumentData,
+  to: string,
+  actor: AuthContext | null
+) {
+  const action = emailActionMap[kind];
+  const message = await buildOrderEmail(kind, orderId, order, to);
 
-  return { status: "success", message: "確認信已寄出", gmailMessageId: result.messageId };
+  try {
+    const result = await sendGmailWithRetry(message);
+    await writeAuditLog({
+      orderId,
+      actor,
+      actorLabel: actor ? undefined : "system",
+      action: action.sent,
+      afterData: {
+        orderNo: order.orderNo || orderId,
+        customerEmail: to,
+        gmailMessageId: result.messageId,
+        attempts: result.attempts
+      },
+      metadata: { source: "gmail_api", emailKind: kind }
+    });
+    return { status: "success", message: action.message, gmailMessageId: result.messageId, attempts: result.attempts };
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    await writeAuditLog({
+      orderId,
+      actor,
+      actorLabel: actor ? undefined : "system",
+      action: action.failed,
+      afterData: {
+        orderNo: order.orderNo || orderId,
+        customerEmail: to,
+        error: errorMessage
+      },
+      metadata: { source: "gmail_api", emailKind: kind }
+    });
+    throw new HttpError(500, `Email send failed after retries: ${errorMessage}`);
+  }
+}
+
+export async function sendConfirmEmail(raw: unknown, actor: AuthContext) {
+  return sendOrderEmail(raw, actor, "confirm");
+}
+
+export async function sendRefundConfirmEmail(raw: unknown, actor: AuthContext) {
+  return sendOrderEmail(raw, actor, "refund_confirmed");
+}
+
+export async function sendBookingReminderEmail(raw: unknown, actor: AuthContext) {
+  return sendOrderEmail(raw, actor, "booking_reminder");
+}
+
+export async function sendProofReceivedEmail(raw: unknown, actor: AuthContext) {
+  return sendOrderEmail(raw, actor, "proof_received");
+}
+
+function jstDateParts(date: Date) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(date).split("-");
+  return {
+    year: Number(parts[0]),
+    month: Number(parts[1]),
+    day: Number(parts[2])
+  };
+}
+
+function jstMidnightUtc(year: number, month: number, day: number) {
+  return new Date(Date.UTC(year, month - 1, day, -9, 0, 0));
+}
+
+export async function sendDueBookingReminderEmails(now = new Date()) {
+  const today = jstDateParts(now);
+  const start = jstMidnightUtc(today.year, today.month, today.day + 1);
+  const end = jstMidnightUtc(today.year, today.month, today.day + 2);
+  const snap = await db.collection("orders")
+    .where("bookingAt", ">=", Timestamp.fromDate(start))
+    .where("bookingAt", "<", Timestamp.fromDate(end))
+    .get();
+
+  let sent = 0;
+  let skipped = 0;
+  let failed = 0;
+  const details: Array<Record<string, unknown>> = [];
+
+  for (const doc of snap.docs) {
+    const order = doc.data();
+    const status = String(order.status || "");
+    const email = String(order.customerEmail || "").trim();
+    if (!["confirmed", "pending_review"].includes(status) || !email || order.emailFlags?.bookingReminderSentAt) {
+      skipped += 1;
+      continue;
+    }
+
+    try {
+      const result = await sendOrderEmailForOrder("booking_reminder", doc.id, order, email, null);
+      await doc.ref.set({
+        emailFlags: {
+          bookingReminderSentAt: FieldValue.serverTimestamp(),
+          bookingReminderMessageId: result.gmailMessageId || ""
+        },
+        updatedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+      sent += 1;
+      details.push({ orderId: doc.id, orderNo: order.orderNo || doc.id, status: "sent" });
+    } catch (err) {
+      failed += 1;
+      details.push({
+        orderId: doc.id,
+        orderNo: order.orderNo || doc.id,
+        status: "failed",
+        error: err instanceof Error ? err.message : String(err)
+      });
+    }
+  }
+
+  return {
+    status: "success",
+    sent,
+    skipped,
+    failed,
+    windowStart: start.toISOString(),
+    windowEnd: end.toISOString(),
+    details
+  };
 }

@@ -77,10 +77,38 @@ function renderAuditLog(logs) {
   }).join('');
 }
 
+const ADMIN_EMAIL_ACTIONS = {
+  confirm: {
+    path: '/sendConfirmEmail',
+    buttonId: 'send-confirm-email-btn',
+    label: '✉️ 寄確認信',
+    confirmLabel: '確認信'
+  },
+  refund: {
+    path: '/sendRefundConfirmEmail',
+    buttonId: 'send-refund-email-btn',
+    label: '↩️ 寄退款信',
+    confirmLabel: '退款確認信'
+  },
+  reminder: {
+    path: '/sendBookingReminderEmail',
+    buttonId: 'send-reminder-email-btn',
+    label: '⏰ 寄提醒信',
+    confirmLabel: '預約前一日提醒信'
+  },
+  proof: {
+    path: '/sendProofReceivedEmail',
+    buttonId: 'send-proof-email-btn',
+    label: '🧾 寄憑證信',
+    confirmLabel: '付款憑證收到通知'
+  }
+};
+
 // ============================================================
-//  v2.4.21 #8 寄確認信 — 在訂單編輯 modal 觸發
+//  v2.4.21 #8 寄訂單信 — 在訂單編輯 modal 觸發
 // ============================================================
-async function sendConfirmEmailFromModal() {
+async function sendOrderEmailFromModal(kind) {
+  const action = ADMIN_EMAIL_ACTIONS[kind] || ADMIN_EMAIL_ACTIONS.confirm;
   if (!(editingOrder && editingOrder.orderId)) {
     alert('請先選一筆訂單');
     return;
@@ -88,24 +116,29 @@ async function sendConfirmEmailFromModal() {
   const emailEl = document.getElementById('e-email');
   const email = emailEl ? (emailEl.value || '').trim() : '';
   if (!email) {
-    alert('該訂單沒有 email，無法寄送確認信。請先填入 email 並儲存。');
+    alert('該訂單沒有 email，無法寄送。請先填入 email 並儲存。');
     return;
   }
-  if (!confirm('確定寄出確認信到 ' + email + ' 嗎？')) return;
-  const btn = document.getElementById('send-confirm-email-btn');
+  if (!confirm('確定寄出' + action.confirmLabel + '到 ' + email + ' 嗎？')) return;
+  const btn = document.getElementById(action.buttonId);
   if (btn) { btn.disabled = true; btn.textContent = '寄送中…'; }
   if (useFirebaseAdmin()) {
     try {
-      const data = await callFirebaseAdminFunction('/sendConfirmEmail', {
+      const data = await callFirebaseAdminFunction(action.path, {
         orderId: editingOrder.firebaseDocId || editingOrder.orderId,
         email: email
       });
-      alert('✅ ' + (data.message || '確認信已寄出'));
+      alert('✅ ' + (data.message || action.confirmLabel + '已寄出'));
     } catch (e) {
       alert('❌ 寄送失敗：' + e.message);
     } finally {
-      if (btn) { btn.disabled = false; btn.textContent = '✉️ 寄確認信'; }
+      if (btn) { btn.disabled = false; btn.textContent = action.label; }
     }
+    return;
+  }
+  if (kind !== 'confirm') {
+    alert('此信件功能已改用 Firebase，請先登入 Firebase 後台。');
+    if (btn) { btn.disabled = false; btn.textContent = action.label; }
     return;
   }
   try {
@@ -122,6 +155,22 @@ async function sendConfirmEmailFromModal() {
   } catch (e) {
     alert('❌ 網路錯誤：' + e.message);
   } finally {
-    if (btn) { btn.disabled = false; btn.textContent = '✉️ 寄確認信'; }
+    if (btn) { btn.disabled = false; btn.textContent = action.label; }
   }
+}
+
+function sendConfirmEmailFromModal() {
+  return sendOrderEmailFromModal('confirm');
+}
+
+function sendRefundConfirmEmailFromModal() {
+  return sendOrderEmailFromModal('refund');
+}
+
+function sendBookingReminderEmailFromModal() {
+  return sendOrderEmailFromModal('reminder');
+}
+
+function sendProofReceivedEmailFromModal() {
+  return sendOrderEmailFromModal('proof');
 }
