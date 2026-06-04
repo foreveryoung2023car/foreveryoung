@@ -4,3 +4,4 @@ export { checkInOrder, checkInOrderByStaff } from "./http/checkins.js";
 export { getAuditLogs } from "./http/audit.js";
 export { uploadOrderProof } from "./http/proofs.js";
 export { createAdminUser, listAdminUsers, resetAdminUserPassword, setAdminUserActive } from "./http/users.js";
+export { sendConfirmEmail } from "./http/emails.js";
