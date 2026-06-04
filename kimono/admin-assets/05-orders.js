@@ -208,15 +208,16 @@ function openTodoModal(color){
   wrap.className = 'todo-modal-bg';
   wrap.onclick = (e) => { if (e.target === wrap) closeTodoModal(); };
   wrap.innerHTML =
+    '<div class="custom-modal-frame">' +
+      '<button onclick="closeTodoModal()" class="custom-modal-close" aria-label="關閉待辦清單">×</button>' +
     '<div class="todo-modal-card">' +
       '<div class="todo-modal-head">' +
         '<span class="font-bold text-base text-' + g.color + '-700">' + g.label + ' <span class="text-xs">(' + g.items.length + ')</span></span>' +
-        '<button onclick="closeTodoModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">×</button>' +
       '</div>' +
       '<div class="todo-modal-body">' +
         g.items.map((it, i) => renderItem(it, i, g.color)).join('') +
       '</div>' +
-    '</div>';
+    '</div></div>';
   document.body.appendChild(wrap);
 }
 function closeTodoModal(){

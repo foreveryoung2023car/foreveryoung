@@ -10,7 +10,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./admin-assets/admin.css?v=20260604-3">
+<link rel="stylesheet" href="./admin-assets/admin.css?v=20260604-4">
 </head>
 <body class="min-h-screen" style="overflow-x:hidden">
 
@@ -304,11 +304,10 @@
     <!-- 新增員工 Modal -->
     <div id="add-emp-modal" class="hidden fixed inset-0 z-[9990]" style="background:rgba(15,23,42,0.7)">
       <div class="absolute inset-0 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl p-6 max-w-md w-full">
-          <div class="flex justify-between items-start mb-4">
-            <h3 class="text-lg font-bold text-[#1A365D]">新增員工</h3>
-            <button onclick="closeAddEmployeeModal()" class="text-slate-400 hover:text-slate-700 text-xl">×</button>
-          </div>
+        <div class="custom-modal-frame max-w-md" style="max-width:28rem">
+          <button onclick="closeAddEmployeeModal()" class="custom-modal-close" aria-label="關閉新增員工">×</button>
+          <div class="custom-modal-card">
+            <h3 class="custom-modal-title text-lg font-bold text-[#1A365D] mb-4">新增員工</h3>
           <div class="space-y-3">
             <div id="emp-email-row" class="hidden">
               <label class="block text-xs font-bold text-slate-600 mb-1">登入 Email</label>
@@ -336,6 +335,7 @@
               <button onclick="closeAddEmployeeModal()" class="flex-1 py-2 border-2 border-slate-200 hover:border-slate-400 rounded font-bold text-sm text-slate-600">取消</button>
               <button onclick="submitNewEmployee()" id="emp-submit-btn" class="flex-1 py-2 bg-[#1A365D] hover:bg-blue-900 text-white rounded font-bold text-sm">新增</button>
             </div>
+          </div>
           </div>
         </div>
       </div>
@@ -756,26 +756,26 @@
 
 <div id="toast-container"></div>
 
-<script src="./admin-assets/00-gas-guard.js?v=20260604-3"></script>
-<script src="./admin-assets/01-state.js?v=20260604-3"></script>
-<script src="./admin-assets/02-firebase-api.js?v=20260604-3"></script>
-<script src="./admin-assets/03-ui-utils.js?v=20260604-3"></script>
-<script src="./admin-assets/04-refunds.js?v=20260604-3"></script>
-<script src="./admin-assets/05-orders.js?v=20260604-3"></script>
-<script src="./admin-assets/06-checkin-actions.js?v=20260604-3"></script>
-<script src="./admin-assets/07-calendar.js?v=20260604-3"></script>
-<script src="./admin-assets/08-finance.js?v=20260604-3"></script>
-<script src="./admin-assets/09-reconcile.js?v=20260604-3"></script>
-<script src="./admin-assets/10-orders-edit.js?v=20260604-3"></script>
-<script src="./admin-assets/11-refunds-edit.js?v=20260604-3"></script>
-<script src="./admin-assets/12-ui-admin-tools.js?v=20260604-3"></script>
-<script src="./admin-assets/13-weather.js?v=20260604-3"></script>
-<script src="./admin-assets/14-checkins.js?v=20260604-3"></script>
-<script src="./admin-assets/15-walkin-reconcile.js?v=20260604-3"></script>
-<script src="./admin-assets/16-audit-email.js?v=20260604-3"></script>
-<script src="./admin-assets/17-walkin-orders.js?v=20260604-3"></script>
-<script src="./admin-assets/18-employees.js?v=20260604-3"></script>
-<script src="./admin-assets/19-tour.js?v=20260604-3"></script>
+<script src="./admin-assets/00-gas-guard.js?v=20260604-4"></script>
+<script src="./admin-assets/01-state.js?v=20260604-4"></script>
+<script src="./admin-assets/02-firebase-api.js?v=20260604-4"></script>
+<script src="./admin-assets/03-ui-utils.js?v=20260604-4"></script>
+<script src="./admin-assets/04-refunds.js?v=20260604-4"></script>
+<script src="./admin-assets/05-orders.js?v=20260604-4"></script>
+<script src="./admin-assets/06-checkin-actions.js?v=20260604-4"></script>
+<script src="./admin-assets/07-calendar.js?v=20260604-4"></script>
+<script src="./admin-assets/08-finance.js?v=20260604-4"></script>
+<script src="./admin-assets/09-reconcile.js?v=20260604-4"></script>
+<script src="./admin-assets/10-orders-edit.js?v=20260604-4"></script>
+<script src="./admin-assets/11-refunds-edit.js?v=20260604-4"></script>
+<script src="./admin-assets/12-ui-admin-tools.js?v=20260604-4"></script>
+<script src="./admin-assets/13-weather.js?v=20260604-4"></script>
+<script src="./admin-assets/14-checkins.js?v=20260604-4"></script>
+<script src="./admin-assets/15-walkin-reconcile.js?v=20260604-4"></script>
+<script src="./admin-assets/16-audit-email.js?v=20260604-4"></script>
+<script src="./admin-assets/17-walkin-orders.js?v=20260604-4"></script>
+<script src="./admin-assets/18-employees.js?v=20260604-4"></script>
+<script src="./admin-assets/19-tour.js?v=20260604-4"></script>
 
 <!-- v2.4: 新增現場訂單 FAB -->
 <button id="walkInFab" onclick="openWalkInModal()" class="hidden fixed bottom-6 right-6 z-40 bg-[#1A365D] text-white px-5 py-4 rounded-full shadow-2xl font-bold text-base flex items-center gap-2 hover:bg-blue-900 active:scale-95 transition-transform" style="box-shadow:0 8px 24px rgba(26,54,93,0.35)">
@@ -785,14 +785,15 @@
 
 <!-- v2.4: Walk-in 新增訂單 Modal -->
 <div class="modal-bg" id="walkInModal">
-  <div class="modal-body" style="max-height:96vh">
+  <div class="custom-modal-frame" style="max-width:560px">
+    <button onclick="closeWalkInModal()" class="custom-modal-close" aria-label="關閉現場新增訂單">×</button>
+    <div class="modal-body" style="max-height:96vh">
     <div class="modal-handle"></div>
-    <div class="flex justify-between items-start mb-3">
+    <div class="mb-3 custom-modal-title">
       <div>
         <div class="text-[10px] text-slate-400 uppercase tracking-[0.4em] font-sans mb-1">WALK-IN ORDER</div>
         <div class="text-xl font-bold text-[#1A365D] font-sans">🆕 現場新增訂單</div>
       </div>
-      <button onclick="closeWalkInModal()" class="text-2xl text-slate-400 hover:text-slate-700">×</button>
     </div>
 
     <div class="space-y-4">
@@ -846,7 +847,9 @@
 
       <!-- 和服款式（依人數動態產生） -->
       <div>
-        <la<div style="display:none">lass="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">每人選和服款式 <span class="text-pink-500">*</span></label>
+        <div style="display:none">
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">每人選和服款式 <span class="text-pink-500">*</span></label>
+        </div>
         <div id="wi-plan-rows" class="space-y-2"></div>
         <p class="text-[11px] text-slate-500 mt-1 font-sans">※ 大人和小孩會自動帶入對應款式</p>
       </div>
@@ -926,24 +929,27 @@
 
       <button id="wiSubmitBtn" onclick="wiSubmit()" class="w-full py-4 bg-[#1A365D] text-white font-bold text-base font-sans rounded-lg shadow-lg hover:bg-blue-900 active:scale-[0.99]">確認建單</button>
     </div>
+    </div>
   </div>
 </div>
 
 <!-- v2.5j: 訓練教室情境選單 -->
 <div id="scenario-picker" class="hidden fixed inset-0" style="z-index:9997;background:rgba(15,23,42,0.8)">
   <div class="absolute inset-0 flex items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full p-6 my-8" style="max-height:90vh;overflow-y:auto">
-      <div class="flex justify-between items-start mb-4">
-        <div class="flex-1">
-          <h2 class="text-xl font-bold text-[#1A365D]">訓練教室</h2>
-          <p class="text-sm text-slate-500 mt-1">點下方場景，系統會帶您 step-by-step 走過實際工作流程</p>
-          <div id="picker-progress" class="mt-3"></div>
+    <div class="custom-modal-frame max-w-3xl my-8" style="max-width:768px">
+      <button onclick="closeScenarioPicker()" class="custom-modal-close" aria-label="關閉訓練教室">×</button>
+      <div class="custom-modal-card">
+        <div class="mb-4 custom-modal-title">
+          <div>
+            <h2 class="text-xl font-bold text-[#1A365D]">訓練教室</h2>
+            <p class="text-sm text-slate-500 mt-1">點下方場景，系統會帶您 step-by-step 走過實際工作流程</p>
+            <div id="picker-progress" class="mt-3"></div>
+          </div>
         </div>
-        <button onclick="closeScenarioPicker()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">×</button>
-      </div>
-      <div id="scenario-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
-      <div class="mt-4 pt-4 border-t border-slate-100 text-center">
-        <button onclick="startOverviewTour()" class="text-sm text-slate-500 hover:text-[#1A365D] underline">想看功能總覽？點這裡</button>
+        <div id="scenario-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+        <div class="mt-4 pt-4 border-t border-slate-100 text-center">
+          <button onclick="startOverviewTour()" class="text-sm text-slate-500 hover:text-[#1A365D] underline">想看功能總覽？點這裡</button>
+        </div>
       </div>
     </div>
   </div>
@@ -973,11 +979,10 @@
 <!-- v2.4.41: 自助改密碼 modal -->
 <div id="change-pw-modal" class="hidden fixed inset-0 z-[9990]" style="background:rgba(15,23,42,0.7)">
   <div class="absolute inset-0 flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl p-6 max-w-md w-full">
-      <div class="flex justify-between items-start mb-4">
-        <h3 class="text-lg font-bold text-[#1A365D]">🔑 修改密碼</h3>
-        <button onclick="closeChangePassword()" class="text-slate-400 hover:text-slate-700 text-xl">×</button>
-      </div>
+    <div class="custom-modal-frame max-w-md" style="max-width:28rem">
+      <button onclick="closeChangePassword()" class="custom-modal-close" aria-label="關閉修改密碼">×</button>
+      <div class="custom-modal-card">
+        <h3 class="custom-modal-title text-lg font-bold text-[#1A365D] mb-4">🔑 修改密碼</h3>
       <div class="space-y-3">
         <div>
           <label class="block text-xs font-bold text-slate-600 mb-1">舊密碼</label>
@@ -996,6 +1001,7 @@
           <button onclick="closeChangePassword()" class="flex-1 py-2 border-2 border-slate-200 hover:border-slate-400 rounded font-bold text-sm text-slate-600">取消</button>
           <button onclick="submitChangePassword()" id="cpw-submit-btn" class="flex-1 py-2 bg-[#1A365D] hover:bg-blue-900 text-white rounded font-bold text-sm">確定修改</button>
         </div>
+      </div>
       </div>
     </div>
   </div>

@@ -52,14 +52,14 @@ const MSG_TEMPLATES = {
 function openMsgTemplate(orderId){
   const o = allOrders.find(x=>x.orderId===orderId);
   if(!o) return alert('找不到訂單');
-  let html = '<div class="todo-modal-bg" onclick="if(event.target===this)closeMsgTemplate()"><div class="todo-modal-card"><div class="todo-modal-head"><span class="font-bold text-base text-[#1A365D]">📨 訊息範本：'+(o.name||'')+' / '+orderId+'</span><button onclick="closeMsgTemplate()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">×</button></div><div class="todo-modal-body" style="padding:14px 18px">';
+  let html = '<div class="todo-modal-bg" onclick="if(event.target===this)closeMsgTemplate()"><div class="custom-modal-frame"><button onclick="closeMsgTemplate()" class="custom-modal-close" aria-label="關閉訊息範本">×</button><div class="todo-modal-card"><div class="todo-modal-head"><span class="font-bold text-base text-[#1A365D]">📨 訊息範本：'+(o.name||'')+' / '+orderId+'</span></div><div class="todo-modal-body" style="padding:14px 18px">';
   const titles = {confirm:'✅ 訂單確認', reminder:'⏰ 體驗前一日提醒', arrived:'🎌 已準備好和服', paid:'💰 收尾款 / 結帳完成', winback:'✨ 喚醒老客戶 (久未回訪)', refund:'↩ 退款已處理'};
   Object.keys(MSG_TEMPLATES).forEach(k=>{
     const txt = MSG_TEMPLATES[k](o);
     const safeId = 'tpl-'+k;
     html += '<div class="mb-3 pb-3 border-b border-slate-100"><div class="flex items-center justify-between mb-2"><span class="font-bold text-sm text-[#1A365D]">'+titles[k]+'</span><button onclick="copyTemplate(\''+safeId+'\')" class="px-2 py-1 bg-[#1A365D] text-white text-xs rounded hover:bg-blue-900">📋 複製</button></div><textarea id="'+safeId+'" class="w-full text-xs p-2 border rounded bg-slate-50 font-mono" rows="6" readonly>'+txt+'</textarea></div>';
   });
-  html += '</div></div></div>';
+  html += '</div></div></div></div>';
   const wrap = document.createElement('div'); wrap.id='msgTemplateModal'; wrap.innerHTML = html;
   document.body.appendChild(wrap);
 }

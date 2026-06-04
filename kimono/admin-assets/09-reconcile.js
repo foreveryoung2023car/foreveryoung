@@ -213,12 +213,13 @@ function renderFirebaseReconcilePreview(){
     (need.length ? '<table class="w-full text-xs mt-2 border border-slate-200"><thead><tr class="bg-slate-100"><th class="p-2 text-left">訂單號</th><th class="p-2 text-left">客戶</th><th class="p-2 text-right">應收訂金</th><th class="p-2 text-right">已收</th><th class="p-2 text-right">尾款</th><th class="p-2 text-left">狀態</th><th class="p-2"></th></tr></thead><tbody>' + tableRows + '</tbody></table>' : '<div class="p-4 bg-emerald-50 text-emerald-700 rounded-lg font-bold">目前沒有需要人工處理的對帳異常。</div>') +
   '</div>';
   const html = '<div class="modal-overlay" onclick="if(event.target===this)this.remove()" style="display:flex">' +
-    '<div class="modal-box" style="max-width:780px;height:auto;max-height:80vh">' +
-    '<div class="flex justify-between items-center mb-3"><h3 class="font-bold text-lg text-[#1A365D]">🤖 Firebase 自動對帳掃描</h3>' +
-    '<button onclick="this.closest(\'.modal-overlay\').remove()" class="text-2xl text-slate-400 hover:text-slate-700">×</button></div>' +
+    '<div class="modal-frame" style="max-width:780px;height:auto;max-height:80vh">' +
+    '<button onclick="this.closest(\'.modal-overlay\').remove()" class="modal-floating-close" aria-label="關閉自動對帳掃描">×</button>' +
+    '<div class="modal-box" style="max-width:780px;height:auto;max-height:80vh;padding-top:72px">' +
+    '<h3 class="font-bold text-lg text-[#1A365D] mb-3 modal-title-block">🤖 Firebase 自動對帳掃描</h3>' +
     body +
     '<div class="flex gap-2 mt-4 pt-3 border-t"><button onclick="this.closest(\'.modal-overlay\').remove();showSection(\'reconcile\')" class="flex-1 bg-[#1A365D] hover:bg-blue-900 text-white py-2 rounded-lg font-bold">前往對帳分頁</button><button onclick="this.closest(\'.modal-overlay\').remove()" class="flex-1 bg-slate-200 hover:bg-slate-300 py-2 rounded-lg">關閉</button></div>' +
-    '</div></div>';
+    '</div></div></div>';
   const div = document.createElement('div');
   div.innerHTML = html;
   document.body.appendChild(div.firstChild);
@@ -252,14 +253,15 @@ async function runAutoReconcile(){
   }
   body += '</div>';
   const html = '<div class="modal-overlay" onclick="if(event.target===this)this.remove()" style="display:flex">' +
-    '<div class="modal-box" style="max-width:640px;height:auto;max-height:80vh">' +
-    '<div class="flex justify-between items-center mb-3"><h3 class="font-bold text-lg text-[#1A365D]">🤖 自動配對預覽</h3>' +
-    '<button onclick="this.closest(\'.modal-overlay\').remove()" class="text-2xl text-slate-400 hover:text-slate-700">×</button></div>' +
+    '<div class="modal-frame" style="max-width:640px;height:auto;max-height:80vh">' +
+    '<button onclick="this.closest(\'.modal-overlay\').remove()" class="modal-floating-close" aria-label="關閉自動配對預覽">×</button>' +
+    '<div class="modal-box" style="max-width:640px;height:auto;max-height:80vh;padding-top:72px">' +
+    '<h3 class="font-bold text-lg text-[#1A365D] mb-3 modal-title-block">🤖 自動配對預覽</h3>' +
     body +
     '<div class="flex gap-2 mt-4 pt-3 border-t">' +
       (m > 0 ? '<button onclick="confirmAutoReconcile(this)" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg font-bold">✓ 套用 '+m+' 筆配對</button>' : '') +
       '<button onclick="this.closest(\'.modal-overlay\').remove()" class="flex-1 bg-slate-200 hover:bg-slate-300 py-2 rounded-lg">取消</button>' +
-    '</div></div></div>';
+    '</div></div></div></div>';
   const div = document.createElement('div');
   div.innerHTML = html;
   document.body.appendChild(div.firstChild);

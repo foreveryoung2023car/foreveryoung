@@ -300,11 +300,12 @@ function showMyPermissions(){
     { label: '🔓 解凍已關帳月份', who: '只有 Jun', can: isJun },
   ];
   const html = '<div class="modal-overlay" onclick="if(event.target===this)this.remove()" style="display:flex">' +
-    '<div class="modal-box" style="max-width:560px;height:auto;max-height:80vh">' +
-    '<div class="flex justify-between items-start mb-4">' +
-    '<div><h3 class="text-xl font-bold text-[#1A365D]">' + (isStore?'🏪':'👤') + ' ' + currentAgent + (isStore?' (店家)':'') + '</h3>' +
+    '<div class="modal-frame" style="max-width:560px;height:auto;max-height:80vh">' +
+    '<button onclick="this.closest(\'.modal-overlay\').remove()" class="modal-floating-close" aria-label="關閉權限說明">×</button>' +
+    '<div class="modal-box" style="max-width:560px;height:auto;max-height:80vh;padding-top:72px">' +
+    '<div class="mb-4 modal-title-block">' +
+    '<h3 class="text-xl font-bold text-[#1A365D]">' + (isStore?'🏪':'👤') + ' ' + currentAgent + (isStore?' (店家)':'') + '</h3>' +
     '<p class="text-sm text-slate-600 mt-1">角色：<b>' + (isStore?'店家':'客服') + '</b>' + (currentStoreKey?'｜門市：'+currentStoreKey:'') + '</p></div>' +
-    '<button onclick="this.closest(\'.modal-overlay\').remove()" class="text-2xl text-slate-400 hover:text-slate-700">×</button></div>' +
     '<h4 class="text-sm font-bold text-slate-700 mb-2 mt-2">我能做什麼</h4>' +
     '<div class="space-y-1 text-sm">' +
     perms.map(p => '<div class="flex items-center gap-2 p-2 rounded ' + (p.can?'bg-emerald-50':'bg-slate-100 opacity-60') + '">' +
@@ -314,7 +315,7 @@ function showMyPermissions(){
     '</div>' +
     '<div class="mt-4 p-3 bg-slate-50 rounded text-xs text-slate-600">' +
     '🔒 想改密碼或新增帳號？請聯繫 Jun（管理員會去 資料庫「客服 / 店家 帳號」設定修改）' +
-    '</div></div></div>';
+    '</div></div></div></div>';
   const div = document.createElement('div');
   div.innerHTML = html;
   document.body.appendChild(div.firstChild);
@@ -322,9 +323,10 @@ function showMyPermissions(){
 
 function openReconHelp(){
   const html = '<div class="modal-overlay" onclick="if(event.target===this)this.remove()" style="display:flex">' +
-    '<div class="modal-box" style="max-width:600px;height:auto;max-height:80vh">' +
-    '<div class="flex justify-between items-start mb-4"><h3 class="text-lg font-bold text-[#1A365D]">📌 對帳說明</h3>' +
-    '<button onclick="this.closest(\'.modal-overlay\').remove()" class="text-2xl text-slate-400 hover:text-slate-700">×</button></div>' +
+    '<div class="modal-frame" style="max-width:600px;height:auto;max-height:80vh">' +
+    '<button onclick="this.closest(\'.modal-overlay\').remove()" class="modal-floating-close" aria-label="關閉對帳說明">×</button>' +
+    '<div class="modal-box" style="max-width:600px;height:auto;max-height:80vh;padding-top:72px">' +
+    '<h3 class="text-lg font-bold text-[#1A365D] mb-4 modal-title-block">📌 對帳說明</h3>' +
     '<div class="text-sm text-slate-700 space-y-2 font-medium">' +
     '<div>• <b>應收訂金</b> = 每人 ¥1,000 × 預約人數</div>' +
     '<div>• <b>已收訂金</b> = 客人實際匯款金額</div>' +
@@ -333,7 +335,7 @@ function openReconHelp(){
     '<div>• <span style="background:#FEF2F2;padding:2px 8px;border-radius:4px;color:#B91C1C;font-weight:600">⚠ 超收異常</span> = 已收 > 體驗總額（必須退款給客人）</div>' +
     '<div>• <span style="background:#FFFBEB;padding:2px 8px;border-radius:4px;color:#92400E;font-weight:600">○ 未對帳</span> = 訂單尚未確認</div>' +
     '<div class="mt-3 p-2 bg-slate-50 rounded text-xs">📌 walk-in 訂單因現場全額收款，deposit=0 但已確認也算「已對帳」。</div>' +
-    '</div></div></div>';
+    '</div></div></div></div>';
   const div = document.createElement('div');
   div.innerHTML = html;
   document.body.appendChild(div.firstChild);

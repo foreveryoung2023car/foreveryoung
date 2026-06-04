@@ -57,7 +57,7 @@ function showDayOrders(dateStr){
   const old = document.getElementById('cal-day-modal');
   if (old) old.remove();
   const wk = ['週日','週一','週二','週三','週四','週五','週六'][dt.getDay()];
-  let html = '<div class="todo-modal-bg" id="cal-day-modal" onclick="if(event.target.id===\'cal-day-modal\')closeCalDayModal()"><div class="todo-modal-card" style="max-width:720px"><div class="todo-modal-head"><span class="font-bold text-lg text-[#1A365D]">📅 '+dayStr+' '+wk+' ('+orders.length+' 單)</span><button onclick="closeCalDayModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">×</button></div><div class="todo-modal-body" style="padding:14px 18px">';
+  let html = '<div class="todo-modal-bg" id="cal-day-modal" onclick="if(event.target.id===\'cal-day-modal\')closeCalDayModal()"><div class="custom-modal-frame" style="max-width:720px"><button onclick="closeCalDayModal()" class="custom-modal-close" aria-label="關閉日曆訂單">×</button><div class="todo-modal-card" style="max-width:720px"><div class="todo-modal-head"><span class="font-bold text-lg text-[#1A365D]">📅 '+dayStr+' '+wk+' ('+orders.length+' 單)</span></div><div class="todo-modal-body" style="padding:14px 18px">';
 
   if (!orders.length) {
     html += '<div class="text-center text-slate-400 py-8">此日無預約</div>';
@@ -98,7 +98,7 @@ function showDayOrders(dateStr){
         '</div>';
     }).join('');
   }
-  html += '</div></div></div>';
+  html += '</div></div></div></div>';
   const wrap = document.createElement('div'); wrap.innerHTML = html;
   document.body.appendChild(wrap.firstChild);
 }
