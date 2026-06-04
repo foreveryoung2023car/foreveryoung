@@ -90,6 +90,20 @@ export const createWalkInOrderSchema = z.object({
   note: z.string().optional()
 });
 
+export const listOrdersSchema = z.object({
+  limit: z.number().int().min(1).max(1000).optional()
+});
+
+function isStoreRole(actor: AuthContext) {
+  return actor.role === "store_manager" || actor.role === "store_staff";
+}
+
+function assertOrderAccess(order: FirebaseFirestore.DocumentData, actor: AuthContext) {
+  if (!isStoreRole(actor)) return;
+  if (!actor.storeId) throw new HttpError(403, "Store user has no storeId");
+  if (order.storeId !== actor.storeId) throw new HttpError(403, "Order belongs to another store");
+}
+
 function normalizeDigits(value: unknown) {
   return String(value || "").replace(/\D/g, "");
 }
@@ -157,6 +171,72 @@ function toPublicOrderResponse(orderId: string, order: FirebaseFirestore.Documen
     canRefund: order.status === "confirmed",
     canCheckIn: order.status === "confirmed"
   };
+}
+
+function toAdminOrderResponse(orderId: string, order: FirebaseFirestore.DocumentData) {
+  const status = order.status || "";
+  const confirmed = ["confirmed", "checked_in", "completed"].includes(status);
+  const checkedInAt = status === "checked_in" || status === "completed" ? timestampToIso(order.updatedAt || order.bookingAt) : "";
+
+  return {
+    firebaseDocId: orderId,
+    orderId: order.orderNo || order.id || orderId,
+    name: order.customerName || "",
+    phone: order.customerPhone || "",
+    email: order.customerEmail || "",
+    bookingDate: timestampToIso(order.bookingAt),
+    submitDate: timestampToIso(order.createdAt),
+    platform: order.platform || "",
+    source: order.source || "",
+    storeKey: order.storeId || "",
+    adults: Number(order.adults || 0),
+    children: Number(order.children || 0),
+    pax: Number(order.adults || 0) + Number(order.children || 0),
+    plan: order.plan || "",
+    hair: order.hair ? "true" : "false",
+    photo: order.photo ? "true" : "false",
+    confirmed,
+    checkedInAt,
+    deposit: Number(order.depositJpy || 0),
+    kimonoPrice: Number(order.kimonoPriceJpy || 0),
+    price: Number(order.kimonoPriceJpy || 0),
+    hairFee: Number(order.hairFeeJpy || 0),
+    photoFee: Number(order.photoFeeJpy || 0),
+    totalJpy: Number(order.totalJpy || 0),
+    onsiteDueJpy: Number(order.onsiteDueJpy || 0),
+    coupon: order.couponCode || "",
+    rate: order.discountRate || "",
+    refundAmount: Number(order.refundAmountJpy || 0),
+    refundTime: order.refundTime || "",
+    refundReason: order.refundReason || "",
+    refundBankCode: order.refundBankCode || "",
+    refundBankName: order.refundBankName || "",
+    refundBankAccount: order.refundBankAccount || "",
+    refundBankAccountName: order.refundBankAccountName || "",
+    proofImageUrl: order.proofUrl || "",
+    remark: order.proofNote || "",
+    status
+  };
+}
+
+export async function listOrders(raw: unknown, actor: AuthContext) {
+  const input = listOrdersSchema.parse(raw || {});
+  const limit = input.limit || 500;
+  let query: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> = db.collection("orders");
+
+  if (isStoreRole(actor)) {
+    if (!actor.storeId) throw new HttpError(403, "Store user has no storeId");
+    query = query.where("storeId", "==", actor.storeId).limit(limit);
+  } else {
+    query = query.orderBy("createdAt", "desc").limit(limit);
+  }
+
+  const snap = await query.get();
+  const orders = snap.docs
+    .map((doc) => toAdminOrderResponse(doc.id, doc.data()))
+    .sort((a, b) => String(b.submitDate || b.bookingDate || "").localeCompare(String(a.submitDate || a.bookingDate || "")));
+
+  return { status: "success", orders };
 }
 
 export async function queryPublicOrder(raw: unknown) {
@@ -347,6 +427,7 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
     const orderSnap = await tx.get(orderRef);
     if (!orderSnap.exists) throw new HttpError(404, "Order not found");
     const before = orderSnap.data()!;
+    assertOrderAccess(before, actor);
     const patch: FirebaseFirestore.UpdateData<FirebaseFirestore.DocumentData> = {
       updatedBy: actor.uid,
       updatedAt: FieldValue.serverTimestamp()
@@ -434,6 +515,7 @@ export async function transitionOrder(orderId: string, nextStatus: OrderStatus, 
     const snap = await tx.get(ref);
     if (!snap.exists) throw new HttpError(404, "Order not found");
     const before = snap.data()!;
+    assertOrderAccess(before, actor);
     assertTransition(before.status, nextStatus);
     const patch = { status: nextStatus, updatedBy: actor.uid, updatedAt: FieldValue.serverTimestamp() };
     tx.update(ref, patch);

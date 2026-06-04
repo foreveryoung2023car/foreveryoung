@@ -381,16 +381,9 @@ function loadOrders() {
 
 async function loadOrdersFromFirestore() {
   try {
-    const token = await getFreshAdminToken();
-    const url = `https://firestore.googleapis.com/v1/projects/${getFirebaseProjectId()}/databases/(default)/documents/orders?pageSize=500&orderBy=createdAt%20desc`;
-    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-    const data = await res.json().catch(() => ({}));
+    const data = await callFirebaseAdminFunction('/listOrders?limit=500', null, { method: 'GET' });
     document.getElementById('orders-loading').classList.add('hidden');
-    if (!res.ok) {
-      if (res.status === 401 || res.status === 403) { showLogin(); return; }
-      throw new Error(data.error?.message || `Firestore 載入失敗 (${res.status})`);
-    }
-    allOrders = (data.documents || []).map(firestoreOrderToAdminOrder);
+    allOrders = data.orders || [];
     populateFilters();
     renderDashboard();
     filterOrders();

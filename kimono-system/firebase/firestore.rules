@@ -16,17 +16,17 @@ service cloud.firestore {
     }
 
     match /orders/{orderId} {
-      allow read: if signedIn();
+      allow read: if false;
       allow write: if false;
     }
 
     match /orders/{orderId}/events/{eventId} {
-      allow read: if signedIn();
+      allow read: if false;
       allow write: if false;
     }
 
     match /customers/{customerId} {
-      allow read: if signedIn();
+      allow read: if false;
       allow write: if false;
     }
 

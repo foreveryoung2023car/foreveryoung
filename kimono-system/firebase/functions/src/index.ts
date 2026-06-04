@@ -1,4 +1,4 @@
-export { createPublicOrder, createWalkInOrder, queryPublicOrder, updateOrderByStaff, transitionOrder } from "./http/orders.js";
+export { createPublicOrder, createWalkInOrder, listOrders, queryPublicOrder, updateOrderByStaff, transitionOrder } from "./http/orders.js";
 export { requestRefund, requestRefundByStaff } from "./http/refunds.js";
 export { checkInOrder, checkInOrderByStaff } from "./http/checkins.js";
 export { getAuditLogs } from "./http/audit.js";
