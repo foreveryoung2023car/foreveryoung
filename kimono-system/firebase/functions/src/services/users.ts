@@ -61,6 +61,15 @@ function assertManageable(actor: AuthContext, target: { role?: string; storeId?:
   assertSameStoreForStoreManager(actor, target.storeId || null);
 }
 
+function canListUser(actor: AuthContext, target: { role?: string; storeId?: string | null }) {
+  if (!assignableRoles(actor).includes(String(target.role || ""))) return false;
+  if (actor.role === "store_manager") {
+    if (!actor.storeId) return false;
+    return target.storeId === actor.storeId;
+  }
+  return true;
+}
+
 export async function listAdminUsers(actor: AuthContext) {
   if (!assignableRoles(actor).length) throw new HttpError(403, "Permission denied");
   let query: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> = db.collection("users");
@@ -69,7 +78,11 @@ export async function listAdminUsers(actor: AuthContext) {
     query = query.where("storeId", "==", actor.storeId);
   }
   const snap = await query.limit(200).get();
-  const users = await Promise.all(snap.docs.map(async (doc) => {
+  const visibleDocs = snap.docs.filter((doc) => {
+    const data = doc.data();
+    return canListUser(actor, { role: data.role || "readonly", storeId: data.storeId || null });
+  });
+  const users = await Promise.all(visibleDocs.map(async (doc) => {
     const data = doc.data();
     let authUser: Awaited<ReturnType<typeof auth.getUser>> | null = null;
     try {

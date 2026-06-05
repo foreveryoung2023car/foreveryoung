@@ -8,7 +8,7 @@ async function renderEmployees() {
   if (useFirebaseAdmin()) {
     try {
       const data = await callFirebaseAdminFunction('/listAdminUsers', null, { method: 'GET' });
-      const emps = data.users || [];
+      const emps = filterManageableFirebaseUsers(data.users || []);
       const active = emps.filter(e => e.active).length;
       const disabled = emps.length - active;
       document.getElementById('emp-stat-total').textContent = emps.length;
@@ -101,6 +101,13 @@ async function renderEmployees() {
   } catch(err) {
     list.innerHTML = '<div class="text-center py-6 text-red-500">網路錯誤</div>';
   }
+}
+
+function filterManageableFirebaseUsers(users) {
+  const firebaseRole = localStorage.getItem('admin_firebaseRole') || 'readonly';
+  const allowed = getAssignableFirebaseRoles(firebaseRole).map(r => r.value);
+  if (!allowed.length) return [];
+  return (users || []).filter(u => allowed.indexOf(u.role || 'readonly') >= 0);
 }
 
 function openAddEmployeeModal() {
