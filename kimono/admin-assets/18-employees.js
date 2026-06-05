@@ -114,8 +114,12 @@ function openAddEmployeeModal() {
   if (useFirebaseAdmin()) {
     const firebaseRole = localStorage.getItem('admin_firebaseRole') || 'readonly';
     const roleOptions = getAssignableFirebaseRoles(firebaseRole);
+    if (!roleOptions.length) {
+      alert('目前角色沒有新增後台使用者的權限');
+      return;
+    }
     roleEl.innerHTML = roleOptions.map(r => '<option value="' + r.value + '">' + r.label + '</option>').join('');
-    roleEl.value = roleOptions[0] ? roleOptions[0].value : 'readonly';
+    roleEl.value = roleOptions[0].value;
   } else {
     roleEl.innerHTML = '<option value="staff">店員 (staff)</option><option value="admin">店家管理者 (admin)</option>';
     roleEl.value = 'staff';

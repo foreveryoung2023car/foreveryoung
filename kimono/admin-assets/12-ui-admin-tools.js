@@ -1,5 +1,6 @@
 // v2.4.20: 對帳說明燈箱
 function renderPermissions(){
+  renderRoleAssignmentMatrix();
   // v2.4.20: 改良版 X — toggle 開關 + 套用模板 + 一行 hover 高亮 + 篩選
   // v2.4.30: 依角色過濾顯示欄位 — store 只看自家、agent 看 Jun+自己、Jun 看全部
   const _allRoles = [
@@ -136,6 +137,62 @@ function renderPermissions(){
         '</td>';
       }).join('') + '</tr>';
   }).join('');
+}
+
+function renderRoleAssignmentMatrix() {
+  const box = document.getElementById('role-assignment-matrix');
+  if (!box) return;
+  const firebaseRole = localStorage.getItem('admin_firebaseRole') || (currentAgent === 'Jun' ? 'owner' : 'readonly');
+  const rows = [
+    { role: 'owner', label: 'Owner', desc: '最高管理者', canAssign: ['admin', 'agent', 'store_manager', 'store_staff', 'accountant', 'readonly'] },
+    { role: 'admin', label: 'Admin', desc: '全局管理者', canAssign: ['agent', 'store_manager', 'store_staff', 'accountant', 'readonly'] },
+    { role: 'store_manager', label: 'Store Manager', desc: '店鋪管理者', canAssign: ['store_staff', 'accountant', 'readonly'], scope: '限自己店鋪' },
+    { role: 'agent', label: 'Agent', desc: '客服', canAssign: [] },
+    { role: 'store_staff', label: 'Store Staff', desc: '店員', canAssign: [] },
+    { role: 'accountant', label: 'Accountant', desc: '會計', canAssign: [] },
+    { role: 'readonly', label: 'Readonly', desc: '唯讀', canAssign: [] }
+  ];
+  const roleLabel = {
+    admin: '管理者',
+    agent: '客服',
+    store_manager: '店長',
+    store_staff: '店員',
+    accountant: '會計',
+    readonly: '唯讀'
+  };
+  const current = rows.find(r => r.role === firebaseRole);
+  const canAssign = current && current.canAssign.length;
+  const chip = (role) => '<span class="inline-flex items-center px-2 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-100 text-xs font-bold">' + (roleLabel[role] || role) + '<span class="ml-1 font-mono text-[10px] text-blue-400">' + role + '</span></span>';
+  const rowHtml = rows.map(r => {
+    const active = r.role === firebaseRole;
+    return '<tr class="' + (active ? 'bg-emerald-50' : '') + '">' +
+      '<td class="py-3 px-3">' +
+        '<div class="font-bold text-[#1A365D]">' + r.label + (active ? ' <span class="text-emerald-600 text-xs">目前角色</span>' : '') + '</div>' +
+        '<div class="text-xs text-slate-500">' + r.desc + (r.scope ? ' · ' + r.scope : '') + '</div>' +
+      '</td>' +
+      '<td class="py-3 px-3">' +
+        (r.canAssign.length ? '<div class="flex flex-wrap gap-1.5">' + r.canAssign.map(chip).join('') + '</div>' : '<span class="text-xs text-slate-400">不可新增/授權其他角色</span>') +
+      '</td>' +
+    '</tr>';
+  }).join('');
+  box.innerHTML =
+    '<div class="rounded-2xl border border-slate-200 bg-white overflow-hidden">' +
+      '<div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-3 flex-wrap">' +
+        '<div>' +
+          '<div class="text-lg font-bold text-[#1A365D]">角色添加權限</div>' +
+          '<div class="text-xs text-slate-500 mt-1">誰可以新增哪些 Firebase 後台角色，由後端強制校驗</div>' +
+        '</div>' +
+        (canAssign ? '<button onclick="switchSection(\'employees\',document.querySelector(\'[data-sec=employees]\'))" class="btn-navy px-4 py-2 rounded-xl text-sm">去員工管理新增</button>' : '') +
+      '</div>' +
+      '<div class="p-4 border-b border-slate-100">' +
+        '<div class="text-xs font-bold text-slate-500 mb-2">你目前可以添加</div>' +
+        (canAssign ? '<div class="flex flex-wrap gap-2">' + current.canAssign.map(chip).join('') + '</div>' : '<div class="text-sm text-slate-500">目前角色沒有新增/授權其他角色的權限。</div>') +
+        (firebaseRole === 'store_manager' ? '<div class="mt-2 text-xs text-amber-700">店長新增的帳號會自動綁定自己的店鋪，不能跨店建立或管理。</div>' : '') +
+      '</div>' +
+      '<div class="overflow-x-auto">' +
+        '<table class="data-table"><thead><tr><th class="text-left">授權者角色</th><th class="text-left">可以添加的角色</th></tr></thead><tbody>' + rowHtml + '</tbody></table>' +
+      '</div>' +
+    '</div>';
 }
 
 // v2.4.20 #4 改良版 — 改 pending 暫存，等用戶按「儲存所有變更」
