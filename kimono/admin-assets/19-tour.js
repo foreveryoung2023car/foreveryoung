@@ -4,6 +4,23 @@
 
 // v2.5: 合併重整按鈕 = 清快取 + 重整
 function fullReload() {
+  if (typeof useFirebaseAdmin === 'function' && useFirebaseAdmin()) {
+    try {
+      const user = window.firebase && firebase.apps.length ? firebase.auth().currentUser : null;
+      const label = user ? (user.email || user.displayName || '') : '';
+      if (label) {
+        currentAgent = label;
+        localStorage.setItem('admin_agent', label);
+        const nav = document.getElementById('nav-agent');
+        if (nav) nav.textContent = '👤 ' + label;
+      }
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('admin_role');
+      localStorage.removeItem('admin_storeKey');
+      localStorage.removeItem('admin_uid');
+      localStorage.removeItem('admin_firebaseRole');
+    } catch (_) {}
+  }
   if ('caches' in window) {
     caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).finally(() => location.reload());
   } else {
