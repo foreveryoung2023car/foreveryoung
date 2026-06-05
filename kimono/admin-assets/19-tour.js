@@ -4,16 +4,17 @@
 
 // v2.5: 合併重整按鈕 = 清快取 + 重整
 function fullReload() {
+  showReloadCurtain();
   if (typeof useFirebaseAdmin === 'function' && useFirebaseAdmin()) {
     try {
       const user = window.firebase && firebase.apps.length ? firebase.auth().currentUser : null;
       const label = user ? (user.email || user.displayName || '') : '';
       if (label) {
         currentAgent = label;
-        localStorage.setItem('admin_agent', label);
         const nav = document.getElementById('nav-agent');
-        if (nav) nav.textContent = '👤 ' + label;
+        if (nav) nav.textContent = '';
       }
+      localStorage.removeItem('admin_agent');
       localStorage.removeItem('admin_token');
       localStorage.removeItem('admin_role');
       localStorage.removeItem('admin_storeKey');
@@ -26,6 +27,20 @@ function fullReload() {
   } else {
     location.reload();
   }
+}
+
+function showReloadCurtain() {
+  try {
+    const nav = document.getElementById('nav-agent');
+    if (nav) nav.textContent = '';
+    const existing = document.getElementById('reload-curtain');
+    if (existing) existing.remove();
+    const curtain = document.createElement('div');
+    curtain.id = 'reload-curtain';
+    curtain.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:#ffffff;display:flex;align-items:center;justify-content:center;font-family:Arial,"Noto Sans TC",sans-serif;color:#1A365D;';
+    curtain.innerHTML = '<div style="text-align:center"><div style="width:64px;height:64px;border:4px solid #1A365D;border-top-color:transparent;border-radius:999px;margin:0 auto 16px;animation:spin 0.8s linear infinite"></div><div style="font-size:18px;font-weight:800">正在重新整理後台</div><div style="margin-top:8px;font-size:13px;color:#64748b">重新載入目前登入帳號與最新資料...</div></div>';
+    document.body.appendChild(curtain);
+  } catch (_) {}
 }
 
 const ADMIN_TOUR_VERSION = 'v440';
