@@ -11,6 +11,8 @@ function toast(msg, type){
 }
 
 function showLogin() {
+  const ov = document.getElementById('loading-overlay');
+  if (ov) ov.classList.add('hidden');
   // v2.5p: 登出時隱藏「?」按鈕
   const tbtn = document.getElementById('tour-btn'); if (tbtn) tbtn.classList.add('hidden');
   const cpwBtn = document.getElementById('change-pw-btn'); if (cpwBtn) cpwBtn.classList.add('hidden');
@@ -193,9 +195,17 @@ function applyRolePermissions() {
 (function() {
   if (useFirebaseAdmin()) {
     try {
+      const loginScreen = document.getElementById('login-screen');
+      const ov = document.getElementById('loading-overlay');
+      const msg = document.getElementById('loading-msg');
+      const detail = document.getElementById('loading-detail');
+      if (loginScreen) loginScreen.classList.add('hidden');
+      if (msg) msg.textContent = '正在確認登入狀態…';
+      if (detail) detail.textContent = '請稍等，系統會直接載入目前帳號';
+      if (ov) ov.classList.remove('hidden');
       ensureFirebaseAdminApp();
       firebase.auth().onAuthStateChanged(async (user) => {
-        if (!user) return;
+        if (!user) { showLogin(); return; }
         try {
           const token = await user.getIdToken();
           const profile = await getFirebaseUserProfile(user.uid, token);
