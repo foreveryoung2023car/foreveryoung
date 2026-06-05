@@ -166,8 +166,8 @@ function escapeHtml(value: unknown) {
 }
 
 function isStoreScopedActor(actor: AuthContext) {
-  if (actor.role === "store_manager" || actor.role === "store_staff") return true;
-  return Boolean(actor.storeId && (actor.role === "accountant" || actor.role === "readonly"));
+  if (!actor.storeId) return false;
+  return ["agent", "store_manager", "store_staff", "accountant", "readonly"].includes(actor.role);
 }
 
 function assertOrderAccess(order: FirebaseFirestore.DocumentData, actor: AuthContext) {

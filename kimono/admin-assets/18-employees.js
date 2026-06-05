@@ -118,6 +118,7 @@ function openAddEmployeeModal() {
   document.getElementById('new-emp-name').value = '';
   document.getElementById('new-emp-pass').value = '';
   const roleEl = document.getElementById('new-emp-role');
+  const storeEl = document.getElementById('new-emp-store');
   if (useFirebaseAdmin()) {
     const firebaseRole = localStorage.getItem('admin_firebaseRole') || 'readonly';
     const roleOptions = getAssignableFirebaseRoles(firebaseRole);
@@ -127,14 +128,46 @@ function openAddEmployeeModal() {
     }
     roleEl.innerHTML = roleOptions.map(r => '<option value="' + r.value + '">' + r.label + '</option>').join('');
     roleEl.value = roleOptions[0].value;
+    roleEl.onchange = updateEmployeeStoreSelector;
+    if (storeEl) storeEl.value = firebaseRole === 'store_manager' ? (currentStoreKey || '') : '';
+    updateEmployeeStoreSelector();
   } else {
     roleEl.innerHTML = '<option value="staff">店員 (staff)</option><option value="admin">店家管理者 (admin)</option>';
     roleEl.value = 'staff';
+    roleEl.onchange = null;
+    const storeRow = document.getElementById('emp-store-row');
+    if (storeRow) storeRow.classList.add('hidden');
   }
   document.getElementById('emp-err').classList.add('hidden');
   document.getElementById('add-emp-modal').classList.remove('hidden');
 }
 function closeAddEmployeeModal() { document.getElementById('add-emp-modal').classList.add('hidden'); }
+
+function updateEmployeeStoreSelector() {
+  const row = document.getElementById('emp-store-row');
+  const storeEl = document.getElementById('new-emp-store');
+  const hint = document.getElementById('emp-store-hint');
+  const roleEl = document.getElementById('new-emp-role');
+  if (!row || !storeEl || !roleEl) return;
+  if (!useFirebaseAdmin()) { row.classList.add('hidden'); return; }
+  const role = roleEl.value;
+  const firebaseRole = localStorage.getItem('admin_firebaseRole') || 'readonly';
+  const scopedRoles = ['agent', 'store_manager', 'store_staff', 'accountant', 'readonly'];
+  const shouldShow = scopedRoles.indexOf(role) >= 0;
+  row.classList.toggle('hidden', !shouldShow);
+  if (!shouldShow) {
+    storeEl.value = '';
+    return;
+  }
+  if (firebaseRole === 'store_manager') {
+    storeEl.value = currentStoreKey || '';
+    storeEl.disabled = true;
+    if (hint) hint.textContent = '店長新增帳號會固定綁定自己的店鋪';
+  } else {
+    storeEl.disabled = false;
+    if (hint) hint.textContent = '綁定店鋪後，該帳號只能查看/操作該店鋪資料；不綁定則按角色作全局權限';
+  }
+}
 
 function getAssignableFirebaseRoles(firebaseRole) {
   const labels = {
@@ -159,6 +192,8 @@ async function submitNewEmployee() {
   const name = document.getElementById('new-emp-name').value.trim();
   const pass = document.getElementById('new-emp-pass').value;
   const role = document.getElementById('new-emp-role').value;
+  const storeEl = document.getElementById('new-emp-store');
+  const storeId = useFirebaseAdmin() && storeEl ? (storeEl.value || '').trim() : '';
   const err = document.getElementById('emp-err');
   if (useFirebaseAdmin() && !email) { err.textContent = 'Email 必填'; err.classList.remove('hidden'); return; }
   if (!name || !pass) { err.textContent = '姓名 + 密碼必填'; err.classList.remove('hidden'); return; }
@@ -174,7 +209,7 @@ async function submitNewEmployee() {
         displayName: name,
         role,
         active: true,
-        storeId: currentStoreKey || null
+        storeId: storeId || null
       });
       toast('已新增 Firebase 使用者 ' + name);
       closeAddEmployeeModal();

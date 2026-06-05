@@ -11,7 +11,8 @@ export const checkInSchema = z.object({
 });
 
 function isStoreScopedActor(actor: AuthContext) {
-  return actor.role === "store_manager" || actor.role === "store_staff";
+  if (!actor.storeId) return false;
+  return ["agent", "store_manager", "store_staff", "accountant", "readonly"].includes(actor.role);
 }
 
 export async function checkInOrder(orderId: string, raw: unknown, source: string, actor?: AuthContext) {
