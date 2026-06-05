@@ -94,12 +94,13 @@ export const listOrdersSchema = z.object({
   limit: z.number().int().min(1).max(1000).optional()
 });
 
-function isStoreRole(actor: AuthContext) {
-  return actor.role === "store_manager" || actor.role === "store_staff";
+function isStoreScopedActor(actor: AuthContext) {
+  if (actor.role === "store_manager" || actor.role === "store_staff") return true;
+  return Boolean(actor.storeId && (actor.role === "accountant" || actor.role === "readonly"));
 }
 
 function assertOrderAccess(order: FirebaseFirestore.DocumentData, actor: AuthContext) {
-  if (!isStoreRole(actor)) return;
+  if (!isStoreScopedActor(actor)) return;
   if (!actor.storeId) throw new HttpError(403, "Store user has no storeId");
   if (order.storeId !== actor.storeId) throw new HttpError(403, "Order belongs to another store");
 }
@@ -224,7 +225,7 @@ export async function listOrders(raw: unknown, actor: AuthContext) {
   const limit = input.limit || 500;
   let query: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> = db.collection("orders");
 
-  if (isStoreRole(actor)) {
+  if (isStoreScopedActor(actor)) {
     if (!actor.storeId) throw new HttpError(403, "Store user has no storeId");
     query = query.where("storeId", "==", actor.storeId).limit(limit);
   } else {

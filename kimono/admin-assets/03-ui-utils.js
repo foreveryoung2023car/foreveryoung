@@ -27,6 +27,7 @@ function showLogin() {
   localStorage.removeItem('admin_agent');
   localStorage.removeItem('admin_token');
   localStorage.removeItem('admin_role');
+  localStorage.removeItem('admin_firebaseRole');
   localStorage.removeItem('admin_storeKey');
   localStorage.removeItem('admin_uid');
 }
@@ -44,6 +45,7 @@ async function doLogin() {
       localStorage.removeItem('admin_isStoreAdmin');
       currentFirebaseUid = data.user.uid;
       localStorage.setItem('admin_uid', currentFirebaseUid);
+      localStorage.setItem('admin_firebaseRole', data.firebaseRole || 'readonly');
       enterDashboard(data.displayName, data.token, data.role, data.storeKey);
       return;
     }
@@ -181,9 +183,10 @@ function applyRolePermissions() {
   // v2.4.41: 員工管理 tab 限店家管理者 + Jun 看
   const empTab = document.querySelector('.nav-tab[data-sec="employees"]');
   if (empTab) {
-    // v2.5f: 員工管理只店家管理者可見, 客服(agent)不需要管
+    const firebaseRole = localStorage.getItem('admin_firebaseRole') || '';
+    const canManageFirebaseUsers = useFirebaseAdmin() && ['owner', 'admin', 'store_manager'].indexOf(firebaseRole) >= 0;
     const isStoreAdmin = isStore && (localStorage.getItem('admin_isStoreAdmin') === '1' || !localStorage.getItem('admin_employeeId'));
-    empTab.style.display = isStoreAdmin ? '' : 'none';
+    empTab.style.display = (canManageFirebaseUsers || (!useFirebaseAdmin() && isStoreAdmin)) ? '' : 'none';
   }
 }
 
@@ -198,6 +201,7 @@ function applyRolePermissions() {
           const profile = await getFirebaseUserProfile(user.uid, token);
           currentFirebaseUid = user.uid;
           localStorage.setItem('admin_uid', currentFirebaseUid);
+          localStorage.setItem('admin_firebaseRole', profile.role || 'readonly');
           enterDashboard(profile.displayName || user.displayName || user.email || 'Admin', token, firebaseRoleToAdminRole(profile.role), profile.storeId || profile.storeKey || '');
         } catch (e) {
           console.warn('[Firebase Auth] auto login failed', e);

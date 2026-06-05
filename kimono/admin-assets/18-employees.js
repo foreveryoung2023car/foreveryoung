@@ -112,15 +112,10 @@ function openAddEmployeeModal() {
   document.getElementById('new-emp-pass').value = '';
   const roleEl = document.getElementById('new-emp-role');
   if (useFirebaseAdmin()) {
-    roleEl.innerHTML = [
-      '<option value="store_staff">店員 (store_staff)</option>',
-      '<option value="store_manager">店長 (store_manager)</option>',
-      '<option value="agent">客服 (agent)</option>',
-      '<option value="accountant">會計 (accountant)</option>',
-      '<option value="admin">管理者 (admin)</option>',
-      '<option value="readonly">唯讀 (readonly)</option>'
-    ].join('');
-    roleEl.value = 'store_staff';
+    const firebaseRole = localStorage.getItem('admin_firebaseRole') || 'readonly';
+    const roleOptions = getAssignableFirebaseRoles(firebaseRole);
+    roleEl.innerHTML = roleOptions.map(r => '<option value="' + r.value + '">' + r.label + '</option>').join('');
+    roleEl.value = roleOptions[0] ? roleOptions[0].value : 'readonly';
   } else {
     roleEl.innerHTML = '<option value="staff">店員 (staff)</option><option value="admin">店家管理者 (admin)</option>';
     roleEl.value = 'staff';
@@ -129,6 +124,23 @@ function openAddEmployeeModal() {
   document.getElementById('add-emp-modal').classList.remove('hidden');
 }
 function closeAddEmployeeModal() { document.getElementById('add-emp-modal').classList.add('hidden'); }
+
+function getAssignableFirebaseRoles(firebaseRole) {
+  const labels = {
+    admin: '管理者 (admin)',
+    agent: '客服 (agent)',
+    store_manager: '店長 (store_manager)',
+    store_staff: '店員 (store_staff)',
+    accountant: '會計 (accountant)',
+    readonly: '唯讀 (readonly)'
+  };
+  const matrix = {
+    owner: ['admin', 'agent', 'store_manager', 'store_staff', 'accountant', 'readonly'],
+    admin: ['agent', 'store_manager', 'store_staff', 'accountant', 'readonly'],
+    store_manager: ['store_staff', 'accountant', 'readonly']
+  };
+  return (matrix[firebaseRole] || []).map(value => ({ value, label: labels[value] || value }));
+}
 
 async function submitNewEmployee() {
   const emailEl = document.getElementById('new-emp-email');

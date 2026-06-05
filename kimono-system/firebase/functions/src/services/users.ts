@@ -5,6 +5,9 @@ import type { AuthContext } from "../lib/auth.js";
 import { writeAuditLog } from "../lib/audit.js";
 
 const roleSchema = z.enum(roles);
+const ownerAssignableRoles = ["admin", "agent", "store_manager", "store_staff", "accountant", "readonly"];
+const adminAssignableRoles = ["agent", "store_manager", "store_staff", "accountant", "readonly"];
+const storeManagerAssignableRoles = ["store_staff", "accountant", "readonly"];
 
 export const createAdminUserSchema = z.object({
   email: z.string().email(),
@@ -25,15 +28,47 @@ export const resetAdminUserPasswordSchema = z.object({
   password: z.string().min(6)
 });
 
-function assertManageable(actor: AuthContext, targetRole?: string) {
-  if (actor.role === "owner") return;
-  if (actor.role !== "admin") throw new HttpError(403, "Permission denied");
-  if (targetRole === "owner") throw new HttpError(403, "Only owner can manage owner users");
+function assignableRoles(actor: AuthContext) {
+  if (actor.role === "owner") return ownerAssignableRoles;
+  if (actor.role === "admin") return adminAssignableRoles;
+  if (actor.role === "store_manager") return storeManagerAssignableRoles;
+  return [];
+}
+
+function assertAssignableRole(actor: AuthContext, targetRole?: string) {
+  const allowed = assignableRoles(actor);
+  if (!targetRole || !allowed.includes(targetRole)) {
+    throw new HttpError(403, `Cannot assign role: ${targetRole || "unknown"}`);
+  }
+}
+
+function assertSameStoreForStoreManager(actor: AuthContext, targetStoreId: string | null | undefined) {
+  if (actor.role !== "store_manager") return;
+  if (!actor.storeId) throw new HttpError(403, "Store manager has no storeId");
+  if (targetStoreId !== actor.storeId) throw new HttpError(403, "Cannot manage users from another store");
+}
+
+function normalizedStoreIdForCreate(actor: AuthContext, inputStoreId?: string | null) {
+  if (actor.role === "store_manager") {
+    if (!actor.storeId) throw new HttpError(403, "Store manager has no storeId");
+    return actor.storeId;
+  }
+  return inputStoreId || null;
+}
+
+function assertManageable(actor: AuthContext, target: { role?: string; storeId?: string | null }) {
+  assertAssignableRole(actor, target.role);
+  assertSameStoreForStoreManager(actor, target.storeId || null);
 }
 
 export async function listAdminUsers(actor: AuthContext) {
-  assertManageable(actor);
-  const snap = await db.collection("users").orderBy("displayName").limit(200).get();
+  if (!assignableRoles(actor).length) throw new HttpError(403, "Permission denied");
+  let query: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> = db.collection("users");
+  if (actor.role === "store_manager") {
+    if (!actor.storeId) throw new HttpError(403, "Store manager has no storeId");
+    query = query.where("storeId", "==", actor.storeId);
+  }
+  const snap = await query.limit(200).get();
   const users = await Promise.all(snap.docs.map(async (doc) => {
     const data = doc.data();
     let authUser: Awaited<ReturnType<typeof auth.getUser>> | null = null;
@@ -54,12 +89,14 @@ export async function listAdminUsers(actor: AuthContext) {
       lastSignInAt: authUser?.metadata?.lastSignInTime || null
     };
   }));
+  users.sort((a, b) => String(a.displayName || a.email || "").localeCompare(String(b.displayName || b.email || "")));
   return { status: "success", users };
 }
 
 export async function createAdminUser(raw: unknown, actor: AuthContext) {
   const input = createAdminUserSchema.parse(raw);
-  assertManageable(actor, input.role);
+  assertAssignableRole(actor, input.role);
+  const storeId = normalizedStoreIdForCreate(actor, input.storeId);
   const user = await auth.createUser({
     email: input.email,
     password: input.password,
@@ -71,7 +108,7 @@ export async function createAdminUser(raw: unknown, actor: AuthContext) {
     displayName: input.displayName,
     role: input.role,
     active: input.active !== false,
-    storeId: input.storeId || null,
+    storeId,
     createdBy: actor.uid,
     updatedBy: actor.uid,
     createdAt: FieldValue.serverTimestamp(),
@@ -82,9 +119,9 @@ export async function createAdminUser(raw: unknown, actor: AuthContext) {
     actor,
     action: "admin_user_created",
     afterData: { uid: user.uid, ...userDoc, createdAt: null, updatedAt: null },
-    metadata: { email: input.email, role: input.role }
+    metadata: { email: input.email, role: input.role, storeId }
   });
-  return { status: "success", user: { uid: user.uid, email: input.email, displayName: input.displayName, role: input.role, active: input.active !== false } };
+  return { status: "success", user: { uid: user.uid, email: input.email, displayName: input.displayName, role: input.role, active: input.active !== false, storeId } };
 }
 
 export async function setAdminUserActive(raw: unknown, actor: AuthContext) {
@@ -93,7 +130,7 @@ export async function setAdminUserActive(raw: unknown, actor: AuthContext) {
   const snap = await docRef.get();
   if (!snap.exists) throw new HttpError(404, "User profile not found");
   const before = snap.data()!;
-  assertManageable(actor, before.role);
+  assertManageable(actor, { role: before.role, storeId: before.storeId || null });
   if (input.uid === actor.uid && input.active === false) throw new HttpError(400, "Cannot disable current user");
   await auth.updateUser(input.uid, { disabled: !input.active });
   await docRef.update({
@@ -115,7 +152,8 @@ export async function resetAdminUserPassword(raw: unknown, actor: AuthContext) {
   const input = resetAdminUserPasswordSchema.parse(raw);
   const snap = await db.collection("users").doc(input.uid).get();
   if (!snap.exists) throw new HttpError(404, "User profile not found");
-  assertManageable(actor, snap.data()?.role);
+  const target = snap.data()!;
+  assertManageable(actor, { role: target.role, storeId: target.storeId || null });
   await auth.updateUser(input.uid, { password: input.password });
   await writeAuditLog({
     actor,

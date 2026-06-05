@@ -165,12 +165,13 @@ function escapeHtml(value: unknown) {
     .replace(/'/g, "&#39;");
 }
 
-function isStoreRole(actor: AuthContext) {
-  return actor.role === "store_manager" || actor.role === "store_staff";
+function isStoreScopedActor(actor: AuthContext) {
+  if (actor.role === "store_manager" || actor.role === "store_staff") return true;
+  return Boolean(actor.storeId && (actor.role === "accountant" || actor.role === "readonly"));
 }
 
 function assertOrderAccess(order: FirebaseFirestore.DocumentData, actor: AuthContext) {
-  if (!isStoreRole(actor)) return;
+  if (!isStoreScopedActor(actor)) return;
   if (!actor.storeId) throw new HttpError(403, "Store user has no storeId");
   if (order.storeId !== actor.storeId) throw new HttpError(403, "Order belongs to another store");
 }

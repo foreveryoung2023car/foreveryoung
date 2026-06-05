@@ -10,6 +10,10 @@ export const checkInSchema = z.object({
   phoneLast5: z.string().optional()
 });
 
+function isStoreScopedActor(actor: AuthContext) {
+  return actor.role === "store_manager" || actor.role === "store_staff";
+}
+
 export async function checkInOrder(orderId: string, raw: unknown, source: string, actor?: AuthContext) {
   const input = checkInSchema.parse(raw);
   const result = await db.runTransaction(async (tx) => {
@@ -17,6 +21,10 @@ export async function checkInOrder(orderId: string, raw: unknown, source: string
     const orderSnap = await tx.get(orderRef);
     if (!orderSnap.exists) throw new HttpError(404, "Order not found");
     const before = orderSnap.data()!;
+    if (actor && isStoreScopedActor(actor)) {
+      if (!actor.storeId) throw new HttpError(403, "Store user has no storeId");
+      if (before.storeId !== actor.storeId) throw new HttpError(403, "Order belongs to another store");
+    }
     const expectedPhone = String(before.customerPhone || "").replace(/\D/g, "");
     const phoneVerification = String(input.phoneLast5 || input.last5 || "").replace(/\D/g, "");
     if (source === "self" && (!phoneVerification || !expectedPhone || !expectedPhone.endsWith(phoneVerification))) {

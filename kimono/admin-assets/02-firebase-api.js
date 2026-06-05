@@ -28,6 +28,7 @@ async function firebaseSignInAdmin(email, password) {
     token,
     profile,
     displayName: profile.displayName || user.displayName || user.email || email,
+    firebaseRole: profile.role || 'readonly',
     role: firebaseRoleToAdminRole(profile.role),
     storeKey: profile.storeId || profile.storeKey || ''
   };
