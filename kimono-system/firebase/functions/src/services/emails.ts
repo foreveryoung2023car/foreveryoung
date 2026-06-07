@@ -153,6 +153,9 @@ const defaultTemplates: Record<EmailKind, EmailTemplate> = {
       "店鋪地址：{{storeAddress}}",
       "店鋪電話：{{storePhone}}",
       "已收訂金：{{deposit}}",
+      "妝髮費：{{hairFee}}",
+      "攝影費：{{photoFee}}",
+      "折扣：{{discountLabel}}",
       "店鋪尾款：{{onsiteDue}}",
       "總金額：{{total}}",
       "憑證備註：{{proofNote}}",
@@ -193,6 +196,16 @@ function formatJst(value: unknown) {
 
 function money(value: unknown) {
   return `¥${Number(value || 0).toLocaleString("ja-JP")}`;
+}
+
+function discountLabel(order: FirebaseFirestore.DocumentData) {
+  const code = String(order.couponCode || "").trim();
+  const rate = Number(order.discountRate || 0);
+  if (!code && !rate) return "無";
+  const parts = [];
+  if (code) parts.push(code);
+  if (rate) parts.push(`${rate} 折`);
+  return parts.join(" / ");
 }
 
 function guestLabel(order: FirebaseFirestore.DocumentData) {
@@ -264,11 +277,17 @@ function ensureRequiredTemplateLines(kind: EmailKind, template: EmailTemplate): 
   }
   if (kind === "proof_received") {
     const financeLines = [];
+    if (!text.includes("{{hairFee}}")) financeLines.push("妝髮費：{{hairFee}}");
+    if (!text.includes("{{photoFee}}")) financeLines.push("攝影費：{{photoFee}}");
+    if (!text.includes("{{discountLabel}}")) financeLines.push("折扣：{{discountLabel}}");
     if (!text.includes("{{onsiteDue}}")) financeLines.push("店鋪尾款：{{onsiteDue}}");
     if (!text.includes("{{total}}")) financeLines.push("總金額：{{total}}");
     if (financeLines.length) text += ["", ...financeLines].join("\n");
     if (html) {
       const htmlFinanceLines = [];
+      if (!html.includes("{{hairFee}}")) htmlFinanceLines.push("<p><b>妝髮費：</b>{{hairFee}}</p>");
+      if (!html.includes("{{photoFee}}")) htmlFinanceLines.push("<p><b>攝影費：</b>{{photoFee}}</p>");
+      if (!html.includes("{{discountLabel}}")) htmlFinanceLines.push("<p><b>折扣：</b>{{discountLabel}}</p>");
       if (!html.includes("{{onsiteDue}}")) htmlFinanceLines.push("<p><b>店鋪尾款：</b>{{onsiteDue}}</p>");
       if (!html.includes("{{total}}")) htmlFinanceLines.push("<p><b>總金額：</b>{{total}}</p>");
       if (htmlFinanceLines.length) html += htmlFinanceLines.join("");
@@ -307,6 +326,9 @@ async function templateVariables(orderId: string, order: FirebaseFirestore.Docum
     photo: order.photo ? "需要" : "不需要",
     total: money(order.totalJpy),
     deposit: money(order.depositJpy),
+    hairFee: money(order.hairFeeJpy),
+    photoFee: money(order.photoFeeJpy),
+    discountLabel: discountLabel(order),
     onsiteDue: money(order.onsiteDueJpy),
     refundAmount: money(order.refundAmountJpy),
     refundTime: order.refundTime ? formatJst(order.refundTime) : "—",

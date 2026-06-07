@@ -10,7 +10,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./admin-assets/admin.css?v=20260605-12">
+<link rel="stylesheet" href="./admin-assets/admin.css?v=20260605-13">
 </head>
 <body class="min-h-screen" style="overflow-x:hidden">
 
@@ -622,7 +622,6 @@
     <div class="flex gap-2 mb-5 flex-wrap border-b border-slate-200 pb-4">
       <button class="tab-btn active" onclick="switchTab('basic',this)">訂單資訊</button>
       <button class="tab-btn" onclick="switchTab('refund',this)">退款記錄</button>
-      <button class="tab-btn" onclick="switchTab('note',this)">備註</button>
     </div>
 
     <div id="tab-basic" class="edit-tab">
@@ -640,6 +639,10 @@
           <div><div class="section-label">妝髮造型</div><select id="e-hair" class="input-field"><option value="true">✅ 有妝髮</option><option value="false">❌ 無妝髮</option></select></div>
           <div><div class="section-label">攝影服務</div><select id="e-photo" class="input-field"><option value="true">✅ 有攝影</option><option value="false">❌ 無攝影</option></select></div>
           <div><div class="section-label">確認狀態</div><select id="e-confirmed" class="input-field"><option value="true">✅ 已確認</option><option value="false">⏳ 待確認</option></select></div>
+        </div>
+        <div class="pt-4 border-t border-slate-200">
+          <div class="section-label">客服給客人的備註</div>
+          <textarea id="e-remark" class="input-field" rows="3" placeholder="例如：客人特殊需求、要提醒客人的事項、後續追蹤內容…"></textarea>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-slate-200">
           <div><div class="section-label">預付訂金 JPY</div><input id="e-deposit" class="input-field" type="number" placeholder="0" oninput="updateCalc()"></div>
@@ -723,13 +726,6 @@
       </div>
     </div>
 
-    <div id="tab-note" class="edit-tab hidden">
-      <div class="edit-panel">
-        <div class="section-label">客服備註</div>
-        <textarea id="e-remark" class="input-field" rows="6" placeholder="填入客服備註，例如：客人特殊需求、後續追蹤事項等…"></textarea>
-      </div>
-    </div>
-
     <div class="flex gap-3 mt-6 pt-4 border-t border-slate-200 flex-wrap">
       <button onclick="saveOrder()" id="save-btn" class="btn-navy flex-1 py-3 rounded-xl text-base">💾 儲存變更</button>
       <button onclick="sendConfirmEmailFromModal()" id="send-confirm-email-btn" class="px-4 py-3 rounded-xl text-base bg-emerald-600 hover:bg-emerald-700 text-white font-semibold whitespace-nowrap" title="寄送確認信給客人 (使用 Email 欄位)">✉️ 寄確認信</button>
@@ -760,26 +756,26 @@
 
 <div id="toast-container"></div>
 
-<script src="./admin-assets/00-gas-guard.js?v=20260605-12"></script>
-<script src="./admin-assets/01-state.js?v=20260605-12"></script>
-<script src="./admin-assets/02-firebase-api.js?v=20260605-12"></script>
-<script src="./admin-assets/03-ui-utils.js?v=20260605-12"></script>
-<script src="./admin-assets/04-refunds.js?v=20260605-12"></script>
-<script src="./admin-assets/05-orders.js?v=20260605-12"></script>
-<script src="./admin-assets/06-checkin-actions.js?v=20260605-12"></script>
-<script src="./admin-assets/07-calendar.js?v=20260605-12"></script>
-<script src="./admin-assets/08-finance.js?v=20260605-12"></script>
-<script src="./admin-assets/09-reconcile.js?v=20260605-12"></script>
-<script src="./admin-assets/10-orders-edit.js?v=20260605-12"></script>
-<script src="./admin-assets/11-refunds-edit.js?v=20260605-12"></script>
-<script src="./admin-assets/12-ui-admin-tools.js?v=20260605-12"></script>
-<script src="./admin-assets/13-weather.js?v=20260605-12"></script>
-<script src="./admin-assets/14-checkins.js?v=20260605-12"></script>
-<script src="./admin-assets/15-walkin-reconcile.js?v=20260605-12"></script>
-<script src="./admin-assets/16-audit-email.js?v=20260605-12"></script>
-<script src="./admin-assets/17-walkin-orders.js?v=20260605-12"></script>
-<script src="./admin-assets/18-employees.js?v=20260605-12"></script>
-<script src="./admin-assets/19-tour.js?v=20260605-12"></script>
+<script src="./admin-assets/00-gas-guard.js?v=20260605-13"></script>
+<script src="./admin-assets/01-state.js?v=20260605-13"></script>
+<script src="./admin-assets/02-firebase-api.js?v=20260605-13"></script>
+<script src="./admin-assets/03-ui-utils.js?v=20260605-13"></script>
+<script src="./admin-assets/04-refunds.js?v=20260605-13"></script>
+<script src="./admin-assets/05-orders.js?v=20260605-13"></script>
+<script src="./admin-assets/06-checkin-actions.js?v=20260605-13"></script>
+<script src="./admin-assets/07-calendar.js?v=20260605-13"></script>
+<script src="./admin-assets/08-finance.js?v=20260605-13"></script>
+<script src="./admin-assets/09-reconcile.js?v=20260605-13"></script>
+<script src="./admin-assets/10-orders-edit.js?v=20260605-13"></script>
+<script src="./admin-assets/11-refunds-edit.js?v=20260605-13"></script>
+<script src="./admin-assets/12-ui-admin-tools.js?v=20260605-13"></script>
+<script src="./admin-assets/13-weather.js?v=20260605-13"></script>
+<script src="./admin-assets/14-checkins.js?v=20260605-13"></script>
+<script src="./admin-assets/15-walkin-reconcile.js?v=20260605-13"></script>
+<script src="./admin-assets/16-audit-email.js?v=20260605-13"></script>
+<script src="./admin-assets/17-walkin-orders.js?v=20260605-13"></script>
+<script src="./admin-assets/18-employees.js?v=20260605-13"></script>
+<script src="./admin-assets/19-tour.js?v=20260605-13"></script>
 
 <!-- v2.4: 新增現場訂單 FAB -->
 <button id="walkInFab" onclick="openWalkInModal()" class="hidden fixed bottom-6 right-6 z-40 bg-[#1A365D] text-white px-5 py-4 rounded-full shadow-2xl font-bold text-base flex items-center gap-2 hover:bg-blue-900 active:scale-95 transition-transform" style="box-shadow:0 8px 24px rgba(26,54,93,0.35)">

@@ -215,7 +215,8 @@ function toAdminOrderResponse(orderId: string, order: FirebaseFirestore.Document
     refundBankAccount: order.refundBankAccount || "",
     refundBankAccountName: order.refundBankAccountName || "",
     proofImageUrl: order.proofUrl || "",
-    remark: order.proofNote || "",
+    proofNote: order.proofNote || "",
+    remark: order.note || "",
     status
   };
 }
@@ -450,7 +451,7 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
     if (input.photoFeeJpy !== undefined) patch.photoFeeJpy = input.photoFeeJpy;
     if (input.couponCode !== undefined) patch.couponCode = input.couponCode;
     if (input.discountRate !== undefined) patch.discountRate = input.discountRate;
-    if (input.note !== undefined) patch.proofNote = input.note;
+    if (input.note !== undefined) patch.note = input.note;
 
     const refundAmount = input.refundAmountJpy ?? Number(before.refundAmountJpy || 0);
     const refundTime = input.refundTime || "";
