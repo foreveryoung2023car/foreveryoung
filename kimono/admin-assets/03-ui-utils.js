@@ -158,11 +158,14 @@ function applyRolePermissions() {
   if (unlockBtn) unlockBtn.classList.add('hidden');
 
   const isStore = currentRole === 'store';
-  // Sections only agents can see
-  const agentOnly = ['customers', 'finance', 'reconcile'];
-  agentOnly.forEach(sec => {
+  const firebaseRole = localStorage.getItem('admin_firebaseRole') || '';
+  const isStoreManager = useFirebaseAdmin() && firebaseRole === 'store_manager';
+  // Store managers can view scoped customer, finance, and reconcile sections.
+  // Store staff still keep the lighter daily-operation surface.
+  const storeHiddenSections = isStore && !isStoreManager ? ['customers', 'finance', 'reconcile'] : [];
+  ['customers', 'finance', 'reconcile'].forEach(sec => {
     const tab = document.querySelector('[data-sec="' + sec + '"]');
-    if (tab) tab.style.display = isStore ? 'none' : '';
+    if (tab) tab.style.display = storeHiddenSections.indexOf(sec) >= 0 ? 'none' : '';
   });
   // v2.4.21: Jun-only tabs (e.g. 操作紀錄)
   document.querySelectorAll('[data-jun-only="1"]').forEach(tab => {
@@ -172,7 +175,7 @@ function applyRolePermissions() {
   const gs = document.getElementById('global-search-wrap');
   if (gs) gs.style.display = isStore ? 'none' : '';
   // If store currently sits on a hidden section, kick to dashboard
-  if (isStore && agentOnly.indexOf(currentSection) >= 0) {
+  if (storeHiddenSections.indexOf(currentSection) >= 0) {
     const dashTab = document.querySelector('[data-sec="dashboard"]');
     if (dashTab && typeof switchSection === 'function') switchSection('dashboard', dashTab);
   }
@@ -185,7 +188,6 @@ function applyRolePermissions() {
   // v2.4.41: 員工管理 tab 限店家管理者 + Jun 看
   const empTab = document.querySelector('.nav-tab[data-sec="employees"]');
   if (empTab) {
-    const firebaseRole = localStorage.getItem('admin_firebaseRole') || '';
     const canManageFirebaseUsers = useFirebaseAdmin() && ['owner', 'admin', 'store_manager'].indexOf(firebaseRole) >= 0;
     const isStoreAdmin = isStore && (localStorage.getItem('admin_isStoreAdmin') === '1' || !localStorage.getItem('admin_employeeId'));
     empTab.style.display = (canManageFirebaseUsers || (!useFirebaseAdmin() && isStoreAdmin)) ? '' : 'none';
