@@ -583,7 +583,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                                 </label>
                             </div>
                             <label class="block border-b border-slate-100 pb-2"><span class="text-[10px] font-bold text-slate-400 uppercase font-sans">預約日期</span>
-                                <input required type="date" id="input-date" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent cursor-pointer font-sans" min="2026-01-01">
+                                <input required type="date" id="input-date" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent cursor-pointer font-sans">
                             </label>
                             </label>
                             <label class="block border-b border-slate-100 pb-2">
@@ -814,9 +814,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 
     <script>
         const nowJST = new Date(Date.now() + 9 * 60 * 60 * 1000);
-        const tomorrowJST = new Date(nowJST);
-        tomorrowJST.setUTCDate(tomorrowJST.getUTCDate() + 1);
-        const tomorrowStr = tomorrowJST.toISOString().split('T')[0];
+        const todayStr = nowJST.toISOString().split('T')[0];
         const nowTWN = new Date(Date.now() + 8 * 60 * 60 * 1000);
         const submitDateTWN = nowTWN.toISOString().slice(0, 10);
 
@@ -1390,7 +1388,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             fillEl('bank-info-account', cfg.BANK_ACCOUNT);
             updateDepositDisplay();
             renderPersonKimonoSelects();
-            document.getElementById('input-date').setAttribute('min', tomorrowStr);
+            document.getElementById('input-date').setAttribute('min', todayStr);
 
             const container = document.getElementById('sakura-container');
             for (let i = 0; i < 8; i++) {
