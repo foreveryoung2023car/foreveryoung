@@ -20,6 +20,35 @@ type RenderedEmail = {
   html?: string;
 };
 
+type StoreContact = {
+  name: string;
+  address: string;
+  phone: string;
+};
+
+const defaultStores: Record<string, StoreContact> = {
+  kyoto1: {
+    name: "京都清水寺店",
+    address: "京都東山區五條橋東4-432-13 對嵐坊大廈1樓",
+    phone: "請洽客服"
+  },
+  kyoto2: {
+    name: "京都祇園店",
+    address: "京都東山區常盤町169 常盤大廈",
+    phone: "請洽客服"
+  },
+  osaka1: {
+    name: "大阪日本橋店",
+    address: "大阪中央區日本橋1-18-14 芝大廈7樓",
+    phone: "請洽客服"
+  },
+  tokyo1: {
+    name: "東京淺草寺店",
+    address: "東京都台東區淺草1-33-8 A-one大廈9樓",
+    phone: "請洽客服"
+  }
+};
+
 const emailActionMap: Record<EmailKind, { sent: string; failed: string; message: string }> = {
   confirm: {
     sent: "confirm_email_sent",
@@ -53,6 +82,9 @@ const defaultTemplates: Record<EmailKind, EmailTemplate> = {
       "訂單編號：{{orderNo}}",
       "體驗日期：{{bookingAt}} (JST)",
       "人數：{{guests}}",
+      "預約店鋪：{{storeName}}",
+      "店鋪地址：{{storeAddress}}",
+      "店鋪電話：{{storePhone}}",
       "方案：{{plan}}",
       "妝髮：{{hair}}",
       "攝影：{{photo}}",
@@ -72,6 +104,11 @@ const defaultTemplates: Record<EmailKind, EmailTemplate> = {
       "",
       "您的退款已完成處理，資訊如下：",
       "訂單編號：{{orderNo}}",
+      "體驗日期：{{bookingAt}} (JST)",
+      "人數：{{guests}}",
+      "預約店鋪：{{storeName}}",
+      "店鋪地址：{{storeAddress}}",
+      "店鋪電話：{{storePhone}}",
       "退款金額：{{refundAmount}}",
       "退款時間：{{refundTime}}",
       "退款說明：{{refundReason}}",
@@ -90,6 +127,9 @@ const defaultTemplates: Record<EmailKind, EmailTemplate> = {
       "訂單編號：{{orderNo}}",
       "體驗日期：{{bookingAt}} (JST)",
       "人數：{{guests}}",
+      "預約店鋪：{{storeName}}",
+      "店鋪地址：{{storeAddress}}",
+      "店鋪電話：{{storePhone}}",
       "方案：{{plan}}",
       "妝髮：{{hair}}",
       "攝影：{{photo}}",
@@ -108,7 +148,13 @@ const defaultTemplates: Record<EmailKind, EmailTemplate> = {
       "我們已收到您的付款憑證，訂單將由工作人員確認。",
       "訂單編號：{{orderNo}}",
       "體驗日期：{{bookingAt}} (JST)",
+      "人數：{{guests}}",
+      "預約店鋪：{{storeName}}",
+      "店鋪地址：{{storeAddress}}",
+      "店鋪電話：{{storePhone}}",
       "已收訂金：{{deposit}}",
+      "店鋪尾款：{{onsiteDue}}",
+      "總金額：{{total}}",
       "憑證備註：{{proofNote}}",
       "",
       "確認完成後，我們會再寄送訂單確認信。",
@@ -152,7 +198,7 @@ function money(value: unknown) {
 function guestLabel(order: FirebaseFirestore.DocumentData) {
   const adults = Number(order.adults || 0);
   const children = Number(order.children || 0);
-  if (adults || children) return `${adults} 位大人${children ? ` / ${children} 位小孩` : ""}`;
+  if (adults || children) return `${adults} 位大人 / ${children} 位小孩`;
   return "—";
 }
 
@@ -190,19 +236,72 @@ async function findOrder(orderNoOrId: string) {
 async function loadTemplate(kind: EmailKind) {
   const snap = await db.collection("settings").doc("emailTemplates").get();
   const configured = snap.data()?.[kind] || {};
-  return {
+  const template = {
     ...defaultTemplates[kind],
     ...configured
   } as EmailTemplate;
+  return ensureRequiredTemplateLines(kind, template);
 }
 
-function templateVariables(orderId: string, order: FirebaseFirestore.DocumentData) {
+function ensureRequiredTemplateLines(kind: EmailKind, template: EmailTemplate): EmailTemplate {
+  let text = template.text || "";
+  let html = template.html;
+  if (!text.includes("{{storeName}}")) {
+    text += [
+      "",
+      "預約店鋪：{{storeName}}",
+      "店鋪地址：{{storeAddress}}",
+      "店鋪電話：{{storePhone}}"
+    ].join("\n");
+  }
+  if (html && !html.includes("{{storeName}}")) {
+    html += [
+      "<hr>",
+      "<p><b>預約店鋪：</b>{{storeName}}</p>",
+      "<p><b>店鋪地址：</b>{{storeAddress}}</p>",
+      "<p><b>店鋪電話：</b>{{storePhone}}</p>"
+    ].join("");
+  }
+  if (kind === "proof_received") {
+    const financeLines = [];
+    if (!text.includes("{{onsiteDue}}")) financeLines.push("店鋪尾款：{{onsiteDue}}");
+    if (!text.includes("{{total}}")) financeLines.push("總金額：{{total}}");
+    if (financeLines.length) text += ["", ...financeLines].join("\n");
+    if (html) {
+      const htmlFinanceLines = [];
+      if (!html.includes("{{onsiteDue}}")) htmlFinanceLines.push("<p><b>店鋪尾款：</b>{{onsiteDue}}</p>");
+      if (!html.includes("{{total}}")) htmlFinanceLines.push("<p><b>總金額：</b>{{total}}</p>");
+      if (htmlFinanceLines.length) html += htmlFinanceLines.join("");
+    }
+  }
+  return { ...template, text, html };
+}
+
+async function loadStoreContact(storeId: unknown): Promise<StoreContact> {
+  const key = String(storeId || "").trim();
+  const fallback = defaultStores[key] || { name: key || "—", address: "—", phone: "請洽客服" };
+  if (!key) return fallback;
+
+  const snap = await db.collection("settings").doc("stores").get();
+  const configured = snap.data()?.[key] || {};
+  return {
+    name: configured.name || fallback.name,
+    address: configured.address || fallback.address,
+    phone: configured.phone || fallback.phone
+  };
+}
+
+async function templateVariables(orderId: string, order: FirebaseFirestore.DocumentData) {
   const orderNo = order.orderNo || orderId;
+  const store = await loadStoreContact(order.storeId);
   return {
     name: order.customerName || "貴賓",
     orderNo,
     bookingAt: formatJst(order.bookingAt),
     guests: guestLabel(order),
+    storeName: store.name,
+    storeAddress: store.address,
+    storePhone: store.phone,
     plan: order.plan || "和服體驗",
     hair: order.hair ? "需要" : "不需要",
     photo: order.photo ? "需要" : "不需要",
@@ -229,7 +328,7 @@ function textToHtml(text: string) {
 
 async function buildOrderEmail(kind: EmailKind, orderId: string, order: FirebaseFirestore.DocumentData, to: string): Promise<RenderedEmail> {
   const template = await loadTemplate(kind);
-  const vars = templateVariables(orderId, order);
+  const vars = await templateVariables(orderId, order);
   const subject = renderString(template.subject, vars);
   const text = renderString(template.text, vars);
   const html = template.html ? renderString(template.html, vars) : textToHtml(text);
