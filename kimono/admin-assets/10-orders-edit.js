@@ -167,7 +167,7 @@ function injectAnomalyWarning(o){
       '<ul class="text-sm text-red-700 list-disc list-inside space-y-0.5">'+
         reasons.map(r=>'<li>'+r+'</li>').join('')+
       '</ul>'+
-      '<div class="text-xs text-red-600 mt-2">建議處理方式：依上方 tab「款項費用 / 退款記錄」修正後按「儲存變更」。</div>'+
+      '<div class="text-xs text-red-600 mt-2">建議處理方式：依上方 tab「訂單資訊 / 退款記錄」修正後按「儲存變更」。</div>'+
     '</div></div>';
 
   // 插在 header 後、tab bar 前
