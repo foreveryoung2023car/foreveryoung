@@ -38,12 +38,9 @@ jobs:
           mkdir -p _site
           rsync -a \
             --exclude '.git' \
-            --exclude '.github' \
-            --exclude '_site' \
-            --exclude 'kimono-system' \
-            --exclude 'node_modules' \
             --exclude '.DS_Store' \
-            ./ _site/
+            kimono/ _site/
+          cp CNAME _site/CNAME
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
