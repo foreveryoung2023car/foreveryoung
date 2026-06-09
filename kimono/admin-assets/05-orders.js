@@ -498,6 +498,23 @@ function setOrderView(mode){
 }
 function getOrderView(){ try{ return localStorage.getItem('orders_view') || 'card'; }catch(e){ return 'card'; } }
 
+function orderDisplayTotal(o) {
+  return Math.max(0,
+    Number(o.price || o.kimonoPrice || 0)
+    + Number(o.hairFee || 0)
+    + Number(o.photoFee || 0)
+    - Number(o.discountRefundAmount || 0)
+  );
+}
+
+function orderDisplayBalance(o) {
+  return Math.max(0,
+    orderDisplayTotal(o)
+    - Number(o.deposit || 0)
+    - Number(o.storeActualReceived || 0)
+  );
+}
+
 function renderOrders(orders){
   const el = document.getElementById('orders-list');
   // v2.5d: 列表 view
@@ -511,8 +528,8 @@ function renderOrders(orders){
       const bdStr = bd && !isNaN(bd) ? ((bd.getMonth()+1) + '/' + bd.getDate() + ' ' + String(bd.getHours()).padStart(2,'0') + ':' + String(bd.getMinutes()).padStart(2,'0')) : '—';
       const hair = (o.hair===true||o.hair==='true'||o.hair==='是') ? '💆' : '';
       const photo = (o.photo===true||o.photo==='true'||o.photo==='是') ? '📷' : '';
-      const total = (Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0);
-      const due = total - (Number(o.deposit)||0);
+      const total = orderDisplayTotal(o);
+      const due = orderDisplayBalance(o);
       const conf = (o.confirmed===true||o.confirmed==='true'||o.confirmed==='TRUE');
       const ref = Number(o.refundAmount)||0;
       let stBadge;
@@ -593,8 +610,8 @@ function renderOrders(orders){
     const hairTag = (o.hair === true || o.hair === 'true') ? '<span class="tag">💆 妝髮</span>' : '';
     const photoTag = (o.photo === true || o.photo === 'true') ? '<span class="tag">📷 攝影</span>' : '';
 
-    const total = totalAmount(o);
-    const due = o.status === 'balance_due' ? Number(o.balanceDue || 0) : total - (Number(o.deposit)||0);
+    const total = orderDisplayTotal(o);
+    const due = orderDisplayBalance(o);
     const days = (function(){if(!o.bookingDate)return null;const d=parseBookingDate(o.bookingDate);if(!d)return null;const t=new Date();t.setHours(0,0,0,0);const dd=new Date(d.getFullYear(),d.getMonth(),d.getDate());return Math.round((dd-t)/86400000);})();
     const daysTag = days!==null && !isNaN(days) ? (days<0? '<span class="pill bg-slate-200 text-slate-700">已過 '+Math.abs(days)+' 天</span>' : days===0? '<span class="pill bg-amber-100 text-amber-800">📍 今天到店</span>' : days<=3? '<span class="pill bg-amber-100 text-amber-800">⏰ 剩 '+days+' 天</span>' : '<span class="pill bg-blue-100 text-blue-800">剩 '+days+' 天</span>') : '';
 
@@ -644,7 +661,7 @@ function renderOrders(orders){
           (currentRole !== 'store' && !o.confirmed && !anomaly ? '<button onclick="quickConfirm(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-emerald-400 text-emerald-700 rounded-lg text-sm hover:bg-emerald-50 font-semibold flex-1">✅ 快速確認</button>' : '')+
           /* v2.4.38: 報到按鈕，只在「已確認 + 未報到 + 體驗日 ±1 天內」顯示 */
           (o.confirmed && !o.checkedInAt && days!==null && days>=-1 && days<=1 ? '<button onclick="checkInOrder(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-amber-400 text-amber-700 rounded-lg text-sm hover:bg-amber-50 font-semibold flex-1">🎌 報到</button>' : '')+
-          (() => { const tot=(Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0); const due=o.status==='balance_due'?Number(o.balanceDue||0):tot-(Number(o.deposit)||0); const conf=(o.confirmed===true||o.confirmed==='true'||o.confirmed==='TRUE'); const paid=isPaidFull(o); if(currentRole!=='store' && conf && due>0 && !paid) return '<button onclick="markPaidFull(\''+(o.orderId||'')+'\',\''+(o.name||'').replace(/\'/g,"\\'")+'\')" class="px-3 py-1.5 border-2 border-emerald-500 text-emerald-700 rounded-lg text-sm hover:bg-emerald-50 font-semibold flex-1">💰 已收齊</button>'; if(currentRole!=='store' && paid) return '<span class="px-3 py-1.5 border-2 border-emerald-200 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-semibold flex-1 text-center">✓ 已收</span>'; return ''; })() + '<button onclick="copyOrderId(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-slate-300 rounded-lg text-sm hover:bg-slate-50 font-semibold flex-1">📋 複製編號</button>'+
+          (() => { const due=orderDisplayBalance(o); const conf=(o.confirmed===true||o.confirmed==='true'||o.confirmed==='TRUE'); const paid=isPaidFull(o); if(currentRole!=='store' && conf && due>0 && !paid) return '<button onclick="markPaidFull(\''+(o.orderId||'')+'\',\''+(o.name||'').replace(/\'/g,"\\'")+'\')" class="px-3 py-1.5 border-2 border-emerald-500 text-emerald-700 rounded-lg text-sm hover:bg-emerald-50 font-semibold flex-1">💰 已收齊</button>'; if(currentRole!=='store' && paid) return '<span class="px-3 py-1.5 border-2 border-emerald-200 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-semibold flex-1 text-center">✓ 已收</span>'; return ''; })() + '<button onclick="copyOrderId(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-slate-300 rounded-lg text-sm hover:bg-slate-50 font-semibold flex-1">📋 複製編號</button>'+
         '</div>'+
       '</div>'+
     '</div>';

@@ -550,7 +550,17 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
     if (input.storeActualReceivedJpy !== undefined) patch.storeActualReceivedJpy = input.storeActualReceivedJpy;
     if (input.note !== undefined) patch.note = input.note;
 
-    if (isStoreOrderActor(actor) && input.checkout) {
+    const hasPaymentUpdate = [
+      input.depositJpy,
+      input.kimonoPriceJpy,
+      input.hairFeeJpy,
+      input.photoFeeJpy,
+      input.discountRefundAmountJpy,
+      input.storeActualReceivedJpy
+    ].some((value) => value !== undefined);
+
+    let calculatedBalanceDueJpy = Number(before.balanceDueJpy || 0);
+    if (hasPaymentUpdate) {
       const consumptionJpy = Math.max(
         0,
         (input.kimonoPriceJpy ?? Number(before.kimonoPriceJpy || 0))
@@ -558,14 +568,17 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
           + (input.photoFeeJpy ?? Number(before.photoFeeJpy || 0))
           - (input.discountRefundAmountJpy ?? Number(before.discountRefundAmountJpy || 0))
       );
-      const depositJpy = Number(before.depositJpy || 0);
+      const depositJpy = input.depositJpy ?? Number(before.depositJpy || 0);
       const storeActualReceivedJpy = input.storeActualReceivedJpy ?? Number(before.storeActualReceivedJpy || 0);
-      const balanceDueJpy = Math.max(0, consumptionJpy - depositJpy - storeActualReceivedJpy);
+      calculatedBalanceDueJpy = Math.max(0, consumptionJpy - depositJpy - storeActualReceivedJpy);
       patch.totalJpy = consumptionJpy;
       patch.onsiteDueJpy = Math.max(0, consumptionJpy - depositJpy);
-      patch.balanceDueJpy = balanceDueJpy;
+      patch.balanceDueJpy = calculatedBalanceDueJpy;
+    }
+
+    if (isStoreOrderActor(actor) && input.checkout) {
       patch.checkoutAt = FieldValue.serverTimestamp();
-      patch.status = balanceDueJpy === 0 ? "completed" : "balance_due";
+      patch.status = calculatedBalanceDueJpy === 0 ? "completed" : "balance_due";
     }
 
     const refundAmount = input.refundAmountJpy ?? Number(before.refundAmountJpy || 0);
