@@ -618,6 +618,12 @@
         <div>
           <h2 class="text-xl font-bold text-[#1A365D] title-serif">✏️ 編輯訂單</h2>
           <p id="modal-order-id" class="text-sm text-slate-600 mt-1 font-semibold"></p>
+          <div data-store-display-field="1" class="hidden mt-3 grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-2 text-sm">
+            <div><span class="text-slate-500 font-semibold">姓名</span><div id="e-name-display" class="font-bold text-[#1A365D] break-words">—</div></div>
+            <div><span class="text-slate-500 font-semibold">電話</span><div id="e-phone-display" class="font-bold text-[#1A365D] break-words">—</div></div>
+            <div><span class="text-slate-500 font-semibold">Email</span><div id="e-email-display" class="font-bold text-[#1A365D] break-all">—</div></div>
+            <div><span class="text-slate-500 font-semibold">預付訂金</span><div id="e-deposit-display" class="font-bold text-[#1A365D]">—</div></div>
+          </div>
         </div>
     </div>
     <div class="flex gap-2 mb-5 flex-wrap border-b border-slate-200 pb-4">
@@ -628,9 +634,9 @@
     <div id="tab-basic" class="edit-tab">
       <div class="edit-panel space-y-5">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div><div class="section-label">姓名</div><input id="e-name" data-store-edit-field="1" class="input-field"><div id="e-name-display" data-store-display-field="1" class="hidden text-base font-bold text-[#1A365D] break-words">—</div></div>
-          <div><div class="section-label">電話</div><input id="e-phone" data-store-edit-field="1" class="input-field"><div id="e-phone-display" data-store-display-field="1" class="hidden text-base font-bold text-[#1A365D] break-words">—</div></div>
-          <div><div class="section-label">Email</div><input id="e-email" data-store-edit-field="1" class="input-field" type="email"><div id="e-email-display" data-store-display-field="1" class="hidden text-base font-bold text-[#1A365D] break-all">—</div></div>
+          <div data-store-hidden="1"><div class="section-label">姓名</div><input id="e-name" class="input-field"></div>
+          <div data-store-hidden="1"><div class="section-label">電話</div><input id="e-phone" class="input-field"></div>
+          <div data-store-hidden="1"><div class="section-label">Email</div><input id="e-email" class="input-field" type="email"></div>
           <div><div class="section-label">體驗預約日</div><input id="e-booking-date" class="input-field" type="datetime-local" step="1800"></div>
           <div><div class="section-label">男性大人</div><input id="e-male-adults" class="input-field" type="number" inputmode="numeric" min="0" step="1" placeholder="未區分" oninput="syncEditPax()"></div>
           <div><div class="section-label">女性大人</div><input id="e-female-adults" class="input-field" type="number" inputmode="numeric" min="0" step="1" placeholder="未區分" oninput="syncEditPax()"></div>
@@ -648,7 +654,7 @@
           <textarea id="e-remark" class="input-field" rows="3" placeholder="例如：客人特殊需求、要提醒客人的事項、後續追蹤內容…"></textarea>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-slate-200">
-          <div><div class="section-label">預付訂金 JPY</div><input id="e-deposit" data-store-edit-field="1" class="input-field" type="number" placeholder="0" oninput="updateCalc()"><div id="e-deposit-display" data-store-display-field="1" class="hidden text-base font-bold text-[#1A365D]">—</div></div>
+          <div data-store-hidden="1"><div class="section-label">預付訂金 JPY</div><input id="e-deposit" class="input-field" type="number" placeholder="0" oninput="updateCalc()"></div>
           <div><div class="section-label">和服原價 JPY</div><input id="e-price" class="input-field" type="number" placeholder="0" oninput="updateCalc()"></div>
           <div><div class="section-label">妝髮費 JPY</div><input id="e-hair-fee" class="input-field" type="number" placeholder="0" oninput="updateCalc()"></div>
           <div><div class="section-label">攝影費 JPY</div><input id="e-photo-fee" class="input-field" type="number" placeholder="0" oninput="updateCalc()"></div>
