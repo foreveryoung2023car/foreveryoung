@@ -184,6 +184,9 @@ function applyRolePermissions() {
   document.querySelectorAll('[data-store-display-field="1"]').forEach(el => {
     el.style.display = isStore ? 'flex' : 'none';
   });
+  document.querySelectorAll('[data-store-only="1"]').forEach(el => {
+    el.style.display = isStore ? 'block' : 'none';
+  });
   if (isStore && ['pending', 'confirmed', 'refund', 'duebalance', 'anomaly'].indexOf(currentFilter) >= 0) {
     currentFilter = 'all';
     document.querySelectorAll('#sec-orders .tab-btn').forEach(btn => btn.classList.remove('active'));

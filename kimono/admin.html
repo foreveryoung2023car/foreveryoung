@@ -659,6 +659,7 @@
           <div><div class="section-label">妝髮費 JPY</div><input id="e-hair-fee" class="input-field" type="number" placeholder="0" oninput="updateCalc()"></div>
           <div><div class="section-label">攝影費 JPY</div><input id="e-photo-fee" class="input-field" type="number" placeholder="0" oninput="updateCalc()"></div>
           <div><div class="section-label">折扣碼</div><input id="e-coupon" class="input-field" placeholder="留空=無折扣"></div>
+          <div data-store-only="1" style="display:none"><div class="section-label">折扣與退款</div><div id="e-discount-refund-display" class="text-base font-bold text-[#1A365D] py-2">—</div></div>
           <div><div class="section-label">匯率 (JPY→TWD)</div><input id="e-rate" class="input-field" type="number" step="0.001" placeholder="0.22" oninput="updateCalc()"></div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] gap-4">
@@ -768,14 +769,14 @@
 <script src="./admin-assets/00-gas-guard.js?v=20260605-14"></script>
 <script src="./admin-assets/01-state.js?v=20260605-14"></script>
 <script src="./admin-assets/02-firebase-api.js?v=20260605-14"></script>
-<script src="./admin-assets/03-ui-utils.js?v=20260609-2"></script>
+<script src="./admin-assets/03-ui-utils.js?v=20260609-3"></script>
 <script src="./admin-assets/04-refunds.js?v=20260605-14"></script>
 <script src="./admin-assets/05-orders.js?v=20260609-2"></script>
 <script src="./admin-assets/06-checkin-actions.js?v=20260609-2"></script>
 <script src="./admin-assets/07-calendar.js?v=20260605-14"></script>
 <script src="./admin-assets/08-finance.js?v=20260605-14"></script>
 <script src="./admin-assets/09-reconcile.js?v=20260605-14"></script>
-<script src="./admin-assets/10-orders-edit.js?v=20260609-2"></script>
+<script src="./admin-assets/10-orders-edit.js?v=20260609-3"></script>
 <script src="./admin-assets/11-refunds-edit.js?v=20260605-14"></script>
 <script src="./admin-assets/12-ui-admin-tools.js?v=20260609-2"></script>
 <script src="./admin-assets/13-weather.js?v=20260605-14"></script>

@@ -29,6 +29,11 @@ function openEdit(orderId) {
   document.getElementById('e-photo-fee').value = o.photoFee || '';
   document.getElementById('e-coupon').value = o.coupon || '';
   document.getElementById('e-rate').value = o.rate || '0.22';
+  const discountRate = Number(o.rate || 10);
+  const discountText = discountRate > 0 && discountRate < 10 ? discountRate + '折' : '無折';
+  const refundAmount = Number(o.refundAmount || 0);
+  const refundText = refundAmount > 0 ? '退款 ¥' + refundAmount.toLocaleString() : '無退款';
+  document.getElementById('e-discount-refund-display').textContent = discountText + ' / ' + refundText;
   renderPaymentProof(o);
   document.getElementById('e-refund-amt').value = o.refundAmount || '';
   document.getElementById('e-refund-date').value = (o.refundTime || '').slice(0,16);
