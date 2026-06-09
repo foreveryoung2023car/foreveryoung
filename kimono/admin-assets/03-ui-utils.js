@@ -142,7 +142,15 @@ function orderBelongsToStore(o, storeKey) {
 function filterOrdersForRole(list) {
   if (currentRole !== 'store') return list;
   if (!currentStoreKey) return [];
-  return list.filter(o => orderBelongsToStore(o, currentStoreKey));
+  return list.filter(o => orderBelongsToStore(o, currentStoreKey) && isConfirmedOrderForStore(o));
+}
+
+function isConfirmedOrderForStore(order) {
+  const status = String(order.status || '').toLowerCase();
+  if (['confirmed', 'checked_in', 'completed', 'refund_requested', 'refunding', 'refunded'].indexOf(status) >= 0) {
+    return true;
+  }
+  return order.confirmed === true || order.confirmed === 'true' || order.confirmed === 'TRUE';
 }
 
 // v2.5: 依角色控制 UI 顯示
@@ -160,6 +168,10 @@ function applyRolePermissions() {
   const isStore = currentRole === 'store';
   const firebaseRole = localStorage.getItem('admin_firebaseRole') || '';
   const isStoreManager = useFirebaseAdmin() && firebaseRole === 'store_manager';
+  const checkinTab = document.querySelector('[data-sec="checkin"]');
+  const checkinSection = document.getElementById('sec-checkin');
+  if (checkinTab) checkinTab.style.display = 'none';
+  if (checkinSection) checkinSection.style.display = 'none';
   // Store managers can view scoped customer, finance, and reconcile sections.
   // Store staff still keep the lighter daily-operation surface.
   const storeHiddenSections = isStore && !isStoreManager ? ['customers', 'finance', 'reconcile'] : [];
@@ -320,7 +332,7 @@ function loadOrders() {
         const elapsed = Date.now() - (window.__loadStart || Date.now());
         console.log('[載入] ✅ 完成，耗時 ' + elapsed + 'ms (' + (data.orders||[]).length + ' 筆)');
         if (elapsed > 5000) toast('⚠ 載入很慢: ' + Math.round(elapsed/1000) + ' 秒', 'warning');
-        allOrders = data.orders || [];
+        allOrders = filterOrdersForRole(data.orders || []);
         // v2.4.20: 順便撈一次歷史月份清單（讓對帳下拉能合併顯示）
         if (typeof loadArchivedList === 'function' && !window.__archivedMonthsListLoaded) {
           window.__archivedMonthsListLoaded = true;
@@ -369,7 +381,7 @@ function loadOrders() {
         if (!window.__sectionRestored) {
           window.__sectionRestored = true;
           const last = localStorage.getItem('admin_lastSection');
-          if (last && last !== 'dashboard' && document.getElementById('sec-'+last)) {
+          if (last && last !== 'dashboard' && last !== 'checkin' && document.getElementById('sec-'+last)) {
             const tab = document.querySelector('.nav-tab[data-sec="'+last+'"]');
             switchSection(last, tab);
           }
@@ -399,7 +411,7 @@ async function loadOrdersFromFirestore() {
   try {
     const data = await callFirebaseAdminFunction('/listOrders?limit=500', null, { method: 'GET' });
     document.getElementById('orders-loading').classList.add('hidden');
-    allOrders = data.orders || [];
+    allOrders = filterOrdersForRole(data.orders || []);
     populateFilters();
     renderDashboard();
     filterOrders();

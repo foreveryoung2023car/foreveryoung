@@ -105,6 +105,19 @@ function isStoreScopedActor(actor: AuthContext) {
   return ["agent", "store_manager", "store_staff", "accountant", "readonly"].includes(actor.role);
 }
 
+const storeVisibleOrderStatuses: OrderStatus[] = [
+  "confirmed",
+  "checked_in",
+  "completed",
+  "refund_requested",
+  "refunding",
+  "refunded"
+];
+
+function isStoreOrderActor(actor: AuthContext) {
+  return actor.role === "store_manager" || actor.role === "store_staff";
+}
+
 function assertOrderAccess(order: FirebaseFirestore.DocumentData, actor: AuthContext) {
   if (!isStoreScopedActor(actor)) return;
   if (!actor.storeId) throw new HttpError(403, "Store user has no storeId");
@@ -253,13 +266,18 @@ export async function listOrders(raw: unknown, actor: AuthContext) {
 
   if (isStoreScopedActor(actor)) {
     if (!actor.storeId) throw new HttpError(403, "Store user has no storeId");
-    query = query.where("storeId", "==", actor.storeId).limit(limit);
+    query = query.where("storeId", "==", actor.storeId);
+    if (isStoreOrderActor(actor)) {
+      query = query.where("status", "in", storeVisibleOrderStatuses);
+    }
+    query = query.limit(limit);
   } else {
     query = query.orderBy("createdAt", "desc").limit(limit);
   }
 
   const snap = await query.get();
   const orders = snap.docs
+    .filter((doc) => !isStoreOrderActor(actor) || storeVisibleOrderStatuses.includes(doc.data().status))
     .map((doc) => toAdminOrderResponse(doc.id, doc.data()))
     .sort((a, b) => String(b.submitDate || b.bookingDate || "").localeCompare(String(a.submitDate || a.bookingDate || "")));
 

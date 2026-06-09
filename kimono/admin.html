@@ -46,7 +46,7 @@
     <div class="flex gap-1">
       <div class="nav-tab active" data-sec="dashboard" onclick="switchSection('dashboard',this)">📊 儀表板</div>
       <div class="nav-tab" data-sec="orders" onclick="switchSection('orders',this)">📋 訂單管理 <span id="tab-count-orders" class="bg-white/25 px-1.5 rounded text-[11px]">0</span></div>
-      <div class="nav-tab" data-sec="checkin" onclick="switchSection('checkin',this)">🎌 報到中心 <span id="tab-count-checkin" class="bg-white/25 px-1.5 rounded text-[11px]">0</span></div>
+      <div class="nav-tab" data-sec="checkin" onclick="switchSection('checkin',this)" style="display:none">🎌 報到中心 <span id="tab-count-checkin" class="bg-white/25 px-1.5 rounded text-[11px]">0</span></div>
       <div class="nav-tab" data-sec="employees" data-store-admin-only="1" onclick="switchSection('employees',this)" style="display:none">👥 員工管理</div>
       <div class="nav-tab" data-sec="calendar" onclick="switchSection('calendar',this)">📅 行事曆</div>
       <div class="nav-tab" data-sec="customers" onclick="switchSection('customers',this)">👥 客戶名單 <span id="tab-count-customers" class="bg-white/25 px-1.5 rounded text-[11px]">0</span></div>
@@ -255,7 +255,7 @@
   </section>
 
   <!-- v2.5: 報到中心 — 今日 ±1 天訂單看板 -->
-  <section id="sec-checkin" class="section">
+  <section id="sec-checkin" class="section hidden" style="display:none">
     <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
       <div>
         <h2 class="text-2xl font-bold text-[#1A365D] title-serif">🎌 報到中心</h2>
@@ -762,7 +762,7 @@
 <script src="./admin-assets/00-gas-guard.js?v=20260605-14"></script>
 <script src="./admin-assets/01-state.js?v=20260605-14"></script>
 <script src="./admin-assets/02-firebase-api.js?v=20260605-14"></script>
-<script src="./admin-assets/03-ui-utils.js?v=20260605-14"></script>
+<script src="./admin-assets/03-ui-utils.js?v=20260609-2"></script>
 <script src="./admin-assets/04-refunds.js?v=20260605-14"></script>
 <script src="./admin-assets/05-orders.js?v=20260605-14"></script>
 <script src="./admin-assets/06-checkin-actions.js?v=20260605-14"></script>
