@@ -473,8 +473,24 @@ export async function createWalkInOrder(raw: unknown, actor: AuthContext) {
 
 export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
   const input = updateOrderByStaffSchema.parse(raw);
-  if (isStoreOrderActor(actor) && input.confirmed !== undefined) {
-    throw new HttpError(403, "Store users cannot change order confirmation status");
+  if (isStoreOrderActor(actor)) {
+    const hasRestrictedStoreField = [
+      input.name,
+      input.phone,
+      input.email,
+      input.confirmed,
+      input.depositJpy,
+      input.refundAmountJpy,
+      input.refundTime,
+      input.refundReason,
+      input.refundBankCode,
+      input.refundBankName,
+      input.refundBankAccount,
+      input.refundBankAccountName
+    ].some((value) => value !== undefined);
+    if (hasRestrictedStoreField) {
+      throw new HttpError(403, "Store users cannot change customer, deposit, confirmation, or refund data");
+    }
   }
   const result = await db.runTransaction(async (tx) => {
     const orderRef = db.collection("orders").doc(input.orderId);

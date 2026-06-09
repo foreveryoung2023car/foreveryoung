@@ -7,6 +7,9 @@ function openEdit(orderId) {
   document.getElementById('e-name').value = o.name || '';
   document.getElementById('e-phone').value = o.phone || '';
   document.getElementById('e-email').value = o.email || '';
+  document.getElementById('e-name-display').textContent = o.name || '—';
+  document.getElementById('e-phone-display').textContent = o.phone || '—';
+  document.getElementById('e-email-display').textContent = o.email || '—';
   document.getElementById('e-booking-date').value = (function(bd){ if(!bd) return ''; const d=parseBookingDate(bd); if(!d||isNaN(d)) return String(bd).slice(0,10); const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes()); })(o.bookingDate);
   const guestCount = parseEditGuestCount(o);
   document.getElementById('e-adults').value = guestCount.adults;
@@ -20,6 +23,7 @@ function openEdit(orderId) {
   document.getElementById('e-photo').value = (o.photo === true || o.photo === 'true') ? 'true' : 'false';
   document.getElementById('e-confirmed').value = o.confirmed ? 'true' : 'false';
   document.getElementById('e-deposit').value = o.deposit || '';
+  document.getElementById('e-deposit-display').textContent = '¥' + Number(o.deposit || 0).toLocaleString();
   document.getElementById('e-price').value = o.price || o.kimonoPrice || '';
   document.getElementById('e-hair-fee').value = o.hairFee || '';
   document.getElementById('e-photo-fee').value = o.photoFee || '';

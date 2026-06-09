@@ -553,7 +553,16 @@ async function saveOrder() {
     refundAmt: document.getElementById('e-refund-amt').value, refundDate: document.getElementById('e-refund-date').value,
     refundReason: composeRefundReason(), note: document.getElementById('e-remark').value,
   };
-  if (currentRole === 'store') delete payload.confirmed;
+  if (currentRole === 'store') {
+    delete payload.name;
+    delete payload.phone;
+    delete payload.email;
+    delete payload.confirmed;
+    delete payload.deposit;
+    delete payload.refundAmt;
+    delete payload.refundDate;
+    delete payload.refundReason;
+  }
   if (useFirebaseAdmin()) {
     try {
       const token = await getFreshAdminToken();
@@ -562,9 +571,11 @@ async function saveOrder() {
       const refundDateValue = document.getElementById('e-refund-date').value;
       const firebasePayload = {
         orderId: editingOrder.firebaseDocId || editingOrder.orderId,
-        name: payload.name,
-        phone: payload.phone,
-        email: payload.email,
+        ...(currentRole === 'store' ? {} : {
+          name: payload.name,
+          phone: payload.phone,
+          email: payload.email
+        }),
         bookingAt: bookingValue ? bookingValue + ':00+09:00' : undefined,
         adults: guests.adults,
         ...(guests.maleAdults !== null ? { maleAdults: guests.maleAdults, femaleAdults: guests.femaleAdults } : {}),
@@ -574,19 +585,21 @@ async function saveOrder() {
         hair: payload.hair === 'true',
         photo: payload.photo === 'true',
         ...(currentRole === 'store' ? {} : { confirmed: payload.confirmed === 'TRUE' }),
-        depositJpy: Number(payload.deposit || 0),
+        ...(currentRole === 'store' ? {} : { depositJpy: Number(payload.deposit || 0) }),
         kimonoPriceJpy: Number(payload.kimonoPrice || 0),
         hairFeeJpy: Number(payload.hairFee || 0),
         photoFeeJpy: Number(payload.photoFee || 0),
         couponCode: payload.coupon,
         discountRate: Number(payload.rate || 0),
-        refundAmountJpy: Number(payload.refundAmt || 0),
-        refundTime: refundDateValue || '',
-        refundReason: payload.refundReason,
-        refundBankCode: document.getElementById('e-refund-bankcode').value.trim(),
-        refundBankName: document.getElementById('e-refund-bankname').value.trim(),
-        refundBankAccount: document.getElementById('e-refund-account').value.trim(),
-        refundBankAccountName: document.getElementById('e-refund-accountname').value.trim(),
+        ...(currentRole === 'store' ? {} : {
+          refundAmountJpy: Number(payload.refundAmt || 0),
+          refundTime: refundDateValue || '',
+          refundReason: payload.refundReason,
+          refundBankCode: document.getElementById('e-refund-bankcode').value.trim(),
+          refundBankName: document.getElementById('e-refund-bankname').value.trim(),
+          refundBankAccount: document.getElementById('e-refund-account').value.trim(),
+          refundBankAccountName: document.getElementById('e-refund-accountname').value.trim()
+        }),
         note: payload.note
       };
       const res = await fetch(apiBaseUrl + '/updateOrderByStaff', {
