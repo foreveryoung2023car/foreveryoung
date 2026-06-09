@@ -534,9 +534,11 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                                 </select>
                             </label>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <div class="text-sm font-bold text-[#1A365D] font-sans mb-4">選擇預約人數</div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div class="flex items-center justify-between p-5 bg-[#FDFCF8] rounded-xl border border-slate-100">
-                                <div class="flex flex-col"><span class="text-sm font-bold text-[#1A365D] font-sans">男性大人</span><span class="text-[10px] text-slate-400 uppercase font-sans mt-1">Men</span></div>
+                                <div class="flex flex-col"><span class="text-sm font-bold text-[#1A365D] font-sans">男</span><span class="text-[10px] text-slate-400 uppercase font-sans mt-1">Men</span></div>
                                 <div class="flex items-center gap-3">
                                     <button type="button" onclick="changeGuest('maleAdults', -1)" class="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-[#1A365D] hover:text-white transition-all text-slate-400 font-bold">-</button>
                                     <span id="count-maleAdults" class="font-mono font-bold text-xl w-6 text-center">0</span>
@@ -544,7 +546,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                                 </div>
                             </div>
                             <div class="flex items-center justify-between p-5 bg-[#FDFCF8] rounded-xl border border-slate-100">
-                                <div class="flex flex-col"><span class="text-sm font-bold text-[#1A365D] font-sans">女性大人</span><span class="text-[10px] text-slate-400 uppercase font-sans mt-1">Women</span></div>
+                                <div class="flex flex-col"><span class="text-sm font-bold text-[#1A365D] font-sans">女</span><span class="text-[10px] text-slate-400 uppercase font-sans mt-1">Women</span></div>
                                 <div class="flex items-center gap-3">
                                     <button type="button" onclick="changeGuest('femaleAdults', -1)" class="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-[#1A365D] hover:text-white transition-all text-slate-400 font-bold">-</button>
                                     <span id="count-femaleAdults" class="font-mono font-bold text-xl w-6 text-center">1</span>
@@ -552,12 +554,13 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                                 </div>
                             </div>
                             <div class="flex items-center justify-between p-5 bg-[#FDFCF8] rounded-xl border border-slate-100">
-                                <div class="flex flex-col"><span class="text-sm font-bold text-[#1A365D] font-sans">兒童人數</span><span class="text-[10px] text-slate-400 uppercase font-sans mt-1">Children</span></div>
+                                <div class="flex flex-col"><span class="text-sm font-bold text-[#1A365D] font-sans">兒童</span><span class="text-[10px] text-slate-400 uppercase font-sans mt-1">Children</span></div>
                                 <div class="flex items-center gap-4">
                                     <button type="button" onclick="changeGuest('children', -1)" class="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-[#1A365D] hover:text-white transition-all text-slate-400 font-bold">-</button>
                                     <span id="count-children" class="font-mono font-bold text-xl w-6 text-center">0</span>
                                     <button type="button" onclick="changeGuest('children', 1)" class="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-[#1A365D] hover:text-white transition-all text-slate-400 font-bold">+</button>
                                 </div>
+                            </div>
                             </div>
                         </div>
                         <div id="person-kimono-section" class="mb-2" style="display:none">
