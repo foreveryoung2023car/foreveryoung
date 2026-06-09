@@ -29,11 +29,7 @@ function openEdit(orderId) {
   document.getElementById('e-photo-fee').value = o.photoFee || '';
   document.getElementById('e-coupon').value = o.coupon || '';
   document.getElementById('e-rate').value = o.rate || '0.22';
-  const discountRate = Number(o.rate || 10);
-  const discountText = discountRate > 0 && discountRate < 10 ? discountRate + '折' : '無折';
-  const refundAmount = Number(o.refundAmount || 0);
-  const refundText = refundAmount > 0 ? '退款 ¥' + refundAmount.toLocaleString() : '無退款';
-  document.getElementById('e-discount-refund-display').textContent = discountText + ' / ' + refundText;
+  document.getElementById('e-discount-refund-amount').value = Number(o.discountRefundAmount || 0) || '';
   renderPaymentProof(o);
   document.getElementById('e-refund-amt').value = o.refundAmount || '';
   document.getElementById('e-refund-date').value = (o.refundTime || '').slice(0,16);
@@ -216,7 +212,8 @@ function updateCalc() {
   const hair = Number(document.getElementById('e-hair-fee').value) || 0;
   const photo = Number(document.getElementById('e-photo-fee').value) || 0;
   const deposit = Number(document.getElementById('e-deposit').value) || 0;
-  const onsite = price + hair + photo;
+  const discountRefund = Number(document.getElementById('e-discount-refund-amount').value) || 0;
+  const onsite = Math.max(0, price + hair + photo - discountRefund);
   const afterDep = Math.max(0, onsite - deposit);
   document.getElementById('calc-due').textContent = onsite ? fmtY0(onsite) : '—';
   document.getElementById('calc-net').textContent = onsite ? fmtY0(afterDep) : '—';

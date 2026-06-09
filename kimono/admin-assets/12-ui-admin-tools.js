@@ -550,6 +550,7 @@ async function saveOrder() {
     deposit: document.getElementById('e-deposit').value, kimonoPrice: document.getElementById('e-price').value,
     hairFee: document.getElementById('e-hair-fee').value, photoFee: document.getElementById('e-photo-fee').value,
     coupon: document.getElementById('e-coupon').value, rate: document.getElementById('e-rate').value,
+    discountRefundAmount: document.getElementById('e-discount-refund-amount').value,
     refundAmt: document.getElementById('e-refund-amt').value, refundDate: document.getElementById('e-refund-date').value,
     refundReason: composeRefundReason(), note: document.getElementById('e-remark').value,
   };
@@ -591,6 +592,7 @@ async function saveOrder() {
         photoFeeJpy: Number(payload.photoFee || 0),
         couponCode: payload.coupon,
         discountRate: Number(payload.rate || 0),
+        discountRefundAmountJpy: Number(payload.discountRefundAmount || 0),
         ...(currentRole === 'store' ? {} : {
           refundAmountJpy: Number(payload.refundAmt || 0),
           refundTime: refundDateValue || '',
