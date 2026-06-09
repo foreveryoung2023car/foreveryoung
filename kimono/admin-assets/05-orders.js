@@ -500,6 +500,9 @@ function setOrderView(mode){
 function getOrderView(){ try{ return localStorage.getItem('orders_view') || 'card'; }catch(e){ return 'card'; } }
 
 function orderDisplayTotal(o) {
+  if (Number.isFinite(Number(o && o.totalJpy)) && Number(o.totalJpy) > 0) {
+    return Number(o.totalJpy);
+  }
   return Math.max(0,
     Number(o.price || o.kimonoPrice || 0)
     + Number(o.hairFee || 0)
@@ -509,6 +512,11 @@ function orderDisplayTotal(o) {
 }
 
 function orderDisplayBalance(o) {
+  const status = orderStatusOf(o);
+  if (status === 'completed') return 0;
+  if (status === 'balance_due' && Number.isFinite(Number(o && o.balanceDue))) {
+    return Math.max(0, Number(o.balanceDue));
+  }
   return Math.max(0,
     orderDisplayTotal(o)
     - Number(o.deposit || 0)

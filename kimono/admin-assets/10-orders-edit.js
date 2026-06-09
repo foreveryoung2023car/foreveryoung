@@ -31,7 +31,17 @@ function openEdit(orderId) {
   document.getElementById('e-coupon').value = o.coupon || '';
   document.getElementById('e-rate').value = o.rate || '0.22';
   document.getElementById('e-discount-refund-amount').value = Number(o.discountRefundAmount || 0) || '';
-  document.getElementById('e-store-actual-received').value = Number(o.storeActualReceived || 0) || '';
+  document.getElementById('e-store-actual-received').value = String(Number(o.storeActualReceived || 0));
+  document.getElementById('e-store-actual-received').dataset.savedValue = String(Number(o.storeActualReceived || 0));
+  document.getElementById('calc-store-balance').dataset.savedValue = String(Number(o.balanceDue || 0));
+  document.getElementById('calc-store-balance').dataset.savedSignature = [
+    Number(o.price || o.kimonoPrice || 0),
+    Number(o.hairFee || 0),
+    Number(o.photoFee || 0),
+    Number(o.deposit || 0),
+    Number(o.discountRefundAmount || 0),
+    Number(o.storeActualReceived || 0)
+  ].join('|');
   renderPaymentProof(o);
   document.getElementById('e-refund-amt').value = o.refundAmount || '';
   document.getElementById('e-refund-date').value = (o.refundTime || '').slice(0,16);
@@ -84,6 +94,8 @@ function renderStoreOrderDetailView(o) {
   document.getElementById('store-view-hair').textContent = (o.hair === true || o.hair === 'true') ? '✅ 有妝髮' : '❌ 無妝髮';
   document.getElementById('store-view-photo').textContent = (o.photo === true || o.photo === 'true') ? '✅ 有攝影' : '❌ 無攝影';
   document.getElementById('store-view-remark').textContent = o.remark || '—';
+  document.getElementById('store-view-actual-received').textContent = fmtY0(Number(o.storeActualReceived || 0));
+  document.getElementById('store-view-balance').textContent = fmtY0(orderDisplayBalance(o));
 }
 
 function resetStoreOrderDetailMode() {
@@ -280,7 +292,15 @@ function updateCalc() {
   const storeActualReceived = Number(document.getElementById('e-store-actual-received').value) || 0;
   const onsite = Math.max(0, price + hair + photo - discountRefund);
   const afterDep = Math.max(0, onsite - deposit);
-  const storeBalance = Math.max(0, afterDep - storeActualReceived);
+  const storedBalance = Number(document.getElementById('calc-store-balance').dataset.savedValue || 0);
+  const currentSignature = [price, hair, photo, deposit, discountRefund, storeActualReceived].join('|');
+  const savedSignature = document.getElementById('calc-store-balance').dataset.savedSignature || '';
+  const useStoredBalance = editingOrder
+    && ['balance_due', 'completed'].includes(orderStatusOf(editingOrder))
+    && currentSignature === savedSignature;
+  const storeBalance = useStoredBalance
+    ? (orderStatusOf(editingOrder) === 'completed' ? 0 : storedBalance)
+    : Math.max(0, afterDep - storeActualReceived);
   document.getElementById('calc-due').textContent = onsite ? fmtY0(onsite) : '—';
   document.getElementById('calc-net').textContent = onsite ? fmtY0(afterDep) : '—';
   document.getElementById('calc-store-balance').textContent = fmtY0(storeBalance);
