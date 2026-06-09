@@ -26,6 +26,9 @@ export async function checkInOrder(orderId: string, raw: unknown, source: string
       if (!actor.storeId) throw new HttpError(403, "Store user has no storeId");
       if (before.storeId !== actor.storeId) throw new HttpError(403, "Order belongs to another store");
     }
+    if (before.status !== "confirmed") {
+      throw new HttpError(400, `Only confirmed orders can check in (current: ${before.status || "unknown"})`);
+    }
     const expectedPhone = String(before.customerPhone || "").replace(/\D/g, "");
     const phoneVerification = String(input.phoneLast5 || input.last5 || "").replace(/\D/g, "");
     if (source === "self" && (!phoneVerification || !expectedPhone || !expectedPhone.endsWith(phoneVerification))) {
@@ -43,7 +46,14 @@ export async function checkInOrder(orderId: string, raw: unknown, source: string
       checkedInAt: FieldValue.serverTimestamp()
     };
     tx.set(checkinRef, checkin);
-    tx.update(orderRef, { status: "checked_in", updatedBy: actor?.uid || null, updatedAt: FieldValue.serverTimestamp() });
+    tx.update(orderRef, {
+      status: "checked_in",
+      checkedInAt: FieldValue.serverTimestamp(),
+      checkedInBy: actor?.uid || source,
+      checkedInSource: source,
+      updatedBy: actor?.uid || null,
+      updatedAt: FieldValue.serverTimestamp()
+    });
     return { before, checkin, checkinId: checkinRef.id };
   });
   await writeAuditLog({

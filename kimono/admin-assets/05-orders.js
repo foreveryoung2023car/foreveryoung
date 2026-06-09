@@ -576,20 +576,25 @@ function renderOrders(orders){
 
     // v2.4.38 報到 badge：若已報到，最高優先 (覆蓋 已確認)
     const checkinBadge = o.checkedInAt ? '<span class="badge" style="background:#D1FAE5;color:#065F46" title="'+(o.checkedInBy||'')+' '+fmtJST(o.checkedInAt).slice(0,16)+'">🎌 已報到</span>' : '';
+    const checkoutBadge = o.status === 'completed'
+      ? '<span class="badge" style="background:#DBEAFE;color:#1E40AF">✓ 已完成</span>'
+      : o.status === 'balance_due'
+        ? '<span class="badge" style="background:#FEF3C7;color:#92400E">💰 待付尾款</span>'
+        : '';
     const badge = anomaly ? '<span class="badge badge-anomaly">⚠ 異常</span>' :
                   refundDone ? '<span class="badge" style="background:#E5E7EB;color:#374151">✓ 已退款</span>' :
                   refundProcessing ? '<span class="badge" style="background:#FEF3C7;color:#92400E">↩ 退款處理中</span>' :
                   refundNew ? '<span class="badge" style="background:#FECACA;color:#7F1D1D">💸 申請退款</span>' :
-                  o.checkedInAt ? checkinBadge :
+                  checkoutBadge || (o.checkedInAt ? checkinBadge :
                   currentRole === 'store' ? '' :
                   o.confirmed ? '<span class="badge badge-confirmed">已確認</span>' :
-                  '<span class="badge badge-pending">待確認</span>';
+                  '<span class="badge badge-pending">待確認</span>');
 
     const hairTag = (o.hair === true || o.hair === 'true') ? '<span class="tag">💆 妝髮</span>' : '';
     const photoTag = (o.photo === true || o.photo === 'true') ? '<span class="tag">📷 攝影</span>' : '';
 
     const total = totalAmount(o);
-    const due = total - (Number(o.deposit)||0);
+    const due = o.status === 'balance_due' ? Number(o.balanceDue || 0) : total - (Number(o.deposit)||0);
     const days = (function(){if(!o.bookingDate)return null;const d=parseBookingDate(o.bookingDate);if(!d)return null;const t=new Date();t.setHours(0,0,0,0);const dd=new Date(d.getFullYear(),d.getMonth(),d.getDate());return Math.round((dd-t)/86400000);})();
     const daysTag = days!==null && !isNaN(days) ? (days<0? '<span class="pill bg-slate-200 text-slate-700">已過 '+Math.abs(days)+' 天</span>' : days===0? '<span class="pill bg-amber-100 text-amber-800">📍 今天到店</span>' : days<=3? '<span class="pill bg-amber-100 text-amber-800">⏰ 剩 '+days+' 天</span>' : '<span class="pill bg-blue-100 text-blue-800">剩 '+days+' 天</span>') : '';
 
@@ -634,12 +639,12 @@ function renderOrders(orders){
           '</div>'+ /* close flex-1 */
         '</div>'+ /* close flex items-start (checkbox row) */
         '<div class="flex flex-row gap-1.5 flex-shrink-0 w-full">'+
-          '<button onclick="openEdit(\''+(o.orderId||'')+'\')" class="btn-navy px-3 py-1.5 rounded-lg text-sm flex-1">✏️ 編輯</button>'+
+          '<button onclick="openEdit(\''+(o.orderId||'')+'\')" class="btn-navy px-3 py-1.5 rounded-lg text-sm flex-1">'+(isStoreOrderReadOnly(o)?'👁 查看':'✏️ 編輯')+'</button>'+
           '<button onclick="openMsgTemplate(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-purple-300 text-purple-700 rounded-lg text-sm hover:bg-purple-50 font-semibold" title="複製訊息範本">📨</button>'+
           (currentRole !== 'store' && !o.confirmed && !anomaly ? '<button onclick="quickConfirm(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-emerald-400 text-emerald-700 rounded-lg text-sm hover:bg-emerald-50 font-semibold flex-1">✅ 快速確認</button>' : '')+
           /* v2.4.38: 報到按鈕，只在「已確認 + 未報到 + 體驗日 ±1 天內」顯示 */
           (o.confirmed && !o.checkedInAt && days!==null && days>=-1 && days<=1 ? '<button onclick="checkInOrder(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-amber-400 text-amber-700 rounded-lg text-sm hover:bg-amber-50 font-semibold flex-1">🎌 報到</button>' : '')+
-          (() => { const tot=(Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0); const due=tot-(Number(o.deposit)||0); const conf=(o.confirmed===true||o.confirmed==='true'||o.confirmed==='TRUE'); const paid=isPaidFull(o); if(conf && due>0 && !paid) return '<button onclick="markPaidFull(\''+(o.orderId||'')+'\',\''+(o.name||'').replace(/\'/g,"\\'")+'\')" class="px-3 py-1.5 border-2 border-emerald-500 text-emerald-700 rounded-lg text-sm hover:bg-emerald-50 font-semibold flex-1">💰 已收齊</button>'; if(paid) return '<button onclick="unmarkPaidFull(\''+(o.orderId||'')+'\',\''+(o.name||'').replace(/\'/g,"\\'")+'\')" class="px-3 py-1.5 border-2 border-emerald-200 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-semibold flex-1" title="已收齊 (點擊取消)">✓ 已收</button>'; return ''; })() + '<button onclick="copyOrderId(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-slate-300 rounded-lg text-sm hover:bg-slate-50 font-semibold flex-1">📋 複製編號</button>'+
+          (() => { const tot=(Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0); const due=o.status==='balance_due'?Number(o.balanceDue||0):tot-(Number(o.deposit)||0); const conf=(o.confirmed===true||o.confirmed==='true'||o.confirmed==='TRUE'); const paid=isPaidFull(o); if(currentRole!=='store' && conf && due>0 && !paid) return '<button onclick="markPaidFull(\''+(o.orderId||'')+'\',\''+(o.name||'').replace(/\'/g,"\\'")+'\')" class="px-3 py-1.5 border-2 border-emerald-500 text-emerald-700 rounded-lg text-sm hover:bg-emerald-50 font-semibold flex-1">💰 已收齊</button>'; if(currentRole!=='store' && paid) return '<span class="px-3 py-1.5 border-2 border-emerald-200 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-semibold flex-1 text-center">✓ 已收</span>'; return ''; })() + '<button onclick="copyOrderId(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-slate-300 rounded-lg text-sm hover:bg-slate-50 font-semibold flex-1">📋 複製編號</button>'+
         '</div>'+
       '</div>'+
     '</div>';

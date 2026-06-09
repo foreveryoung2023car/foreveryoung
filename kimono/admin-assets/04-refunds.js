@@ -67,11 +67,27 @@ function closeMsgTemplate(){ const x=document.getElementById('msgTemplateModal')
 function copyTemplate(id){ const t=document.getElementById(id); if(!t) return; navigator.clipboard.writeText(t.value).then(()=>toast('已複製訊息範本到剪貼簿 ✓')); }
 
 // v2.5k: 已收尾款 (用 note 欄位塞 [PAID-YYYYMMDD] tag, 免改 GAS schema)
-function isPaidFull(o){ return /\[PAID-\d{8}\]/.test(String(o.note||'')); }
+function isPaidFull(o){ return o.status === 'completed' || /\[PAID-\d{8}\]/.test(String(o.note||'')); }
 async function markPaidFull(orderId, name){
   if(!confirm('確認「'+name+'」已收齊尾款？')) return;
   const o = allOrders.find(x=>x.orderId===orderId);
   if(!o) return alert('找不到訂單');
+  if (useFirebaseAdmin() && o.status === 'balance_due') {
+    try {
+      const data = await callFirebaseAdminFunction('/transitionOrder', {
+        orderId: o.firebaseDocId || o.orderId,
+        status: 'completed'
+      });
+      o.status = 'completed';
+      o.balanceDue = 0;
+      filterOrders();
+      toast('已標記收齊尾款 ✓');
+      return data;
+    } catch(e) {
+      alert('儲存失敗：'+e.message);
+      return;
+    }
+  }
   const today = new Date();
   const tag = '[PAID-'+today.getFullYear()+String(today.getMonth()+1).padStart(2,'0')+String(today.getDate()).padStart(2,'0')+']';
   const newNote = (o.note||'') + (o.note?' ':'') + tag;
@@ -84,6 +100,10 @@ async function unmarkPaidFull(orderId, name){
   if(!confirm('「'+name+'」標記為「未收齊」？')) return;
   const o = allOrders.find(x=>x.orderId===orderId);
   if(!o) return;
+  if (useFirebaseAdmin() && o.status === 'completed') {
+    alert('已完成訂單不可還原。');
+    return;
+  }
   const newNote = String(o.note||'').replace(/\s*\[PAID-\d{8}\]/g, '').trim();
   try { await saveOrderQuick(o, {note: newNote}); toast('已取消標記'); }
   catch(e){ alert('失敗：'+e.message); }

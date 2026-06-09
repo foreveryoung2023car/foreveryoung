@@ -537,6 +537,23 @@ async function saveOrder() {
   const btn = document.getElementById('save-btn');
   const msg = document.getElementById('save-msg');
   if (!editingOrder) return;
+  if (typeof isStoreOrderReadOnly === 'function' && isStoreOrderReadOnly(editingOrder)) {
+    toast('此訂單已結帳，店鋪端僅可查看', 'warning');
+    return;
+  }
+  if (currentRole === 'store' && editingOrder.status === 'checked_in') {
+    const consumption = Math.max(0,
+      Number(document.getElementById('e-price').value || 0)
+      + Number(document.getElementById('e-hair-fee').value || 0)
+      + Number(document.getElementById('e-photo-fee').value || 0)
+      - Number(document.getElementById('e-discount-refund-amount').value || 0)
+    );
+    const paid = Number(document.getElementById('e-deposit').value || editingOrder.deposit || 0)
+      + Number(document.getElementById('e-store-actual-received').value || 0);
+    const balance = Math.max(0, consumption - paid);
+    const nextLabel = balance === 0 ? '已完成' : '待付尾款（¥' + balance.toLocaleString() + '）';
+    if (!confirm('確認提交本次消費與付款金額？\n儲存後狀態將變為「' + nextLabel + '」，店鋪端不可再修改。')) return;
+  }
   btn.textContent = '儲存中…'; btn.disabled = true;
   const guests = typeof syncEditPax === 'function'
     ? syncEditPax()
@@ -595,6 +612,7 @@ async function saveOrder() {
         discountRate: Number(payload.rate || 0),
         discountRefundAmountJpy: Number(payload.discountRefundAmount || 0),
         storeActualReceivedJpy: Number(payload.storeActualReceived || 0),
+        ...(currentRole === 'store' && editingOrder.status === 'checked_in' ? { checkout: true } : {}),
         ...(currentRole === 'store' ? {} : {
           refundAmountJpy: Number(payload.refundAmt || 0),
           refundTime: refundDateValue || '',

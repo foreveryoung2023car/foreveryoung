@@ -67,6 +67,7 @@ export const updateOrderByStaffSchema = z.object({
   discountRate: z.number().optional(),
   discountRefundAmountJpy: z.number().int().min(0).optional(),
   storeActualReceivedJpy: z.number().int().min(0).optional(),
+  checkout: z.boolean().optional(),
   refundAmountJpy: z.number().int().min(0).optional(),
   refundTime: z.string().optional(),
   refundReason: z.string().optional(),
@@ -111,6 +112,7 @@ const storeVisibleOrderStatuses: OrderStatus[] = [
   "confirmed",
   "checked_in",
   "completed",
+  "balance_due",
   "refund_requested",
   "refunding",
   "refunded"
@@ -146,6 +148,7 @@ function publicStatusCode(status: unknown) {
     case "confirmed":
     case "checked_in":
     case "completed":
+    case "balance_due":
       return "confirmed";
     case "refund_requested":
     case "refunding":
@@ -213,8 +216,10 @@ function toPublicOrderResponse(orderId: string, order: FirebaseFirestore.Documen
 
 function toAdminOrderResponse(orderId: string, order: FirebaseFirestore.DocumentData) {
   const status = order.status || "";
-  const confirmed = ["confirmed", "checked_in", "completed"].includes(status);
-  const checkedInAt = status === "checked_in" || status === "completed" ? timestampToIso(order.updatedAt || order.bookingAt) : "";
+  const confirmed = ["confirmed", "checked_in", "completed", "balance_due"].includes(status);
+  const checkedInAt = ["checked_in", "completed", "balance_due"].includes(status)
+    ? timestampToIso(order.checkedInAt || order.updatedAt || order.bookingAt)
+    : "";
 
   const { adults, maleAdults, femaleAdults, hasBreakdown } = adultCounts(order);
   return {
@@ -238,6 +243,8 @@ function toAdminOrderResponse(orderId: string, order: FirebaseFirestore.Document
     photo: order.photo ? "true" : "false",
     confirmed,
     checkedInAt,
+    checkedInBy: order.checkedInBy || "",
+    checkedInSource: order.checkedInSource || "",
     deposit: Number(order.depositJpy || 0),
     kimonoPrice: Number(order.kimonoPriceJpy || 0),
     price: Number(order.kimonoPriceJpy || 0),
@@ -249,6 +256,8 @@ function toAdminOrderResponse(orderId: string, order: FirebaseFirestore.Document
     rate: order.discountRate || "",
     discountRefundAmount: Number(order.discountRefundAmountJpy || 0),
     storeActualReceived: Number(order.storeActualReceivedJpy || 0),
+    balanceDue: Number(order.balanceDueJpy || 0),
+    checkoutAt: timestampToIso(order.checkoutAt),
     refundAmount: Number(order.refundAmountJpy || 0),
     refundTime: order.refundTime || "",
     refundReason: order.refundReason || "",
@@ -502,6 +511,12 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
     if (!orderSnap.exists) throw new HttpError(404, "Order not found");
     const before = orderSnap.data()!;
     assertOrderAccess(before, actor);
+    if (isStoreOrderActor(actor) && ["completed", "balance_due"].includes(before.status)) {
+      throw new HttpError(403, "Completed or balance-due orders are read-only for store users");
+    }
+    if (isStoreOrderActor(actor) && input.checkout && before.status !== "checked_in") {
+      throw new HttpError(400, `Only checked-in orders can be checked out (current: ${before.status || "unknown"})`);
+    }
     const patch: FirebaseFirestore.UpdateData<FirebaseFirestore.DocumentData> = {
       updatedBy: actor.uid,
       updatedAt: FieldValue.serverTimestamp()
@@ -534,6 +549,24 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
     if (input.discountRefundAmountJpy !== undefined) patch.discountRefundAmountJpy = input.discountRefundAmountJpy;
     if (input.storeActualReceivedJpy !== undefined) patch.storeActualReceivedJpy = input.storeActualReceivedJpy;
     if (input.note !== undefined) patch.note = input.note;
+
+    if (isStoreOrderActor(actor) && input.checkout) {
+      const consumptionJpy = Math.max(
+        0,
+        (input.kimonoPriceJpy ?? Number(before.kimonoPriceJpy || 0))
+          + (input.hairFeeJpy ?? Number(before.hairFeeJpy || 0))
+          + (input.photoFeeJpy ?? Number(before.photoFeeJpy || 0))
+          - (input.discountRefundAmountJpy ?? Number(before.discountRefundAmountJpy || 0))
+      );
+      const depositJpy = Number(before.depositJpy || 0);
+      const storeActualReceivedJpy = input.storeActualReceivedJpy ?? Number(before.storeActualReceivedJpy || 0);
+      const balanceDueJpy = Math.max(0, consumptionJpy - depositJpy - storeActualReceivedJpy);
+      patch.totalJpy = consumptionJpy;
+      patch.onsiteDueJpy = Math.max(0, consumptionJpy - depositJpy);
+      patch.balanceDueJpy = balanceDueJpy;
+      patch.checkoutAt = FieldValue.serverTimestamp();
+      patch.status = balanceDueJpy === 0 ? "completed" : "balance_due";
+    }
 
     const refundAmount = input.refundAmountJpy ?? Number(before.refundAmountJpy || 0);
     const refundTime = input.refundTime || "";
@@ -594,6 +627,9 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
 }
 
 export async function transitionOrder(orderId: string, nextStatus: OrderStatus, actor: AuthContext) {
+  if (isStoreOrderActor(actor)) {
+    throw new HttpError(403, "Store users must use the check-in and checkout flows");
+  }
   const result = await db.runTransaction(async (tx) => {
     const ref = db.collection("orders").doc(orderId);
     const snap = await tx.get(ref);
@@ -601,7 +637,15 @@ export async function transitionOrder(orderId: string, nextStatus: OrderStatus, 
     const before = snap.data()!;
     assertOrderAccess(before, actor);
     assertTransition(before.status, nextStatus);
-    const patch = { status: nextStatus, updatedBy: actor.uid, updatedAt: FieldValue.serverTimestamp() };
+    const patch: FirebaseFirestore.UpdateData<FirebaseFirestore.DocumentData> = {
+      status: nextStatus,
+      updatedBy: actor.uid,
+      updatedAt: FieldValue.serverTimestamp()
+    };
+    if (before.status === "balance_due" && nextStatus === "completed") {
+      patch.balanceDueJpy = 0;
+      patch.balancePaidAt = FieldValue.serverTimestamp();
+    }
     tx.update(ref, patch);
     return { before, after: { ...before, ...patch, id: orderId } };
   });

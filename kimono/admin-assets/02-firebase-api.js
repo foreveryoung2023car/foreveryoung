@@ -135,8 +135,8 @@ function firebaseAuditLogToAdminRow(log) {
 function firestoreOrderToAdminOrder(doc) {
   const data = firestoreFieldsToObject(doc.fields || {});
   const status = data.status || '';
-  const confirmed = ['confirmed', 'checked_in', 'completed'].includes(status);
-  const checkedInAt = status === 'checked_in' || status === 'completed' ? (data.updatedAt || data.bookingAt || '') : '';
+  const confirmed = ['confirmed', 'checked_in', 'completed', 'balance_due'].includes(status);
+  const checkedInAt = ['checked_in', 'completed', 'balance_due'].includes(status) ? (data.checkedInAt || data.updatedAt || data.bookingAt || '') : '';
   return {
     firebaseDocId: (doc.name || '').split('/').pop(),
     orderId: data.orderNo || data.id || '',
@@ -158,6 +158,8 @@ function firestoreOrderToAdminOrder(doc) {
     photo: data.photo ? 'true' : 'false',
     confirmed,
     checkedInAt,
+    checkedInBy: data.checkedInBy || '',
+    checkedInSource: data.checkedInSource || '',
     deposit: Number(data.depositJpy || 0),
     kimonoPrice: Number(data.kimonoPriceJpy || 0),
     price: Number(data.kimonoPriceJpy || 0),
@@ -169,6 +171,8 @@ function firestoreOrderToAdminOrder(doc) {
     rate: data.discountRate || '',
     discountRefundAmount: Number(data.discountRefundAmountJpy || 0),
     storeActualReceived: Number(data.storeActualReceivedJpy || 0),
+    balanceDue: Number(data.balanceDueJpy || 0),
+    checkoutAt: data.checkoutAt || '',
     refundAmount: Number(data.refundAmountJpy || 0),
     refundTime: data.refundTime || '',
     refundReason: data.refundReason || '',

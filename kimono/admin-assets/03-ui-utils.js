@@ -147,7 +147,7 @@ function filterOrdersForRole(list) {
 
 function isConfirmedOrderForStore(order) {
   const status = String(order.status || '').toLowerCase();
-  if (['confirmed', 'checked_in', 'completed', 'refund_requested', 'refunding', 'refunded'].indexOf(status) >= 0) {
+  if (['confirmed', 'checked_in', 'completed', 'balance_due', 'refund_requested', 'refunding', 'refunded'].indexOf(status) >= 0) {
     return true;
   }
   return order.confirmed === true || order.confirmed === 'true' || order.confirmed === 'TRUE';

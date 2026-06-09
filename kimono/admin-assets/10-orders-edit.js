@@ -59,6 +59,7 @@ function openEdit(orderId) {
   document.getElementById('e-remark').value = o.remark || '';
   renderStoreOrderDetailView(o);
   resetStoreOrderDetailMode();
+  applyStoreOrderReadOnlyMode(o);
   document.getElementById('save-msg').classList.add('hidden');
   switchTab('basic', document.querySelector('#edit-modal .tab-btn'));
   updateCalc();
@@ -92,8 +93,31 @@ function resetStoreOrderDetailMode() {
   }
 }
 
+function isStoreOrderReadOnly(o) {
+  return currentRole === 'store' && ['completed', 'balance_due'].includes(String(o && o.status || ''));
+}
+
+function applyStoreOrderReadOnlyMode(o) {
+  const readOnly = isStoreOrderReadOnly(o);
+  const modal = document.getElementById('edit-modal');
+  if (!modal) return;
+  modal.querySelectorAll('input, select, textarea').forEach(el => {
+    el.disabled = readOnly;
+  });
+  const saveBtn = document.getElementById('save-btn');
+  if (saveBtn) {
+    saveBtn.style.display = readOnly ? 'none' : '';
+    saveBtn.textContent = currentRole === 'store' && o.status === 'checked_in'
+      ? '💰 儲存並完成結帳'
+      : '💾 儲存變更';
+  }
+  const editBtn = modal.querySelector('.store-detail-edit-btn');
+  if (editBtn) editBtn.style.display = readOnly ? 'none' : '';
+}
+
 function enableStoreOrderDetailEdit() {
   if (currentRole !== 'store') return;
+  if (isStoreOrderReadOnly(editingOrder)) return;
   document.getElementById('store-order-detail-view').style.display = 'none';
   document.getElementById('store-order-detail-form').style.display = 'block';
 }
