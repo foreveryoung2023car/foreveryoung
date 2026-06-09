@@ -174,6 +174,7 @@ function firestoreOrderToAdminOrder(doc) {
     refundBankAccountName: data.refundBankAccountName || '',
     proofImageUrl: data.proofUrl || '',
     proofNote: data.proofNote || '',
+    note: data.note || '',
     remark: data.remark || data.note || '',
     status
   };

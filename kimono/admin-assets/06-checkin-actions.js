@@ -78,17 +78,39 @@ async function saveOrderQuick(o, patch){
     const token = await getFreshAdminToken();
     let nextStatus = null;
     if (patch.confirmed === 'TRUE' || patch.confirmed === 'true') nextStatus = 'confirmed';
-    if (!nextStatus) throw new Error('Firebase 後台目前只支援快速確認；其他編輯稍後遷移');
-    const res = await fetch(apiBaseUrl + '/transitionOrder', {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + token },
-      body: JSON.stringify({ orderId:o.firebaseDocId || o.orderId, status:nextStatus })
-    });
-    const data = await res.json().catch(()=>({}));
-    if (!res.ok || data.status !== 'success') throw new Error(data.message || '儲存失敗');
-    o.confirmed = true;
-    o.status = nextStatus;
-    filterOrders(); renderDashboard();
+    let data = null;
+    if (nextStatus) {
+      const res = await fetch(apiBaseUrl + '/transitionOrder', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + token },
+        body: JSON.stringify({ orderId:o.firebaseDocId || o.orderId, status:nextStatus })
+      });
+      data = await res.json().catch(()=>({}));
+      if (!res.ok || data.status !== 'success') throw new Error(data.message || '儲存失敗');
+      o.confirmed = true;
+      o.status = nextStatus;
+    } else {
+      const payload = { orderId:o.firebaseDocId || o.orderId };
+      if (patch.refundDate !== undefined) payload.refundTime = patch.refundDate || '';
+      if (patch.note !== undefined) payload.note = patch.note || '';
+      if (Object.keys(payload).length <= 1) throw new Error('沒有可儲存的變更');
+      const res = await fetch(apiBaseUrl + '/updateOrderByStaff', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + token },
+        body: JSON.stringify(payload)
+      });
+      data = await res.json().catch(()=>({}));
+      if (!res.ok || data.status !== 'success') throw new Error(data.message || '儲存失敗');
+      if (patch.refundDate !== undefined) o.refundTime = patch.refundDate || '';
+      if (patch.note !== undefined) {
+        o.note = patch.note || '';
+        o.remark = patch.note || '';
+      }
+      if (Number(o.refundAmount) > 0 && o.refundTime) o.status = 'refunded';
+    }
+    filterOrders();
+    renderDashboard();
+    if (document.getElementById('todo-modal')) closeTodoModal();
     toast('已更新：'+(o.name||o.orderId));
     return data;
   }
