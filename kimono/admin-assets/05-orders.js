@@ -397,7 +397,7 @@ function populateFilters(){
 }
 
 function setFilter(f, btn){
-  if (currentRole === 'store' && (f === 'pending' || f === 'confirmed')) f = 'all';
+  if (currentRole === 'store' && ['pending', 'confirmed', 'refund', 'duebalance', 'anomaly'].indexOf(f) >= 0) f = 'all';
   currentFilter = f;
   document.querySelectorAll('#sec-orders .tab-btn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
@@ -421,7 +421,7 @@ function resetAllFilters(){
 }
 
 function filterOrders(){
-  if (currentRole === 'store' && (currentFilter === 'pending' || currentFilter === 'confirmed')) currentFilter = 'all';
+  if (currentRole === 'store' && ['pending', 'confirmed', 'refund', 'duebalance', 'anomaly'].indexOf(currentFilter) >= 0) currentFilter = 'all';
   const q = (document.getElementById('f-search').value||'').toLowerCase();
   const dFrom = document.getElementById('f-date-from').value;
   const dTo = document.getElementById('f-date-to').value;

@@ -175,7 +175,10 @@ function applyRolePermissions() {
   document.querySelectorAll('[data-confirmation-ui="1"]').forEach(el => {
     el.style.display = isStore ? 'none' : '';
   });
-  if (isStore && (currentFilter === 'pending' || currentFilter === 'confirmed')) {
+  document.querySelectorAll('[data-store-hidden="1"]').forEach(el => {
+    el.style.display = isStore ? 'none' : '';
+  });
+  if (isStore && ['pending', 'confirmed', 'refund', 'duebalance', 'anomaly'].indexOf(currentFilter) >= 0) {
     currentFilter = 'all';
     document.querySelectorAll('#sec-orders .tab-btn').forEach(btn => btn.classList.remove('active'));
     const allOrdersTab = document.querySelector('#sec-orders .tab-btn[data-order-filter="all"]');
