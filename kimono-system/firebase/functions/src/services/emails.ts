@@ -3,7 +3,7 @@ import { FieldValue, Timestamp, db } from "../lib/firebase.js";
 import { HttpError } from "../lib/constants.js";
 import type { AuthContext } from "../lib/auth.js";
 import { writeAuditLog } from "../lib/audit.js";
-import { sendGmailMessage } from "../lib/gmail.js";
+import { sendResendMessage } from "../lib/resend.js";
 
 type EmailKind = "confirm" | "refund_confirmed" | "booking_reminder" | "proof_received";
 
@@ -361,13 +361,13 @@ function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function sendGmailWithRetry(message: RenderedEmail) {
+async function sendEmailWithRetry(message: RenderedEmail) {
   let lastError: unknown = null;
   const delays = [0, 600, 1600];
   for (let attempt = 1; attempt <= delays.length; attempt += 1) {
     if (delays[attempt - 1]) await wait(delays[attempt - 1]);
     try {
-      const result = await sendGmailMessage(message);
+      const result = await sendResendMessage(message);
       return { ...result, attempts: attempt };
     } catch (err) {
       lastError = err;
@@ -397,7 +397,7 @@ async function sendOrderEmailForOrder(
   const message = await buildOrderEmail(kind, orderId, order, to);
 
   try {
-    const result = await sendGmailWithRetry(message);
+    const result = await sendEmailWithRetry(message);
     await writeAuditLog({
       orderId,
       actor,
@@ -406,12 +406,12 @@ async function sendOrderEmailForOrder(
       afterData: {
         orderNo: order.orderNo || orderId,
         customerEmail: to,
-        gmailMessageId: result.messageId,
+        emailMessageId: result.messageId,
         attempts: result.attempts
       },
-      metadata: { source: "gmail_api", emailKind: kind }
+      metadata: { source: "resend_api", emailKind: kind }
     });
-    return { status: "success", message: action.message, gmailMessageId: result.messageId, attempts: result.attempts };
+    return { status: "success", message: action.message, emailMessageId: result.messageId, attempts: result.attempts };
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
     await writeAuditLog({
@@ -424,7 +424,7 @@ async function sendOrderEmailForOrder(
         customerEmail: to,
         error: errorMessage
       },
-      metadata: { source: "gmail_api", emailKind: kind }
+      metadata: { source: "resend_api", emailKind: kind }
     });
     throw new HttpError(500, `Email send failed after retries: ${errorMessage}`);
   }
@@ -492,7 +492,7 @@ export async function sendDueBookingReminderEmails(now = new Date()) {
       await doc.ref.set({
         emailFlags: {
           bookingReminderSentAt: FieldValue.serverTimestamp(),
-          bookingReminderMessageId: result.gmailMessageId || ""
+          bookingReminderMessageId: result.emailMessageId || ""
         },
         updatedAt: FieldValue.serverTimestamp()
       }, { merge: true });
