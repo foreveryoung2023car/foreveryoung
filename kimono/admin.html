@@ -618,17 +618,17 @@
         <div>
           <h2 class="text-xl font-bold text-[#1A365D] title-serif">✏️ 編輯訂單</h2>
           <p id="modal-order-id" class="text-sm text-slate-600 mt-1 font-semibold"></p>
-          <div data-store-display-field="1" class="hidden mt-3 grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-2 text-sm">
-            <div><span class="text-slate-500 font-semibold">姓名</span><div id="e-name-display" class="font-bold text-[#1A365D] break-words">—</div></div>
-            <div><span class="text-slate-500 font-semibold">電話</span><div id="e-phone-display" class="font-bold text-[#1A365D] break-words">—</div></div>
-            <div><span class="text-slate-500 font-semibold">Email</span><div id="e-email-display" class="font-bold text-[#1A365D] break-all">—</div></div>
-            <div><span class="text-slate-500 font-semibold">預付訂金</span><div id="e-deposit-display" class="font-bold text-[#1A365D]">—</div></div>
-          </div>
         </div>
     </div>
     <div class="flex gap-2 mb-5 flex-wrap border-b border-slate-200 pb-4">
-      <button class="tab-btn active" onclick="switchTab('basic',this)">訂單資訊</button>
+      <button class="tab-btn active" data-store-hidden="1" onclick="switchTab('basic',this)">訂單資訊</button>
       <button class="tab-btn" data-store-hidden="1" onclick="switchTab('refund',this)">退款記錄</button>
+      <div data-store-display-field="1" class="hidden w-full grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-2 text-sm">
+        <div><span class="text-slate-500 font-semibold">姓名</span><div id="e-name-display" class="font-bold text-[#1A365D] break-words">—</div></div>
+        <div><span class="text-slate-500 font-semibold">電話</span><div id="e-phone-display" class="font-bold text-[#1A365D] break-words">—</div></div>
+        <div><span class="text-slate-500 font-semibold">Email</span><div id="e-email-display" class="font-bold text-[#1A365D] break-all">—</div></div>
+        <div><span class="text-slate-500 font-semibold">預付訂金</span><div id="e-deposit-display" class="font-bold text-[#1A365D]">—</div></div>
+      </div>
     </div>
 
     <div id="tab-basic" class="edit-tab">
