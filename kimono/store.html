@@ -7,6 +7,9 @@
 <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=20260609">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="./config.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="./admin-assets/02-firebase-api.js?v=20260609-1"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   body{font-family:'Noto Serif TC',serif;background:#FDFCF8;color:#1A365D;margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
@@ -31,49 +34,47 @@
   <div class="title">門市登入</div>
   <div class="subtitle">STORE PORTAL</div>
 
-  <input id="login-name" class="input" placeholder="門市代號（例：kyoto1）" autocomplete="username">
+  <input id="login-name" type="email" class="input" placeholder="門市員工 Email" autocomplete="username">
   <input id="login-pass" type="password" class="input" placeholder="密碼" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
   <button id="login-btn" class="btn" onclick="doLogin()">登 入</button>
   <div id="err" class="err" style="display:none"></div>
 
   <div class="note">
-    登入後將自動跳轉至完整後台<br>
+    請使用店長或門市員工的 Firebase 帳號<br>
+    登入後將自動進入所屬門市後台<br>
     <a href="./admin.html">客服請改點此處 →</a>
   </div>
 </div>
 
 <script>
-const GAS_URL = (typeof KIMONO_CONFIG !== 'undefined') ? KIMONO_CONFIG.APPS_SCRIPT_URL : '';
-
 async function doLogin() {
-  const name = document.getElementById('login-name').value.trim();
+  const email = document.getElementById('login-name').value.trim();
   const pass = document.getElementById('login-pass').value;
   const errEl = document.getElementById('err');
   const btn = document.getElementById('login-btn');
   errEl.style.display = 'none';
-  if (!name || !pass) { errEl.textContent = '請填入門市代號與密碼'; errEl.style.display = 'block'; return; }
+  if (!email || !pass) { errEl.textContent = '請填入 Email 與密碼'; errEl.style.display = 'block'; return; }
   btn.disabled = true; btn.textContent = '驗證中…';
   try {
-    const res = await fetch(GAS_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'adminLogin', name, password: pass })
-    });
-    const data = await res.json();
-    if (data && data.status === 'success' && data.token) {
-      // Persist to localStorage so admin.html auto-login picks it up
-      localStorage.setItem('admin_agent', data.storeName || data.agent || name);
-      localStorage.setItem('admin_token', data.token);
-      localStorage.setItem('admin_role', data.role || 'agent');
-      if (data.storeKey) localStorage.setItem('admin_storeKey', data.storeKey);
-      // Redirect
-      location.href = './admin.html';
-    } else {
-      errEl.textContent = (data && data.message) || '密碼錯誤，請再試一次';
-      errEl.style.display = 'block';
-      btn.disabled = false; btn.textContent = '登 入';
+    const data = await firebaseSignInAdmin(email, pass);
+    if (!['store_manager', 'store_staff'].includes(data.firebaseRole)) {
+      await firebase.auth().signOut();
+      throw new Error('此帳號不是門市帳號，請使用管理後台登入');
     }
+    if (!data.storeKey) {
+      await firebase.auth().signOut();
+      throw new Error('此帳號尚未綁定門市，請聯絡管理員設定 storeId');
+    }
+
+    localStorage.setItem('admin_agent', data.displayName);
+    localStorage.setItem('admin_token', data.token);
+    localStorage.setItem('admin_role', 'store');
+    localStorage.setItem('admin_firebaseRole', data.firebaseRole);
+    localStorage.setItem('admin_storeKey', data.storeKey);
+    localStorage.setItem('admin_uid', data.user.uid);
+    location.href = './admin.html';
   } catch (e) {
-    errEl.textContent = '無法連線到伺服器';
+    errEl.textContent = e && e.message ? e.message : '無法登入，請稍後再試';
     errEl.style.display = 'block';
     btn.disabled = false; btn.textContent = '登 入';
   }
