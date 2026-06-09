@@ -182,7 +182,7 @@ function applyRolePermissions() {
     el.style.display = isStore ? 'none' : '';
   });
   document.querySelectorAll('[data-store-display-field="1"]').forEach(el => {
-    el.style.display = isStore ? 'grid' : 'none';
+    el.style.display = isStore ? 'flex' : 'none';
   });
   if (isStore && ['pending', 'confirmed', 'refund', 'duebalance', 'anomaly'].indexOf(currentFilter) >= 0) {
     currentFilter = 'all';
