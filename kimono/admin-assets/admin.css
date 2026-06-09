@@ -35,6 +35,25 @@
   .badge-vip{background:linear-gradient(135deg,#C9A961,#8B7355);color:white}
   .badge-paid{background:#A7F3D0;color:#064E3B}
   .badge-unpaid{background:#FED7AA;color:#7C2D12}
+  .order-status-control{display:inline-flex;align-items:center;gap:2px;min-height:34px;padding:0 9px;border-radius:999px;font-size:13px;font-weight:800;white-space:nowrap;flex-shrink:0}
+  .order-status-control.is-editable{cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+  .order-status-control.is-editable:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(15,23,42,.12)}
+  .order-status-control .order-status-icon{font-size:13px;line-height:1}
+  .order-status-control select{appearance:auto;border:0;outline:0;background:transparent;color:inherit;font:inherit;font-weight:800;cursor:pointer;max-width:112px;padding:6px 1px}
+  .order-status-control select:disabled{appearance:none;cursor:default;opacity:1}
+  .order-status-control.is-large{min-height:46px;padding:0 15px;font-size:16px;box-shadow:0 2px 8px rgba(15,23,42,.08)}
+  .order-status-control.is-large .order-status-icon{font-size:17px}
+  .order-status-control.is-large select{max-width:150px;padding:10px 2px}
+  .status-pending-payment{background:#FDE68A;color:#78350F}
+  .status-pending-review{background:#FEF3C7;color:#92400E}
+  .status-confirmed{background:#DBEAFE;color:#1E40AF}
+  .status-checked-in{background:#D1FAE5;color:#065F46}
+  .status-balance-due{background:#FFEDD5;color:#9A3412}
+  .status-completed{background:#DCFCE7;color:#166534}
+  .status-refund-requested{background:#FEE2E2;color:#991B1B}
+  .status-refunding{background:#FCE7F3;color:#9D174D}
+  .status-refunded,.status-cancelled{background:#E2E8F0;color:#475569}
+  .status-unknown{background:#F1F5F9;color:#475569}
 
   /* section-label 加大、加粗、加深 */
   .section-label { font-size:11px;font-weight:700;letter-spacing:.1em;color:#475569;text-transform:uppercase;margin-bottom:5px }

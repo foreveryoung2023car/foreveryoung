@@ -4,6 +4,7 @@ function openEdit(orderId) {
   if (!o) return;
   editingOrder = o;
   document.getElementById('modal-order-id').textContent = orderId + (o.submitDate ? ' · 填單: ' + o.submitDate : '');
+  renderEditModalStatus(o);
   document.getElementById('e-name').value = o.name || '';
   document.getElementById('e-phone').value = o.phone || '';
   document.getElementById('e-email').value = o.email || '';
@@ -66,6 +67,11 @@ function openEdit(orderId) {
   injectAnomalyWarning(o); // v2.6
   document.getElementById('edit-modal').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
+}
+
+function renderEditModalStatus(o) {
+  const target = document.getElementById('modal-order-status');
+  if (target) target.innerHTML = renderOrderStatusControl(o, 'large');
 }
 
 function renderStoreOrderDetailView(o) {

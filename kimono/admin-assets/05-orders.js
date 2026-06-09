@@ -515,6 +515,106 @@ function orderDisplayBalance(o) {
   );
 }
 
+const ORDER_STATUS_META = {
+  pending_payment: { label:'待付款', icon:'💳', css:'status-pending-payment' },
+  pending_review: { label:'待確認', icon:'⏳', css:'status-pending-review' },
+  confirmed: { label:'待到店', icon:'📅', css:'status-confirmed' },
+  checked_in: { label:'已報到', icon:'🎌', css:'status-checked-in' },
+  balance_due: { label:'待付尾款', icon:'💰', css:'status-balance-due' },
+  completed: { label:'已完成', icon:'✓', css:'status-completed' },
+  refund_requested: { label:'申請退款', icon:'↩', css:'status-refund-requested' },
+  refunding: { label:'退款中', icon:'↩', css:'status-refunding' },
+  refunded: { label:'已退款', icon:'✓', css:'status-refunded' },
+  cancelled: { label:'已取消', icon:'×', css:'status-cancelled' }
+};
+
+const ORDER_STATUS_TRANSITIONS = {
+  pending_payment: ['pending_review', 'cancelled'],
+  pending_review: ['confirmed', 'pending_payment', 'cancelled'],
+  confirmed: ['checked_in', 'refund_requested', 'cancelled'],
+  checked_in: ['completed', 'balance_due', 'refund_requested'],
+  completed: ['refund_requested'],
+  balance_due: ['completed', 'refund_requested'],
+  refund_requested: ['refunding', 'confirmed', 'cancelled'],
+  refunding: ['refunded', 'confirmed'],
+  refunded: [],
+  cancelled: []
+};
+
+function canManageOrderStatus() {
+  if (!useFirebaseAdmin()) return false;
+  const role = localStorage.getItem('admin_firebaseRole') || '';
+  return ['owner', 'admin', 'agent'].includes(role);
+}
+
+function orderStatusMeta(status) {
+  return ORDER_STATUS_META[status] || { label:status || '未知狀態', icon:'•', css:'status-unknown' };
+}
+
+function renderOrderStatusControl(o, size) {
+  const status = String(o.status || (o.confirmed ? 'confirmed' : 'pending_review'));
+  const meta = orderStatusMeta(status);
+  const editable = canManageOrderStatus() && (ORDER_STATUS_TRANSITIONS[status] || []).length > 0;
+  const options = [status].concat(editable ? ORDER_STATUS_TRANSITIONS[status] : []);
+  return '<span class="order-status-control '+(size === 'large' ? 'is-large ' : '')+(editable ? 'is-editable ' : '')+meta.css+'" onclick="openOrderStatusPicker(event,this)">'+
+    '<span class="order-status-icon" aria-hidden="true">'+meta.icon+'</span>'+
+    '<select aria-label="訂單狀態" title="'+(editable?'點擊修改訂單狀態':'目前帳號不可修改狀態')+'" '+
+      'onclick="event.stopPropagation()" onchange="changeOrderStatus(\''+(o.orderId||'')+'\',this.value,this)" '+(editable?'':'disabled')+'>'+
+      options.map(statusOption => {
+        const optionMeta = orderStatusMeta(statusOption);
+        return '<option value="'+statusOption+'" '+(statusOption===status?'selected':'')+'>'+optionMeta.label+'</option>';
+      }).join('')+
+    '</select>'+
+  '</span>';
+}
+
+function openOrderStatusPicker(event, control) {
+  if (event.target && event.target.tagName === 'SELECT') return;
+  event.stopPropagation();
+  const select = control.querySelector('select');
+  if (!select || select.disabled) return;
+  if (typeof select.showPicker === 'function') select.showPicker();
+  else {
+    select.focus();
+    select.click();
+  }
+}
+
+async function changeOrderStatus(orderId, nextStatus, selectEl) {
+  const o = allOrders.find(x => x.orderId === orderId);
+  if (!o) return;
+  const previousStatus = String(o.status || (o.confirmed ? 'confirmed' : 'pending_review'));
+  if (nextStatus === previousStatus) return;
+  const nextMeta = orderStatusMeta(nextStatus);
+  if (!confirm('確認將訂單「'+orderId+'」改為「'+nextMeta.label+'」？')) {
+    selectEl.value = previousStatus;
+    return;
+  }
+  selectEl.disabled = true;
+  try {
+    const data = await callFirebaseAdminFunction('/transitionOrder', {
+      orderId: o.firebaseDocId || o.orderId,
+      status: nextStatus
+    });
+    o.status = nextStatus;
+    o.confirmed = ['confirmed', 'checked_in', 'completed', 'balance_due'].includes(nextStatus);
+    if (nextStatus === 'completed') o.balanceDue = 0;
+    if (editingOrder && editingOrder.orderId === orderId) {
+      editingOrder = o;
+      renderEditModalStatus(o);
+      applyStoreOrderReadOnlyMode(o);
+    }
+    filterOrders();
+    renderDashboard();
+    toast('狀態已更新為「'+nextMeta.label+'」');
+    return data;
+  } catch (e) {
+    selectEl.disabled = false;
+    selectEl.value = previousStatus;
+    alert('狀態更新失敗：'+e.message);
+  }
+}
+
 function renderOrders(orders){
   const el = document.getElementById('orders-list');
   // v2.5d: 列表 view
@@ -591,22 +691,6 @@ function renderOrders(orders){
     const cls = anomaly ? 'urgent' : (overdueClass || '');
     const sel = selectedIds.has(o.orderId) ? 'selected' : '';
 
-    // v2.4.38 報到 badge：若已報到，最高優先 (覆蓋 已確認)
-    const checkinBadge = o.checkedInAt ? '<span class="badge" style="background:#D1FAE5;color:#065F46" title="'+(o.checkedInBy||'')+' '+fmtJST(o.checkedInAt).slice(0,16)+'">🎌 已報到</span>' : '';
-    const checkoutBadge = o.status === 'completed'
-      ? '<span class="badge" style="background:#DBEAFE;color:#1E40AF">✓ 已完成</span>'
-      : o.status === 'balance_due'
-        ? '<span class="badge" style="background:#FEF3C7;color:#92400E">💰 待付尾款</span>'
-        : '';
-    const badge = anomaly ? '<span class="badge badge-anomaly">⚠ 異常</span>' :
-                  refundDone ? '<span class="badge" style="background:#E5E7EB;color:#374151">✓ 已退款</span>' :
-                  refundProcessing ? '<span class="badge" style="background:#FEF3C7;color:#92400E">↩ 退款處理中</span>' :
-                  refundNew ? '<span class="badge" style="background:#FECACA;color:#7F1D1D">💸 申請退款</span>' :
-                  checkoutBadge || (o.checkedInAt ? checkinBadge :
-                  currentRole === 'store' ? '' :
-                  o.confirmed ? '<span class="badge badge-confirmed">已確認</span>' :
-                  '<span class="badge badge-pending">待確認</span>');
-
     const hairTag = (o.hair === true || o.hair === 'true') ? '<span class="tag">💆 妝髮</span>' : '';
     const photoTag = (o.photo === true || o.photo === 'true') ? '<span class="tag">📷 攝影</span>' : '';
 
@@ -620,10 +704,15 @@ function renderOrders(orders){
         '<div class="flex items-start gap-2">'+
           '<input type="checkbox" class="checkbox-lg mt-1 flex-shrink-0" '+(selectedIds.has(o.orderId)?'checked':'')+' onclick="event.stopPropagation();toggleSelect(\''+(o.orderId||'')+'\')">'+
           '<div class="flex-1 min-w-0">'+
+            '<div class="flex items-start justify-between gap-2 mb-2">'+
+              '<div class="flex items-center gap-2 flex-wrap min-w-0">'+
+                '<span class="font-bold text-[#1A365D] text-base md:text-lg">'+(o.name||'—')+'</span>' + (function(){const ph=String(o.phone||'').replace(/\D/g,'');if(!ph) return '';const arr=(typeof allOrders!=='undefined'?allOrders:[]);const cnt=arr.filter(x=>String(x.phone||'').replace(/\D/g,'')===ph).length;return cnt>=3?'<span class="text-[11px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded ml-1">⭐'+cnt+'</span>':(cnt>=2?'<span class="text-[11px] text-slate-500 ml-1">'+cnt+'訪</span>':'');})()+
+                '<span class="text-slate-600 text-xs md:text-sm font-mono">'+(o.orderId||'')+'</span>'+
+              '</div>'+
+              renderOrderStatusControl(o, 'card')+
+            '</div>'+
             '<div class="flex items-center gap-2 mb-2 flex-wrap">'+
-              badge+
-              '<span class="font-bold text-[#1A365D] text-base md:text-lg">'+(o.name||'—')+'</span>' + (function(){const ph=String(o.phone||'').replace(/\D/g,'');if(!ph) return '';const arr=(typeof allOrders!=='undefined'?allOrders:[]);const cnt=arr.filter(x=>String(x.phone||'').replace(/\D/g,'')===ph).length;return cnt>=3?'<span class="text-[11px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded ml-1">⭐'+cnt+'</span>':(cnt>=2?'<span class="text-[11px] text-slate-500 ml-1">'+cnt+'訪</span>':'');})()+
-              '<span class="text-slate-600 text-xs md:text-sm font-mono">'+(o.orderId||'')+'</span>'+(o.submitDate? '<span class="text-[11px] text-slate-500 ml-1 hidden xl:inline">下單 '+fmtJST(o.submitDate)+'</span>':'')+
+              (o.submitDate? '<span class="text-[11px] text-slate-500 hidden xl:inline">下單 '+fmtJST(o.submitDate)+'</span>':'')+
               (o.platform? '<span class="pill bg-blue-100 text-blue-800">📱 '+o.platform+'</span>':'')+
               (o.storeKey? '<span class="pill bg-purple-100 text-purple-800">🏪 '+o.storeKey+'</span>':'')+
               daysTag+

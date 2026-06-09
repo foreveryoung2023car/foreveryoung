@@ -11,7 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./admin-assets/admin.css?v=20260609-6">
+<link rel="stylesheet" href="./admin-assets/admin.css?v=20260610-2">
 </head>
 <body class="min-h-screen" style="overflow-x:hidden">
 
@@ -614,11 +614,12 @@
   <div class="modal-frame">
     <button onclick="closeModal()" class="modal-floating-close" aria-label="關閉編輯訂單">×</button>
     <div class="modal-box">
-      <div class="mb-5">
-        <div>
+      <div class="mb-5 flex items-start justify-between gap-4">
+        <div class="min-w-0">
           <h2 class="text-xl font-bold text-[#1A365D] title-serif">✏️ 編輯訂單</h2>
           <p id="modal-order-id" class="text-sm text-slate-600 mt-1 font-semibold"></p>
         </div>
+        <div id="modal-order-status" class="flex-shrink-0"></div>
     </div>
     <div class="flex gap-2 mb-5 flex-wrap border-b border-slate-200 pb-4">
       <button class="tab-btn active" data-store-hidden="1" onclick="switchTab('basic',this)">訂單資訊</button>
@@ -800,12 +801,12 @@
 <script src="./admin-assets/02-firebase-api.js?v=20260610-1"></script>
 <script src="./admin-assets/03-ui-utils.js?v=20260610-1"></script>
 <script src="./admin-assets/04-refunds.js?v=20260610-1"></script>
-<script src="./admin-assets/05-orders.js?v=20260610-2"></script>
+<script src="./admin-assets/05-orders.js?v=20260610-4"></script>
 <script src="./admin-assets/06-checkin-actions.js?v=20260609-2"></script>
 <script src="./admin-assets/07-calendar.js?v=20260605-14"></script>
 <script src="./admin-assets/08-finance.js?v=20260605-14"></script>
 <script src="./admin-assets/09-reconcile.js?v=20260605-14"></script>
-<script src="./admin-assets/10-orders-edit.js?v=20260610-1"></script>
+<script src="./admin-assets/10-orders-edit.js?v=20260610-2"></script>
 <script src="./admin-assets/11-refunds-edit.js?v=20260605-14"></script>
 <script src="./admin-assets/12-ui-admin-tools.js?v=20260610-1"></script>
 <script src="./admin-assets/13-weather.js?v=20260605-14"></script>
