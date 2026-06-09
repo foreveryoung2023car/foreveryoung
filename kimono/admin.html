@@ -118,8 +118,8 @@
     <!-- v2.4.20 B+D ── KPI 重排：第一排 4 大主卡 + 第二排 3 副卡 ── -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
       <div class="stat-card blue"><div class="section-label">📋 總訂單</div><div id="kpi-total" class="stat-num">—</div><div id="kpi-total-trend" class="text-xs text-slate-600 mt-1 font-semibold">—</div></div>
-      <div class="stat-card gold"><div class="section-label">⏳ 待確認</div><div id="kpi-pending" class="stat-num amber">—</div><div id="kpi-pending-trend" class="text-xs text-slate-600 mt-1 font-semibold">—</div></div>
-      <div class="stat-card green"><div class="section-label">✅ 已確認</div><div id="kpi-confirmed" class="stat-num green">—</div><div id="kpi-confirmed-trend" class="text-xs text-slate-600 mt-1 font-semibold">—</div></div>
+      <div class="stat-card gold" data-confirmation-ui="1"><div class="section-label">⏳ 待確認</div><div id="kpi-pending" class="stat-num amber">—</div><div id="kpi-pending-trend" class="text-xs text-slate-600 mt-1 font-semibold">—</div></div>
+      <div class="stat-card green" data-confirmation-ui="1"><div class="section-label">✅ 已確認</div><div id="kpi-confirmed" class="stat-num green">—</div><div id="kpi-confirmed-trend" class="text-xs text-slate-600 mt-1 font-semibold">—</div></div>
       <!-- v2.4.20 D ── 今日營收新卡 ── -->
       <div class="stat-card" style="border-left-color:#10B981;background:linear-gradient(135deg,#ECFDF5,#FFFFFF)"><div class="section-label">💴 今日入帳</div><div id="kpi-today-revenue" class="stat-num" style="font-size:22px;color:#047857">—</div><div id="kpi-today-revenue-trend" class="text-xs text-slate-600 mt-1 font-semibold">—</div></div>
     </div>
@@ -225,10 +225,10 @@
 
       <div class="flex justify-between items-center mt-4 pt-3 border-t border-slate-200 flex-wrap gap-2">
         <div class="flex flex-wrap gap-2">
-          <button class="tab-btn" onclick="setFilter('all',this)">全部 <span id="cnt-all" class="ml-1 opacity-80">0</span></button>
+          <button class="tab-btn" data-order-filter="all" onclick="setFilter('all',this)">全部 <span id="cnt-all" class="ml-1 opacity-80">0</span></button>
           <button class="tab-btn" onclick="setFilter('today',this)">📍 今天 <span id="cnt-today" class="ml-1 opacity-80">0</span></button>
-          <button class="tab-btn active" onclick="setFilter('pending',this)">待確認 <span id="cnt-pending" class="ml-1 opacity-80">0</span></button>
-          <button class="tab-btn" onclick="setFilter('confirmed',this)">已確認 <span id="cnt-confirmed" class="ml-1 opacity-80">0</span></button>
+          <button class="tab-btn active" data-order-filter="pending" data-confirmation-ui="1" onclick="setFilter('pending',this)">待確認 <span id="cnt-pending" class="ml-1 opacity-80">0</span></button>
+          <button class="tab-btn" data-order-filter="confirmed" data-confirmation-ui="1" onclick="setFilter('confirmed',this)">已確認 <span id="cnt-confirmed" class="ml-1 opacity-80">0</span></button>
           <button class="tab-btn" onclick="setFilter('refund',this)">有退款 <span id="cnt-refund" class="ml-1 opacity-80">0</span></button>
           <button class="tab-btn" onclick="setFilter('duebalance',this)">💰 待收尾款 <span id="cnt-duebalance" class="ml-1 opacity-80">0</span></button>
           <button class="tab-btn" onclick="setFilter('anomaly',this)">⚠ 異常 <span id="cnt-anomaly" class="ml-1 opacity-80">0</span></button>
@@ -241,7 +241,7 @@
       <div class="flex items-center justify-between flex-wrap gap-2">
         <div class="text-sm font-semibold">已選取 <b id="batch-count" class="text-base">0</b> 筆</div>
         <div class="flex gap-2 flex-wrap">
-          <button onclick="batchConfirm()" class="px-3 py-1.5 bg-white border-2 border-emerald-400 text-emerald-700 rounded-lg text-sm hover:bg-emerald-50 font-semibold">✅ 批次確認</button>
+          <button onclick="batchConfirm()" data-confirmation-ui="1" class="px-3 py-1.5 bg-white border-2 border-emerald-400 text-emerald-700 rounded-lg text-sm hover:bg-emerald-50 font-semibold">✅ 批次確認</button>
           <button onclick="batchExportCSV()" class="px-3 py-1.5 bg-white border-2 border-slate-300 rounded-lg text-sm hover:bg-slate-50 font-semibold">📥 匯出選取</button>
           <button onclick="clearSelection()" class="px-3 py-1.5 bg-white border-2 border-slate-300 rounded-lg text-sm hover:bg-slate-50 font-semibold">取消選取</button>
         </div>
@@ -641,7 +641,7 @@
           <input id="e-platform" type="hidden">
           <div><div class="section-label">妝髮造型</div><select id="e-hair" class="input-field"><option value="true">✅ 有妝髮</option><option value="false">❌ 無妝髮</option></select></div>
           <div><div class="section-label">攝影服務</div><select id="e-photo" class="input-field"><option value="true">✅ 有攝影</option><option value="false">❌ 無攝影</option></select></div>
-          <div><div class="section-label">確認狀態</div><select id="e-confirmed" class="input-field"><option value="true">✅ 已確認</option><option value="false">⏳ 待確認</option></select></div>
+          <div data-confirmation-ui="1"><div class="section-label">確認狀態</div><select id="e-confirmed" class="input-field"><option value="true">✅ 已確認</option><option value="false">⏳ 待確認</option></select></div>
         </div>
         <div class="pt-4 border-t border-slate-200">
           <div class="section-label">客服給客人的備註</div>
@@ -731,7 +731,7 @@
 
     <div class="flex gap-3 mt-6 pt-4 border-t border-slate-200 flex-wrap">
       <button onclick="saveOrder()" id="save-btn" class="btn-navy flex-1 py-3 rounded-xl text-base">💾 儲存變更</button>
-      <button onclick="sendConfirmEmailFromModal()" id="send-confirm-email-btn" class="px-4 py-3 rounded-xl text-base bg-emerald-600 hover:bg-emerald-700 text-white font-semibold whitespace-nowrap" title="寄送確認信給客人 (使用 Email 欄位)">✉️ 寄確認信</button>
+      <button onclick="sendConfirmEmailFromModal()" id="send-confirm-email-btn" data-confirmation-ui="1" class="px-4 py-3 rounded-xl text-base bg-emerald-600 hover:bg-emerald-700 text-white font-semibold whitespace-nowrap" title="寄送確認信給客人 (使用 Email 欄位)">✉️ 寄確認信</button>
       <button onclick="sendRefundConfirmEmailFromModal()" id="send-refund-email-btn" class="px-4 py-3 rounded-xl text-base bg-rose-600 hover:bg-rose-700 text-white font-semibold whitespace-nowrap" title="寄送退款完成通知給客人">↩️ 寄退款信</button>
       <button onclick="sendBookingReminderEmailFromModal()" id="send-reminder-email-btn" class="px-4 py-3 rounded-xl text-base bg-amber-500 hover:bg-amber-600 text-white font-semibold whitespace-nowrap" title="寄送預約前一日提醒給客人">⏰ 寄提醒信</button>
       <button onclick="sendProofReceivedEmailFromModal()" id="send-proof-email-btn" class="px-4 py-3 rounded-xl text-base bg-sky-600 hover:bg-sky-700 text-white font-semibold whitespace-nowrap" title="通知客人已收到付款憑證">🧾 寄憑證信</button>
@@ -764,14 +764,14 @@
 <script src="./admin-assets/02-firebase-api.js?v=20260605-14"></script>
 <script src="./admin-assets/03-ui-utils.js?v=20260609-2"></script>
 <script src="./admin-assets/04-refunds.js?v=20260605-14"></script>
-<script src="./admin-assets/05-orders.js?v=20260605-14"></script>
-<script src="./admin-assets/06-checkin-actions.js?v=20260605-14"></script>
+<script src="./admin-assets/05-orders.js?v=20260609-2"></script>
+<script src="./admin-assets/06-checkin-actions.js?v=20260609-2"></script>
 <script src="./admin-assets/07-calendar.js?v=20260605-14"></script>
 <script src="./admin-assets/08-finance.js?v=20260605-14"></script>
 <script src="./admin-assets/09-reconcile.js?v=20260605-14"></script>
 <script src="./admin-assets/10-orders-edit.js?v=20260605-14"></script>
 <script src="./admin-assets/11-refunds-edit.js?v=20260605-14"></script>
-<script src="./admin-assets/12-ui-admin-tools.js?v=20260605-14"></script>
+<script src="./admin-assets/12-ui-admin-tools.js?v=20260609-2"></script>
 <script src="./admin-assets/13-weather.js?v=20260605-14"></script>
 <script src="./admin-assets/14-checkins.js?v=20260605-14"></script>
 <script src="./admin-assets/15-walkin-reconcile.js?v=20260605-14"></script>

@@ -117,7 +117,7 @@ function renderTodos(){
   visible.forEach(o => {
     if (Number(o.refundAmount)>0 && !o.refundTime) {
       items.push({type:'warn', icon:'↩', orderId:o.orderId, name:o.name||'—',
-        text:'退款 ¥'+Number(o.refundAmount).toLocaleString()+' 已確認待匯款',
+        text:'退款 ¥'+Number(o.refundAmount).toLocaleString()+(currentRole === 'store' ? ' 待匯款' : ' 已確認待匯款'),
         extra:'(實際匯款後按「✓ 已完成匯款」)',
         time: o.submitDate || ''});
     }
@@ -375,7 +375,7 @@ function renderUpcoming(){
     const dDay = d ? new Date(d.getFullYear(), d.getMonth(), d.getDate()) : null;  // v2.4.42h: zero out hours
     const days = dDay ? Math.round((dDay-today0)/(86400000)) : 0;
     const dayLabel = days<=0?'今天':days===1?'明天':'剩 '+days+' 天';
-    const badge = o.confirmed? '<span class="badge badge-confirmed">已確認</span>' : '<span class="badge badge-pending">待確認</span>';
+    const badge = currentRole === 'store' ? '' : (o.confirmed? '<span class="badge badge-confirmed">已確認</span>' : '<span class="badge badge-pending">待確認</span>');
     return '<div class="flex items-center justify-between p-2 hover:bg-slate-50 rounded cursor-pointer border border-slate-100" onclick="openEdit(\''+(o.orderId||'')+'\')">'+
       '<div class="flex-1 min-w-0"><div class="font-bold text-sm truncate">'+(o.name||'—')+' <span class="text-[10px] text-slate-500 font-mono font-normal">'+(o.orderId||'')+'</span></div>'+
       '<div class="text-[11px] text-slate-700">'+fmtDate(o.bookingDate)+' '+(function(){const dd=parseBookingDate(o.bookingDate);return dd? (String(dd.getHours()).padStart(2,'0')+':'+String(dd.getMinutes()).padStart(2,'0')):'';})()+' · '+formatGuestCount(o)+' '+((o.hair===true||o.hair==='true'||o.hair==='是')?'💆':'')+((o.photo===true||o.photo==='true'||o.photo==='是')?'📷':'')+'</div></div>'+
@@ -397,6 +397,7 @@ function populateFilters(){
 }
 
 function setFilter(f, btn){
+  if (currentRole === 'store' && (f === 'pending' || f === 'confirmed')) f = 'all';
   currentFilter = f;
   document.querySelectorAll('#sec-orders .tab-btn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
@@ -420,6 +421,7 @@ function resetAllFilters(){
 }
 
 function filterOrders(){
+  if (currentRole === 'store' && (currentFilter === 'pending' || currentFilter === 'confirmed')) currentFilter = 'all';
   const q = (document.getElementById('f-search').value||'').toLowerCase();
   const dFrom = document.getElementById('f-date-from').value;
   const dTo = document.getElementById('f-date-to').value;
@@ -503,7 +505,8 @@ function renderOrders(orders){
     const empty = document.getElementById('orders-empty');
     if (empty) empty.classList.add('hidden');
     el.className = '';
-    el.innerHTML = '<div class="overflow-x-auto bg-white rounded-lg border border-slate-200"><table class="w-full text-sm"><thead class="bg-slate-50 text-xs"><tr><th class="p-2 text-left">編號</th><th class="p-2 text-left">姓名</th><th class="p-2 text-left">門市</th><th class="p-2 text-left">體驗日</th><th class="p-2 text-center">人</th><th class="p-2 text-center">加值</th><th class="p-2 text-right">總價</th><th class="p-2 text-right">尾款</th><th class="p-2 text-center">狀態</th><th class="p-2 text-right">動作</th></tr></thead><tbody>' + orders.map(o => {
+    const statusHeader = currentRole === 'store' ? '' : '<th class="p-2 text-center">狀態</th>';
+    el.innerHTML = '<div class="overflow-x-auto bg-white rounded-lg border border-slate-200"><table class="w-full text-sm"><thead class="bg-slate-50 text-xs"><tr><th class="p-2 text-left">編號</th><th class="p-2 text-left">姓名</th><th class="p-2 text-left">門市</th><th class="p-2 text-left">體驗日</th><th class="p-2 text-center">人</th><th class="p-2 text-center">加值</th><th class="p-2 text-right">總價</th><th class="p-2 text-right">尾款</th>' + statusHeader + '<th class="p-2 text-right">動作</th></tr></thead><tbody>' + orders.map(o => {
       const bd = parseBookingDate(o.bookingDate) || new Date(o.bookingDate);
       const bdStr = bd && !isNaN(bd) ? ((bd.getMonth()+1) + '/' + bd.getDate() + ' ' + String(bd.getHours()).padStart(2,'0') + ':' + String(bd.getMinutes()).padStart(2,'0')) : '—';
       const hair = (o.hair===true||o.hair==='true'||o.hair==='是') ? '💆' : '';
@@ -516,7 +519,9 @@ function renderOrders(orders){
       if (ref > 0) stBadge = '<span class="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs">退款</span>';
       else if (conf) stBadge = '<span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-xs">已確認</span>';
       else stBadge = '<span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs">待確認</span>';
-      return '<tr class="border-t hover:bg-slate-50"><td class="p-2 font-mono text-xs">' + (o.orderId||'') + '</td><td class="p-2 font-bold">' + (o.name||'—') + (function(){var ph=String(o.phone||'').replace(/\D/g,'');if(!ph)return '';var arr=(typeof allOrders!=='undefined'?allOrders:[]);var cnt=arr.filter(function(x){return String(x.phone||'').replace(/\D/g,'')===ph;}).length;return cnt>=3?' <span class="text-[10px] bg-amber-100 text-amber-700 px-1 rounded">⭐'+cnt+'</span>':(cnt>=2?' <span class="text-[10px] text-slate-500">'+cnt+'訪</span>':'');})() + '</td><td class="p-2">' + (o.storeKey||'—') + '</td><td class="p-2 whitespace-nowrap">' + bdStr + '</td><td class="p-2 text-center">' + formatGuestCount(o) + '</td><td class="p-2 text-center">' + (hair+photo||'—') + '</td><td class="p-2 text-right font-bold">¥' + total.toLocaleString() + '</td><td class="p-2 text-right ' + (due>0?'text-amber-700 font-bold':'text-slate-400') + '">' + (due>0?'¥'+due.toLocaleString():'—') + '</td><td class="p-2 text-center">' + stBadge + '</td><td class="p-2 text-right whitespace-nowrap"><button onclick="openEdit(\'' + o.orderId + '\')" class="px-2 py-1 bg-[#1A365D] text-white text-xs rounded mr-1">✏️</button>' + (!conf ? '<button onclick="quickConfirm(\'' + o.orderId + '\')" class="px-2 py-1 border-2 border-emerald-400 text-emerald-700 text-xs rounded">✅</button>' : '') + '</td></tr>';
+      const statusCell = currentRole === 'store' ? '' : '<td class="p-2 text-center">' + stBadge + '</td>';
+      const confirmAction = currentRole === 'store' ? '' : (!conf ? '<button onclick="quickConfirm(\'' + o.orderId + '\')" class="px-2 py-1 border-2 border-emerald-400 text-emerald-700 text-xs rounded">✅</button>' : '');
+      return '<tr class="border-t hover:bg-slate-50"><td class="p-2 font-mono text-xs">' + (o.orderId||'') + '</td><td class="p-2 font-bold">' + (o.name||'—') + (function(){var ph=String(o.phone||'').replace(/\D/g,'');if(!ph)return '';var arr=(typeof allOrders!=='undefined'?allOrders:[]);var cnt=arr.filter(function(x){return String(x.phone||'').replace(/\D/g,'')===ph;}).length;return cnt>=3?' <span class="text-[10px] bg-amber-100 text-amber-700 px-1 rounded">⭐'+cnt+'</span>':(cnt>=2?' <span class="text-[10px] text-slate-500">'+cnt+'訪</span>':'');})() + '</td><td class="p-2">' + (o.storeKey||'—') + '</td><td class="p-2 whitespace-nowrap">' + bdStr + '</td><td class="p-2 text-center">' + formatGuestCount(o) + '</td><td class="p-2 text-center">' + (hair+photo||'—') + '</td><td class="p-2 text-right font-bold">¥' + total.toLocaleString() + '</td><td class="p-2 text-right ' + (due>0?'text-amber-700 font-bold':'text-slate-400') + '">' + (due>0?'¥'+due.toLocaleString():'—') + '</td>' + statusCell + '<td class="p-2 text-right whitespace-nowrap"><button onclick="openEdit(\'' + o.orderId + '\')" class="px-2 py-1 bg-[#1A365D] text-white text-xs rounded mr-1">✏️</button>' + confirmAction + '</td></tr>';
     }).join('') + '</tbody></table></div>';
     document.getElementById('showing-count').textContent = orders.length;
     return;
@@ -576,6 +581,7 @@ function renderOrders(orders){
                   refundProcessing ? '<span class="badge" style="background:#FEF3C7;color:#92400E">↩ 退款處理中</span>' :
                   refundNew ? '<span class="badge" style="background:#FECACA;color:#7F1D1D">💸 申請退款</span>' :
                   o.checkedInAt ? checkinBadge :
+                  currentRole === 'store' ? '' :
                   o.confirmed ? '<span class="badge badge-confirmed">已確認</span>' :
                   '<span class="badge badge-pending">待確認</span>';
 
@@ -630,7 +636,7 @@ function renderOrders(orders){
         '<div class="flex flex-row gap-1.5 flex-shrink-0 w-full">'+
           '<button onclick="openEdit(\''+(o.orderId||'')+'\')" class="btn-navy px-3 py-1.5 rounded-lg text-sm flex-1">✏️ 編輯</button>'+
           '<button onclick="openMsgTemplate(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-purple-300 text-purple-700 rounded-lg text-sm hover:bg-purple-50 font-semibold" title="複製訊息範本">📨</button>'+
-          (!o.confirmed && !anomaly ? '<button onclick="quickConfirm(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-emerald-400 text-emerald-700 rounded-lg text-sm hover:bg-emerald-50 font-semibold flex-1">✅ 快速確認</button>' : '')+
+          (currentRole !== 'store' && !o.confirmed && !anomaly ? '<button onclick="quickConfirm(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-emerald-400 text-emerald-700 rounded-lg text-sm hover:bg-emerald-50 font-semibold flex-1">✅ 快速確認</button>' : '')+
           /* v2.4.38: 報到按鈕，只在「已確認 + 未報到 + 體驗日 ±1 天內」顯示 */
           (o.confirmed && !o.checkedInAt && days!==null && days>=-1 && days<=1 ? '<button onclick="checkInOrder(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-amber-400 text-amber-700 rounded-lg text-sm hover:bg-amber-50 font-semibold flex-1">🎌 報到</button>' : '')+
           (() => { const tot=(Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0); const due=tot-(Number(o.deposit)||0); const conf=(o.confirmed===true||o.confirmed==='true'||o.confirmed==='TRUE'); const paid=isPaidFull(o); if(conf && due>0 && !paid) return '<button onclick="markPaidFull(\''+(o.orderId||'')+'\',\''+(o.name||'').replace(/\'/g,"\\'")+'\')" class="px-3 py-1.5 border-2 border-emerald-500 text-emerald-700 rounded-lg text-sm hover:bg-emerald-50 font-semibold flex-1">💰 已收齊</button>'; if(paid) return '<button onclick="unmarkPaidFull(\''+(o.orderId||'')+'\',\''+(o.name||'').replace(/\'/g,"\\'")+'\')" class="px-3 py-1.5 border-2 border-emerald-200 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-semibold flex-1" title="已收齊 (點擊取消)">✓ 已收</button>'; return ''; })() + '<button onclick="copyOrderId(\''+(o.orderId||'')+'\')" class="px-3 py-1.5 border-2 border-slate-300 rounded-lg text-sm hover:bg-slate-50 font-semibold flex-1">📋 複製編號</button>'+
@@ -653,6 +659,7 @@ function updateBatchBar(){
 }
 
 async function quickConfirm(id){
+  if (currentRole === 'store') return;
   const o = allOrders.find(x=>x.orderId===id);
   if(!o) return;
   if(!confirm('確定要將「'+(o.name||id)+'」標記為已確認嗎？')) return;

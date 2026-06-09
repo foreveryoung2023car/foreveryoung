@@ -60,6 +60,7 @@ async function checkInOrder(id){
 }
 
 async function batchConfirm(){
+  if (currentRole === 'store') return;
   if(!selectedIds.size) return;
   if(!confirm('確定批次確認 '+selectedIds.size+' 筆訂單嗎？')) return;
   let ok=0, fail=0;

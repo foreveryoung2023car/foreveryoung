@@ -172,6 +172,15 @@ function applyRolePermissions() {
   const checkinSection = document.getElementById('sec-checkin');
   if (checkinTab) checkinTab.style.display = 'none';
   if (checkinSection) checkinSection.style.display = 'none';
+  document.querySelectorAll('[data-confirmation-ui="1"]').forEach(el => {
+    el.style.display = isStore ? 'none' : '';
+  });
+  if (isStore && (currentFilter === 'pending' || currentFilter === 'confirmed')) {
+    currentFilter = 'all';
+    document.querySelectorAll('#sec-orders .tab-btn').forEach(btn => btn.classList.remove('active'));
+    const allOrdersTab = document.querySelector('#sec-orders .tab-btn[data-order-filter="all"]');
+    if (allOrdersTab) allOrdersTab.classList.add('active');
+  }
   // Store managers can view scoped customer, finance, and reconcile sections.
   // Store staff still keep the lighter daily-operation surface.
   const storeHiddenSections = isStore && !isStoreManager ? ['customers', 'finance', 'reconcile'] : [];

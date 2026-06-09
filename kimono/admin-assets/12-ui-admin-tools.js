@@ -553,6 +553,7 @@ async function saveOrder() {
     refundAmt: document.getElementById('e-refund-amt').value, refundDate: document.getElementById('e-refund-date').value,
     refundReason: composeRefundReason(), note: document.getElementById('e-remark').value,
   };
+  if (currentRole === 'store') delete payload.confirmed;
   if (useFirebaseAdmin()) {
     try {
       const token = await getFreshAdminToken();
@@ -572,7 +573,7 @@ async function saveOrder() {
         platform: payload.platform,
         hair: payload.hair === 'true',
         photo: payload.photo === 'true',
-        confirmed: payload.confirmed === 'TRUE',
+        ...(currentRole === 'store' ? {} : { confirmed: payload.confirmed === 'TRUE' }),
         depositJpy: Number(payload.deposit || 0),
         kimonoPriceJpy: Number(payload.kimonoPrice || 0),
         hairFeeJpy: Number(payload.hairFee || 0),

@@ -473,6 +473,9 @@ export async function createWalkInOrder(raw: unknown, actor: AuthContext) {
 
 export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
   const input = updateOrderByStaffSchema.parse(raw);
+  if (isStoreOrderActor(actor) && input.confirmed !== undefined) {
+    throw new HttpError(403, "Store users cannot change order confirmation status");
+  }
   const result = await db.runTransaction(async (tx) => {
     const orderRef = db.collection("orders").doc(input.orderId);
     const orderSnap = await tx.get(orderRef);
