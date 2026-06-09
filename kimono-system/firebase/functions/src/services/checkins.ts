@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { db, FieldValue } from "../lib/firebase.js";
-import { HttpError } from "../lib/constants.js";
+import { HttpError, resolveOrderStatus } from "../lib/constants.js";
 import type { AuthContext } from "../lib/auth.js";
 import { writeAuditLog } from "../lib/audit.js";
 
@@ -26,8 +26,9 @@ export async function checkInOrder(orderId: string, raw: unknown, source: string
       if (!actor.storeId) throw new HttpError(403, "Store user has no storeId");
       if (before.storeId !== actor.storeId) throw new HttpError(403, "Order belongs to another store");
     }
-    if (before.status !== "confirmed") {
-      throw new HttpError(400, `Only confirmed orders can check in (current: ${before.status || "unknown"})`);
+    const beforeStatus = resolveOrderStatus(before);
+    if (beforeStatus !== "confirmed") {
+      throw new HttpError(400, `Only confirmed orders can check in (current: ${beforeStatus})`);
     }
     const expectedPhone = String(before.customerPhone || "").replace(/\D/g, "");
     const phoneVerification = String(input.phoneLast5 || input.last5 || "").replace(/\D/g, "");

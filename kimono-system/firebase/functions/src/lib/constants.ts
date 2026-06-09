@@ -43,8 +43,8 @@ export const orderStatuses = [
   "pending_review",
   "confirmed",
   "checked_in",
-  "completed",
   "balance_due",
+  "completed",
   "refund_requested",
   "refunding",
   "refunded",
@@ -53,15 +53,31 @@ export const orderStatuses = [
 
 export type OrderStatus = (typeof orderStatuses)[number];
 
+export function resolveOrderStatus(order: {
+  status?: unknown;
+  confirmed?: unknown;
+  checkedInAt?: unknown;
+  refundAmountJpy?: unknown;
+  refundTime?: unknown;
+}): OrderStatus {
+  const status = String(order.status || "");
+  if ((orderStatuses as readonly string[]).includes(status)) return status as OrderStatus;
+  if (Number(order.refundAmountJpy || 0) > 0 && order.refundTime) return "refunded";
+  if (Number(order.refundAmountJpy || 0) > 0) return "refunding";
+  if (order.checkedInAt) return "checked_in";
+  if (order.confirmed === true || order.confirmed === "true" || order.confirmed === "TRUE") return "confirmed";
+  return "pending_review";
+}
+
 export const allowedTransitions: Record<OrderStatus, OrderStatus[]> = {
-  pending_payment: ["pending_review", "cancelled"],
-  pending_review: ["confirmed", "pending_payment", "cancelled"],
-  confirmed: ["checked_in", "refund_requested", "cancelled"],
+  pending_payment: ["pending_review"],
+  pending_review: ["confirmed"],
+  confirmed: ["checked_in", "refund_requested"],
   checked_in: ["completed", "balance_due", "refund_requested"],
   completed: ["refund_requested"],
   balance_due: ["completed", "refund_requested"],
-  refund_requested: ["refunding", "confirmed", "cancelled"],
-  refunding: ["refunded", "confirmed"],
+  refund_requested: ["refunding"],
+  refunding: ["refunded"],
   refunded: [],
   cancelled: []
 };

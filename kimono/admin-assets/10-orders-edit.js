@@ -239,7 +239,7 @@ function injectAnomalyWarning(o){
   if(Number(o.refundAmount) > 0 && !o.refundTime) reasons.push('退款金額已填但未填退款時間');
 
   const c = o.createdAt || o.submitDate;
-  if(!o.confirmed && c) {
+  if(['pending_payment','pending_review'].includes(orderStatusOf(o)) && c) {
     const cd = new Date(c);
     if(!isNaN(cd) && (Date.now() - cd) > 24*3600*1000) reasons.push('待確認超過 24 小時');
   }

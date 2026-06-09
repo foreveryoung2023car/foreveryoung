@@ -80,13 +80,12 @@ function showDayOrders(dateStr){
       const phoneTail = String(o.phone||'').replace(/\D/g, '').slice(-3);
       const hair = (o.hair===true||o.hair==='true'||o.hair==='是')?'💆':'';
       const photo = (o.photo===true||o.photo==='true'||o.photo==='是')?'📷':'';
-      const conf = (o.confirmed===true||o.confirmed==='true'||o.confirmed==='TRUE');
-      const checked = !!o.checkedInAt;
+      const status = orderStatusOf(o);
+      const checked = ['checked_in','balance_due','completed'].includes(status);
       const isVip = (function(){var ph=String(o.phone||'').replace(/\D/g,'');if(!ph)return false;return allOrders.filter(x=>String(x.phone||'').replace(/\D/g,'')===ph).length>=3;})();
-      let st = '⏳待確認';
-      if (checked) st = '✅已報到';
-      else if (conf) st = '✓已確認';
-      const dotColor = checked?'bg-emerald-500':(conf?'bg-amber-400':'bg-slate-300');
+      const statusMeta = orderStatusMeta(status);
+      const st = statusMeta.icon + statusMeta.label;
+      const dotColor = checked?'bg-emerald-500':(status==='confirmed'?'bg-amber-400':'bg-slate-300');
       return '<div class="flex items-center gap-3 py-2 border-b border-slate-50 hover:bg-slate-50 cursor-pointer rounded px-2" onclick="closeCalDayModal();openEdit(\''+o.orderId+'\')">' +
         '<span class="font-mono font-bold text-xl text-[#1A365D] w-16">'+hh+':'+mm+'</span>' +
         '<span class="inline-block w-2 h-2 rounded-full '+dotColor+'"></span>' +
@@ -221,10 +220,8 @@ function openCustomerDetail(key){
     '<div class="overflow-x-auto"><table class="data-table">'+
       '<thead><tr><th>訂單號</th><th>體驗日期</th><th>款式</th><th>人數</th><th class="num">訂金</th><th class="num">總價</th><th>狀態</th></tr></thead>'+
       '<tbody>'+c.orders.sort((a,b)=>new Date(b.bookingDate||0)-new Date(a.bookingDate||0)).map(o=>{
-        const status = Number(o.refundAmount)>0?
-          (o.refundTime ? '<span class="badge" style="background:#E5E7EB;color:#374151">✓ 已退款</span>'
-                        : '<span class="badge" style="background:#FEF3C7;color:#92400E">↩ 退款處理中</span>')
-          : o.confirmed? '<span class="badge badge-confirmed">已確認</span>' : '<span class="badge badge-pending">待確認</span>';
+        const statusMeta = orderStatusMeta(orderStatusOf(o));
+        const status = '<span class="order-status-control '+statusMeta.css+'"><span class="order-status-icon">'+statusMeta.icon+'</span><span>'+statusMeta.label+'</span></span>';
         return '<tr onclick="closeCustomerModal();openEdit(\''+(o.orderId||'')+'\')">'+
           '<td class="font-mono text-sm">'+(o.orderId||'')+'</td>'+
           '<td>'+fmtDate(o.bookingDate)+'</td>'+

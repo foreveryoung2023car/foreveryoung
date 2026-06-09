@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { FieldValue, Timestamp, db } from "../lib/firebase.js";
-import { HttpError, assertTransition, type OrderStatus } from "../lib/constants.js";
+import { HttpError, assertTransition, resolveOrderStatus, type OrderStatus } from "../lib/constants.js";
 import type { AuthContext } from "../lib/auth.js";
 import { writeAuditLog } from "../lib/audit.js";
 import { getIdempotentResponse, rememberIdempotentResponse } from "../lib/idempotency.js";
@@ -58,7 +58,6 @@ export const updateOrderByStaffSchema = z.object({
   platform: z.string().optional(),
   hair: z.boolean().optional(),
   photo: z.boolean().optional(),
-  confirmed: z.boolean().optional(),
   depositJpy: z.number().int().min(0).optional(),
   kimonoPriceJpy: z.number().int().min(0).optional(),
   hairFeeJpy: z.number().int().min(0).optional(),
@@ -174,7 +173,8 @@ function adultCounts(order: FirebaseFirestore.DocumentData) {
 }
 
 function toPublicOrderResponse(orderId: string, order: FirebaseFirestore.DocumentData) {
-  const statusCode = publicStatusCode(order.status);
+  const status = resolveOrderStatus(order);
+  const statusCode = publicStatusCode(status);
   const { adults, maleAdults, femaleAdults, hasBreakdown } = adultCounts(order);
   const children = Number(order.children || 0);
   const planPrice = Number(order.kimonoPriceJpy || 0);
@@ -209,13 +209,13 @@ function toPublicOrderResponse(orderId: string, order: FirebaseFirestore.Documen
     onsiteDue: Number(order.onsiteDueJpy || 0),
     couponCode: order.couponCode || "",
     discount,
-    canRefund: order.status === "confirmed",
-    canCheckIn: order.status === "confirmed"
+    canRefund: status === "confirmed",
+    canCheckIn: status === "confirmed"
   };
 }
 
 function toAdminOrderResponse(orderId: string, order: FirebaseFirestore.DocumentData) {
-  const status = order.status || "";
+  const status = resolveOrderStatus(order);
   const confirmed = ["confirmed", "checked_in", "completed", "balance_due"].includes(status);
   const checkedInAt = ["checked_in", "completed", "balance_due"].includes(status)
     ? timestampToIso(order.checkedInAt || order.updatedAt || order.bookingAt)
@@ -281,7 +281,6 @@ export async function listOrders(raw: unknown, actor: AuthContext) {
     if (!actor.storeId) throw new HttpError(403, "Store user has no storeId");
     query = query.where("storeId", "==", actor.storeId);
     if (isStoreOrderActor(actor)) {
-      query = query.where("status", "in", storeVisibleOrderStatuses);
     }
     query = query.limit(limit);
   } else {
@@ -290,7 +289,7 @@ export async function listOrders(raw: unknown, actor: AuthContext) {
 
   const snap = await query.get();
   const orders = snap.docs
-    .filter((doc) => !isStoreOrderActor(actor) || storeVisibleOrderStatuses.includes(doc.data().status))
+    .filter((doc) => !isStoreOrderActor(actor) || storeVisibleOrderStatuses.includes(resolveOrderStatus(doc.data())))
     .map((doc) => toAdminOrderResponse(doc.id, doc.data()))
     .sort((a, b) => String(b.submitDate || b.bookingDate || "").localeCompare(String(a.submitDate || a.bookingDate || "")));
 
@@ -491,7 +490,6 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
       input.name,
       input.phone,
       input.email,
-      input.confirmed,
       input.depositJpy,
       input.refundAmountJpy,
       input.refundTime,
@@ -511,11 +509,12 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
     if (!orderSnap.exists) throw new HttpError(404, "Order not found");
     const before = orderSnap.data()!;
     assertOrderAccess(before, actor);
-    if (isStoreOrderActor(actor) && ["completed", "balance_due"].includes(before.status)) {
+    const beforeStatus = resolveOrderStatus(before);
+    if (isStoreOrderActor(actor) && ["completed", "balance_due"].includes(beforeStatus)) {
       throw new HttpError(403, "Completed or balance-due orders are read-only for store users");
     }
-    if (isStoreOrderActor(actor) && input.checkout && before.status !== "checked_in") {
-      throw new HttpError(400, `Only checked-in orders can be checked out (current: ${before.status || "unknown"})`);
+    if (isStoreOrderActor(actor) && input.checkout && beforeStatus !== "checked_in") {
+      throw new HttpError(400, `Only checked-in orders can be checked out (current: ${beforeStatus})`);
     }
     const patch: FirebaseFirestore.UpdateData<FirebaseFirestore.DocumentData> = {
       updatedBy: actor.uid,
@@ -591,16 +590,6 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
     if (input.refundBankAccount !== undefined) patch.refundBankAccount = input.refundBankAccount;
     if (input.refundBankAccountName !== undefined) patch.refundBankAccountName = input.refundBankAccountName;
 
-    if (refundAmount > 0 && refundTime) {
-      patch.status = "refunded";
-    } else if (refundAmount > 0) {
-      patch.status = "refunding";
-    } else if (input.confirmed === true && before.status === "pending_review") {
-      patch.status = "confirmed";
-    } else if (input.confirmed === false && before.status === "confirmed") {
-      patch.status = "pending_review";
-    }
-
     tx.update(orderRef, patch);
 
     if (input.refundAmountJpy !== undefined || input.refundReason !== undefined || input.refundTime !== undefined) {
@@ -649,13 +638,19 @@ export async function transitionOrder(orderId: string, nextStatus: OrderStatus, 
     if (!snap.exists) throw new HttpError(404, "Order not found");
     const before = snap.data()!;
     assertOrderAccess(before, actor);
-    assertTransition(before.status, nextStatus);
+    const beforeStatus = resolveOrderStatus(before);
+    if (beforeStatus === "confirmed" || beforeStatus === "checked_in") {
+      throw new HttpError(400, beforeStatus === "confirmed"
+        ? "Use the check-in flow to advance a confirmed order"
+        : "Use the checkout flow to advance a checked-in order");
+    }
+    assertTransition(beforeStatus, nextStatus);
     const patch: FirebaseFirestore.UpdateData<FirebaseFirestore.DocumentData> = {
       status: nextStatus,
       updatedBy: actor.uid,
       updatedAt: FieldValue.serverTimestamp()
     };
-    if (before.status === "balance_due" && nextStatus === "completed") {
+    if (beforeStatus === "balance_due" && nextStatus === "completed") {
       patch.balanceDueJpy = 0;
       patch.balancePaidAt = FieldValue.serverTimestamp();
     }
@@ -668,7 +663,7 @@ export async function transitionOrder(orderId: string, nextStatus: OrderStatus, 
     action: nextStatus === "confirmed" ? "order_confirmed" : "order_patched",
     beforeData: result.before,
     afterData: result.after,
-    metadata: { transition: `${result.before.status}->${nextStatus}` }
+    metadata: { transition: `${resolveOrderStatus(result.before)}->${nextStatus}` }
   });
   return { status: "success", order: result.after };
 }

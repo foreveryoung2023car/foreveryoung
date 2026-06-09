@@ -134,7 +134,14 @@ function firebaseAuditLogToAdminRow(log) {
 
 function firestoreOrderToAdminOrder(doc) {
   const data = firestoreFieldsToObject(doc.fields || {});
-  const status = data.status || '';
+  let status = data.status || '';
+  if (!status) {
+    if (Number(data.refundAmountJpy || 0) > 0 && data.refundTime) status = 'refunded';
+    else if (Number(data.refundAmountJpy || 0) > 0) status = 'refunding';
+    else if (data.checkedInAt) status = 'checked_in';
+    else if (data.confirmed === true || data.confirmed === 'true' || data.confirmed === 'TRUE') status = 'confirmed';
+    else status = 'pending_review';
+  }
   const confirmed = ['confirmed', 'checked_in', 'completed', 'balance_due'].includes(status);
   const checkedInAt = ['checked_in', 'completed', 'balance_due'].includes(status) ? (data.checkedInAt || data.updatedAt || data.bookingAt || '') : '';
   return {

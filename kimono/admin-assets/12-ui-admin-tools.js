@@ -603,7 +603,6 @@ async function saveOrder() {
         platform: payload.platform,
         hair: payload.hair === 'true',
         photo: payload.photo === 'true',
-        ...(currentRole === 'store' ? {} : { confirmed: payload.confirmed === 'TRUE' }),
         ...(currentRole === 'store' ? {} : { depositJpy: Number(payload.deposit || 0) }),
         kimonoPriceJpy: Number(payload.kimonoPrice || 0),
         hairFeeJpy: Number(payload.hairFee || 0),
@@ -724,7 +723,8 @@ document.getElementById('global-search')?.addEventListener('input', (e)=>{
     }
     var html = '<div style="padding:8px 12px;background:#F1F5F9;font-size:11px;color:#475569;border-bottom:1px solid #E2E8F0;">找到 '+match.length+' 筆</div>';
     html += match.map(function(o, i){
-      var status = o.confirmed==='true'||o.confirmed===true ? '<span style="background:#D1FAE5;color:#065F46;padding:2px 8px;border-radius:6px;font-size:11px;">已確認</span>' : '<span style="background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:6px;font-size:11px;">待確認</span>';
+      var meta = orderStatusMeta(orderStatusOf(o));
+      var status = '<span class="order-status-control '+meta.css+'"><span class="order-status-icon">'+meta.icon+'</span><span>'+meta.label+'</span></span>';
       var date = (o.bookingDate||'').slice(0,10) || '—';
       return '<div class="gs-row" data-id="'+(o.orderId||'')+'" data-idx="'+i+'" style="padding:12px 16px;border-bottom:1px solid #F1F5F9;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;">' +
         '<div style="flex:1;min-width:0;">' +

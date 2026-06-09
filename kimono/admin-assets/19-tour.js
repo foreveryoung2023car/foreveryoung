@@ -105,9 +105,9 @@ const TRAINING_SCENARIOS = [
               '<div class="formula">原價 ¥10,000 + EARLY8 (8 折) = 實收 <b>¥8,000</b></div>' +
               '<div class="info-box">⚠ 折扣只折和服費，<b>妝髮 / 攝影不折，店家全收</b>。</div>' },
       { tab: 'orders', selector: '#sec-orders',
-        title: '點「✅ 快速確認」',
-        body: '訂單卡底下藍色按鈕。按下去 → prompt「確定要確認 王小明 的預約？」→ 點確定。' +
-              '<div class="info-box">💡 也可以點「📝 編輯」進去填補欄位後再確認。</div>' },
+        title: '推進到「待到店」',
+        body: '在訂單卡右上角點狀態膠囊，只會出現下一個合法狀態。選擇「待到店」後確認即可。' +
+              '<div class="info-box">💡 狀態不可跳級；報到與結帳會走各自的操作流程。</div>' },
       { center: true, title: '🎉 確認後系統自動做',
         body: '<ol><li>Sheet <code>confirmed</code> 欄變 TRUE</li>' +
               '<li>自動寄「預約已確認」信（含體驗時間、門市地址、現場應付）</li>' +
@@ -779,7 +779,7 @@ const TRAINING_SCENARIOS = [
               '<div class="info-box">大概有底就好，不深究細節。</div>' },
       { tab: 'orders', selector: '#sec-orders',
         title: 'Step 2 (5 分鐘)：處理待確認',
-        body: '訂單管理 → 待確認 filter。<br>逐筆檢查 → 訂金有到的快速確認 → 訂金沒到的標記 / 寄信問客人。' +
+        body: '訂單管理 → 待確認 filter。<br>逐筆檢查 → 訂金有到的從卡片右上角推進到「待到店」 → 訂金沒到的標記 / 寄信問客人。' +
               '<div class="info-box">⏰ 旅乘服務承諾是 24 小時內確認，所以昨晚進來的單上午要清掉。</div>' },
       { tab: 'reconcile', selector: '#sec-reconcile',
         title: 'Step 3 (10 分鐘)：銀行入帳對帳',

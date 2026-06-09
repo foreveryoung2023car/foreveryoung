@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { db, FieldValue } from "../lib/firebase.js";
-import { HttpError } from "../lib/constants.js";
+import { assertTransition, HttpError, resolveOrderStatus } from "../lib/constants.js";
 import type { AuthContext } from "../lib/auth.js";
 import { writeAuditLog } from "../lib/audit.js";
 
@@ -20,6 +20,8 @@ export async function requestRefund(orderId: string, raw: unknown, actor?: AuthC
     const orderRef = db.collection("orders").doc(orderId);
     const orderSnap = await tx.get(orderRef);
     if (!orderSnap.exists) throw new HttpError(404, "Order not found");
+    const before = orderSnap.data()!;
+    assertTransition(resolveOrderStatus(before), "refund_requested");
     const refundRef = db.collection("refundRequests").doc();
     const refund = {
       id: refundRef.id,
@@ -37,7 +39,7 @@ export async function requestRefund(orderId: string, raw: unknown, actor?: AuthC
     };
     tx.set(refundRef, refund);
     tx.update(orderRef, { status: "refund_requested", updatedBy: actor?.uid || null, updatedAt: FieldValue.serverTimestamp() });
-    return { before: orderSnap.data(), refund, refundId: refundRef.id };
+    return { before, refund, refundId: refundRef.id };
   });
   await writeAuditLog({
     orderId,

@@ -36,6 +36,7 @@ async function checkInOrder(id){
       o.checkedInAt = new Date().toISOString();
       o.checkedInBy = storeKey;
       o.status = 'checked_in';
+      if (editingOrder && editingOrder.orderId === id && typeof renderEditModalStatus === 'function') renderEditModalStatus(o);
       filterOrders();
       toast('已報到：'+(o.name||id)+' @ '+storeKey);
       return;
@@ -49,6 +50,8 @@ async function checkInOrder(id){
     if(data.status==='ok'||data.status==='success'){
       o.checkedInAt = data.checkedInAt || new Date().toISOString();
       o.checkedInBy = storeKey;
+      o.status = 'checked_in';
+      if (editingOrder && editingOrder.orderId === id && typeof renderEditModalStatus === 'function') renderEditModalStatus(o);
       filterOrders();
       toast('已報到：'+(o.name||id)+' @ '+storeKey);
     } else {
@@ -61,10 +64,14 @@ async function checkInOrder(id){
 
 async function batchConfirm(){
   if (currentRole === 'store') return;
-  if(!selectedIds.size) return;
-  if(!confirm('確定批次確認 '+selectedIds.size+' 筆訂單嗎？')) return;
+  const eligibleIds = [...selectedIds].filter(id => {
+    const o = allOrders.find(x=>x.orderId===id);
+    return o && orderStatusOf(o) === 'pending_review';
+  });
+  if(!eligibleIds.length) return alert('選取的訂單中沒有可推進到「待到店」的待確認訂單。');
+  if(!confirm('確定將 '+eligibleIds.length+' 筆待確認訂單推進為「待到店」嗎？')) return;
   let ok=0, fail=0;
-  for(const id of selectedIds){
+  for(const id of eligibleIds){
     const o = allOrders.find(x=>x.orderId===id);
     if(!o) continue;
     try{ await saveOrderQuick(o, {confirmed:'TRUE'}); ok++; }catch(e){ fail++; }
