@@ -15,6 +15,8 @@ export const createPublicOrderSchema = z.object({
   storeCode: z.string().optional(),
   bookingAt: z.string(),
   adults: z.number().int().min(0).default(1),
+  maleAdults: z.number().int().min(0).optional(),
+  femaleAdults: z.number().int().min(0).optional(),
   children: z.number().int().min(0).default(0),
   plan: z.string().optional(),
   hair: z.boolean().optional(),
@@ -49,6 +51,8 @@ export const updateOrderByStaffSchema = z.object({
   email: z.string().optional(),
   bookingAt: z.string().optional(),
   adults: z.number().int().min(0).optional(),
+  maleAdults: z.number().int().min(0).optional(),
+  femaleAdults: z.number().int().min(0).optional(),
   children: z.number().int().min(0).optional(),
   plan: z.string().optional(),
   platform: z.string().optional(),
@@ -79,6 +83,8 @@ export const createWalkInOrderSchema = z.object({
   nationality: z.string().optional(),
   storeCode: z.string().optional(),
   adults: z.number().int().min(0).default(1),
+  maleAdults: z.number().int().min(0).optional(),
+  femaleAdults: z.number().int().min(0).optional(),
   children: z.number().int().min(0).default(0),
   plan: z.string().optional(),
   hair: z.boolean().optional(),
@@ -137,9 +143,21 @@ function publicStatusCode(status: unknown) {
   }
 }
 
+function adultCounts(order: FirebaseFirestore.DocumentData) {
+  const hasBreakdown = order.maleAdults !== undefined || order.femaleAdults !== undefined;
+  const maleAdults = Number(order.maleAdults || 0);
+  const femaleAdults = Number(order.femaleAdults || 0);
+  return {
+    hasBreakdown,
+    maleAdults,
+    femaleAdults,
+    adults: hasBreakdown ? maleAdults + femaleAdults : Number(order.adults || 0)
+  };
+}
+
 function toPublicOrderResponse(orderId: string, order: FirebaseFirestore.DocumentData) {
   const statusCode = publicStatusCode(order.status);
-  const adults = Number(order.adults || 0);
+  const { adults, maleAdults, femaleAdults, hasBreakdown } = adultCounts(order);
   const children = Number(order.children || 0);
   const planPrice = Number(order.kimonoPriceJpy || 0);
   const discount = Number(order.discountRate || 10);
@@ -154,8 +172,12 @@ function toPublicOrderResponse(orderId: string, order: FirebaseFirestore.Documen
     phone: order.customerPhone || "",
     statusCode,
     bookingDate: timestampToIso(order.bookingAt),
-    guests: `${adults} 位大人${children ? ` / ${children} 位小孩` : ""}`,
+    guests: hasBreakdown
+      ? `${maleAdults} 位男性 / ${femaleAdults} 位女性${children ? ` / ${children} 位小孩` : ""}`
+      : `${adults} 位大人${children ? ` / ${children} 位小孩` : ""}`,
     adults,
+    maleAdults,
+    femaleAdults,
     children,
     plan: order.plan || "和服體驗",
     hair: order.hair ? "是" : "否",
@@ -179,6 +201,7 @@ function toAdminOrderResponse(orderId: string, order: FirebaseFirestore.Document
   const confirmed = ["confirmed", "checked_in", "completed"].includes(status);
   const checkedInAt = status === "checked_in" || status === "completed" ? timestampToIso(order.updatedAt || order.bookingAt) : "";
 
+  const { adults, maleAdults, femaleAdults, hasBreakdown } = adultCounts(order);
   return {
     firebaseDocId: orderId,
     orderId: order.orderNo || order.id || orderId,
@@ -190,9 +213,11 @@ function toAdminOrderResponse(orderId: string, order: FirebaseFirestore.Document
     platform: order.platform || "",
     source: order.source || "",
     storeKey: order.storeId || "",
-    adults: Number(order.adults || 0),
+    adults,
+    maleAdults: hasBreakdown ? maleAdults : null,
+    femaleAdults: hasBreakdown ? femaleAdults : null,
     children: Number(order.children || 0),
-    pax: Number(order.adults || 0) + Number(order.children || 0),
+    pax: adults + Number(order.children || 0),
     plan: order.plan || "",
     hair: order.hair ? "true" : "false",
     photo: order.photo ? "true" : "false",
@@ -275,6 +300,8 @@ export async function queryPublicOrder(raw: unknown) {
 
 export async function createPublicOrder(raw: unknown) {
   const input = createPublicOrderSchema.parse(raw);
+  const hasAdultBreakdown = input.maleAdults !== undefined || input.femaleAdults !== undefined;
+  const adults = hasAdultBreakdown ? Number(input.maleAdults || 0) + Number(input.femaleAdults || 0) : input.adults;
   const cached = await getIdempotentResponse(input.clientRequestId);
   if (cached) return cached;
 
@@ -306,7 +333,8 @@ export async function createPublicOrder(raw: unknown) {
       customerEmail: input.email || null,
       storeId: input.storeCode || null,
       bookingAt: Timestamp.fromDate(new Date(input.bookingAt)),
-      adults: input.adults,
+      adults,
+      ...(hasAdultBreakdown ? { maleAdults: input.maleAdults || 0, femaleAdults: input.femaleAdults || 0 } : {}),
       children: input.children,
       plan: input.plan || "",
       hair: input.hair || false,
@@ -347,6 +375,8 @@ export async function createPublicOrder(raw: unknown) {
 
 export async function createWalkInOrder(raw: unknown, actor: AuthContext) {
   const input = createWalkInOrderSchema.parse(raw);
+  const hasAdultBreakdown = input.maleAdults !== undefined || input.femaleAdults !== undefined;
+  const adults = hasAdultBreakdown ? Number(input.maleAdults || 0) + Number(input.femaleAdults || 0) : input.adults;
   const cached = await getIdempotentResponse(input.clientRequestId);
   if (cached) return cached;
 
@@ -383,7 +413,8 @@ export async function createWalkInOrder(raw: unknown, actor: AuthContext) {
       customerNationality: input.nationality || "",
       storeId,
       bookingAt: FieldValue.serverTimestamp(),
-      adults: input.adults,
+      adults,
+      ...(hasAdultBreakdown ? { maleAdults: input.maleAdults || 0, femaleAdults: input.femaleAdults || 0 } : {}),
       children: input.children,
       plan: input.plan || "walk-in",
       hair: input.hair || false,
@@ -439,7 +470,15 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
     if (input.phone !== undefined) patch.customerPhone = input.phone;
     if (input.email !== undefined) patch.customerEmail = input.email || null;
     if (input.bookingAt) patch.bookingAt = Timestamp.fromDate(new Date(input.bookingAt));
-    if (input.adults !== undefined) patch.adults = input.adults;
+    if (input.maleAdults !== undefined || input.femaleAdults !== undefined) {
+      const maleAdults = input.maleAdults ?? Number(before.maleAdults || 0);
+      const femaleAdults = input.femaleAdults ?? Number(before.femaleAdults || 0);
+      patch.maleAdults = maleAdults;
+      patch.femaleAdults = femaleAdults;
+      patch.adults = maleAdults + femaleAdults;
+    } else if (input.adults !== undefined) {
+      patch.adults = input.adults;
+    }
     if (input.children !== undefined) patch.children = input.children;
     if (input.plan !== undefined) patch.plan = input.plan;
     if (input.platform !== undefined) patch.platform = input.platform;

@@ -28,7 +28,7 @@ const MSG_TEMPLATES = {
   confirm: function(o){
     const addr = STORE_ADDRESSES[o.storeKey] || '請洽詢店家';
     const total = (Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0);
-    return '您好 '+(o.name||'')+'，您的和服體驗預約已確認 ✅\n\n📋 訂單編號：'+(o.orderId||'')+'\n📅 體驗日期：'+(o.bookingDate||'')+'\n👥 人數：'+(o.adults||o.pax||'1')+' 大\n💰 應付總額：¥'+total.toLocaleString()+'（訂金 ¥'+(Number(o.deposit)||0).toLocaleString()+' 已收）\n📍 體驗地點：'+addr+'\n\n如需任何協助請隨時聯繫我們，期待您的蒞臨！\n— 旅乘 × 和服';
+    return '您好 '+(o.name||'')+'，您的和服體驗預約已確認 ✅\n\n📋 訂單編號：'+(o.orderId||'')+'\n📅 體驗日期：'+(o.bookingDate||'')+'\n👥 人數：'+formatGuestCount(o)+'\n💰 應付總額：¥'+total.toLocaleString()+'（訂金 ¥'+(Number(o.deposit)||0).toLocaleString()+' 已收）\n📍 體驗地點：'+addr+'\n\n如需任何協助請隨時聯繫我們，期待您的蒞臨！\n— 旅乘 × 和服';
   },
   reminder: function(o){
     return '您好 '+(o.name||'')+' ✨ 提醒您明天有預約和服體驗\n\n📅 '+(o.bookingDate||'')+'\n📋 訂單號：'+(o.orderId||'')+'\n\n注意事項：\n• 建議提前 10 分鐘到店\n• 請穿著輕便衣物方便更衣\n• 攜帶證件 + 身分證明\n\n如需改期請於今日下午前告知，謝謝您！';
@@ -163,7 +163,12 @@ function parsePax(s){
   if(!total){ const all = s.match(/\d+/g); if(all) total = all.reduce((a,b)=>a+Number(b),0); }
   return total;
 }
-function expectedDeposit(o){ return parsePax(o.adults || o.pax) * DEPOSIT_JPY; }
+function expectedDeposit(o){
+  if (o && (o.adults !== undefined || o.children !== undefined)) {
+    return (Number(o.adults || 0) + Number(o.children || 0)) * DEPOSIT_JPY;
+  }
+  return parsePax(o && o.pax) * DEPOSIT_JPY;
+}
 
 function isInRange(o, range){
   if(range==='all') return true;

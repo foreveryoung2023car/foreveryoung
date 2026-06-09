@@ -10,6 +10,8 @@ function openEdit(orderId) {
   document.getElementById('e-booking-date').value = (function(bd){ if(!bd) return ''; const d=parseBookingDate(bd); if(!d||isNaN(d)) return String(bd).slice(0,10); const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes()); })(o.bookingDate);
   const guestCount = parseEditGuestCount(o);
   document.getElementById('e-adults').value = guestCount.adults;
+  document.getElementById('e-male-adults').value = guestCount.maleAdults === null ? '' : guestCount.maleAdults;
+  document.getElementById('e-female-adults').value = guestCount.femaleAdults === null ? '' : guestCount.femaleAdults;
   document.getElementById('e-children').value = guestCount.children;
   syncEditPax();
   document.getElementById('e-plan').value = o.plan || '';
@@ -60,28 +62,46 @@ function openEdit(orderId) {
 function parseEditGuestCount(o) {
   const adults = Number(o && o.adults || 0);
   const children = Number(o && o.children || 0);
-  if (adults > 0 || children > 0) return { adults, children };
+  const hasBreakdown = o && (o.maleAdults !== null && o.maleAdults !== undefined
+    || o.femaleAdults !== null && o.femaleAdults !== undefined);
+  if (hasBreakdown) {
+    const maleAdults = Number(o.maleAdults || 0);
+    const femaleAdults = Number(o.femaleAdults || 0);
+    return { adults: maleAdults + femaleAdults, maleAdults, femaleAdults, children };
+  }
+  if (adults > 0 || children > 0) return { adults, maleAdults: null, femaleAdults: null, children };
   const text = String((o && o.pax) || '').trim();
-  if (!text) return { adults: 0, children: 0 };
+  if (!text) return { adults: 0, maleAdults: null, femaleAdults: null, children: 0 };
   const adultMatch = text.match(/(\d+)\s*[大成人]/);
   const childMatch = text.match(/(\d+)\s*[小孩童]/);
   if (adultMatch || childMatch) {
     return {
       adults: adultMatch ? Number(adultMatch[1]) : 0,
+      maleAdults: null,
+      femaleAdults: null,
       children: childMatch ? Number(childMatch[1]) : 0
     };
   }
   const n = Number(text);
-  return { adults: n > 0 ? n : 0, children: 0 };
+  return { adults: n > 0 ? n : 0, maleAdults: null, femaleAdults: null, children: 0 };
 }
 
 function syncEditPax() {
-  const adults = Math.max(0, Number(document.getElementById('e-adults')?.value || 0));
+  const maleEl = document.getElementById('e-male-adults');
+  const femaleEl = document.getElementById('e-female-adults');
+  const hasBreakdown = maleEl?.value !== '' || femaleEl?.value !== '';
+  const maleAdults = hasBreakdown ? Math.max(0, Number(maleEl?.value || 0)) : null;
+  const femaleAdults = hasBreakdown ? Math.max(0, Number(femaleEl?.value || 0)) : null;
+  const adults = hasBreakdown
+    ? maleAdults + femaleAdults
+    : Math.max(0, Number(document.getElementById('e-adults')?.value || 0));
   const children = Math.max(0, Number(document.getElementById('e-children')?.value || 0));
-  const pax = (adults > 0 ? adults + '大' : '') + (children > 0 ? children + '小' : '');
+  const pax = hasBreakdown
+    ? (maleAdults > 0 ? maleAdults + '男' : '') + (femaleAdults > 0 ? femaleAdults + '女' : '') + (children > 0 ? children + '小' : '')
+    : (adults > 0 ? adults + '大' : '') + (children > 0 ? children + '小' : '');
   const legacy = document.getElementById('e-pax');
   if (legacy) legacy.value = pax || '0大';
-  return { adults, children, pax: pax || '0大' };
+  return { adults, maleAdults, femaleAdults, children, pax: pax || '0大' };
 }
 
 function renderPaymentProof(o) {

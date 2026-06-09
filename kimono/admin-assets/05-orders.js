@@ -330,7 +330,7 @@ function renderTodayTimeline(){
     return '<div class="flex items-center gap-2 py-1 text-xs cursor-pointer hover:bg-slate-50 rounded px-1" onclick="openEdit(\''+o.orderId+'\')">' +
       '<span class="font-mono font-bold text-[#1A365D] w-12">'+hh+':'+mm+'</span>' +
       '<span class="inline-block w-2 h-2 rounded-full '+dot+'"></span>' +
-      '<span class="flex-1 truncate"><b>'+(o.name||'—')+'</b> · '+(o.adults||o.pax||'—')+' 人 '+hair+photo+'</span>' +
+      '<span class="flex-1 truncate"><b>'+(o.name||'—')+'</b> · '+formatGuestCount(o)+' '+hair+photo+'</span>' +
       (checked?'<span class="text-[10px] text-emerald-700">已報到</span>':'') +
       '</div>';
     }).join('');
@@ -347,7 +347,7 @@ function renderTodayTimeline(){
       return '<div class="flex items-center gap-2 py-1 text-xs cursor-pointer hover:bg-slate-50 rounded px-1 opacity-70" onclick="openEdit(\''+o.orderId+'\')">' +
         '<span class="font-mono font-bold text-emerald-700 w-12">'+hh+':'+mm+'</span>' +
         '<span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>' +
-        '<span class="flex-1 truncate"><b>'+(o.name||'—')+'</b> · '+(o.adults||o.pax||'—')+' 人 '+hair+photo+'</span>' +
+        '<span class="flex-1 truncate"><b>'+(o.name||'—')+'</b> · '+formatGuestCount(o)+' '+hair+photo+'</span>' +
         '<span class="text-[10px] text-emerald-700">已報到</span>' +
         '</div>';
     }).join('');
@@ -378,7 +378,7 @@ function renderUpcoming(){
     const badge = o.confirmed? '<span class="badge badge-confirmed">已確認</span>' : '<span class="badge badge-pending">待確認</span>';
     return '<div class="flex items-center justify-between p-2 hover:bg-slate-50 rounded cursor-pointer border border-slate-100" onclick="openEdit(\''+(o.orderId||'')+'\')">'+
       '<div class="flex-1 min-w-0"><div class="font-bold text-sm truncate">'+(o.name||'—')+' <span class="text-[10px] text-slate-500 font-mono font-normal">'+(o.orderId||'')+'</span></div>'+
-      '<div class="text-[11px] text-slate-700">'+fmtDate(o.bookingDate)+' '+(function(){const dd=parseBookingDate(o.bookingDate);return dd? (String(dd.getHours()).padStart(2,'0')+':'+String(dd.getMinutes()).padStart(2,'0')):'';})()+' · '+(o.adults||o.pax||'—')+' 人 '+((o.hair===true||o.hair==='true'||o.hair==='是')?'💆':'')+((o.photo===true||o.photo==='true'||o.photo==='是')?'📷':'')+'</div></div>'+
+      '<div class="text-[11px] text-slate-700">'+fmtDate(o.bookingDate)+' '+(function(){const dd=parseBookingDate(o.bookingDate);return dd? (String(dd.getHours()).padStart(2,'0')+':'+String(dd.getMinutes()).padStart(2,'0')):'';})()+' · '+formatGuestCount(o)+' '+((o.hair===true||o.hair==='true'||o.hair==='是')?'💆':'')+((o.photo===true||o.photo==='true'||o.photo==='是')?'📷':'')+'</div></div>'+
       '<div class="flex flex-col items-end gap-0.5 ml-2">'+badge+'<span class="text-[10px] font-bold text-[#C9A961]">'+dayLabel+'</span></div></div>';
   }).join('');
 }

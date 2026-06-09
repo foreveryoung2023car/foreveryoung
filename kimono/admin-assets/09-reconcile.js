@@ -129,7 +129,7 @@ function renderReconcile(){
         '<td class="font-mono text-sm whitespace-nowrap">'+(o.orderId||'')+'</td>'+
         '<td class="font-bold whitespace-nowrap">'+(o.name||'—')+'</td>'+
         '<td>'+fmtDate(o.bookingDate)+'</td>'+
-        '<td class="num">'+(o.adults||o.pax||'—')+'</td>'+
+        '<td class="num">'+formatGuestCount(o)+'</td>'+
         '<td class="num">'+fmtY0(o._expect)+'</td>'+
         '<td class="num">'+fmtY0(o._got)+'</td>'+
         '<td class="num">'+diffStr+'</td>'+
@@ -152,7 +152,7 @@ function exportReconCSV(){
     else if(o.confirmed && expect>0 && got>=expect) st='已對帳';
     else if(o.confirmed && got>0) st='已對帳';
     else if(got>0 && got<expect) st='待收尾款';
-    return [o.orderId, o.name, fmtDate(o.bookingDate), o.adults||o.pax, expect, got, got-expect, st];
+    return [o.orderId, o.name, fmtDate(o.bookingDate), formatGuestCount(o), expect, got, got-expect, st];
   });
   const csv = [headers, ...rows].map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\n');
   const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
@@ -289,7 +289,7 @@ async function confirmAutoReconcile(btn){
 // ── CSV EXPORT ──
 function ordersToCSV(list){
   const headers = ['訂單號','姓名','電話','Email','體驗日期','人數','款式','來源','訂金','和服','妝髮費','攝影費','總計','確認','退款金額','備註'];
-  const rows = list.map(o=>[o.orderId, o.name, o.phone, o.email, o.bookingDate? fmtDate(o.bookingDate):'', o.adults||o.pax||'', o.plan||'', o.platform||'', o.deposit||0, o.price||o.kimonoPrice||0, o.hairFee||0, o.photoFee||0, totalAmount(o), o.confirmed?'已確認':'待確認', o.refundAmount||0, (o.remark||'').replace(/[\r\n]+/g,' ')]);
+  const rows = list.map(o=>[o.orderId, o.name, o.phone, o.email, o.bookingDate? fmtDate(o.bookingDate):'', formatGuestCount(o), o.plan||'', o.platform||'', o.deposit||0, o.price||o.kimonoPrice||0, o.hairFee||0, o.photoFee||0, totalAmount(o), o.confirmed?'已確認':'待確認', o.refundAmount||0, (o.remark||'').replace(/[\r\n]+/g,' ')]);
   const csv = [headers, ...rows].map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\n');
   const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
   const url = URL.createObjectURL(blob);

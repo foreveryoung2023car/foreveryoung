@@ -149,6 +149,8 @@ function firestoreOrderToAdminOrder(doc) {
     source: data.source || '',
     storeKey: data.storeId || '',
     adults: Number(data.adults || 0),
+    maleAdults: data.maleAdults === undefined ? null : Number(data.maleAdults || 0),
+    femaleAdults: data.femaleAdults === undefined ? null : Number(data.femaleAdults || 0),
     children: Number(data.children || 0),
     pax: Number(data.adults || 0) + Number(data.children || 0),
     plan: data.plan || '',

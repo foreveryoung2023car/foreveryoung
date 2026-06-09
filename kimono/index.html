@@ -534,13 +534,21 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                                 </select>
                             </label>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div class="flex items-center justify-between p-5 bg-[#FDFCF8] rounded-xl border border-slate-100">
-                                <div class="flex flex-col"><span class="text-sm font-bold text-[#1A365D] font-sans">大人人數</span><span class="text-[10px] text-slate-400 uppercase font-sans mt-1">Adults</span></div>
-                                <div class="flex items-center gap-4">
-                                    <button type="button" onclick="changeGuest('adults', -1)" class="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-[#1A365D] hover:text-white transition-all text-slate-400 font-bold">-</button>
-                                    <span id="count-adults" class="font-mono font-bold text-xl w-6 text-center">1</span>
-                                    <button type="button" onclick="changeGuest('adults', 1)" class="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-[#1A365D] hover:text-white transition-all text-slate-400 font-bold">+</button>
+                                <div class="flex flex-col"><span class="text-sm font-bold text-[#1A365D] font-sans">男性大人</span><span class="text-[10px] text-slate-400 uppercase font-sans mt-1">Men</span></div>
+                                <div class="flex items-center gap-3">
+                                    <button type="button" onclick="changeGuest('maleAdults', -1)" class="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-[#1A365D] hover:text-white transition-all text-slate-400 font-bold">-</button>
+                                    <span id="count-maleAdults" class="font-mono font-bold text-xl w-6 text-center">0</span>
+                                    <button type="button" onclick="changeGuest('maleAdults', 1)" class="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-[#1A365D] hover:text-white transition-all text-slate-400 font-bold">+</button>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between p-5 bg-[#FDFCF8] rounded-xl border border-slate-100">
+                                <div class="flex flex-col"><span class="text-sm font-bold text-[#1A365D] font-sans">女性大人</span><span class="text-[10px] text-slate-400 uppercase font-sans mt-1">Women</span></div>
+                                <div class="flex items-center gap-3">
+                                    <button type="button" onclick="changeGuest('femaleAdults', -1)" class="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-[#1A365D] hover:text-white transition-all text-slate-400 font-bold">-</button>
+                                    <span id="count-femaleAdults" class="font-mono font-bold text-xl w-6 text-center">1</span>
+                                    <button type="button" onclick="changeGuest('femaleAdults', 1)" class="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-[#1A365D] hover:text-white transition-all text-slate-400 font-bold">+</button>
                                 </div>
                             </div>
                             <div class="flex items-center justify-between p-5 bg-[#FDFCF8] rounded-xl border border-slate-100">
@@ -1105,9 +1113,12 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             `;
         }
 
-        let guestData = { adults: 1, children: 0 };
+        let guestData = { maleAdults: 0, femaleAdults: 1, children: 0 };
+        function adultCount() {
+            return guestData.maleAdults + guestData.femaleAdults;
+        }
         function updateDepositDisplay() {
-            const total = guestData.adults + guestData.children;
+            const total = adultCount() + guestData.children;
             const twd = Math.round(total * 1000 * 0.22);
             const el = document.getElementById('deposit-display');
             const detail = document.getElementById('deposit-detail');
@@ -1120,8 +1131,10 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             if (confEl) confEl.textContent = twd.toLocaleString();}
         
         function changeGuest(type, delta) {
-            const min = type === 'adults' ? 1 : 0;
-            guestData[type] = Math.max(min, guestData[type] + delta);
+            guestData[type] = Math.max(0, guestData[type] + delta);
+            if (adultCount() === 0) {
+                guestData[type] = 1;
+            }
             document.getElementById(`count-${type}`).innerText = guestData[type];
             updateDepositDisplay();
             renderPersonKimonoSelects();
@@ -1273,6 +1286,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 storeCode: payload.storeKey || undefined,
                 bookingAt: dateValue && timeValue ? `${dateValue}T${timeValue}:00+09:00` : payload.bookingDate,
                 adults: Number(payload.adults || 0),
+                maleAdults: Number(payload.maleAdults || 0),
+                femaleAdults: Number(payload.femaleAdults || 0),
                 children: Number(payload.children || 0),
                 plan: payload.plan || '',
                 hair: payload.hair === '是',
@@ -1341,7 +1356,11 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                     const [y, m, d] = date.split('-');
                     return `${y}/${m}/${d} ${time}`;  // 例：2026/07/10 14:30
                 })(),
-                platform: 'LINE', adults: guestData.adults, children: guestData.children,
+                platform: 'LINE',
+                adults: adultCount(),
+                maleAdults: guestData.maleAdults,
+                femaleAdults: guestData.femaleAdults,
+                children: guestData.children,
                 plan: '',  // v2.4.42d: hide per-person kimono UI (re-enable later)
                 hair: document.getElementById('input-hair').value === 'Yes' ? '是' : '否',
                 photo: document.getElementById('input-photo').value === 'Yes' ? '是' : '否',
@@ -1464,15 +1483,26 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             const oldSelects = list.querySelectorAll('select[name="person-kimono"]');
             const savedValues = Array.from(oldSelects).map(s => s.value);
             list.innerHTML = '';
-            const adults = guestData.adults || 0;
+            const maleAdults = guestData.maleAdults || 0;
+            const femaleAdults = guestData.femaleAdults || 0;
+            const adults = maleAdults + femaleAdults;
             const children = guestData.children || 0;
             const planOpts = (typeof plans !== 'undefined' ? plans : []).map(p =>
                 `<option value="${p.name}">${p.name}（¥${p.price} 起）</option>`
             ).join('');
             const childPlanOpts = planOpts + '<option value="兒童和服">兒童和服（特別款）</option>';
-            for (let i = 1; i <= adults; i++) {
+            for (let i = 1; i <= maleAdults; i++) {
                 list.innerHTML += `<div class="flex items-center gap-3 border-b border-slate-100 pb-2">
-                    <span class="text-xs font-bold text-slate-500 font-sans w-16 shrink-0">大人 ${i}</span>
+                    <span class="text-xs font-bold text-slate-500 font-sans w-16 shrink-0">男性 ${i}</span>
+                    <select name="person-kimono" class="flex-1 py-1 outline-none font-bold text-sm bg-transparent cursor-pointer font-sans">
+                        <option value="">待確認（現場選擇）</option>
+                        ${planOpts}
+                    </select>
+                </div>`;
+            }
+            for (let i = 1; i <= femaleAdults; i++) {
+                list.innerHTML += `<div class="flex items-center gap-3 border-b border-slate-100 pb-2">
+                    <span class="text-xs font-bold text-slate-500 font-sans w-16 shrink-0">女性 ${i}</span>
                     <select name="person-kimono" class="flex-1 py-1 outline-none font-bold text-sm bg-transparent cursor-pointer font-sans">
                         <option value="">待確認（現場選擇）</option>
                         ${planOpts}

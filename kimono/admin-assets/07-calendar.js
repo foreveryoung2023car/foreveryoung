@@ -66,7 +66,7 @@ function showDayOrders(dateStr){
     const hairCnt = orders.filter(o=>o.hair===true||o.hair==='true'||o.hair==='是').length;
     const photoCnt = orders.filter(o=>o.photo===true||o.photo==='true'||o.photo==='是').length;
     const checkedCnt = orders.filter(o=>o.checkedInAt).length;
-    const totalPax = orders.reduce((s,o)=>s+(Number(o.adults)||Number(o.pax)||0), 0);
+    const totalPax = orders.reduce((s,o)=>s+(Number(o.adults)||0)+(Number(o.children)||0), 0);
     html += '<div class="flex items-center gap-3 mb-3 pb-3 border-b border-slate-100 text-xs flex-wrap">';
     html += '<span class="font-bold text-[#1A365D]">總計 '+orders.length+' 單 / '+totalPax+' 人</span>';
     if (hairCnt) html += '<span class="bg-pink-100 text-pink-700 px-2 py-0.5 rounded">💆 '+hairCnt+'</span>';
@@ -92,7 +92,7 @@ function showDayOrders(dateStr){
         '<span class="inline-block w-2 h-2 rounded-full '+dotColor+'"></span>' +
         '<div class="flex-1 min-w-0">' +
           '<div class="font-bold">'+(isVip?'⭐':'')+(o.name||'—')+' <span class="text-xs text-slate-500 font-mono ml-1">'+(o.orderId||'')+'</span></div>' +
-          '<div class="text-xs text-slate-600">末'+phoneTail+' · '+(o.adults||o.pax||'—')+' 人 '+hair+photo+(o.storeKey?' · 🏪'+o.storeKey:'')+'</div>' +
+          '<div class="text-xs text-slate-600">末'+phoneTail+' · '+formatGuestCount(o)+' '+hair+photo+(o.storeKey?' · 🏪'+o.storeKey:'')+'</div>' +
         '</div>' +
         '<span class="text-xs text-slate-600">'+st+'</span>' +
         '</div>';
@@ -229,7 +229,7 @@ function openCustomerDetail(key){
           '<td class="font-mono text-sm">'+(o.orderId||'')+'</td>'+
           '<td>'+fmtDate(o.bookingDate)+'</td>'+
           '<td>'+(o.plan||'—')+'</td>'+
-          '<td>'+(o.adults||o.pax||'—')+'</td>'+
+          '<td>'+formatGuestCount(o)+'</td>'+
           '<td class="num">'+fmtY(o.deposit)+'</td>'+
           '<td class="num">'+fmtY(totalAmount(o))+'</td>'+
           '<td>'+status+'</td>'+

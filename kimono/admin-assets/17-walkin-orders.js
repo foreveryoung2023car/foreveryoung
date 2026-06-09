@@ -14,7 +14,7 @@ function guestsLabel(adults, children) {
 // ============================================================
 // v2.4 Walk-in 現場訂單
 // ============================================================
-let wiCount = { adults: 1, children: 0 };
+let wiCount = { maleAdults: 0, femaleAdults: 1, children: 0 };
 function showWalkInFab() {
   const fab = document.getElementById('walkInFab');
   if (fab) fab.classList.remove('hidden');
@@ -25,8 +25,9 @@ function hideWalkInFab() {
 }
 function openWalkInModal() {
   // Reset
-  wiCount = { adults: 1, children: 0 };
-  document.getElementById('wi-cnt-a').textContent = 1;
+  wiCount = { maleAdults: 0, femaleAdults: 1, children: 0 };
+  document.getElementById('wi-cnt-m').textContent = 0;
+  document.getElementById('wi-cnt-f').textContent = 1;
   document.getElementById('wi-cnt-c').textContent = 0;
   ['wi-name','wi-phone','wi-pp','wi-hf','wi-pf','wi-note'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
@@ -63,8 +64,10 @@ function wiRebuildPlans() {
   const wrap = document.getElementById('wi-plan-rows');
   if (!wrap) return;
   let html = '';
-  for (let i = 1; i <= wiCount.adults; i++) {
-    html += '<div class="flex items-center gap-2"><span class="w-12 text-xs text-slate-500 font-sans">大人' + i + '</span><select data-pp-idx="A' + i + '" class="wi-plan-sel flex-1 border-2 border-slate-200 focus:border-[#1A365D] outline-none rounded-lg px-2 py-2 text-sm font-sans bg-white" onchange="wiCalc()">';
+  const adults = wiCount.maleAdults + wiCount.femaleAdults;
+  for (let i = 1; i <= adults; i++) {
+    const label = i <= wiCount.maleAdults ? '男性' + i : '女性' + (i - wiCount.maleAdults);
+    html += '<div class="flex items-center gap-2"><span class="w-12 text-xs text-slate-500 font-sans">' + label + '</span><select data-pp-idx="A' + i + '" class="wi-plan-sel flex-1 border-2 border-slate-200 focus:border-[#1A365D] outline-none rounded-lg px-2 py-2 text-sm font-sans bg-white" onchange="wiCalc()">';
     ADULT_PLANS.forEach((p, j) => {
       html += '<option value="' + p.value + '" data-price="' + p.price + '"' + (j===0?' selected':'') + '>' + p.label + '</option>';
     });
@@ -86,9 +89,13 @@ function wiSumPrice() {
   return total;
 }
 function wiChg(type, delta) {
-  if (type === 'adults') wiCount.adults = Math.max(1, wiCount.adults + delta);
+  if (type === 'maleAdults' || type === 'femaleAdults') {
+    wiCount[type] = Math.max(0, wiCount[type] + delta);
+    if (wiCount.maleAdults + wiCount.femaleAdults === 0) wiCount[type] = 1;
+  }
   if (type === 'children') wiCount.children = Math.max(0, wiCount.children + delta);
-  document.getElementById('wi-cnt-a').textContent = wiCount.adults;
+  document.getElementById('wi-cnt-m').textContent = wiCount.maleAdults;
+  document.getElementById('wi-cnt-f').textContent = wiCount.femaleAdults;
   document.getElementById('wi-cnt-c').textContent = wiCount.children;
   wiRebuildPlans();
   // Auto-fill suggested price (sum of selected plans) if pp is empty
@@ -176,7 +183,9 @@ async function wiSubmit() {
         clientRequestId: 'walkin-' + Date.now() + '-' + Math.random().toString(36).slice(2),
         storeCode: currentStoreKey || undefined,
         name, phone, nationality,
-        adults: wiCount.adults,
+        adults: wiCount.maleAdults + wiCount.femaleAdults,
+        maleAdults: wiCount.maleAdults,
+        femaleAdults: wiCount.femaleAdults,
         children: wiCount.children,
         plan,
         hair: document.getElementById('wi-hair').checked,
@@ -199,7 +208,9 @@ async function wiSubmit() {
         action: 'storeWalkIn',
         storeKey: currentStoreKey, token: adminToken,
         name, phone, nationality,
-        adults: wiCount.adults, children: wiCount.children,
+        adults: wiCount.maleAdults + wiCount.femaleAdults,
+        maleAdults: wiCount.maleAdults, femaleAdults: wiCount.femaleAdults,
+        children: wiCount.children,
         plan, hair, photo,
         planPrice: pp, hairFee: hf, photoFee: pf,
         discount: wiDiscount,

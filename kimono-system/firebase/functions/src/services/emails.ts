@@ -210,7 +210,11 @@ function discountLabel(order: FirebaseFirestore.DocumentData) {
 
 function guestLabel(order: FirebaseFirestore.DocumentData) {
   const adults = Number(order.adults || 0);
+  const hasBreakdown = order.maleAdults !== undefined || order.femaleAdults !== undefined;
+  const maleAdults = Number(order.maleAdults || 0);
+  const femaleAdults = Number(order.femaleAdults || 0);
   const children = Number(order.children || 0);
+  if (hasBreakdown) return `${maleAdults} 位男性 / ${femaleAdults} 位女性 / ${children} 位小孩`;
   if (adults || children) return `${adults} 位大人 / ${children} 位小孩`;
   return "—";
 }

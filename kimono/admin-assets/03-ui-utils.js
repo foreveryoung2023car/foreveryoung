@@ -497,6 +497,17 @@ function fmtY(n){ n = Number(n)||0; return n ? '¥'+n.toLocaleString() : '—'; 
 function fmtY0(n){ n = Number(n)||0; return '¥'+n.toLocaleString(); }
 function formatGuestCount(o) {
   if (!o) return '—';
+  const hasBreakdown = o.maleAdults !== null && o.maleAdults !== undefined
+    || o.femaleAdults !== null && o.femaleAdults !== undefined;
+  if (hasBreakdown) {
+    const maleAdults = Number(o.maleAdults || 0);
+    const femaleAdults = Number(o.femaleAdults || 0);
+    const children = Number(o.children || 0);
+    return (maleAdults > 0 ? maleAdults + '男' : '')
+      + (femaleAdults > 0 ? femaleAdults + '女' : '')
+      + (children > 0 ? children + '小' : '')
+      || '0人';
+  }
   const adultsRaw = o.adults;
   const childrenRaw = o.children;
   const adults = Number(adultsRaw || 0);

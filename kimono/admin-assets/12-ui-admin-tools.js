@@ -501,7 +501,7 @@ async function showArchivedMonth(month) {
     document.getElementById('archive-orders-list').innerHTML = orders.map(o =>
       '<div class="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-100 hover:bg-slate-50">' +
       '<div class="flex-1"><div class="font-bold text-base">' + (o.name||'—') + ' <span class="text-xs text-slate-500 font-mono">' + (o.orderId||'') + '</span></div>' +
-      '<div class="text-sm text-slate-700 mt-0.5">' + fmtDate(o.bookingDate) + ' · ' + (o.plan||'—') + ' · ' + (o.adults||o.pax||'—') + ' · 訂金 ¥' + (Number(o.deposit)||0).toLocaleString() + '</div></div>' +
+      '<div class="text-sm text-slate-700 mt-0.5">' + fmtDate(o.bookingDate) + ' · ' + (o.plan||'—') + ' · ' + formatGuestCount(o) + ' · 訂金 ¥' + (Number(o.deposit)||0).toLocaleString() + '</div></div>' +
       '<span class="badge badge-confirmed">📦 已歸檔</span></div>'
     ).join('');
   } catch (e) {
@@ -540,7 +540,7 @@ async function saveOrder() {
   btn.textContent = '儲存中…'; btn.disabled = true;
   const guests = typeof syncEditPax === 'function'
     ? syncEditPax()
-    : { adults: Number(document.getElementById('e-adults')?.value || 0), children: Number(document.getElementById('e-children')?.value || 0), pax: document.getElementById('e-pax')?.value || '' };
+    : { adults: Number(document.getElementById('e-adults')?.value || 0), maleAdults: null, femaleAdults: null, children: Number(document.getElementById('e-children')?.value || 0), pax: document.getElementById('e-pax')?.value || '' };
   const payload = {
     action: 'adminUpdate', agent: currentAgent, token: adminToken, orderId: editingOrder.orderId,
     name: document.getElementById('e-name').value, phone: document.getElementById('e-phone').value, email: document.getElementById('e-email').value,
@@ -566,6 +566,7 @@ async function saveOrder() {
         email: payload.email,
         bookingAt: bookingValue ? bookingValue + ':00+09:00' : undefined,
         adults: guests.adults,
+        ...(guests.maleAdults !== null ? { maleAdults: guests.maleAdults, femaleAdults: guests.femaleAdults } : {}),
         children: guests.children,
         plan: payload.plan,
         platform: payload.platform,
@@ -692,7 +693,7 @@ document.getElementById('global-search')?.addEventListener('input', (e)=>{
       return '<div class="gs-row" data-id="'+(o.orderId||'')+'" data-idx="'+i+'" style="padding:12px 16px;border-bottom:1px solid #F1F5F9;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;">' +
         '<div style="flex:1;min-width:0;">' +
           '<div style="font-weight:600;color:#1A365D;font-size:14px;">'+(o.name||'(未命名)')+' <span style="color:#94A3B8;font-size:11px;font-weight:400;">'+(o.orderId||'')+'</span></div>' +
-          '<div style="color:#475569;font-size:12px;margin-top:2px;">📅 '+date+' · 📞 '+(o.phone||'—')+' · 👥 '+((o.adults||o.pax)||'—')+'人 · 👘 '+(o.plan||'—')+'</div>' +
+          '<div style="color:#475569;font-size:12px;margin-top:2px;">📅 '+date+' · 📞 '+(o.phone||'—')+' · 👥 '+formatGuestCount(o)+' · 👘 '+(o.plan||'—')+'</div>' +
         '</div>' +
         '<div>'+status+'</div>' +
       '</div>';

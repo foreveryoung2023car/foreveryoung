@@ -86,7 +86,7 @@ function renderCheckIn() {
       else sb = '<span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-xs">✅代客</span>';
       const dis = o.checkedInAt ? 'disabled style="opacity:0.5;cursor:not-allowed"' : '';
       const txt = o.checkedInAt ? '已報到' : '🎌 報到';
-      return '<tr class="border-t hover:bg-slate-50"><td class="p-2 font-bold whitespace-nowrap">' + md + ' ' + hm + '</td><td class="p-2 font-bold">' + (o.name||'—') + (function(){var ph=String(o.phone||'').replace(/\D/g,'');if(!ph)return '';var arr=(typeof allOrders!=='undefined'?allOrders:[]);var cnt=arr.filter(function(x){return String(x.phone||'').replace(/\D/g,'')===ph;}).length;return cnt>=3?' <span class="text-[10px] bg-amber-100 text-amber-700 px-1 rounded">⭐'+cnt+'</span>':(cnt>=2?' <span class="text-[10px] text-slate-500">'+cnt+'訪</span>':'');})() + '</td><td class="p-2 font-mono">' + tail + '</td><td class="p-2 text-center">' + (o.adults||'—') + '</td><td class="p-2 text-center text-base">' + (hair+photo||'—') + '</td><td class="p-2 text-center">' + sb + '</td><td class="p-2 text-right"><button onclick="checkInOrder(\'' + o.orderId + '\')" ' + dis + ' class="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded text-xs font-bold whitespace-nowrap">' + txt + '</button></td></tr>';
+      return '<tr class="border-t hover:bg-slate-50"><td class="p-2 font-bold whitespace-nowrap">' + md + ' ' + hm + '</td><td class="p-2 font-bold">' + (o.name||'—') + (function(){var ph=String(o.phone||'').replace(/\D/g,'');if(!ph)return '';var arr=(typeof allOrders!=='undefined'?allOrders:[]);var cnt=arr.filter(function(x){return String(x.phone||'').replace(/\D/g,'')===ph;}).length;return cnt>=3?' <span class="text-[10px] bg-amber-100 text-amber-700 px-1 rounded">⭐'+cnt+'</span>':(cnt>=2?' <span class="text-[10px] text-slate-500">'+cnt+'訪</span>':'');})() + '</td><td class="p-2 font-mono">' + tail + '</td><td class="p-2 text-center">' + formatGuestCount(o) + '</td><td class="p-2 text-center text-base">' + (hair+photo||'—') + '</td><td class="p-2 text-center">' + sb + '</td><td class="p-2 text-right"><button onclick="checkInOrder(\'' + o.orderId + '\')" ' + dis + ' class="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded text-xs font-bold whitespace-nowrap">' + txt + '</button></td></tr>';
     }).join('') + '</tbody></table></div>';
     const tabCount = document.getElementById('tab-count-checkin');
     if (tabCount) tabCount.textContent = orders.length;
@@ -116,7 +116,7 @@ function renderCheckIn() {
         '<div><span class="text-slate-400 text-xs">體驗時間</span><div class="font-bold">' + md + ' ' + hh + ':' + mm + '</div></div>' +
         '<div><span class="text-slate-400 text-xs">末3碼</span><div class="font-bold font-mono">' + phoneTail + '</div></div>' +
         '<div><span class="text-slate-400 text-xs">加值</span><div class="font-bold text-xs">' + (((o.hair===true||o.hair==='true'||o.hair==='是')?'💆':'')+((o.photo===true||o.photo==='true'||o.photo==='是')?'📷':'')||'—') + '</div></div>' +
-        '<div><span class="text-slate-400 text-xs">人數</span><div class="font-bold">' + (o.adults || '—') + '</div></div>' +
+        '<div><span class="text-slate-400 text-xs">人數</span><div class="font-bold">' + formatGuestCount(o) + '</div></div>' +
       '</div>' +
       '<button onclick="checkInOrder(\'' + o.orderId + '\')" ' + btnDisabled + ' class="w-full py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold rounded text-sm transition-colors">' + btnText + '</button>' +
     '</div>';

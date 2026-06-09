@@ -632,8 +632,10 @@
           <div><div class="section-label">電話</div><input id="e-phone" class="input-field"></div>
           <div><div class="section-label">Email</div><input id="e-email" class="input-field" type="email"></div>
           <div><div class="section-label">體驗預約日</div><input id="e-booking-date" class="input-field" type="datetime-local" step="1800"></div>
-          <div><div class="section-label">大人</div><input id="e-adults" class="input-field" type="number" inputmode="numeric" min="0" step="1" placeholder="0" oninput="syncEditPax()"></div>
+          <div><div class="section-label">男性大人</div><input id="e-male-adults" class="input-field" type="number" inputmode="numeric" min="0" step="1" placeholder="未區分" oninput="syncEditPax()"></div>
+          <div><div class="section-label">女性大人</div><input id="e-female-adults" class="input-field" type="number" inputmode="numeric" min="0" step="1" placeholder="未區分" oninput="syncEditPax()"></div>
           <div><div class="section-label">小孩</div><input id="e-children" class="input-field" type="number" inputmode="numeric" min="0" step="1" placeholder="0" oninput="syncEditPax()"></div>
+          <input id="e-adults" type="hidden">
           <input id="e-pax" type="hidden">
           <div style="display:none"><div class="section-label">和服款式 / 方案</div><input id="e-plan" class="input-field" placeholder="例：精緻和服、素雅和服"></div>
           <input id="e-platform" type="hidden">
@@ -827,13 +829,21 @@
       </div>
 
       <!-- 人數 -->
-      <div class="grid grid-cols-2 gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
-          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">大人</label>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">男性大人</label>
           <div class="flex items-center gap-2 border-2 border-slate-200 rounded-lg p-1">
-            <button type="button" onclick="wiChg('adults',-1)" class="cnt-btn">−</button>
-            <span id="wi-cnt-a" class="flex-1 text-center font-bold text-lg">1</span>
-            <button type="button" onclick="wiChg('adults',1)" class="cnt-btn">+</button>
+            <button type="button" onclick="wiChg('maleAdults',-1)" class="cnt-btn">−</button>
+            <span id="wi-cnt-m" class="flex-1 text-center font-bold text-lg">0</span>
+            <button type="button" onclick="wiChg('maleAdults',1)" class="cnt-btn">+</button>
+          </div>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">女性大人</label>
+          <div class="flex items-center gap-2 border-2 border-slate-200 rounded-lg p-1">
+            <button type="button" onclick="wiChg('femaleAdults',-1)" class="cnt-btn">−</button>
+            <span id="wi-cnt-f" class="flex-1 text-center font-bold text-lg">1</span>
+            <button type="button" onclick="wiChg('femaleAdults',1)" class="cnt-btn">+</button>
           </div>
         </div>
         <div>
