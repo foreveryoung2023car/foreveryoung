@@ -11,7 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./admin-assets/admin.css?v=20260605-14">
+<link rel="stylesheet" href="./admin-assets/admin.css?v=20260609-6">
 </head>
 <body class="min-h-screen" style="overflow-x:hidden">
 
@@ -633,6 +633,22 @@
 
     <div id="tab-basic" class="edit-tab">
       <div class="edit-panel space-y-5">
+        <div id="store-order-detail-view" data-store-only="1" style="display:none" class="store-detail-view">
+          <button type="button" class="store-detail-edit-btn" onclick="enableStoreOrderDetailEdit()">✏️ 編輯</button>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-5">
+            <div><div class="section-label">體驗預約日</div><div id="store-view-booking" class="store-detail-value">—</div></div>
+            <div><div class="section-label">男性大人</div><div id="store-view-male" class="store-detail-value">—</div></div>
+            <div><div class="section-label">女性大人</div><div id="store-view-female" class="store-detail-value">—</div></div>
+            <div><div class="section-label">小孩</div><div id="store-view-children" class="store-detail-value">—</div></div>
+            <div><div class="section-label">妝髮造型</div><div id="store-view-hair" class="store-detail-value">—</div></div>
+            <div><div class="section-label">攝影服務</div><div id="store-view-photo" class="store-detail-value">—</div></div>
+          </div>
+          <div class="mt-5 pt-4 border-t border-slate-200">
+            <div class="section-label">客服給客人的備註</div>
+            <div id="store-view-remark" class="store-detail-value whitespace-pre-wrap">—</div>
+          </div>
+        </div>
+        <div id="store-order-detail-form">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div data-store-hidden="1"><div class="section-label">姓名</div><input id="e-name" class="input-field"></div>
           <div data-store-hidden="1"><div class="section-label">電話</div><input id="e-phone" class="input-field"></div>
@@ -653,6 +669,7 @@
           <div class="section-label">客服給客人的備註</div>
           <textarea id="e-remark" class="input-field" rows="3" placeholder="例如：客人特殊需求、要提醒客人的事項、後續追蹤內容…"></textarea>
         </div>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-slate-200">
           <div data-store-hidden="1"><div class="section-label">預付訂金 JPY</div><input id="e-deposit" class="input-field" type="number" placeholder="0" oninput="updateCalc()"></div>
           <div><div class="section-label">和服原價 JPY</div><input id="e-price" class="input-field" type="number" placeholder="0" oninput="updateCalc()"></div>
@@ -664,29 +681,41 @@
         </div>
         <div class="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] gap-4">
           <div class="bg-white rounded-xl p-4 border-2 border-slate-200">
-          <div class="section-label mb-3">自動試算</div>
-          <div class="grid grid-cols-2 gap-4 text-center">
-            <div><div class="text-slate-600 text-xs mb-1 font-semibold">現場應收(JPY)</div><div id="calc-due" class="font-bold text-[#1A365D] text-xl">—</div></div>
-            <div><div class="text-slate-600 text-xs mb-1 font-semibold">訂金後應收(JPY)</div><div id="calc-net" class="font-bold text-emerald-700 text-xl">—</div></div>
+            <div class="section-label mb-3">自動試算</div>
+            <div class="grid grid-cols-2 gap-4 text-center">
+              <div><div class="text-slate-600 text-xs mb-1 font-semibold">現場應收(JPY)</div><div id="calc-due" class="font-bold text-[#1A365D] text-xl">—</div></div>
+              <div><div class="text-slate-600 text-xs mb-1 font-semibold">訂金後應收(JPY)</div><div id="calc-net" class="font-bold text-emerald-700 text-xl">—</div></div>
+            </div>
           </div>
+          <div data-store-only="1" style="display:none" class="bg-white rounded-xl p-4 border-2 border-slate-200">
+            <div class="grid grid-cols-2 gap-4 items-end">
+              <div>
+                <div class="section-label">店鋪實際收款 JPY</div>
+                <input id="e-store-actual-received" class="input-field" type="number" min="0" step="1" placeholder="0" oninput="updateCalc()">
+              </div>
+              <div>
+                <div class="section-label">尾款 JPY</div>
+                <div id="calc-store-balance" class="font-bold text-red-600 text-xl py-2">—</div>
+              </div>
+            </div>
           </div>
-          <div class="bg-white rounded-xl p-4 border-2 border-slate-200" data-store-hidden="1">
+        </div>
+        <div class="pt-4 border-t border-slate-200" data-store-hidden="1">
           <div class="flex items-center justify-between gap-3 mb-3">
             <div class="section-label !mb-0">付款憑證</div>
             <a id="e-proof-link" href="#" target="_blank" rel="noopener" class="hidden text-sm font-bold text-blue-700 hover:underline">打開原圖</a>
           </div>
           <div id="e-proof-empty" class="text-sm text-slate-500 font-semibold">尚未上傳付款憑證</div>
           <div id="e-proof-content" class="hidden grid grid-cols-1 md:grid-cols-[220px_minmax(0,1fr)] gap-4 items-start">
-            <a id="e-proof-image-link" href="#" target="_blank" rel="noopener" class="block bg-slate-50 border border-slate-200 rounded-lg overflow-hidden">
+            <a id="e-proof-image-link" href="#" target="_blank" rel="noopener" class="block overflow-hidden">
               <img id="e-proof-image" alt="付款憑證" class="w-full max-h-60 object-contain bg-white">
             </a>
-            <div id="e-proof-no-image" class="hidden bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm text-slate-500 font-semibold">未附圖片</div>
+            <div id="e-proof-no-image" class="hidden text-sm text-slate-500 font-semibold">未附圖片</div>
             <div>
               <div class="text-xs font-bold text-slate-500 mb-1">付款說明 / 匯款備註</div>
-              <div id="e-proof-note" class="min-h-[72px] whitespace-pre-wrap break-words text-sm font-semibold text-[#1A365D] bg-slate-50 border border-slate-200 rounded-lg p-3">—</div>
+              <div id="e-proof-note" class="min-h-[72px] whitespace-pre-wrap break-words text-sm font-semibold text-[#1A365D]">—</div>
             </div>
           </div>
-        </div>
         </div>
       </div>
     </div>
@@ -768,7 +797,7 @@
 
 <script src="./admin-assets/00-gas-guard.js?v=20260605-14"></script>
 <script src="./admin-assets/01-state.js?v=20260605-14"></script>
-<script src="./admin-assets/02-firebase-api.js?v=20260609-4"></script>
+<script src="./admin-assets/02-firebase-api.js?v=20260609-5"></script>
 <script src="./admin-assets/03-ui-utils.js?v=20260609-3"></script>
 <script src="./admin-assets/04-refunds.js?v=20260605-14"></script>
 <script src="./admin-assets/05-orders.js?v=20260609-2"></script>
@@ -776,9 +805,9 @@
 <script src="./admin-assets/07-calendar.js?v=20260605-14"></script>
 <script src="./admin-assets/08-finance.js?v=20260605-14"></script>
 <script src="./admin-assets/09-reconcile.js?v=20260605-14"></script>
-<script src="./admin-assets/10-orders-edit.js?v=20260609-4"></script>
+<script src="./admin-assets/10-orders-edit.js?v=20260609-6"></script>
 <script src="./admin-assets/11-refunds-edit.js?v=20260605-14"></script>
-<script src="./admin-assets/12-ui-admin-tools.js?v=20260609-4"></script>
+<script src="./admin-assets/12-ui-admin-tools.js?v=20260609-5"></script>
 <script src="./admin-assets/13-weather.js?v=20260605-14"></script>
 <script src="./admin-assets/14-checkins.js?v=20260605-14"></script>
 <script src="./admin-assets/15-walkin-reconcile.js?v=20260605-14"></script>

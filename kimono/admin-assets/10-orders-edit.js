@@ -30,6 +30,7 @@ function openEdit(orderId) {
   document.getElementById('e-coupon').value = o.coupon || '';
   document.getElementById('e-rate').value = o.rate || '0.22';
   document.getElementById('e-discount-refund-amount').value = Number(o.discountRefundAmount || 0) || '';
+  document.getElementById('e-store-actual-received').value = Number(o.storeActualReceived || 0) || '';
   renderPaymentProof(o);
   document.getElementById('e-refund-amt').value = o.refundAmount || '';
   document.getElementById('e-refund-date').value = (o.refundTime || '').slice(0,16);
@@ -56,12 +57,45 @@ function openEdit(orderId) {
     }
   }
   document.getElementById('e-remark').value = o.remark || '';
+  renderStoreOrderDetailView(o);
+  resetStoreOrderDetailMode();
   document.getElementById('save-msg').classList.add('hidden');
   switchTab('basic', document.querySelector('#edit-modal .tab-btn'));
   updateCalc();
   injectAnomalyWarning(o); // v2.6
   document.getElementById('edit-modal').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
+}
+
+function renderStoreOrderDetailView(o) {
+  const booking = parseBookingDate(o.bookingDate);
+  document.getElementById('store-view-booking').textContent = booking ? fmtBookingDateTime(o.bookingDate) : '—';
+  const guests = parseEditGuestCount(o);
+  document.getElementById('store-view-male').textContent = guests.maleAdults === null ? '未區分' : guests.maleAdults;
+  document.getElementById('store-view-female').textContent = guests.femaleAdults === null ? guests.adults : guests.femaleAdults;
+  document.getElementById('store-view-children').textContent = guests.children;
+  document.getElementById('store-view-hair').textContent = (o.hair === true || o.hair === 'true') ? '✅ 有妝髮' : '❌ 無妝髮';
+  document.getElementById('store-view-photo').textContent = (o.photo === true || o.photo === 'true') ? '✅ 有攝影' : '❌ 無攝影';
+  document.getElementById('store-view-remark').textContent = o.remark || '—';
+}
+
+function resetStoreOrderDetailMode() {
+  const view = document.getElementById('store-order-detail-view');
+  const form = document.getElementById('store-order-detail-form');
+  if (!view || !form) return;
+  if (currentRole === 'store') {
+    view.style.display = 'block';
+    form.style.display = 'none';
+  } else {
+    view.style.display = 'none';
+    form.style.display = 'block';
+  }
+}
+
+function enableStoreOrderDetailEdit() {
+  if (currentRole !== 'store') return;
+  document.getElementById('store-order-detail-view').style.display = 'none';
+  document.getElementById('store-order-detail-form').style.display = 'block';
 }
 
 function parseEditGuestCount(o) {
@@ -213,8 +247,11 @@ function updateCalc() {
   const photo = Number(document.getElementById('e-photo-fee').value) || 0;
   const deposit = Number(document.getElementById('e-deposit').value) || 0;
   const discountRefund = Number(document.getElementById('e-discount-refund-amount').value) || 0;
+  const storeActualReceived = Number(document.getElementById('e-store-actual-received').value) || 0;
   const onsite = Math.max(0, price + hair + photo - discountRefund);
   const afterDep = Math.max(0, onsite - deposit);
+  const storeBalance = Math.max(0, afterDep - storeActualReceived);
   document.getElementById('calc-due').textContent = onsite ? fmtY0(onsite) : '—';
   document.getElementById('calc-net').textContent = onsite ? fmtY0(afterDep) : '—';
+  document.getElementById('calc-store-balance').textContent = fmtY0(storeBalance);
 }

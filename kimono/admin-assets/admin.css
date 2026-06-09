@@ -41,6 +41,11 @@
   body.dark .section-label{color:#94A3B8}
 
   .edit-panel { background:#F8F7F4;border-radius:12px;padding:20px;border:1px solid rgba(26,54,93,.08) }
+  .store-detail-view{position:relative;padding:4px 2px}
+  .store-detail-value{font-size:16px;font-weight:700;color:#1A365D;line-height:1.5}
+  .store-detail-edit-btn{position:absolute;right:0;top:0;opacity:0;transform:translateY(-4px);pointer-events:none;padding:6px 12px;border:1px solid #CBD5E1;border-radius:8px;background:white;color:#1A365D;font-size:12px;font-weight:700;transition:.15s}
+  .store-detail-view:hover .store-detail-edit-btn,.store-detail-view:focus-within .store-detail-edit-btn{opacity:1;transform:translateY(0);pointer-events:auto}
+  @media (hover:none){.store-detail-edit-btn{opacity:1;transform:none;pointer-events:auto}}
 
   .stat-card { background:white;border-radius:14px;padding:16px 20px;box-shadow:0 2px 8px rgba(26,54,93,.08);position:relative;overflow:hidden;transition:.2s }
   .stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 16px rgba(26,54,93,.12)}

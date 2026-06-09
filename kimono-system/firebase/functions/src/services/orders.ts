@@ -66,6 +66,7 @@ export const updateOrderByStaffSchema = z.object({
   couponCode: z.string().optional(),
   discountRate: z.number().optional(),
   discountRefundAmountJpy: z.number().int().min(0).optional(),
+  storeActualReceivedJpy: z.number().int().min(0).optional(),
   refundAmountJpy: z.number().int().min(0).optional(),
   refundTime: z.string().optional(),
   refundReason: z.string().optional(),
@@ -247,6 +248,7 @@ function toAdminOrderResponse(orderId: string, order: FirebaseFirestore.Document
     coupon: order.couponCode || "",
     rate: order.discountRate || "",
     discountRefundAmount: Number(order.discountRefundAmountJpy || 0),
+    storeActualReceived: Number(order.storeActualReceivedJpy || 0),
     refundAmount: Number(order.refundAmountJpy || 0),
     refundTime: order.refundTime || "",
     refundReason: order.refundReason || "",
@@ -530,6 +532,7 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
     if (input.couponCode !== undefined) patch.couponCode = input.couponCode;
     if (input.discountRate !== undefined) patch.discountRate = input.discountRate;
     if (input.discountRefundAmountJpy !== undefined) patch.discountRefundAmountJpy = input.discountRefundAmountJpy;
+    if (input.storeActualReceivedJpy !== undefined) patch.storeActualReceivedJpy = input.storeActualReceivedJpy;
     if (input.note !== undefined) patch.note = input.note;
 
     const refundAmount = input.refundAmountJpy ?? Number(before.refundAmountJpy || 0);

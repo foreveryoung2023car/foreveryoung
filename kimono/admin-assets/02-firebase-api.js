@@ -168,6 +168,7 @@ function firestoreOrderToAdminOrder(doc) {
     coupon: data.couponCode || '',
     rate: data.discountRate || '',
     discountRefundAmount: Number(data.discountRefundAmountJpy || 0),
+    storeActualReceived: Number(data.storeActualReceivedJpy || 0),
     refundAmount: Number(data.refundAmountJpy || 0),
     refundTime: data.refundTime || '',
     refundReason: data.refundReason || '',
