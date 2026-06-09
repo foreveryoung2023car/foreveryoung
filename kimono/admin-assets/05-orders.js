@@ -513,14 +513,16 @@ function orderDisplayTotal(o) {
 
 function orderDisplayBalance(o) {
   const status = orderStatusOf(o);
+  const storedBalance = o && o.balanceDue !== undefined ? o.balanceDue : o && o.balanceDueJpy;
+  const actualReceived = o && o.storeActualReceived !== undefined ? o.storeActualReceived : o && o.storeActualReceivedJpy;
   if (status === 'completed') return 0;
-  if (status === 'balance_due' && Number.isFinite(Number(o && o.balanceDue))) {
-    return Math.max(0, Number(o.balanceDue));
+  if (status === 'balance_due' && Number.isFinite(Number(storedBalance))) {
+    return Math.max(0, Number(storedBalance));
   }
   return Math.max(0,
     orderDisplayTotal(o)
     - Number(o.deposit || 0)
-    - Number(o.storeActualReceived || 0)
+    - Number(actualReceived || 0)
   );
 }
 

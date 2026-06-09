@@ -1,4 +1,11 @@
 // ── EDIT MODAL ──
+function orderFinancialValue(order, displayKey, firestoreKey) {
+  const value = order && order[displayKey] !== undefined
+    ? order[displayKey]
+    : order && order[firestoreKey];
+  return Number(value || 0);
+}
+
 function openEdit(orderId) {
   const o = allOrders.find(x => x.orderId === orderId);
   if (!o) return;
@@ -31,16 +38,18 @@ function openEdit(orderId) {
   document.getElementById('e-coupon').value = o.coupon || '';
   document.getElementById('e-rate').value = o.rate || '0.22';
   document.getElementById('e-discount-refund-amount').value = Number(o.discountRefundAmount || 0) || '';
-  document.getElementById('e-store-actual-received').value = String(Number(o.storeActualReceived || 0));
-  document.getElementById('e-store-actual-received').dataset.savedValue = String(Number(o.storeActualReceived || 0));
-  document.getElementById('calc-store-balance').dataset.savedValue = String(Number(o.balanceDue || 0));
+  const storeActualReceived = orderFinancialValue(o, 'storeActualReceived', 'storeActualReceivedJpy');
+  const balanceDue = orderFinancialValue(o, 'balanceDue', 'balanceDueJpy');
+  document.getElementById('e-store-actual-received').value = String(storeActualReceived);
+  document.getElementById('e-store-actual-received').dataset.savedValue = String(storeActualReceived);
+  document.getElementById('calc-store-balance').dataset.savedValue = String(balanceDue);
   document.getElementById('calc-store-balance').dataset.savedSignature = [
     Number(o.price || o.kimonoPrice || 0),
     Number(o.hairFee || 0),
     Number(o.photoFee || 0),
     Number(o.deposit || 0),
     Number(o.discountRefundAmount || 0),
-    Number(o.storeActualReceived || 0)
+    storeActualReceived
   ].join('|');
   renderPaymentProof(o);
   document.getElementById('e-refund-amt').value = o.refundAmount || '';
@@ -94,7 +103,7 @@ function renderStoreOrderDetailView(o) {
   document.getElementById('store-view-hair').textContent = (o.hair === true || o.hair === 'true') ? '✅ 有妝髮' : '❌ 無妝髮';
   document.getElementById('store-view-photo').textContent = (o.photo === true || o.photo === 'true') ? '✅ 有攝影' : '❌ 無攝影';
   document.getElementById('store-view-remark').textContent = o.remark || '—';
-  document.getElementById('store-view-actual-received').textContent = fmtY0(Number(o.storeActualReceived || 0));
+  document.getElementById('store-view-actual-received').textContent = fmtY0(orderFinancialValue(o, 'storeActualReceived', 'storeActualReceivedJpy'));
   document.getElementById('store-view-balance').textContent = fmtY0(orderDisplayBalance(o));
 }
 

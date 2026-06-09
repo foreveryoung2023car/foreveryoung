@@ -631,6 +631,14 @@ async function saveOrder() {
       const data = await res.json().catch(()=>({}));
       btn.textContent = '💾 儲存變更'; btn.disabled = false;
       if (!res.ok || data.status !== 'success') throw new Error(data.message || '儲存失敗');
+      if (data.order) {
+        const savedActual = Number(data.order.storeActualReceivedJpy ?? data.order.storeActualReceived ?? firebasePayload.storeActualReceivedJpy ?? 0);
+        const savedBalance = Number(data.order.balanceDueJpy ?? data.order.balanceDue ?? 0);
+        editingOrder.storeActualReceived = savedActual;
+        editingOrder.storeActualReceivedJpy = savedActual;
+        editingOrder.balanceDue = savedBalance;
+        editingOrder.balanceDueJpy = savedBalance;
+      }
       const savedId = editingOrder.orderId;
       msg.textContent = '正在重新載入…';
       msg.className = 'text-center text-sm mt-3 text-slate-600';
