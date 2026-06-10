@@ -26,29 +26,6 @@ type StoreContact = {
   phone: string;
 };
 
-const defaultStores: Record<string, StoreContact> = {
-  kyoto1: {
-    name: "京都清水寺店",
-    address: "京都東山區五條橋東4-432-13 對嵐坊大廈1樓",
-    phone: "請洽客服"
-  },
-  kyoto2: {
-    name: "京都祇園店",
-    address: "京都東山區常盤町169 常盤大廈",
-    phone: "請洽客服"
-  },
-  osaka1: {
-    name: "大阪日本橋店",
-    address: "大阪中央區日本橋1-18-14 芝大廈7樓",
-    phone: "請洽客服"
-  },
-  tokyo1: {
-    name: "東京淺草寺店",
-    address: "東京都台東區淺草1-33-8 A-one大廈9樓",
-    phone: "請洽客服"
-  }
-};
-
 const emailActionMap: Record<EmailKind, { sent: string; failed: string; message: string }> = {
   confirm: {
     sent: "confirm_email_sent",
@@ -141,11 +118,12 @@ const defaultTemplates: Record<EmailKind, EmailTemplate> = {
     ].join("\n")
   },
   proof_received: {
-    subject: "【Foreveryoung 和服體驗】已收到付款憑證 {{orderNo}}",
+    subject: "【Foreveryoung 和服體驗】消費明細 {{orderNo}}",
     text: [
       "{{name}} 您好：",
       "",
-      "我們已收到您的付款憑證，訂單將由工作人員確認。",
+      "感謝您今日蒞臨 Foreveryoung 體驗和服，希望這次體驗為您的旅程留下美好回憶。",
+      "以下是本次消費明細：",
       "訂單編號：{{orderNo}}",
       "體驗日期：{{bookingAt}} (JST)",
       "人數：{{guests}}",
@@ -153,14 +131,15 @@ const defaultTemplates: Record<EmailKind, EmailTemplate> = {
       "店鋪地址：{{storeAddress}}",
       "店鋪電話：{{storePhone}}",
       "已收訂金：{{deposit}}",
+      "和服價格：{{kimonoPrice}}",
       "妝髮費：{{hairFee}}",
       "攝影費：{{photoFee}}",
-      "折扣：{{discountLabel}}",
-      "店鋪尾款：{{onsiteDue}}",
-      "總金額：{{total}}",
-      "憑證備註：{{proofNote}}",
+      "折扣與退款：{{discountRefundAmount}}",
+      "總價：{{total}}",
+      "店內付款：{{storeActualReceived}}",
+      "尾款：{{balanceDue}}",
       "",
-      "確認完成後，我們會再寄送訂單確認信。",
+      "再次感謝您的光臨，祝您旅途愉快、平安順心，期待下次再為您服務。",
       "",
       "Foreveryoung 旅乘"
     ].join("\n")
@@ -281,19 +260,25 @@ function ensureRequiredTemplateLines(kind: EmailKind, template: EmailTemplate): 
   }
   if (kind === "proof_received") {
     const financeLines = [];
+    if (!text.includes("{{deposit}}")) financeLines.push("已收訂金：{{deposit}}");
+    if (!text.includes("{{kimonoPrice}}")) financeLines.push("和服價格：{{kimonoPrice}}");
     if (!text.includes("{{hairFee}}")) financeLines.push("妝髮費：{{hairFee}}");
     if (!text.includes("{{photoFee}}")) financeLines.push("攝影費：{{photoFee}}");
-    if (!text.includes("{{discountLabel}}")) financeLines.push("折扣：{{discountLabel}}");
-    if (!text.includes("{{onsiteDue}}")) financeLines.push("店鋪尾款：{{onsiteDue}}");
-    if (!text.includes("{{total}}")) financeLines.push("總金額：{{total}}");
+    if (!text.includes("{{discountRefundAmount}}")) financeLines.push("折扣與退款：{{discountRefundAmount}}");
+    if (!text.includes("{{total}}")) financeLines.push("總價：{{total}}");
+    if (!text.includes("{{storeActualReceived}}")) financeLines.push("店內付款：{{storeActualReceived}}");
+    if (!text.includes("{{balanceDue}}")) financeLines.push("尾款：{{balanceDue}}");
     if (financeLines.length) text += ["", ...financeLines].join("\n");
     if (html) {
       const htmlFinanceLines = [];
+      if (!html.includes("{{deposit}}")) htmlFinanceLines.push("<p><b>已收訂金：</b>{{deposit}}</p>");
+      if (!html.includes("{{kimonoPrice}}")) htmlFinanceLines.push("<p><b>和服價格：</b>{{kimonoPrice}}</p>");
       if (!html.includes("{{hairFee}}")) htmlFinanceLines.push("<p><b>妝髮費：</b>{{hairFee}}</p>");
       if (!html.includes("{{photoFee}}")) htmlFinanceLines.push("<p><b>攝影費：</b>{{photoFee}}</p>");
-      if (!html.includes("{{discountLabel}}")) htmlFinanceLines.push("<p><b>折扣：</b>{{discountLabel}}</p>");
-      if (!html.includes("{{onsiteDue}}")) htmlFinanceLines.push("<p><b>店鋪尾款：</b>{{onsiteDue}}</p>");
-      if (!html.includes("{{total}}")) htmlFinanceLines.push("<p><b>總金額：</b>{{total}}</p>");
+      if (!html.includes("{{discountRefundAmount}}")) htmlFinanceLines.push("<p><b>折扣與退款：</b>{{discountRefundAmount}}</p>");
+      if (!html.includes("{{total}}")) htmlFinanceLines.push("<p><b>總價：</b>{{total}}</p>");
+      if (!html.includes("{{storeActualReceived}}")) htmlFinanceLines.push("<p><b>店內付款：</b>{{storeActualReceived}}</p>");
+      if (!html.includes("{{balanceDue}}")) htmlFinanceLines.push("<p><b>尾款：</b>{{balanceDue}}</p>");
       if (htmlFinanceLines.length) html += htmlFinanceLines.join("");
     }
   }
@@ -302,16 +287,15 @@ function ensureRequiredTemplateLines(kind: EmailKind, template: EmailTemplate): 
 
 async function loadStoreContact(storeId: unknown): Promise<StoreContact> {
   const key = String(storeId || "").trim();
-  const fallback = defaultStores[key] || { name: key || "—", address: "—", phone: "請洽客服" };
-  if (!key) return fallback;
+  if (!key) return { name: "", address: "", phone: "" };
 
   const storeSnap = await db.collection("stores").doc(key).get();
   const legacySnap = storeSnap.exists ? null : await db.collection("settings").doc("stores").get();
   const configured = storeSnap.exists ? storeSnap.data() || {} : legacySnap?.data()?.[key] || {};
   return {
-    name: configured.name || fallback.name,
-    address: configured.address || fallback.address,
-    phone: configured.phone || fallback.phone
+    name: String(configured.name || "").trim(),
+    address: String(configured.address || "").trim(),
+    phone: String(configured.phone || "").trim()
   };
 }
 
@@ -331,10 +315,14 @@ async function templateVariables(orderId: string, order: FirebaseFirestore.Docum
     photo: order.photo ? "需要" : "不需要",
     total: money(order.totalJpy),
     deposit: money(order.depositJpy),
+    kimonoPrice: money(order.kimonoPriceJpy),
     hairFee: money(order.hairFeeJpy),
     photoFee: money(order.photoFeeJpy),
     discountLabel: discountLabel(order),
+    discountRefundAmount: money(order.discountRefundAmountJpy),
     onsiteDue: money(order.onsiteDueJpy),
+    storeActualReceived: money(order.storeActualReceivedJpy),
+    balanceDue: money(order.balanceDueJpy),
     refundAmount: money(order.refundAmountJpy),
     refundTime: order.refundTime ? formatJst(order.refundTime) : "—",
     refundReason: order.refundReason || "—",
@@ -349,6 +337,31 @@ function renderString(template: string, vars: Record<string, unknown>) {
   return template.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, (_match, key: string) => String(vars[key] ?? ""));
 }
 
+const optionalStoreVariables = ["storeName", "storeAddress", "storePhone"] as const;
+
+function removeMissingStoreFields(template: string, vars: Record<string, unknown>, html: boolean) {
+  let result = template;
+  optionalStoreVariables.forEach((key) => {
+    if (String(vars[key] || "").trim()) return;
+    const placeholder = `\\{\\{\\s*${key}\\s*\\}\\}`;
+    if (html) {
+      result = result.replace(
+        new RegExp(
+          `<(p|li|tr)\\b[^>]*>(?:(?!<\\/?\\1\\b)[\\s\\S])*?${placeholder}(?:(?!<\\/?\\1\\b)[\\s\\S])*?<\\/\\1>`,
+          "gi"
+        ),
+        ""
+      );
+    } else {
+      result = result
+        .split(/\r?\n/)
+        .filter((line) => !new RegExp(placeholder).test(line))
+        .join("\n");
+    }
+  });
+  return result;
+}
+
 function textToHtml(text: string) {
   return `<div style="font-family:Arial,'Noto Sans TC',sans-serif;color:#1f2937;line-height:1.7;white-space:pre-line">${escapeHtml(text)}</div>`;
 }
@@ -357,8 +370,10 @@ async function buildOrderEmail(kind: EmailKind, orderId: string, order: Firebase
   const template = await loadTemplate(kind);
   const vars = await templateVariables(orderId, order);
   const subject = renderString(template.subject, vars);
-  const text = renderString(template.text, vars);
-  const html = template.html ? renderString(template.html, vars) : textToHtml(text);
+  const text = renderString(removeMissingStoreFields(template.text, vars, false), vars);
+  const html = template.html
+    ? renderString(removeMissingStoreFields(template.html, vars, true), vars)
+    : textToHtml(text);
   return { to, subject, text, html };
 }
 

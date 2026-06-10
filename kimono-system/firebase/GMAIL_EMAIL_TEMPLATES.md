@@ -40,7 +40,13 @@ Each key can contain:
 - `{{photo}}`
 - `{{total}}`
 - `{{deposit}}`
+- `{{kimonoPrice}}`
+- `{{hairFee}}`
+- `{{photoFee}}`
+- `{{discountRefundAmount}}`
 - `{{onsiteDue}}`
+- `{{storeActualReceived}}`
+- `{{balanceDue}}`
 - `{{refundAmount}}`
 - `{{refundTime}}`
 - `{{refundReason}}`
