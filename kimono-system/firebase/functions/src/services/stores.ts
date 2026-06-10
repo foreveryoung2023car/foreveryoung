@@ -34,7 +34,10 @@ function assertKnownStore(storeId: string) {
 }
 
 function assertStoreAccess(actor: AuthContext, storeId: string) {
-  if (actor.role === "store_manager" && actor.storeId !== storeId) {
+  if (!actor.storeId) {
+    throw new HttpError(403, "User has no storeId");
+  }
+  if (actor.storeId !== storeId) {
     throw new HttpError(403, "Cannot manage another store");
   }
 }
@@ -69,9 +72,9 @@ export async function getStoreAvailability(storeId: string, date: string) {
 
 export async function listStoreSchedules(date: string, actor: AuthContext) {
   if (!datePattern.test(date)) throw new HttpError(400, "Invalid date");
-  const visibleStores = actor.role === "store_manager"
-    ? storeDefinitions.filter((store) => store.id === actor.storeId)
-    : storeDefinitions;
+  if (!actor.storeId) throw new HttpError(403, "User has no storeId");
+  assertKnownStore(actor.storeId);
+  const visibleStores = storeDefinitions.filter((store) => store.id === actor.storeId);
   const stores = await Promise.all(visibleStores.map(async (store) => ({
     ...store,
     ...(await getStoreAvailability(store.id, date))

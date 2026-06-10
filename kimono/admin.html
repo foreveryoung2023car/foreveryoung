@@ -287,7 +287,7 @@
     <div class="flex justify-between items-end mb-4 flex-wrap gap-3">
       <div>
         <h2 class="text-2xl font-bold text-[#1A365D] title-serif">🏪 店鋪管理</h2>
-        <p class="text-sm text-slate-600 mt-1 font-semibold">設定各店預設營業時段，或覆蓋指定日期；每 30 分鐘為一個時段。</p>
+        <p class="text-sm text-slate-600 mt-1 font-semibold">設定本店預設營業時段，或覆蓋指定日期；每 30 分鐘為一個時段。</p>
       </div>
       <button onclick="loadStoreSchedules()" class="btn-outline px-4 py-2 rounded-xl text-sm">重新載入</button>
     </div>
@@ -295,12 +295,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <label>
           <span class="section-label block">店鋪</span>
-          <select id="store-manage-store" class="input-field" onchange="renderSelectedStoreSchedule()">
-            <option value="kyoto1">京都清水寺店</option>
-            <option value="kyoto2">京都祇園店</option>
-            <option value="osaka1">大阪日本橋店</option>
-            <option value="tokyo1">東京淺草寺店</option>
-          </select>
+          <select id="store-manage-store" class="input-field" disabled onchange="renderSelectedStoreSchedule()"></select>
         </label>
         <label>
           <span class="section-label block">查看 / 調整日期</span>

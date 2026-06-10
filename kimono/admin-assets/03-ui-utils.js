@@ -229,7 +229,7 @@ function applyRolePermissions() {
   }
   const storesTab = document.querySelector('.nav-tab[data-sec="stores"]');
   if (storesTab) {
-    storesTab.style.display = useFirebaseAdmin() && ['owner', 'admin', 'store_manager'].indexOf(firebaseRole) >= 0 ? '' : 'none';
+    storesTab.style.display = useFirebaseAdmin() && firebaseRole === 'store_manager' && !!currentStoreKey ? '' : 'none';
   }
 }
 
