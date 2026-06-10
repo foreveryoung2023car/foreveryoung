@@ -4,6 +4,7 @@ import { requirePermission } from "../lib/auth.js";
 import {
   getStoreAvailability as getStoreAvailabilityService,
   listStoreSchedules as listStoreSchedulesService,
+  saveStore as saveStoreService,
   saveStoreSchedule as saveStoreScheduleService
 } from "../services/stores.js";
 
@@ -22,4 +23,10 @@ export const saveStoreSchedule = onRequest({ region: "asia-northeast1", cors: tr
   requireMethod(req, "POST");
   const actor = await requirePermission(req, "stores:manage");
   return saveStoreScheduleService(req.body, actor);
+}));
+
+export const saveStore = onRequest({ region: "asia-northeast1", cors: true }, (req, res) => handleHttp(req, res, async () => {
+  requireMethod(req, "POST");
+  const actor = await requirePermission(req, "stores:manage");
+  return saveStoreService(req.body, actor);
 }));

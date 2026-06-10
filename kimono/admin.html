@@ -287,9 +287,12 @@
     <div class="flex justify-between items-end mb-4 flex-wrap gap-3">
       <div>
         <h2 class="text-2xl font-bold text-[#1A365D] title-serif">🏪 店鋪管理</h2>
-        <p class="text-sm text-slate-600 mt-1 font-semibold">設定店鋪預設營業時段，或覆蓋指定日期；店長僅能管理本店。</p>
+        <p class="text-sm text-slate-600 mt-1 font-semibold">管理店鋪資料與營業時段；店長僅能管理本店。</p>
       </div>
-      <button onclick="loadStoreSchedules()" class="btn-outline px-4 py-2 rounded-xl text-sm">重新載入</button>
+      <div class="flex gap-2">
+        <button id="add-store-btn" onclick="openStoreEditor(true)" class="btn-navy px-4 py-2 rounded-xl text-sm hidden">+ 新增店鋪</button>
+        <button onclick="loadStoreSchedules()" class="btn-outline px-4 py-2 rounded-xl text-sm">重新載入</button>
+      </div>
     </div>
     <div class="panel mb-4">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -304,7 +307,20 @@
       </div>
     </div>
     <div id="store-schedule-loading" class="panel text-center py-10 text-slate-400">請選擇日期</div>
-    <div id="store-schedule-editor" class="panel hidden">
+    <div id="store-schedule-editor" class="hidden">
+      <button id="store-info-display" type="button" onclick="openStoreEditor(false)" class="store-info-display" aria-label="編輯店鋪信息">
+        <span class="store-info-edit" aria-hidden="true">✎</span>
+        <span>
+          <span class="section-label block mb-1">店鋪信息</span>
+          <strong id="store-info-name" class="store-info-name"></strong>
+          <span id="store-info-id" class="store-info-id"></span>
+        </span>
+        <span class="store-info-details">
+          <span id="store-info-address"></span>
+          <span id="store-info-phone"></span>
+        </span>
+      </button>
+      <div class="panel">
       <div class="flex justify-between items-start gap-3 flex-wrap mb-4">
         <div>
           <h3 id="store-schedule-title" class="text-lg font-bold text-[#1A365D]"></h3>
@@ -321,6 +337,7 @@
         <button id="save-store-date-btn" onclick="saveStoreSlots('date')" class="btn-navy px-5 py-2.5 rounded-xl text-sm">儲存此日期</button>
         <button id="save-store-default-btn" onclick="saveStoreSlots('default')" class="btn-outline px-5 py-2.5 rounded-xl text-sm">設為此店預設</button>
         <span class="text-xs text-slate-500">修改預設後，尚未個別設定的日期會自動套用新預設。</span>
+      </div>
       </div>
     </div>
   </section>
@@ -841,6 +858,39 @@
 
 <div id="toast-container"></div>
 
+<div id="store-editor-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeStoreEditor()">
+  <div class="custom-modal-frame max-w-md" style="max-width:32rem">
+    <button onclick="closeStoreEditor()" class="custom-modal-close" aria-label="關閉店鋪編輯">×</button>
+    <div class="custom-modal-card">
+      <h3 id="store-editor-title" class="custom-modal-title text-lg font-bold text-[#1A365D] mb-4">編輯店鋪信息</h3>
+      <div class="space-y-3">
+        <label class="block">
+          <span class="section-label block mb-1">店鋪代號</span>
+          <input id="store-edit-id" class="input-field w-full" maxlength="32" placeholder="例：tokyo2">
+          <span class="text-xs text-slate-500 mt-1 block">限小寫英數字、底線或連字號，建立後不可修改。</span>
+        </label>
+        <label class="block">
+          <span class="section-label block mb-1">店鋪名稱</span>
+          <input id="store-edit-name" class="input-field w-full" maxlength="80">
+        </label>
+        <label class="block">
+          <span class="section-label block mb-1">地址</span>
+          <textarea id="store-edit-address" class="input-field w-full" rows="3" maxlength="300"></textarea>
+        </label>
+        <label class="block">
+          <span class="section-label block mb-1">電話</span>
+          <input id="store-edit-phone" class="input-field w-full" maxlength="80">
+        </label>
+        <div id="store-editor-error" class="hidden text-red-600 text-sm"></div>
+        <div class="flex gap-2 pt-3">
+          <button onclick="closeStoreEditor()" class="flex-1 py-2 border-2 border-slate-200 rounded font-bold text-sm text-slate-600">取消</button>
+          <button id="save-store-info-btn" onclick="saveStoreInfo()" class="flex-1 py-2 bg-[#1A365D] text-white rounded font-bold text-sm">儲存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="./admin-assets/00-gas-guard.js?v=20260605-14"></script>
 <script src="./admin-assets/01-state.js?v=20260605-14"></script>
 <script src="./admin-assets/02-firebase-api.js?v=20260610-3"></script>
@@ -861,7 +911,7 @@
 <script src="./admin-assets/17-walkin-orders.js?v=20260605-14"></script>
 <script src="./admin-assets/18-employees.js?v=20260605-14"></script>
 <script src="./admin-assets/19-tour.js?v=20260610-1"></script>
-<script src="./admin-assets/20-stores.js?v=20260611-1"></script>
+<script src="./admin-assets/20-stores.js?v=20260611-2"></script>
 
 <!-- v2.4: 新增現場訂單 FAB -->
 <button id="walkInFab" onclick="openWalkInModal()" class="hidden fixed bottom-6 right-6 z-40 bg-[#1A365D] text-white px-5 py-4 rounded-full shadow-2xl font-bold text-base flex items-center gap-2 hover:bg-blue-900 active:scale-95 transition-transform" style="box-shadow:0 8px 24px rgba(26,54,93,0.35)">

@@ -4,16 +4,19 @@ import { HttpError } from "../lib/constants.js";
 import type { AuthContext } from "../lib/auth.js";
 import { writeAuditLog } from "../lib/audit.js";
 
-export const storeDefinitions = [
-  { id: "kyoto1", name: "京都清水寺店" },
-  { id: "kyoto2", name: "京都祇園店" },
-  { id: "osaka1", name: "大阪日本橋店" },
-  { id: "tokyo1", name: "東京淺草寺店" }
+const legacyStores = [
+  { id: "kyoto1", name: "京都清水寺店", address: "京都東山區五條橋東4-432-13 對嵐坊大廈1樓", phone: "請洽客服" },
+  { id: "kyoto2", name: "京都祇園店", address: "京都東山區常盤町169 常盤大廈", phone: "請洽客服" },
+  { id: "osaka1", name: "大阪日本橋店", address: "大阪中央區日本橋1-18-14 芝大廈7樓", phone: "請洽客服" },
+  { id: "tokyo1", name: "東京淺草寺店", address: "東京都台東區淺草1-33-8 A-one大廈9樓", phone: "請洽客服" }
 ] as const;
 
-const storeIds = storeDefinitions.map((store) => store.id);
+const legacyStoreMap = new Map<string, StoreRecord>(
+  legacyStores.map((store) => [store.id, { ...store }])
+);
 const slotPattern = /^(?:[01]\d|2[0-3]):(?:00|30)$/;
 const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+const storeIdPattern = /^[a-z0-9][a-z0-9_-]{1,31}$/;
 
 export const defaultStoreSlots = Array.from({ length: 18 }, (_, index) => {
   const minutes = 9 * 60 + index * 30;
@@ -27,18 +30,52 @@ const saveStoreScheduleSchema = z.object({
   slots: z.array(z.string().regex(slotPattern)).max(48)
 });
 
-function assertKnownStore(storeId: string) {
-  if (!storeIds.includes(storeId as (typeof storeIds)[number])) {
-    throw new HttpError(400, "Unknown store");
-  }
+const saveStoreSchema = z.object({
+  id: z.string().regex(storeIdPattern, "Invalid store ID"),
+  name: z.string().trim().min(1).max(80),
+  address: z.string().trim().max(300).default(""),
+  phone: z.string().trim().max(80).default(""),
+  create: z.boolean().optional()
+});
+
+type StoreRecord = {
+  id: string;
+  name: string;
+  address: string;
+  phone: string;
+};
+
+function storeFromData(id: string, data: FirebaseFirestore.DocumentData = {}): StoreRecord {
+  const fallback = legacyStoreMap.get(id);
+  return {
+    id,
+    name: String(data.name || fallback?.name || id),
+    address: String(data.address || fallback?.address || ""),
+    phone: String(data.phone || fallback?.phone || "")
+  };
+}
+
+async function loadStore(storeId: string) {
+  const snap = await db.collection("stores").doc(storeId).get();
+  if (snap.exists) return { store: storeFromData(storeId, snap.data()), data: snap.data() || {} };
+  const fallback = legacyStoreMap.get(storeId);
+  if (fallback) return { store: { ...fallback }, data: {} };
+  throw new HttpError(400, "Unknown store");
+}
+
+async function listStores() {
+  const snap = await db.collection("stores").get();
+  const records = new Map<string, StoreRecord>(
+    legacyStores.map((store) => [store.id, { ...store }])
+  );
+  snap.docs.forEach((doc) => records.set(doc.id, storeFromData(doc.id, doc.data())));
+  return [...records.values()].sort((a, b) => a.name.localeCompare(b.name, "zh-Hant"));
 }
 
 function assertStoreAccess(actor: AuthContext, storeId: string) {
   if (actor.role === "owner" || actor.role === "admin") return;
   if (!actor.storeId) throw new HttpError(403, "User has no storeId");
-  if (actor.storeId !== storeId) {
-    throw new HttpError(403, "Cannot manage another store");
-  }
+  if (actor.storeId !== storeId) throw new HttpError(403, "Cannot manage another store");
 }
 
 function normalizeSlots(slots: string[]) {
@@ -46,13 +83,13 @@ function normalizeSlots(slots: string[]) {
 }
 
 async function loadDefaultSlots(storeId: string) {
-  const snap = await db.collection("stores").doc(storeId).get();
-  const slots = snap.data()?.defaultSlots;
+  const { data } = await loadStore(storeId);
+  const slots = data.defaultSlots;
   return Array.isArray(slots) ? normalizeSlots(slots.map(String).filter((slot) => slotPattern.test(slot))) : defaultStoreSlots;
 }
 
 export async function getStoreAvailability(storeId: string, date: string) {
-  assertKnownStore(storeId);
+  const { store } = await loadStore(storeId);
   if (!datePattern.test(date)) throw new HttpError(400, "Invalid date");
   const defaultSlots = await loadDefaultSlots(storeId);
   const scheduleId = `${storeId}_${date}`;
@@ -61,6 +98,7 @@ export async function getStoreAvailability(storeId: string, date: string) {
   const hasOverride = scheduleSnap.exists && Array.isArray(overrideSlots);
   return {
     status: "success",
+    ...store,
     storeId,
     date,
     slots: hasOverride ? normalizeSlots(overrideSlots.map(String).filter((slot) => slotPattern.test(slot))) : defaultSlots,
@@ -73,20 +111,49 @@ export async function listStoreSchedules(date: string, actor: AuthContext) {
   if (!datePattern.test(date)) throw new HttpError(400, "Invalid date");
   const isPlatformAdmin = actor.role === "owner" || actor.role === "admin";
   if (!isPlatformAdmin && !actor.storeId) throw new HttpError(403, "User has no storeId");
-  if (actor.storeId) assertKnownStore(actor.storeId);
+  const allStores = await listStores();
   const visibleStores = isPlatformAdmin
-    ? storeDefinitions
-    : storeDefinitions.filter((store) => store.id === actor.storeId);
-  const stores = await Promise.all(visibleStores.map(async (store) => ({
-    ...store,
-    ...(await getStoreAvailability(store.id, date))
-  })));
-  return { status: "success", date, stores };
+    ? allStores
+    : allStores.filter((store) => store.id === actor.storeId);
+  if (!isPlatformAdmin && visibleStores.length === 0) throw new HttpError(400, "Unknown store");
+  const stores = await Promise.all(visibleStores.map((store) => getStoreAvailability(store.id, date)));
+  return { status: "success", date, stores, canCreateStore: isPlatformAdmin };
+}
+
+export async function saveStore(raw: unknown, actor: AuthContext) {
+  const input = saveStoreSchema.parse(raw);
+  const isPlatformAdmin = actor.role === "owner" || actor.role === "admin";
+  assertStoreAccess(actor, input.id);
+  const ref = db.collection("stores").doc(input.id);
+  const snap = await ref.get();
+  if (input.create && !isPlatformAdmin) throw new HttpError(403, "Only platform admins can create stores");
+  if (input.create && (snap.exists || legacyStoreMap.has(input.id))) throw new HttpError(409, "Store ID already exists");
+  if (!input.create && !snap.exists && !legacyStoreMap.has(input.id)) throw new HttpError(404, "Store not found");
+
+  const before = snap.exists ? snap.data() || null : legacyStoreMap.get(input.id) || null;
+  const store = { id: input.id, name: input.name, address: input.address, phone: input.phone };
+  await ref.set({
+    storeId: input.id,
+    name: input.name,
+    address: input.address,
+    phone: input.phone,
+    updatedBy: actor.uid,
+    updatedAt: FieldValue.serverTimestamp(),
+    ...(snap.exists ? {} : { createdBy: actor.uid, createdAt: FieldValue.serverTimestamp() })
+  }, { merge: true });
+  await writeAuditLog({
+    actor,
+    action: input.create ? "store_created" : "store_info_updated",
+    beforeData: before,
+    afterData: store,
+    metadata: { storeId: input.id }
+  });
+  return { status: "success", store };
 }
 
 export async function saveStoreSchedule(raw: unknown, actor: AuthContext) {
   const input = saveStoreScheduleSchema.parse(raw);
-  assertKnownStore(input.storeId);
+  await loadStore(input.storeId);
   assertStoreAccess(actor, input.storeId);
   const slots = normalizeSlots(input.slots);
 
@@ -130,7 +197,7 @@ export async function saveStoreSchedule(raw: unknown, actor: AuthContext) {
 }
 
 export async function assertStoreSlotAvailable(storeId: string, bookingAt: string) {
-  assertKnownStore(storeId);
+  await loadStore(storeId);
   const match = bookingAt.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);
   if (!match) throw new HttpError(400, "Invalid booking time");
   const availability = await getStoreAvailability(storeId, match[1]);

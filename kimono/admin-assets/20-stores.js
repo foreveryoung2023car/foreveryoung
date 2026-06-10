@@ -3,12 +3,14 @@ const STORE_TIME_OPTIONS = Array.from({ length: 48 }, (_, index) => {
   return String(Math.floor(minutes / 60)).padStart(2, '0') + ':' + String(minutes % 60).padStart(2, '0');
 });
 let storeScheduleRows = [];
+let canCreateStore = false;
+let creatingStore = false;
 
 function storeTodayJst() {
   return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
 }
 
-async function loadStoreSchedules() {
+async function loadStoreSchedules(preferredStoreId) {
   const dateEl = document.getElementById('store-manage-date');
   const loading = document.getElementById('store-schedule-loading');
   const editor = document.getElementById('store-schedule-editor');
@@ -20,15 +22,25 @@ async function loadStoreSchedules() {
   try {
     const data = await callFirebaseAdminFunction('/listStoreSchedules?date=' + encodeURIComponent(dateEl.value), null, { method: 'GET' });
     storeScheduleRows = data.stores || [];
+    canCreateStore = data.canCreateStore === true;
     const storeEl = document.getElementById('store-manage-store');
     const role = localStorage.getItem('admin_firebaseRole') || '';
-    const previousStoreId = storeEl.value;
+    const previousStoreId = preferredStoreId || storeEl.value;
     storeEl.innerHTML = storeScheduleRows.map(row =>
-      '<option value="' + adminEsc(row.id) + '">' + adminEsc(row.name) + '</option>'
+      '<option value="' + adminEsc(row.id) + '">' + adminEsc(row.name) + ' (' + adminEsc(row.id) + ')</option>'
     ).join('');
     if (storeScheduleRows.some(row => row.id === previousStoreId)) storeEl.value = previousStoreId;
     else if (storeScheduleRows[0]) storeEl.value = storeScheduleRows[0].id;
     storeEl.disabled = role === 'store_manager';
+    document.getElementById('add-store-btn').classList.toggle('hidden', !canCreateStore);
+    const employeeStoreEl = document.getElementById('new-emp-store');
+    if (employeeStoreEl && canCreateStore) {
+      const selectedEmployeeStore = employeeStoreEl.value;
+      employeeStoreEl.innerHTML = '<option value="">不綁定（全局）</option>' + storeScheduleRows.map(row =>
+        '<option value="' + adminEsc(row.id) + '">' + adminEsc(row.name) + ' (' + adminEsc(row.id) + ')</option>'
+      ).join('');
+      if (storeScheduleRows.some(row => row.id === selectedEmployeeStore)) employeeStoreEl.value = selectedEmployeeStore;
+    }
     renderSelectedStoreSchedule();
     loading.classList.add('hidden');
     editor.classList.remove('hidden');
@@ -37,10 +49,18 @@ async function loadStoreSchedules() {
   }
 }
 
+function selectedStoreRow() {
+  const storeEl = document.getElementById('store-manage-store');
+  return storeEl ? storeScheduleRows.find(item => item.id === storeEl.value) : null;
+}
+
 function renderSelectedStoreSchedule() {
-  const storeId = document.getElementById('store-manage-store').value;
-  const row = storeScheduleRows.find(item => item.id === storeId);
+  const row = selectedStoreRow();
   if (!row) return;
+  document.getElementById('store-info-name').textContent = row.name || row.id;
+  document.getElementById('store-info-id').textContent = row.id;
+  document.getElementById('store-info-address').textContent = row.address || '尚未設定地址';
+  document.getElementById('store-info-phone').textContent = row.phone || '尚未設定電話';
   document.getElementById('store-schedule-title').textContent = row.name + ' · ' + row.date;
   document.getElementById('store-schedule-status').textContent = row.hasOverride
     ? '此日期已有個別設定'
@@ -52,6 +72,63 @@ function renderSelectedStoreSchedule() {
       '<span class="font-mono text-sm font-bold">' + slot + '</span>' +
     '</label>'
   ).join('');
+}
+
+function openStoreEditor(create) {
+  const row = selectedStoreRow();
+  if (!create && !row) return;
+  if (create && !canCreateStore) return;
+  creatingStore = !!create;
+  document.getElementById('store-editor-title').textContent = create ? '新增店鋪' : '編輯店鋪信息';
+  const idEl = document.getElementById('store-edit-id');
+  idEl.value = create ? '' : row.id;
+  idEl.disabled = !create;
+  document.getElementById('store-edit-name').value = create ? '' : (row.name || '');
+  document.getElementById('store-edit-address').value = create ? '' : (row.address || '');
+  document.getElementById('store-edit-phone').value = create ? '' : (row.phone || '');
+  document.getElementById('store-editor-error').classList.add('hidden');
+  document.getElementById('store-editor-modal').classList.remove('hidden');
+  setTimeout(() => document.getElementById(create ? 'store-edit-id' : 'store-edit-name').focus(), 0);
+}
+
+function closeStoreEditor() {
+  document.getElementById('store-editor-modal').classList.add('hidden');
+}
+
+async function saveStoreInfo() {
+  const id = document.getElementById('store-edit-id').value.trim();
+  const name = document.getElementById('store-edit-name').value.trim();
+  const error = document.getElementById('store-editor-error');
+  if (!/^[a-z0-9][a-z0-9_-]{1,31}$/.test(id)) {
+    error.textContent = '店鋪代號需為 2–32 位小寫英數字、底線或連字號。';
+    error.classList.remove('hidden');
+    return;
+  }
+  if (!name) {
+    error.textContent = '請輸入店鋪名稱。';
+    error.classList.remove('hidden');
+    return;
+  }
+  const button = document.getElementById('save-store-info-btn');
+  button.disabled = true;
+  error.classList.add('hidden');
+  try {
+    await callFirebaseAdminFunction('/saveStore', {
+      id,
+      name,
+      address: document.getElementById('store-edit-address').value.trim(),
+      phone: document.getElementById('store-edit-phone').value.trim(),
+      create: creatingStore
+    });
+    closeStoreEditor();
+    toast(creatingStore ? '店鋪已新增' : '店鋪信息已更新');
+    await loadStoreSchedules(id);
+  } catch (err) {
+    error.textContent = '儲存失敗：' + err.message;
+    error.classList.remove('hidden');
+  } finally {
+    button.disabled = false;
+  }
 }
 
 function selectedStoreSlots() {
@@ -66,8 +143,7 @@ function selectStoreSlots(checked) {
 }
 
 function restoreDefaultStoreSlots() {
-  const storeId = document.getElementById('store-manage-store').value;
-  const row = storeScheduleRows.find(item => item.id === storeId);
+  const row = selectedStoreRow();
   const defaults = new Set((row && row.defaultSlots) || []);
   document.querySelectorAll('input[name="store-slot"]').forEach(input => {
     input.checked = defaults.has(input.value);
@@ -92,7 +168,7 @@ async function saveStoreSlots(mode) {
       slots: selectedStoreSlots()
     });
     toast(mode === 'default' ? '店鋪預設時段已更新' : '指定日期時段已更新');
-    await loadStoreSchedules();
+    await loadStoreSchedules(storeId);
   } catch (err) {
     alert('儲存失敗：' + err.message);
   } finally {

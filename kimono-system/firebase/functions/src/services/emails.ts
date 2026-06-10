@@ -305,8 +305,9 @@ async function loadStoreContact(storeId: unknown): Promise<StoreContact> {
   const fallback = defaultStores[key] || { name: key || "—", address: "—", phone: "請洽客服" };
   if (!key) return fallback;
 
-  const snap = await db.collection("settings").doc("stores").get();
-  const configured = snap.data()?.[key] || {};
+  const storeSnap = await db.collection("stores").doc(key).get();
+  const legacySnap = storeSnap.exists ? null : await db.collection("settings").doc("stores").get();
+  const configured = storeSnap.exists ? storeSnap.data() || {} : legacySnap?.data()?.[key] || {};
   return {
     name: configured.name || fallback.name,
     address: configured.address || fallback.address,
