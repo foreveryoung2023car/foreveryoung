@@ -174,7 +174,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
     <!-- Hero -->
     <header class="relative h-[95vh] flex items-center justify-center overflow-hidden text-center bg-[#1A365D]">
         <div class="absolute inset-0 z-0">
-            <img src="img/header-bg.jpg" class="w-full h-full object-cover opacity-35 scale-105" alt="和服體驗 Hero">
+            <img src="img/header-bg.jpg" class="w-full h-full object-cover opacity-35 scale-105" alt="和服體驗 Hero" fetchpriority="high" decoding="async">
             <div class="absolute inset-0 bg-gradient-to-b from-[#1A365D]/40 via-transparent to-[#1A365D]/20"></div>
         </div>
         <div class="relative z-10 px-6 max-w-4xl">
@@ -294,7 +294,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                         </div>
                     </div>
                     <div class="relative rounded-sm overflow-hidden shadow-2xl aspect-[4/5]">
-                        <img src="img/HairStyling.jpg" class="w-full h-full object-cover" alt="和服髮型展示">
+                        <img src="img/HairStyling.jpg" class="w-full h-full object-cover" alt="和服髮型展示" loading="lazy" decoding="async">
                     </div>
                 </div>
                 <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
@@ -906,7 +906,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 
             const planHTML = plans.map(p => `
                 <div class="group bg-white border border-slate-100 rounded-sm overflow-hidden flex flex-col shadow-sm hover:shadow-xl transition-all duration-700 flex-none w-[240px] md:w-auto snap-center">
-                    <div class="aspect-[4/5] relative overflow-hidden"><img src="${p.img}" class="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition-transform duration-1000 group-hover:scale-105" loading="lazy" alt="${p.name}"></div>
+                    <div class="aspect-[4/5] relative overflow-hidden"><img src="${p.img}" class="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition-transform duration-1000 group-hover:scale-105" loading="lazy" decoding="async" alt="${p.name}"></div>
                     <div class="p-6 flex flex-col flex-grow text-left"><h4 class="text-lg font-bold text-[#1A365D] mb-1 uppercase italic font-sans">${p.name}</h4><p class="text-[10px] text-pink-400 font-bold uppercase mb-3 tracking-widest font-sans">${p.sub}</p><p class="text-slate-500 text-sm leading-relaxed mb-4 flex-grow font-sans">${p.desc}</p><p class="mt-auto text-2xl font-bold font-sans">¥${p.price}<span class="text-xs ml-1 opacity-50 uppercase font-sans">起</span></p></div>
                 </div>
             `).join('');
@@ -921,7 +921,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 : 'flex gap-6 overflow-x-auto px-6 md:px-10 pb-10 scrollbar-hide snap-x';
             videoContainer.innerHTML = reels.map((v, i) => `
                 <div class="flex-none w-[240px] md:w-[280px] aspect-[9/16] bg-slate-900 rounded-2xl overflow-hidden relative group snap-center shadow-xl cursor-pointer select-none" onclick="openLightbox(${i})" role="button" aria-label="播放：${v.title}">
-                    <img src="${v.img}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:brightness-75" loading="lazy" alt="${v.title}" />
+                    <img src="${v.img}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:brightness-75" loading="lazy" decoding="async" alt="${v.title}" />
                     <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
                     <div class="absolute inset-0 flex items-center justify-center">
                         <div class="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/60 flex items-center justify-center group-hover:scale-110 group-hover:bg-white/30 transition-all duration-300 shadow-2xl">
@@ -940,7 +940,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             const reviewCardHTML = (r) => `
                 <div class="bg-white border border-slate-100 rounded-sm shadow-sm flex flex-col overflow-hidden flex-none w-[260px]">
                     <div class="aspect-[3/4] overflow-hidden relative">
-                        <img src="${r.img}" class="w-full h-full object-cover" loading="lazy" alt="${r.name}">
+                        <img src="${r.img}" class="w-full h-full object-cover" loading="lazy" decoding="async" alt="${r.name}">
                         <div class="absolute inset-0 bg-gradient-to-t from-[#1A365D]/70 via-transparent to-transparent"></div>
                         <span class="absolute bottom-3 left-4 text-[10px] font-bold text-white/90 bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full font-sans uppercase tracking-widest">${r.tag}</span>
                     </div>
@@ -1094,7 +1094,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                     </div>
                 </div>
                 <div class="lg:col-span-7 h-[350px] lg:h-auto overflow-hidden relative">
-                    <img src="${s.img}" class="absolute inset-0 w-full h-full object-cover object-center transition-all duration-1000 hover:scale-105" alt="${s.name}" loading="lazy">
+                    <img src="${s.img}" class="absolute inset-0 w-full h-full object-cover object-center transition-all duration-1000 hover:scale-105" alt="${s.name}" loading="lazy" decoding="async">
                 </div>
             `;
         }

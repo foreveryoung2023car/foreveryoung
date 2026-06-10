@@ -45,6 +45,11 @@ type StoreRecord = {
   phone: string;
 };
 
+type StoreWithData = {
+  store: StoreRecord;
+  data: FirebaseFirestore.DocumentData;
+};
+
 function storeFromData(id: string, data: FirebaseFirestore.DocumentData = {}): StoreRecord {
   const fallback = legacyStoreMap.get(id);
   return {
@@ -63,13 +68,16 @@ async function loadStore(storeId: string) {
   throw new HttpError(400, "Unknown store");
 }
 
-async function listStores() {
+async function listStoresWithData(): Promise<StoreWithData[]> {
   const snap = await db.collection("stores").get();
-  const records = new Map<string, StoreRecord>(
-    legacyStores.map((store) => [store.id, { ...store }])
+  const records = new Map<string, StoreWithData>(
+    legacyStores.map((store) => [store.id, { store: { ...store }, data: {} }])
   );
-  snap.docs.forEach((doc) => records.set(doc.id, storeFromData(doc.id, doc.data())));
-  return [...records.values()].sort((a, b) => a.name.localeCompare(b.name, "zh-Hant"));
+  snap.docs.forEach((doc) => records.set(doc.id, {
+    store: storeFromData(doc.id, doc.data()),
+    data: doc.data()
+  }));
+  return [...records.values()].sort((a, b) => a.store.name.localeCompare(b.store.name, "zh-Hant"));
 }
 
 function assertStoreAccess(actor: AuthContext, storeId: string) {
@@ -88,24 +96,19 @@ function normalizeSlots(slots: string[]) {
   return [...new Set(slots)].sort();
 }
 
-async function loadDefaultSlots(storeId: string) {
-  const { data } = await loadStore(storeId);
+function defaultSlotsFromData(data: FirebaseFirestore.DocumentData) {
   const slots = data.defaultSlots;
   return Array.isArray(slots) ? normalizeSlots(slots.map(String).filter((slot) => slotPattern.test(slot))) : defaultStoreSlots;
 }
 
-export async function getStoreAvailability(storeId: string, date: string) {
-  const { store } = await loadStore(storeId);
-  if (!datePattern.test(date)) throw new HttpError(400, "Invalid date");
-  const defaultSlots = await loadDefaultSlots(storeId);
-  const scheduleId = `${storeId}_${date}`;
-  const scheduleSnap = await db.collection("storeSchedules").doc(scheduleId).get();
+function availabilityFromSnapshot(store: StoreRecord, data: FirebaseFirestore.DocumentData, date: string, scheduleSnap: FirebaseFirestore.DocumentSnapshot) {
+  const defaultSlots = defaultSlotsFromData(data);
   const overrideSlots = scheduleSnap.data()?.slots;
   const hasOverride = scheduleSnap.exists && Array.isArray(overrideSlots);
   return {
     status: "success",
     ...store,
-    storeId,
+    storeId: store.id,
     date,
     slots: hasOverride ? normalizeSlots(overrideSlots.map(String).filter((slot) => slotPattern.test(slot))) : defaultSlots,
     defaultSlots,
@@ -113,16 +116,27 @@ export async function getStoreAvailability(storeId: string, date: string) {
   };
 }
 
+export async function getStoreAvailability(storeId: string, date: string) {
+  if (!datePattern.test(date)) throw new HttpError(400, "Invalid date");
+  const { store, data } = await loadStore(storeId);
+  const scheduleSnap = await db.collection("storeSchedules").doc(`${storeId}_${date}`).get();
+  return availabilityFromSnapshot(store, data, date, scheduleSnap);
+}
+
 export async function listStoreSchedules(date: string, actor: AuthContext) {
   if (!datePattern.test(date)) throw new HttpError(400, "Invalid date");
   const isPlatformAdmin = isPlatformStoreManager(actor);
   if (!isPlatformAdmin && !actor.storeId) throw new HttpError(403, "User has no storeId");
-  const allStores = await listStores();
+  const allStores = await listStoresWithData();
   const visibleStores = isPlatformAdmin
     ? allStores
-    : allStores.filter((store) => store.id === actor.storeId);
+    : allStores.filter(({ store }) => store.id === actor.storeId);
   if (!isPlatformAdmin && visibleStores.length === 0) throw new HttpError(400, "Unknown store");
-  const stores = await Promise.all(visibleStores.map((store) => getStoreAvailability(store.id, date)));
+  const scheduleRefs = visibleStores.map(({ store }) => db.collection("storeSchedules").doc(`${store.id}_${date}`));
+  const scheduleSnaps = scheduleRefs.length ? await db.getAll(...scheduleRefs) : [];
+  const stores = visibleStores.map(({ store, data }, index) =>
+    availabilityFromSnapshot(store, data, date, scheduleSnaps[index])
+  );
   return { status: "success", date, stores, canCreateStore: isPlatformAdmin };
 }
 

@@ -82,14 +82,15 @@ export async function listAdminUsers(actor: AuthContext) {
     const data = doc.data();
     return canListUser(actor, { role: data.role || "readonly", storeId: data.storeId || null });
   });
-  const users = await Promise.all(visibleDocs.map(async (doc) => {
+  const authUsers = new Map<string, Awaited<ReturnType<typeof auth.getUser>>>();
+  for (let offset = 0; offset < visibleDocs.length; offset += 100) {
+    const batch = visibleDocs.slice(offset, offset + 100);
+    const result = await auth.getUsers(batch.map((doc) => ({ uid: doc.id })));
+    result.users.forEach((user) => authUsers.set(user.uid, user));
+  }
+  const users = visibleDocs.map((doc) => {
     const data = doc.data();
-    let authUser: Awaited<ReturnType<typeof auth.getUser>> | null = null;
-    try {
-      authUser = await auth.getUser(doc.id);
-    } catch {
-      authUser = null;
-    }
+    const authUser = authUsers.get(doc.id);
     return {
       uid: doc.id,
       email: authUser?.email || data.email || "",
@@ -101,7 +102,7 @@ export async function listAdminUsers(actor: AuthContext) {
       updatedAt: data.updatedAt || null,
       lastSignInAt: authUser?.metadata?.lastSignInTime || null
     };
-  }));
+  });
   users.sort((a, b) => String(a.displayName || a.email || "").localeCompare(String(b.displayName || b.email || "")));
   return { status: "success", users };
 }
