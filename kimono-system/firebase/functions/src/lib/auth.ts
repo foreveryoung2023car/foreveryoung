@@ -22,7 +22,7 @@ export async function requireAuth(req: Request): Promise<AuthContext> {
     email: decoded.email || user.email || "",
     displayName: user.displayName || decoded.name || decoded.email || decoded.uid,
     role: user.role,
-    storeId: user.storeId || null
+    storeId: user.storeId || user.storeKey || null
   };
 }
 

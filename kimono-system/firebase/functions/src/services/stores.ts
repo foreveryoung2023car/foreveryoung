@@ -73,9 +73,15 @@ async function listStores() {
 }
 
 function assertStoreAccess(actor: AuthContext, storeId: string) {
-  if (actor.role === "owner" || actor.role === "admin") return;
+  if (isPlatformStoreManager(actor)) return;
   if (!actor.storeId) throw new HttpError(403, "User has no storeId");
   if (actor.storeId !== storeId) throw new HttpError(403, "Cannot manage another store");
+}
+
+function isPlatformStoreManager(actor: AuthContext) {
+  return actor.role === "owner" ||
+    actor.role === "admin" ||
+    (actor.role === "store_manager" && !actor.storeId);
 }
 
 function normalizeSlots(slots: string[]) {
@@ -109,7 +115,7 @@ export async function getStoreAvailability(storeId: string, date: string) {
 
 export async function listStoreSchedules(date: string, actor: AuthContext) {
   if (!datePattern.test(date)) throw new HttpError(400, "Invalid date");
-  const isPlatformAdmin = actor.role === "owner" || actor.role === "admin";
+  const isPlatformAdmin = isPlatformStoreManager(actor);
   if (!isPlatformAdmin && !actor.storeId) throw new HttpError(403, "User has no storeId");
   const allStores = await listStores();
   const visibleStores = isPlatformAdmin
@@ -122,7 +128,7 @@ export async function listStoreSchedules(date: string, actor: AuthContext) {
 
 export async function saveStore(raw: unknown, actor: AuthContext) {
   const input = saveStoreSchema.parse(raw);
-  const isPlatformAdmin = actor.role === "owner" || actor.role === "admin";
+  const isPlatformAdmin = isPlatformStoreManager(actor);
   assertStoreAccess(actor, input.id);
   const ref = db.collection("stores").doc(input.id);
   const snap = await ref.get();
