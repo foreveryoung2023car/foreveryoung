@@ -23,6 +23,43 @@ function initReconMonths(){
   }).join('');
 }
 
+function reconcileAmounts(o) {
+  const kimonoPrice = Number(o.price || o.kimonoPrice || 0);
+  const hairFee = Number(o.hairFee || 0);
+  const photoFee = Number(o.photoFee || 0);
+  const discountRefund = Number(o.discountRefundAmount || 0);
+  const deposit = Number(o.deposit || 0);
+  const actualReceived = Number(
+    o.storeActualReceived !== undefined ? o.storeActualReceived : o.storeActualReceivedJpy
+  ) || 0;
+  const total = typeof orderDisplayTotal === 'function'
+    ? orderDisplayTotal(o)
+    : Math.max(0, kimonoPrice + hairFee + photoFee - discountRefund);
+  const balance = typeof orderDisplayBalance === 'function'
+    ? orderDisplayBalance(o)
+    : Math.max(0, total - deposit - actualReceived);
+  const platformFee = (kimonoPrice - discountRefund) * 0.5;
+  return {
+    deposit,
+    kimonoPrice,
+    hairFee,
+    photoFee,
+    discountRefund,
+    total,
+    actualReceived,
+    balance,
+    platformFee,
+    storeBalance: total - platformFee
+  };
+}
+
+function reconcileStatusBadge(o) {
+  if(o._recState==='matched') return {html:'<span class="badge badge-confirmed">✓ 已對帳</span>', rowClass:'match'};
+  if(o._recState==='overpaid') return {html:'<span class="badge badge-anomaly">⚠ 超收異常</span>', rowClass:'mismatch'};
+  if(o._recState==='partial') return {html:'<span class="badge" style="background:#DBEAFE;color:#1E40AF">△ 待收尾款</span>', rowClass:''};
+  return {html:'<span class="badge badge-pending">○ 未對帳</span>', rowClass:'pending'};
+}
+
 function renderReconcile(){
   const month = document.getElementById('recon-month').value;
   const status = document.getElementById('recon-status').value;
@@ -106,35 +143,44 @@ function renderReconcile(){
     return;
   }
   tbl.innerHTML = '<table class="data-table"><thead><tr>'+
-    '<th>狀態</th><th>訂單號</th><th>客戶</th><th>體驗日期</th>'+
-    '<th class="num">人數</th><th class="num">應收訂金</th>'+
-    '<th class="num">已收訂金</th><th class="num">差異</th>'+
-    '<th>對帳結果</th><th>動作</th></tr></thead><tbody>'+
+    (currentRole === 'store'
+      ? '<th>狀態</th><th>訂單號</th><th>客戶</th><th>體驗日期</th>'+
+        '<th class="num">已收訂金</th><th class="num">和服原價</th>'+
+        '<th class="num">妝髮費</th><th class="num">攝影費</th>'+
+        '<th class="num">折扣與退款</th><th class="num">總價</th>'+
+        '<th class="num">實際收款</th><th class="num">平台費</th>'+
+        '<th class="num">店鋪結餘</th>'
+      : '<th>狀態</th><th>訂單號</th><th>客戶</th><th>體驗日期</th>'+
+        '<th class="num">已收訂金</th><th class="num">和服原價</th>'+
+        '<th class="num">折扣與退款</th><th class="num">總價</th>'+
+        '<th class="num">尾款</th><th class="num">平台費</th>')+
+    '</tr></thead><tbody>'+
     list.map(o=>{
-      let stBadge, rowCls;
-      if(o._recState==='matched'){ stBadge='<span class="badge badge-confirmed">✓ 已對帳</span>'; rowCls='match'; }
-      else if(o._recState==='overpaid'){ stBadge='<span class="badge badge-anomaly">⚠ 超收異常</span>'; rowCls='mismatch'; }
-      else if(o._recState==='partial'){ stBadge='<span class="badge" style="background:#DBEAFE;color:#1E40AF">△ 待收尾款</span>'; rowCls=''; }
-      else { stBadge='<span class="badge badge-pending">○ 未對帳</span>'; rowCls='pending'; }
-
-      const diffStr = o._diff===0? '—' : (o._diff>0? '<span class="text-amber-700 font-bold">+'+fmtY0(o._diff)+' 多收</span>' : '<span class="text-red-600 font-bold">'+fmtY0(o._diff)+' 少收</span>');
-      const walkInTag = o._isWalkIn ? '<span class="text-blue-600 text-xs ml-1">(walk-in)</span>' : '';
-      const result = o._recState==='matched'? '<span class="text-emerald-700 font-bold">✓ 金額正確</span>' + walkInTag :
-                     o._recState==='overpaid'? '<span class="text-red-600 font-bold">需退款</span>' :
-                     o._recState==='partial'? '<span class="text-blue-700 font-bold">尾款 ¥' + Math.abs(o._diff).toLocaleString() + '</span>' :
-                     '<span class="text-amber-700 font-bold">待確認入帳</span>';
-
-      return '<tr class="recon-row '+rowCls+'" onclick="openEdit(\''+(o.orderId||'')+'\')">'+
-        '<td>'+stBadge+'</td>'+
+      const statusBadge = reconcileStatusBadge(o);
+      const amount = reconcileAmounts(o);
+      const commonCells =
+        '<td>'+statusBadge.html+'</td>'+
         '<td class="font-mono text-sm whitespace-nowrap">'+(o.orderId||'')+'</td>'+
         '<td class="font-bold whitespace-nowrap">'+(o.name||'—')+'</td>'+
-        '<td>'+fmtDate(o.bookingDate)+'</td>'+
-        '<td class="num">'+formatGuestCount(o)+'</td>'+
-        '<td class="num">'+fmtY0(o._expect)+'</td>'+
-        '<td class="num">'+fmtY0(o._got)+'</td>'+
-        '<td class="num">'+diffStr+'</td>'+
-        '<td>'+result+'</td>'+
-        '<td><button onclick="event.stopPropagation();openEdit(\''+(o.orderId||'')+'\')" class="btn-navy px-3 py-1 rounded text-xs">編輯</button></td>'+
+        '<td>'+fmtDate(o.bookingDate)+'</td>';
+      const amountCells = currentRole === 'store'
+        ? '<td class="num">'+fmtY0(amount.deposit)+'</td>'+
+          '<td class="num">'+fmtY0(amount.kimonoPrice)+'</td>'+
+          '<td class="num">'+fmtY0(amount.hairFee)+'</td>'+
+          '<td class="num">'+fmtY0(amount.photoFee)+'</td>'+
+          '<td class="num">'+fmtY0(amount.discountRefund)+'</td>'+
+          '<td class="num font-bold">'+fmtY0(amount.total)+'</td>'+
+          '<td class="num">'+fmtY0(amount.actualReceived)+'</td>'+
+          '<td class="num">'+fmtY0(amount.platformFee)+'</td>'+
+          '<td class="num font-bold text-[#C9A961]">'+fmtY0(amount.storeBalance)+'</td>'
+        : '<td class="num">'+fmtY0(amount.deposit)+'</td>'+
+          '<td class="num">'+fmtY0(amount.kimonoPrice)+'</td>'+
+          '<td class="num">'+fmtY0(amount.discountRefund)+'</td>'+
+          '<td class="num font-bold">'+fmtY0(amount.total)+'</td>'+
+          '<td class="num">'+fmtY0(amount.balance)+'</td>'+
+          '<td class="num font-bold text-[#C9A961]">'+fmtY0(amount.platformFee)+'</td>';
+      return '<tr class="recon-row '+statusBadge.rowClass+'" onclick="openEdit(\''+(o.orderId||'')+'\')">'+
+        commonCells+amountCells+
       '</tr>';
     }).join('')+'</tbody></table>';
 }
@@ -142,8 +188,13 @@ function renderReconcile(){
 function exportReconCSV(){
   const month = document.getElementById('recon-month').value;
   let list = allOrders.slice();
+  if (currentRole === 'store' && currentStoreKey) {
+    list = list.filter(o => orderBelongsToStore(o, currentStoreKey));
+  }
   if(month && month!=='all') list = list.filter(o=>bookingMonth(o)===month);
-  const headers = ['訂單號','客戶','體驗日期','人數','應收訂金','已收訂金','差異','對帳狀態'];
+  const headers = currentRole === 'store'
+    ? ['狀態','訂單號','客戶','體驗日期','已收訂金','和服原價','妝髮費','攝影費','折扣與退款','總價','實際收款','平台費','店鋪結餘']
+    : ['狀態','訂單號','客戶','體驗日期','已收訂金','和服原價','折扣與退款','總價','尾款','平台費'];
   const rows = list.map(o=>{
     const expect = expectedDeposit(o); const got = Number(o.deposit)||0;
     const tc = totalCharge(o);
@@ -152,7 +203,10 @@ function exportReconCSV(){
     else if(o.confirmed && expect>0 && got>=expect) st='已對帳';
     else if(o.confirmed && got>0) st='已對帳';
     else if(got>0 && got<expect) st='待收尾款';
-    return [o.orderId, o.name, fmtDate(o.bookingDate), formatGuestCount(o), expect, got, got-expect, st];
+    const amount = reconcileAmounts(o);
+    return currentRole === 'store'
+      ? [st, o.orderId, o.name, fmtDate(o.bookingDate), amount.deposit, amount.kimonoPrice, amount.hairFee, amount.photoFee, amount.discountRefund, amount.total, amount.actualReceived, amount.platformFee, amount.storeBalance]
+      : [st, o.orderId, o.name, fmtDate(o.bookingDate), amount.deposit, amount.kimonoPrice, amount.discountRefund, amount.total, amount.balance, amount.platformFee];
   });
   const csv = [headers, ...rows].map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\n');
   const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
