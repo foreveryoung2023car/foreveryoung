@@ -46,6 +46,7 @@
     <div class="flex gap-1">
       <div class="nav-tab active" data-sec="dashboard" onclick="switchSection('dashboard',this)">📊 儀表板</div>
       <div class="nav-tab" data-sec="orders" onclick="switchSection('orders',this)">📋 訂單管理 <span id="tab-count-orders" class="bg-white/25 px-1.5 rounded text-[11px]">0</span></div>
+      <div class="nav-tab" data-sec="stores" onclick="switchSection('stores',this)" style="display:none">🏪 店鋪管理</div>
       <div class="nav-tab" data-sec="checkin" onclick="switchSection('checkin',this)" style="display:none">🎌 報到中心 <span id="tab-count-checkin" class="bg-white/25 px-1.5 rounded text-[11px]">0</span></div>
       <div class="nav-tab" data-sec="employees" data-store-admin-only="1" onclick="switchSection('employees',this)" style="display:none">👥 員工管理</div>
       <div class="nav-tab" data-sec="calendar" onclick="switchSection('calendar',this)">📅 行事曆</div>
@@ -279,6 +280,53 @@
     <div id="checkin-empty" class="hidden text-center py-12 text-slate-400">
       <div class="text-5xl mb-3">🌸</div>
       <p class="text-base font-bold">今日 ±1 天沒有需要報到的訂單</p>
+    </div>
+  </section>
+
+  <section id="sec-stores" class="section">
+    <div class="flex justify-between items-end mb-4 flex-wrap gap-3">
+      <div>
+        <h2 class="text-2xl font-bold text-[#1A365D] title-serif">🏪 店鋪管理</h2>
+        <p class="text-sm text-slate-600 mt-1 font-semibold">設定各店預設營業時段，或覆蓋指定日期；每 30 分鐘為一個時段。</p>
+      </div>
+      <button onclick="loadStoreSchedules()" class="btn-outline px-4 py-2 rounded-xl text-sm">重新載入</button>
+    </div>
+    <div class="panel mb-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <label>
+          <span class="section-label block">店鋪</span>
+          <select id="store-manage-store" class="input-field" onchange="renderSelectedStoreSchedule()">
+            <option value="kyoto1">京都清水寺店</option>
+            <option value="kyoto2">京都祇園店</option>
+            <option value="osaka1">大阪日本橋店</option>
+            <option value="tokyo1">東京淺草寺店</option>
+          </select>
+        </label>
+        <label>
+          <span class="section-label block">查看 / 調整日期</span>
+          <input id="store-manage-date" type="date" class="input-field" onchange="loadStoreSchedules()">
+        </label>
+      </div>
+    </div>
+    <div id="store-schedule-loading" class="panel text-center py-10 text-slate-400">請選擇日期</div>
+    <div id="store-schedule-editor" class="panel hidden">
+      <div class="flex justify-between items-start gap-3 flex-wrap mb-4">
+        <div>
+          <h3 id="store-schedule-title" class="text-lg font-bold text-[#1A365D]"></h3>
+          <p id="store-schedule-status" class="text-xs text-slate-500 mt-1"></p>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <button onclick="selectStoreSlots(true)" class="px-3 py-2 rounded-lg bg-slate-100 text-sm font-bold">全選</button>
+          <button onclick="selectStoreSlots(false)" class="px-3 py-2 rounded-lg bg-slate-100 text-sm font-bold">清空</button>
+          <button onclick="restoreDefaultStoreSlots()" class="px-3 py-2 rounded-lg bg-amber-50 text-amber-700 text-sm font-bold">套用預設</button>
+        </div>
+      </div>
+      <div id="store-slot-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2"></div>
+      <div class="mt-5 pt-4 border-t border-slate-100 flex gap-3 flex-wrap items-center">
+        <button id="save-store-date-btn" onclick="saveStoreSlots('date')" class="btn-navy px-5 py-2.5 rounded-xl text-sm">儲存此日期</button>
+        <button id="save-store-default-btn" onclick="saveStoreSlots('default')" class="btn-outline px-5 py-2.5 rounded-xl text-sm">設為此店預設</button>
+        <span class="text-xs text-slate-500">修改預設後，尚未個別設定的日期會自動套用新預設。</span>
+      </div>
     </div>
   </section>
 
@@ -818,6 +866,7 @@
 <script src="./admin-assets/17-walkin-orders.js?v=20260605-14"></script>
 <script src="./admin-assets/18-employees.js?v=20260605-14"></script>
 <script src="./admin-assets/19-tour.js?v=20260610-1"></script>
+<script src="./admin-assets/20-stores.js?v=20260611-1"></script>
 
 <!-- v2.4: 新增現場訂單 FAB -->
 <button id="walkInFab" onclick="openWalkInModal()" class="hidden fixed bottom-6 right-6 z-40 bg-[#1A365D] text-white px-5 py-4 rounded-full shadow-2xl font-bold text-base flex items-center gap-2 hover:bg-blue-900 active:scale-95 transition-transform" style="box-shadow:0 8px 24px rgba(26,54,93,0.35)">

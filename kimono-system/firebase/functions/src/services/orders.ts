@@ -5,6 +5,7 @@ import type { AuthContext } from "../lib/auth.js";
 import { writeAuditLog } from "../lib/audit.js";
 import { getIdempotentResponse, rememberIdempotentResponse } from "../lib/idempotency.js";
 import { calculateOrderTotal } from "../lib/money.js";
+import { assertStoreSlotAvailable } from "./stores.js";
 import { nextOrderNo } from "./orderNumber.js";
 
 export const createPublicOrderSchema = z.object({
@@ -332,6 +333,7 @@ export async function queryPublicOrder(raw: unknown) {
 
 export async function createPublicOrder(raw: unknown) {
   const input = createPublicOrderSchema.parse(raw);
+  if (input.storeCode) await assertStoreSlotAvailable(input.storeCode, input.bookingAt);
   const hasAdultBreakdown = input.maleAdults !== undefined || input.femaleAdults !== undefined;
   const adults = hasAdultBreakdown ? Number(input.maleAdults || 0) + Number(input.femaleAdults || 0) : input.adults;
   const cached = await getIdempotentResponse(input.clientRequestId);

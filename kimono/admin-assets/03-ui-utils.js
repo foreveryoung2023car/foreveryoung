@@ -227,6 +227,10 @@ function applyRolePermissions() {
     const isStoreAdmin = isStore && (localStorage.getItem('admin_isStoreAdmin') === '1' || !localStorage.getItem('admin_employeeId'));
     empTab.style.display = (canManageFirebaseUsers || (!useFirebaseAdmin() && isStoreAdmin)) ? '' : 'none';
   }
+  const storesTab = document.querySelector('.nav-tab[data-sec="stores"]');
+  if (storesTab) {
+    storesTab.style.display = useFirebaseAdmin() && ['owner', 'admin', 'store_manager'].indexOf(firebaseRole) >= 0 ? '' : 'none';
+  }
 }
 
 (function() {
@@ -321,6 +325,7 @@ function switchSection(sec, el){
   else if(sec==='orders' && typeof filterOrders==='function') filterOrders();
   else if(sec==='checkin' && typeof renderCheckIn==='function') renderCheckIn();
   else if(sec==='employees' && typeof renderEmployees==='function') renderEmployees();
+  else if(sec==='stores' && typeof loadStoreSchedules==='function') loadStoreSchedules();
   else if(sec==='archive' && typeof loadArchivedList==='function') loadArchivedList();
   else if(sec==='permissions' && typeof renderPermissions==='function') renderPermissions();
 }

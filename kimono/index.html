@@ -600,27 +600,10 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                             </label>
                             <label class="block border-b border-slate-100 pb-2">
                                 <span class="text-[10px] font-bold text-slate-400 uppercase font-sans">預約時段</span>
-                                <select required id="input-time" class="w-full py-2 mt-1 outline-none font-bold text-base bg-transparent cursor-pointer font-sans">
-                                    <option value="">請選擇時段</option>
-                                    <option value="09:00">上午 09:00</option>
-                                    <option value="09:30">上午 09:30</option>
-                                    <option value="10:00">上午 10:00</option>
-                                    <option value="10:30">上午 10:30</option>
-                                    <option value="11:00">上午 11:00</option>
-                                    <option value="11:30">上午 11:30</option>
-                                    <option value="12:00">下午 12:00</option>
-                                    <option value="12:30">下午 12:30</option>
-                                    <option value="13:00">下午 13:00</option>
-                                    <option value="13:30">下午 13:30</option>
-                                    <option value="14:00">下午 14:00</option>
-                                    <option value="14:30">下午 14:30</option>
-                                    <option value="15:00">下午 15:00</option>
-                                    <option value="15:30">下午 15:30</option>
-                                    <option value="16:00">下午 16:00</option>
-                                    <option value="16:30">下午 16:30</option>
-                                    <option value="17:00">下午 17:00</option>
-                                    <option value="17:30">下午 17:30</option>
+                                <select required id="input-time" disabled class="w-full py-2 mt-1 outline-none font-bold text-base bg-transparent cursor-pointer font-sans">
+                                    <option value="">請先選擇門市與日期</option>
                                 </select>
+                                <p id="time-slot-hint" class="text-[10px] text-slate-400 mt-1 font-sans normal-case tracking-normal">時段會依店鋪當日營業設定更新</p>
                             </label>
                         </div>
                         <div class="p-8 bg-[#FDFCF8] border-l-4 border-[#1A365D] text-left rounded-r-lg">
@@ -1268,6 +1251,53 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 
         const APPS_SCRIPT_URL = KIMONO_CONFIG.APPS_SCRIPT_URL;
         const API_BASE_URL = (KIMONO_CONFIG.API_BASE_URL || '').replace(/\/$/, '');
+        let timeSlotRequestId = 0;
+
+        function bookingTimeLabel(slot) {
+            const hour = Number(slot.slice(0, 2));
+            return (hour < 12 ? '上午 ' : '下午 ') + slot;
+        }
+
+        function renderBookingTimeSlots(slots, previousValue) {
+            const select = document.getElementById('input-time');
+            const hint = document.getElementById('time-slot-hint');
+            const validSlots = Array.isArray(slots) ? slots : [];
+            select.innerHTML = '<option value="">' + (validSlots.length ? '請選擇時段' : '當日無可預約時段') + '</option>' +
+                validSlots.map(slot => '<option value="' + slot + '">' + bookingTimeLabel(slot) + '</option>').join('');
+            select.disabled = validSlots.length === 0;
+            if (previousValue && validSlots.includes(previousValue)) select.value = previousValue;
+            if (hint) hint.textContent = validSlots.length
+                ? '此店當日共有 ' + validSlots.length + ' 個可預約時段'
+                : '此店當日未開放預約';
+        }
+
+        async function refreshBookingTimeSlots() {
+            const storeId = document.getElementById('input-store').value;
+            const date = document.getElementById('input-date').value;
+            const select = document.getElementById('input-time');
+            const hint = document.getElementById('time-slot-hint');
+            const previousValue = select.value;
+            const requestId = ++timeSlotRequestId;
+            if (!storeId || !date) {
+                select.disabled = true;
+                select.innerHTML = '<option value="">請先選擇門市與日期</option>';
+                if (hint) hint.textContent = '時段會依店鋪當日營業設定更新';
+                return;
+            }
+            select.disabled = true;
+            select.innerHTML = '<option value="">載入可預約時段中...</option>';
+            try {
+                const res = await fetch(API_BASE_URL + '/getStoreAvailability?storeId=' + encodeURIComponent(storeId) + '&date=' + encodeURIComponent(date));
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || data.status !== 'success') throw new Error(data.message || '時段載入失敗');
+                if (requestId !== timeSlotRequestId) return;
+                renderBookingTimeSlots(data.slots || [], previousValue);
+            } catch (err) {
+                if (requestId !== timeSlotRequestId) return;
+                renderBookingTimeSlots([], '');
+                if (hint) hint.textContent = '暫時無法取得店鋪時段，請稍後重選門市或日期';
+            }
+        }
 
         function legacyGasWritesAllowed() {
             return !(KIMONO_CONFIG.LEGACY_GAS_READONLY || KIMONO_CONFIG.USE_NEW_API);
@@ -1412,6 +1442,9 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             updateDepositDisplay();
             renderPersonKimonoSelects();
             document.getElementById('input-date').setAttribute('min', todayStr);
+            document.getElementById('input-store').addEventListener('change', refreshBookingTimeSlots);
+            document.getElementById('input-date').addEventListener('change', refreshBookingTimeSlots);
+            refreshBookingTimeSlots();
 
             const container = document.getElementById('sakura-container');
             for (let i = 0; i < 8; i++) {

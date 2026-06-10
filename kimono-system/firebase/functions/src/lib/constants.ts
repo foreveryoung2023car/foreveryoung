@@ -19,16 +19,17 @@ export const permissions = [
   "refunds:request",
   "refunds:pay",
   "audit:read",
-  "users:manage"
+  "users:manage",
+  "stores:manage"
 ] as const;
 
 export type Permission = (typeof permissions)[number];
 
 export const rolePermissions: Record<Role, Permission[]> = {
   owner: [...permissions],
-  admin: ["orders:read", "orders:create", "orders:update", "orders:transition", "checkins:create", "refunds:request", "refunds:pay", "audit:read", "users:manage"],
+  admin: ["orders:read", "orders:create", "orders:update", "orders:transition", "checkins:create", "refunds:request", "refunds:pay", "audit:read", "users:manage", "stores:manage"],
   agent: ["orders:read", "orders:create", "orders:update", "orders:transition", "checkins:create", "refunds:request"],
-  store_manager: ["orders:read", "orders:create", "orders:update", "checkins:create", "users:manage"],
+  store_manager: ["orders:read", "orders:create", "orders:update", "checkins:create", "users:manage", "stores:manage"],
   store_staff: ["orders:read", "orders:create", "orders:update", "checkins:create"],
   accountant: ["orders:read", "refunds:pay", "audit:read"],
   readonly: ["orders:read"]
