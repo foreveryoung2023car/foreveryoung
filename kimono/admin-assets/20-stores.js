@@ -21,11 +21,14 @@ async function loadStoreSchedules() {
     const data = await callFirebaseAdminFunction('/listStoreSchedules?date=' + encodeURIComponent(dateEl.value), null, { method: 'GET' });
     storeScheduleRows = data.stores || [];
     const storeEl = document.getElementById('store-manage-store');
+    const role = localStorage.getItem('admin_firebaseRole') || '';
+    const previousStoreId = storeEl.value;
     storeEl.innerHTML = storeScheduleRows.map(row =>
       '<option value="' + adminEsc(row.id) + '">' + adminEsc(row.name) + '</option>'
     ).join('');
-    if (storeScheduleRows[0]) storeEl.value = storeScheduleRows[0].id;
-    storeEl.disabled = true;
+    if (storeScheduleRows.some(row => row.id === previousStoreId)) storeEl.value = previousStoreId;
+    else if (storeScheduleRows[0]) storeEl.value = storeScheduleRows[0].id;
+    storeEl.disabled = role === 'store_manager';
     renderSelectedStoreSchedule();
     loading.classList.add('hidden');
     editor.classList.remove('hidden');
