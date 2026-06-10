@@ -69,6 +69,63 @@ function reconcileStatusBadge(o) {
   return {html:'<span class="badge badge-pending">○ 未對帳</span>', rowClass:'pending'};
 }
 
+function renderReconcileStats(list) {
+  const total = list.length;
+  const matched = list.filter(o=>o._recState==='matched').length;
+  const rate = total ? Math.round(matched / total * 100) : 0;
+  const amounts = list.map(reconcileAmounts);
+  const sum = key => amounts.reduce((totalAmount, amount) => totalAmount + amount[key], 0);
+  const grid = document.getElementById('recon-stats-grid');
+  const card1 = document.getElementById('recon-stat-card-1');
+  const card2 = document.getElementById('recon-stat-card-2');
+  const card3 = document.getElementById('recon-stat-card-3');
+  const label1 = document.getElementById('recon-stat-label-1');
+  const label2 = document.getElementById('recon-stat-label-2');
+  const label3 = document.getElementById('recon-stat-label-3');
+  const value1 = document.getElementById('recon-stat-expect');
+  const value2 = document.getElementById('recon-stat-received');
+  const value3 = document.getElementById('recon-stat-diff');
+
+  document.getElementById('recon-stat-total').textContent = total;
+  document.getElementById('recon-stat-rate').textContent = rate + '%';
+
+  if (currentRole === 'store') {
+    grid.classList.remove('md:grid-cols-5');
+    grid.classList.add('md:grid-cols-4');
+    card1.className = 'stat-card green';
+    card2.className = 'stat-card red';
+    card3.style.display = 'none';
+    label1.textContent = '店鋪結餘';
+    label2.textContent = '需付平台';
+    value1.className = 'stat-num green';
+    value2.className = 'stat-num red';
+    value1.style.fontSize = '22px';
+    value2.style.fontSize = '22px';
+    value1.textContent = fmtY0(sum('storeBalance'));
+    value2.textContent = fmtSignedY0(sum('platformPayable'));
+    return;
+  }
+
+  grid.classList.remove('md:grid-cols-4');
+  grid.classList.add('md:grid-cols-5');
+  card1.className = 'stat-card gold';
+  card2.className = 'stat-card green';
+  card3.className = 'stat-card red';
+  card3.style.display = '';
+  label1.textContent = '總價';
+  label2.textContent = '平台費';
+  label3.textContent = '需收店鋪';
+  value1.className = 'stat-num';
+  value2.className = 'stat-num green';
+  value3.className = 'stat-num red';
+  value1.style.fontSize = '22px';
+  value2.style.fontSize = '22px';
+  value3.style.fontSize = '22px';
+  value1.textContent = fmtY0(sum('total'));
+  value2.textContent = fmtY0(sum('platformFee'));
+  value3.textContent = fmtSignedY0(sum('storeReceivable'));
+}
+
 function renderReconcile(){
   const month = document.getElementById('recon-month').value;
   const status = document.getElementById('recon-status').value;
@@ -106,18 +163,7 @@ function renderReconcile(){
 
   if(status!=='all') list = list.filter(o=>o._recState===status);
 
-  // 統計
-  const total = list.length;
-  const expectSum = list.reduce((s,o)=>s+o._expect,0);
-  const gotSum = list.reduce((s,o)=>s+o._got,0);
-  const diff = gotSum - expectSum;
-  const matched = list.filter(o=>o._recState==='matched').length;
-  const rate = total? Math.round(matched/total*100) : 0;
-  document.getElementById('recon-stat-total').textContent = total;
-  document.getElementById('recon-stat-expect').textContent = fmtY0(expectSum);
-  document.getElementById('recon-stat-received').textContent = fmtY0(gotSum);
-  document.getElementById('recon-stat-diff').textContent = (diff>=0?'+':'') + fmtY0(diff);
-  document.getElementById('recon-stat-rate').textContent = rate+'%';
+  renderReconcileStats(list);
 
   const tbl = document.getElementById('recon-table');
   if(!list.length){ tbl.innerHTML='<div class="text-center text-slate-600 py-8 font-semibold">本期無資料</div>'; return; }

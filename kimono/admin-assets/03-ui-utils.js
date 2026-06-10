@@ -193,10 +193,12 @@ function applyRolePermissions() {
     const allOrdersTab = document.querySelector('#sec-orders .tab-btn[data-order-filter="all"]');
     if (allOrdersTab) allOrdersTab.classList.add('active');
   }
-  // Store managers can view scoped customer, finance, and reconcile sections.
-  // Store staff still keep the lighter daily-operation surface.
-  const storeHiddenSections = isStore && !isStoreManager ? ['customers', 'finance', 'reconcile'] : [];
-  ['customers', 'finance', 'reconcile'].forEach(sec => {
+  // Finance, archive, and permission management are platform-only.
+  // Store staff also keep the lighter daily-operation surface.
+  const storeHiddenSections = isStore
+    ? ['finance', 'archive', 'permissions'].concat(isStoreManager ? [] : ['customers', 'reconcile'])
+    : [];
+  ['customers', 'finance', 'reconcile', 'archive', 'permissions'].forEach(sec => {
     const tab = document.querySelector('[data-sec="' + sec + '"]');
     if (tab) tab.style.display = storeHiddenSections.indexOf(sec) >= 0 ? 'none' : '';
   });
@@ -402,8 +404,8 @@ function loadOrders() {
         if (!window.__sectionRestored) {
           window.__sectionRestored = true;
           const last = localStorage.getItem('admin_lastSection');
-          if (last && last !== 'dashboard' && last !== 'checkin' && document.getElementById('sec-'+last)) {
-            const tab = document.querySelector('.nav-tab[data-sec="'+last+'"]');
+          const tab = last ? document.querySelector('.nav-tab[data-sec="'+last+'"]') : null;
+          if (last && last !== 'dashboard' && last !== 'checkin' && document.getElementById('sec-'+last) && tab && tab.style.display !== 'none') {
             switchSection(last, tab);
           }
         } else {
