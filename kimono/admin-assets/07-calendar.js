@@ -121,7 +121,7 @@ function buildCustomers(){
   });
   return Object.values(map).map(c=>{
     const orders = c.orders;
-    const totalSpent = orders.reduce((s,o)=>s+totalAmount(o),0);
+    const totalSpent = orders.reduce((s,o)=>s+orderDisplayTotal(o),0);
     const totalDeposit = orders.reduce((s,o)=>s+(Number(o.deposit)||0),0);
     const dates = orders.map(o=>new Date(o.bookingDate)).filter(d=>!isNaN(d)).sort((a,b)=>b-a);
     const lastDate = dates[0] || null;
@@ -228,7 +228,7 @@ function openCustomerDetail(key){
           '<td>'+(o.plan||'—')+'</td>'+
           '<td>'+formatGuestCount(o)+'</td>'+
           '<td class="num">'+fmtY(o.deposit)+'</td>'+
-          '<td class="num">'+fmtY(totalAmount(o))+'</td>'+
+          '<td class="num">'+fmtY(orderDisplayTotal(o))+'</td>'+
           '<td>'+status+'</td>'+
         '</tr>';
       }).join('')+'</tbody></table></div>';
