@@ -543,7 +543,14 @@ async function saveOrder() {
     toast('此訂單已結帳，店鋪端僅可查看', 'warning');
     return;
   }
-  const isStoreCheckout = currentRole === 'store' && ['confirmed', 'checked_in'].includes(orderStatusOf(editingOrder));
+  const isStoreReservationEdit = currentRole === 'store'
+    && document.getElementById('edit-modal')?.dataset.storeReservationEdit === 'true';
+  if (isStoreReservationEdit && typeof syncStoreInlineEditors === 'function') {
+    syncStoreInlineEditors();
+  }
+  const isStoreCheckout = currentRole === 'store'
+    && !isStoreReservationEdit
+    && ['confirmed', 'checked_in'].includes(orderStatusOf(editingOrder));
   if (isStoreCheckout) {
     const consumption = Math.max(0,
       Number(document.getElementById('e-price').value || 0)
@@ -596,25 +603,33 @@ async function saveOrder() {
         ...(currentRole === 'store' ? {} : {
           name: payload.name,
           phone: payload.phone,
-          email: payload.email
+          email: payload.email,
+          bookingAt: bookingValue ? bookingValue + ':00+09:00' : undefined,
+          plan: payload.plan,
+          platform: payload.platform,
+          depositJpy: Number(payload.deposit || 0),
+          kimonoPriceJpy: Number(payload.kimonoPrice || 0),
+          hairFeeJpy: Number(payload.hairFee || 0),
+          photoFeeJpy: Number(payload.photoFee || 0),
+          couponCode: payload.coupon,
+          discountRate: Number(payload.rate || 0),
+          discountRefundAmountJpy: Number(payload.discountRefundAmount || 0),
+          storeActualReceivedJpy: Number(payload.storeActualReceived || 0),
+          note: payload.note
         }),
-        bookingAt: bookingValue ? bookingValue + ':00+09:00' : undefined,
         adults: guests.adults,
         ...(guests.maleAdults !== null ? { maleAdults: guests.maleAdults, femaleAdults: guests.femaleAdults } : {}),
         children: guests.children,
-        plan: payload.plan,
-        platform: payload.platform,
         hair: payload.hair === 'true',
         photo: payload.photo === 'true',
-        ...(currentRole === 'store' ? {} : { depositJpy: Number(payload.deposit || 0) }),
-        kimonoPriceJpy: Number(payload.kimonoPrice || 0),
-        hairFeeJpy: Number(payload.hairFee || 0),
-        photoFeeJpy: Number(payload.photoFee || 0),
-        couponCode: payload.coupon,
-        discountRate: Number(payload.rate || 0),
-        discountRefundAmountJpy: Number(payload.discountRefundAmount || 0),
-        storeActualReceivedJpy: Number(payload.storeActualReceived || 0),
-        ...(isStoreCheckout ? { checkout: true } : {}),
+        ...(isStoreCheckout ? {
+          checkout: true,
+          kimonoPriceJpy: Number(payload.kimonoPrice || 0),
+          hairFeeJpy: Number(payload.hairFee || 0),
+          photoFeeJpy: Number(payload.photoFee || 0),
+          discountRefundAmountJpy: Number(payload.discountRefundAmount || 0),
+          storeActualReceivedJpy: Number(payload.storeActualReceived || 0)
+        } : {}),
         ...(currentRole === 'store' ? {} : {
           refundAmountJpy: Number(payload.refundAmt || 0),
           refundTime: refundDateValue || '',
@@ -623,8 +638,7 @@ async function saveOrder() {
           refundBankName: document.getElementById('e-refund-bankname').value.trim(),
           refundBankAccount: document.getElementById('e-refund-account').value.trim(),
           refundBankAccountName: document.getElementById('e-refund-accountname').value.trim()
-        }),
-        note: payload.note
+        })
       };
       const res = await fetch(apiBaseUrl + '/updateOrderByStaff', {
         method:'POST',
@@ -653,6 +667,9 @@ async function saveOrder() {
         } catch (emailErr) {
           proofNotice = '，但付款憑證信寄送失敗：' + (emailErr.message || emailErr);
         }
+      }
+      if (isStoreReservationEdit) {
+        document.getElementById('edit-modal')?.removeAttribute('data-store-reservation-edit');
       }
       const savedId = editingOrder.orderId;
       msg.textContent = '正在重新載入…';

@@ -11,7 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./admin-assets/admin.css?v=20260612-2">
+<link rel="stylesheet" href="./admin-assets/admin.css?v=20260612-3">
 </head>
 <body class="min-h-screen" style="overflow-x:hidden">
 
@@ -677,26 +677,46 @@
               <div class="store-summary-people">
                 <div class="store-summary-person">
                   <span class="store-summary-icon" data-icon="user"></span>
-                  <div><div class="store-summary-label">男性大人</div><div id="store-view-male" class="store-summary-value">—</div></div>
+                  <div>
+                    <div class="store-summary-label">男性</div>
+                    <div id="store-view-male" class="store-summary-value store-view-display">—</div>
+                    <input id="store-inline-male" class="store-inline-editor store-inline-input" type="number" min="0" step="1" inputmode="numeric" oninput="syncStoreInlineEditors()">
+                  </div>
                 </div>
                 <div class="store-summary-person">
                   <span class="store-summary-icon" data-icon="female"></span>
-                  <div><div class="store-summary-label">女性大人</div><div id="store-view-female" class="store-summary-value">—</div></div>
+                  <div>
+                    <div class="store-summary-label">女性</div>
+                    <div id="store-view-female" class="store-summary-value store-view-display">—</div>
+                    <input id="store-inline-female" class="store-inline-editor store-inline-input" type="number" min="0" step="1" inputmode="numeric" oninput="syncStoreInlineEditors()">
+                  </div>
                 </div>
                 <div class="store-summary-person">
                   <span class="store-summary-icon" data-icon="child"></span>
-                  <div><div class="store-summary-label">小孩</div><div id="store-view-children" class="store-summary-value">—</div></div>
+                  <div>
+                    <div class="store-summary-label">小孩</div>
+                    <div id="store-view-children" class="store-summary-value store-view-display">—</div>
+                    <input id="store-inline-children" class="store-inline-editor store-inline-input" type="number" min="0" step="1" inputmode="numeric" oninput="syncStoreInlineEditors()">
+                  </div>
                 </div>
               </div>
             </div>
             <div class="store-summary-row store-summary-two">
               <div class="store-summary-cell">
                 <span class="store-summary-icon" data-icon="scissors"></span>
-                <div><span class="store-summary-label">妝髮造型</span><span id="store-view-hair" class="store-summary-inline-value">—</span></div>
+                <div>
+                  <span class="store-summary-label">妝髮造型</span>
+                  <span id="store-view-hair" class="store-summary-inline-value store-view-display">—</span>
+                  <select id="store-inline-hair" class="store-inline-editor store-inline-select" onchange="syncStoreInlineEditors()"><option value="true">有</option><option value="false">無</option></select>
+                </div>
               </div>
               <div class="store-summary-cell">
                 <span class="store-summary-icon" data-icon="camera"></span>
-                <div><span class="store-summary-label">攝影服務</span><span id="store-view-photo" class="store-summary-inline-value">—</span></div>
+                <div>
+                  <span class="store-summary-label">攝影服務</span>
+                  <span id="store-view-photo" class="store-summary-inline-value store-view-display">—</span>
+                  <select id="store-inline-photo" class="store-inline-editor store-inline-select" onchange="syncStoreInlineEditors()"><option value="true">有</option><option value="false">無</option></select>
+                </div>
               </div>
             </div>
             <div class="store-summary-row store-summary-two">
@@ -724,8 +744,8 @@
           <div data-store-hidden="1"><div class="section-label">電話</div><input id="e-phone" class="input-field"></div>
           <div data-store-hidden="1"><div class="section-label">Email</div><input id="e-email" class="input-field" type="email"></div>
           <div><div class="section-label">體驗預約日</div><input id="e-booking-date" class="input-field" type="datetime-local" step="1800"></div>
-          <div><div class="section-label">男性大人</div><input id="e-male-adults" class="input-field" type="number" inputmode="numeric" min="0" step="1" placeholder="未區分" oninput="syncEditPax()"></div>
-          <div><div class="section-label">女性大人</div><input id="e-female-adults" class="input-field" type="number" inputmode="numeric" min="0" step="1" placeholder="未區分" oninput="syncEditPax()"></div>
+          <div><div class="section-label">男性</div><input id="e-male-adults" class="input-field" type="number" inputmode="numeric" min="0" step="1" placeholder="未區分" oninput="syncEditPax()"></div>
+          <div><div class="section-label">女性</div><input id="e-female-adults" class="input-field" type="number" inputmode="numeric" min="0" step="1" placeholder="未區分" oninput="syncEditPax()"></div>
           <div><div class="section-label">小孩</div><input id="e-children" class="input-field" type="number" inputmode="numeric" min="0" step="1" placeholder="0" oninput="syncEditPax()"></div>
           <input id="e-adults" type="hidden">
           <input id="e-pax" type="hidden">
@@ -908,9 +928,9 @@
 <script src="./admin-assets/07-calendar.js?v=20260611-4"></script>
 <script src="./admin-assets/08-finance.js?v=20260605-14"></script>
 <script src="./admin-assets/09-reconcile.js?v=20260611-5"></script>
-<script src="./admin-assets/10-orders-edit.js?v=20260612-2"></script>
+<script src="./admin-assets/10-orders-edit.js?v=20260612-3"></script>
 <script src="./admin-assets/11-refunds-edit.js?v=20260605-14"></script>
-<script src="./admin-assets/12-ui-admin-tools.js?v=20260611-6"></script>
+<script src="./admin-assets/12-ui-admin-tools.js?v=20260612-3"></script>
 <script src="./admin-assets/13-weather.js?v=20260605-14"></script>
 <script src="./admin-assets/15-walkin-reconcile.js?v=20260605-14"></script>
 <script src="./admin-assets/16-audit-email.js?v=20260605-14"></script>
@@ -970,7 +990,7 @@
       <!-- 人數 -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
-          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">男性大人</label>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">男性</label>
           <div class="flex items-center gap-2 border-2 border-slate-200 rounded-lg p-1">
             <button type="button" onclick="wiChg('maleAdults',-1)" class="cnt-btn">−</button>
             <span id="wi-cnt-m" class="flex-1 text-center font-bold text-lg">0</span>
@@ -978,7 +998,7 @@
           </div>
         </div>
         <div>
-          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">女性大人</label>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">女性</label>
           <div class="flex items-center gap-2 border-2 border-slate-200 rounded-lg p-1">
             <button type="button" onclick="wiChg('femaleAdults',-1)" class="cnt-btn">−</button>
             <span id="wi-cnt-f" class="flex-1 text-center font-bold text-lg">1</span>

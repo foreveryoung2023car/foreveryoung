@@ -118,15 +118,48 @@ function renderStoreOrderDetailView(o) {
   document.getElementById('store-view-children').textContent = guests.children;
   document.getElementById('store-view-hair').textContent = (o.hair === true || o.hair === 'true') ? '有' : '無';
   document.getElementById('store-view-photo').textContent = (o.photo === true || o.photo === 'true') ? '有' : '無';
+  setStoreInlineEditorValue('store-inline-male', guests.maleAdults === null ? 0 : guests.maleAdults);
+  setStoreInlineEditorValue('store-inline-female', guests.femaleAdults === null ? guests.adults : guests.femaleAdults);
+  setStoreInlineEditorValue('store-inline-children', guests.children);
+  setStoreInlineEditorValue('store-inline-hair', (o.hair === true || o.hair === 'true') ? 'true' : 'false');
+  setStoreInlineEditorValue('store-inline-photo', (o.photo === true || o.photo === 'true') ? 'true' : 'false');
   document.getElementById('store-view-remark').textContent = o.remark || '—';
   document.getElementById('store-view-actual-received').textContent = fmtY0(orderFinancialValue(o, 'storeActualReceived', 'storeActualReceivedJpy'));
   document.getElementById('store-view-balance').textContent = fmtY0(orderDisplayBalance(o));
+}
+
+function setStoreInlineEditorValue(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.value = value;
+}
+
+function syncStoreInlineEditors() {
+  if (currentRole !== 'store') return typeof syncEditPax === 'function' ? syncEditPax() : null;
+  const male = Math.max(0, Number(document.getElementById('store-inline-male')?.value || 0));
+  const female = Math.max(0, Number(document.getElementById('store-inline-female')?.value || 0));
+  const children = Math.max(0, Number(document.getElementById('store-inline-children')?.value || 0));
+  const hair = document.getElementById('store-inline-hair')?.value || 'false';
+  const photo = document.getElementById('store-inline-photo')?.value || 'false';
+  setStoreInlineEditorValue('e-male-adults', male);
+  setStoreInlineEditorValue('e-female-adults', female);
+  setStoreInlineEditorValue('e-children', children);
+  setStoreInlineEditorValue('e-hair', hair);
+  setStoreInlineEditorValue('e-photo', photo);
+  document.getElementById('store-view-male').textContent = male;
+  document.getElementById('store-view-female').textContent = female;
+  document.getElementById('store-view-children').textContent = children;
+  document.getElementById('store-view-hair').textContent = hair === 'true' ? '有' : '無';
+  document.getElementById('store-view-photo').textContent = photo === 'true' ? '有' : '無';
+  return typeof syncEditPax === 'function' ? syncEditPax() : null;
 }
 
 function resetStoreOrderDetailMode() {
   const view = document.getElementById('store-order-detail-view');
   const form = document.getElementById('store-order-detail-form');
   if (!view || !form) return;
+  view.classList.remove('is-editing');
+  const modal = document.getElementById('edit-modal');
+  if (modal) modal.dataset.storeReservationEdit = 'false';
   if (currentRole === 'store') {
     view.style.display = 'block';
     form.style.display = 'none';
@@ -150,7 +183,9 @@ function applyStoreOrderReadOnlyMode(o) {
   const saveBtn = document.getElementById('save-btn');
   if (saveBtn) {
     saveBtn.style.display = readOnly ? 'none' : '';
-    saveBtn.textContent = currentRole === 'store' && ['confirmed', 'checked_in'].includes(orderStatusOf(o))
+    saveBtn.textContent = currentRole === 'store' && modal.dataset.storeReservationEdit === 'true'
+      ? '💾 儲存預約資訊'
+      : currentRole === 'store' && ['confirmed', 'checked_in'].includes(orderStatusOf(o))
       ? '💰 儲存並完成結帳'
       : '💾 儲存變更';
   }
@@ -161,8 +196,15 @@ function applyStoreOrderReadOnlyMode(o) {
 function enableStoreOrderDetailEdit() {
   if (currentRole !== 'store') return;
   if (isStoreOrderReadOnly(editingOrder)) return;
-  document.getElementById('store-order-detail-view').style.display = 'none';
-  document.getElementById('store-order-detail-form').style.display = 'block';
+  const modal = document.getElementById('edit-modal');
+  const view = document.getElementById('store-order-detail-view');
+  const form = document.getElementById('store-order-detail-form');
+  if (view) view.classList.add('is-editing');
+  if (view) view.style.display = 'block';
+  if (form) form.style.display = 'none';
+  if (modal) modal.dataset.storeReservationEdit = 'true';
+  syncStoreInlineEditors();
+  applyStoreOrderReadOnlyMode(editingOrder);
 }
 
 function parseEditGuestCount(o) {

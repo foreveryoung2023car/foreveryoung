@@ -516,17 +516,33 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
       input.name,
       input.phone,
       input.email,
+      input.bookingAt,
+      input.plan,
+      input.platform,
       input.depositJpy,
+      input.couponCode,
+      input.discountRate,
       input.refundAmountJpy,
       input.refundTime,
       input.refundReason,
       input.refundBankCode,
       input.refundBankName,
       input.refundBankAccount,
-      input.refundBankAccountName
+      input.refundBankAccountName,
+      input.note
     ].some((value) => value !== undefined);
     if (hasRestrictedStoreField) {
-      throw new HttpError(403, "Store users cannot change customer, deposit, confirmation, or refund data");
+      throw new HttpError(403, "Store users can only change guest count, hair, photo, and checkout payment data");
+    }
+    const hasCheckoutOnlyPaymentField = [
+      input.kimonoPriceJpy,
+      input.hairFeeJpy,
+      input.photoFeeJpy,
+      input.discountRefundAmountJpy,
+      input.storeActualReceivedJpy
+    ].some((value) => value !== undefined);
+    if (hasCheckoutOnlyPaymentField && !input.checkout) {
+      throw new HttpError(403, "Store payment fields can only be changed during checkout");
     }
   }
   const result = await db.runTransaction(async (tx) => {
