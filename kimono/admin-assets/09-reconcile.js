@@ -129,9 +129,11 @@ function renderReconcileStats(list) {
 function renderReconcile(){
   const month = document.getElementById('recon-month').value;
   const status = document.getElementById('recon-status').value;
+  const firebaseRole = localStorage.getItem('admin_firebaseRole') || '';
+  const showStoreColumn = firebaseRole === 'head_store_manager';
   let list = allOrders.slice();
   // v2.5: 店家身份只看自己門市的對帳，agent 看全部
-  if (currentRole === 'store' && currentStoreKey) {
+  if (currentRole === 'store' && firebaseRole !== 'head_store_manager' && currentStoreKey) {
     list = list.filter(o => orderBelongsToStore(o, currentStoreKey));
   }
   if(month && month!=='all') list = list.filter(o=>bookingMonth(o)===month);
@@ -199,7 +201,7 @@ function renderReconcile(){
   }
   tbl.innerHTML = '<table class="data-table"><thead><tr>'+
     (currentRole === 'store'
-      ? '<th>狀態</th><th>訂單號</th><th>客戶</th><th>體驗日期</th>'+
+      ? '<th>狀態</th>' + (showStoreColumn ? '<th>門市</th>' : '') + '<th>訂單號</th><th>客戶</th><th>體驗日期</th>'+
         '<th class="num">已收訂金</th><th class="num">和服原價</th>'+
         '<th class="num">妝髮費</th><th class="num">攝影費</th>'+
         '<th class="num">折扣與退款</th><th class="num">總價</th>'+
@@ -216,6 +218,7 @@ function renderReconcile(){
       const amount = reconcileAmounts(o);
       const commonCells =
         '<td>'+statusBadge.html+'</td>'+
+        (showStoreColumn ? '<td class="font-mono text-sm whitespace-nowrap">'+adminEsc(o.storeKey || o.storeId || '—')+'</td>' : '')+
         '<td class="font-mono text-sm whitespace-nowrap">'+(o.orderId||'')+'</td>'+
         '<td class="font-bold whitespace-nowrap">'+(o.name||'—')+'</td>'+
         '<td>'+fmtDate(o.bookingDate)+'</td>';
