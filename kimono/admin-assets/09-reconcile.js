@@ -32,7 +32,7 @@ function reconcileAmounts(o) {
   const hairFee = Number(o.hairFee || 0);
   const photoFee = Number(o.photoFee || 0);
   const discountRefund = Number(o.discountRefundAmount || 0);
-  const deposit = Number(o.deposit || 0);
+  const deposit = reconcileDeposit(o);
   const actualReceived = Number(
     o.storeActualReceived !== undefined ? o.storeActualReceived : o.storeActualReceivedJpy
   ) || 0;
@@ -58,6 +58,10 @@ function reconcileAmounts(o) {
     platformPayable: actualReceived - storeBalance,
     storeReceivable: platformFee - deposit - balance
   };
+}
+
+function reconcileDeposit(o) {
+  return Number(o && o.deposit || 0) - Number(o && (o.refundAmount !== undefined ? o.refundAmount : o.refundAmountJpy) || 0);
 }
 
 function fmtSignedY0(n) {
@@ -186,7 +190,7 @@ function renderReconcile(){
   // 計算對帳狀態
   list = list.map(o=>{
     const expect = expectedDeposit(o);
-    const got = Number(o.deposit)||0;
+    const got = reconcileDeposit(o);
     const tc = totalCharge(o);
     // v2.4.20 對帳狀態：
     //   matched   = 已收 ≥ 應收訂金 且 ≤ 體驗總額（合理範圍）
@@ -331,7 +335,7 @@ function renderFirebaseReconcilePreview(){
   if(month && month!=='all') list = list.filter(o=>bookingMonth(o)===month);
   const rows = list.map(o=>{
     const expect = expectedDeposit(o);
-    const got = Number(o.deposit)||0;
+    const got = reconcileDeposit(o);
     const total = totalCharge(o);
     const due = Math.max(0, total - got);
     let state = 'ok', label = '已對帳';
@@ -449,7 +453,7 @@ async function confirmAutoReconcile(btn){
 // ── CSV EXPORT ──
 function ordersToCSV(list){
   const headers = ['訂單號','姓名','電話','Email','體驗日期','人數','款式','來源','訂金','和服','妝髮費','攝影費','總計','確認','退款金額','備註'];
-  const rows = list.map(o=>[o.orderId, o.name, o.phone, o.email, o.bookingDate? fmtDate(o.bookingDate):'', formatGuestCount(o), o.plan||'', o.platform||'', o.deposit||0, o.price||o.kimonoPrice||0, o.hairFee||0, o.photoFee||0, totalAmount(o), o.confirmed?'已確認':'待確認', o.refundAmount||0, (o.remark||'').replace(/[\r\n]+/g,' ')]);
+  const rows = list.map(o=>[o.orderId, o.name, o.phone, o.email, o.bookingDate? fmtDate(o.bookingDate):'', formatGuestCount(o), o.plan||'', o.platform||'', reconcileDeposit(o), o.price||o.kimonoPrice||0, o.hairFee||0, o.photoFee||0, totalAmount(o), o.confirmed?'已確認':'待確認', o.refundAmount||0, (o.remark||'').replace(/[\r\n]+/g,' ')]);
   const csv = [headers, ...rows].map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\n');
   const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
   const url = URL.createObjectURL(blob);
