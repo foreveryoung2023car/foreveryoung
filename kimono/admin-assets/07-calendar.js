@@ -103,6 +103,28 @@ function showDayOrders(dateStr){
 }
 function closeCalDayModal(){ const x = document.getElementById('cal-day-modal'); if (x) x.remove(); }
 
+function customerOrderAmounts(o) {
+  const kimonoPrice = Number(o.price || o.kimonoPrice || 0);
+  const hairFee = Number(o.hairFee || 0);
+  const photoFee = Number(o.photoFee || 0);
+  const discountRefund = Number(o.discountRefundAmount || 0);
+  const total = typeof orderDisplayTotal === 'function'
+    ? orderDisplayTotal(o)
+    : Math.max(0, kimonoPrice + hairFee + photoFee - discountRefund);
+  const balance = typeof orderDisplayBalance === 'function'
+    ? orderDisplayBalance(o)
+    : Math.max(0, total - Number(o.deposit || 0) - Number(o.storeActualReceived || o.storeActualReceivedJpy || 0));
+  const platformFee = Math.max(0, (kimonoPrice - discountRefund) * 0.5);
+  return {
+    kimonoPrice,
+    hairFee,
+    photoFee,
+    balance,
+    platformFee,
+    storeProfit: Math.max(0, total - platformFee)
+  };
+}
+
 function buildCustomers(){
   const map = {};
   allOrders.forEach(o=>{
@@ -123,12 +145,22 @@ function buildCustomers(){
     const orders = c.orders;
     const totalSpent = orders.reduce((s,o)=>s+orderDisplayTotal(o),0);
     const totalDeposit = orders.reduce((s,o)=>s+(Number(o.deposit)||0),0);
+    const money = orders.reduce((sum,o)=>{
+      const amount = customerOrderAmounts(o);
+      sum.kimonoPrice += amount.kimonoPrice;
+      sum.hairFee += amount.hairFee;
+      sum.photoFee += amount.photoFee;
+      sum.balance += amount.balance;
+      sum.platformFee += amount.platformFee;
+      sum.storeProfit += amount.storeProfit;
+      return sum;
+    }, {kimonoPrice:0, hairFee:0, photoFee:0, balance:0, platformFee:0, storeProfit:0});
     const dates = orders.map(o=>new Date(o.bookingDate)).filter(d=>!isNaN(d)).sort((a,b)=>b-a);
     const lastDate = dates[0] || null;
     const firstDate = dates[dates.length-1] || null;
     const refundCount = orders.filter(o=>Number(o.refundAmount)>0).length;
     const isVip = orders.length>=3 || totalSpent>=30000;
-    return {...c, count:orders.length, totalSpent, totalDeposit, lastDate, firstDate, refundCount, isVip};
+    return {...c, count:orders.length, totalSpent, totalDeposit, ...money, lastDate, firstDate, refundCount, isVip};
   });
 }
 
@@ -192,22 +224,33 @@ function renderCustomers(){
   const el = document.getElementById('customers-list');
   if(!arr.length){ el.innerHTML='<div class="text-center text-slate-600 py-8 font-semibold">無客戶資料</div>'; return; }
   const contactHeaders = storeRole ? '' : '<th>電話</th><th>Email</th>';
-  el.innerHTML = '<table class="data-table"><thead><tr>'+
+  const moneyHeaders = storeRole
+    ? '<th class="num">和服原價</th><th class="num">妝髮費</th><th class="num">攝影費</th><th class="num">店鋪利潤</th>'
+    : '<th class="num">已收訂金</th><th class="num">平台費</th><th class="num">尾款</th>';
+  el.innerHTML = '<table class="data-table customer-data-table"><thead><tr>'+
     '<th>客戶</th>'+contactHeaders+
     '<th class="num">訂單數</th><th class="num">累積消費</th>'+
-    '<th class="num">已收訂金</th>'+
+    moneyHeaders+
     '<th>首次預約</th><th>最後預約</th><th>動作</th></tr></thead>'+
     '<tbody>'+arr.map(c=>{
       const safeKey = (c.key||'').replace(/'/g,"\\\\'");
       const contactCells = storeRole ? '' :
         '<td class="font-semibold">'+(c.phone?'<a href="tel:'+c.phone+'" onclick="event.stopPropagation()" class="text-[#1A365D] hover:underline">'+c.phone+'</a>':'—')+'</td>'+
         '<td class="text-sm">'+(c.email||'—')+'</td>';
+      const moneyCells = storeRole
+        ? '<td class="num">'+fmtY0(c.kimonoPrice)+'</td>'+
+          '<td class="num">'+fmtY0(c.hairFee)+'</td>'+
+          '<td class="num">'+fmtY0(c.photoFee)+'</td>'+
+          '<td class="num font-bold text-emerald-700">'+fmtY0(c.storeProfit)+'</td>'
+        : '<td class="num">'+fmtY0(c.totalDeposit)+'</td>'+
+          '<td class="num text-[#C9A961] font-bold">'+fmtY0(c.platformFee)+'</td>'+
+          '<td class="num font-bold" style="color:#991B1B">'+fmtY0(c.balance)+'</td>';
       return '<tr onclick="openCustomerDetail(\''+safeKey+'\')">'+
       '<td><div class="font-bold text-base whitespace-nowrap">'+(c.isVip?'<span title="VIP 客戶" class="text-amber-500 mr-1">⭐</span>':'')+c.name+'</div></td>'+
       contactCells+
       '<td class="num">'+c.count+'</td>'+
       '<td class="num">'+fmtY0(c.totalSpent)+'</td>'+
-      '<td class="num">'+fmtY0(c.totalDeposit)+'</td>'+
+      moneyCells+
       '<td>'+(c.firstDate? fmtDate(c.firstDate):'—')+'</td>'+
       '<td>'+(c.lastDate? (fmtDate(c.lastDate)+(function(){const d=new Date(c.lastDate);const n=new Date();const diff=Math.floor((n-d)/(86400000));return diff>=0?'<span class="text-[10px] text-slate-500 ml-1">('+diff+' 天前)</span>':'<span class="text-[10px] text-emerald-600 ml-1">('+Math.abs(diff)+' 天後)</span>';})()):'—')+'</td>'+
       '<td><button onclick="event.stopPropagation();const latestOrder=c.orders.sort((a,b)=>new Date(b.bookingDate||0)-new Date(a.bookingDate||0))[0]; if(latestOrder) openMsgTemplate(latestOrder.orderId)" class="px-2 py-0.5 mr-1 text-purple-700 border border-purple-300 hover:bg-purple-50 rounded text-xs font-bold">📨</button><button onclick="event.stopPropagation();openCustomerDetail(\''+safeKey+'\')" class="btn-navy px-3 py-1 rounded text-xs">詳情</button></td>'+

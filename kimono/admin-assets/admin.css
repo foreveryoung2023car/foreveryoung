@@ -167,6 +167,12 @@
   .data-table td.wrap{white-space:normal}
   .data-table tbody tr:hover{background:#F8FAFC;cursor:pointer}
   .data-table .num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+  .customer-data-table th{padding:10px 16px;font-size:12px;letter-spacing:.04em}
+  .customer-data-table td{padding:12px 16px}
+  .customer-data-table th:first-child,
+  .customer-data-table td:first-child{padding-left:18px}
+  .customer-data-table th:last-child,
+  .customer-data-table td:last-child{padding-right:18px}
 
   /* 加深所有原本太淺的灰色 */
   .text-slate-400{color:#475569 !important}
