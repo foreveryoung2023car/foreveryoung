@@ -11,7 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./admin-assets/admin.css?v=20260612-1">
+<link rel="stylesheet" href="./admin-assets/admin.css?v=20260612-2">
 </head>
 <body class="min-h-screen" style="overflow-x:hidden">
 
@@ -656,8 +656,8 @@
       <button class="tab-btn active" data-store-hidden="1" onclick="switchTab('basic',this)">訂單資訊</button>
       <button class="tab-btn" data-store-hidden="1" onclick="switchTab('refund',this)">退款記錄</button>
       <div data-store-display-field="1" class="hidden w-full flex-wrap items-center gap-3 text-sm font-semibold">
-        <span class="store-customer-pill"><span class="store-pill-icon">○</span>預約姓名：<b id="e-name-display">—</b></span>
-        <span class="store-customer-pill is-deposit"><span class="store-pill-icon">□</span>預付訂金：<b id="e-deposit-display">—</b></span>
+        <span class="store-customer-pill"><span class="store-pill-icon" data-icon="user"></span>預約姓名：<b id="e-name-display">—</b></span>
+        <span class="store-customer-pill is-deposit"><span class="store-pill-icon" data-icon="receipt"></span>預付訂金：<b id="e-deposit-display">—</b></span>
       </div>
     </div>
 
@@ -668,7 +668,7 @@
           <div class="store-summary-card">
             <div class="store-summary-row store-summary-row-top">
               <div class="store-summary-cell store-summary-booking">
-                <span class="store-summary-icon">□</span>
+                <span class="store-summary-icon" data-icon="calendar"></span>
                 <div>
                   <div class="store-summary-label">體驗預約日</div>
                   <div id="store-view-booking" class="store-summary-value store-summary-booking-value">—</div>
@@ -676,41 +676,41 @@
               </div>
               <div class="store-summary-people">
                 <div class="store-summary-person">
-                  <span class="store-summary-icon">○</span>
+                  <span class="store-summary-icon" data-icon="user"></span>
                   <div><div class="store-summary-label">男性大人</div><div id="store-view-male" class="store-summary-value">—</div></div>
                 </div>
                 <div class="store-summary-person">
-                  <span class="store-summary-icon">○</span>
+                  <span class="store-summary-icon" data-icon="female"></span>
                   <div><div class="store-summary-label">女性大人</div><div id="store-view-female" class="store-summary-value">—</div></div>
                 </div>
                 <div class="store-summary-person">
-                  <span class="store-summary-icon">○</span>
+                  <span class="store-summary-icon" data-icon="child"></span>
                   <div><div class="store-summary-label">小孩</div><div id="store-view-children" class="store-summary-value">—</div></div>
                 </div>
               </div>
             </div>
             <div class="store-summary-row store-summary-two">
               <div class="store-summary-cell">
-                <span class="store-summary-icon">⌁</span>
+                <span class="store-summary-icon" data-icon="scissors"></span>
                 <div><span class="store-summary-label">妝髮造型</span><span id="store-view-hair" class="store-summary-inline-value">—</span></div>
               </div>
               <div class="store-summary-cell">
-                <span class="store-summary-icon">□</span>
+                <span class="store-summary-icon" data-icon="camera"></span>
                 <div><span class="store-summary-label">攝影服務</span><span id="store-view-photo" class="store-summary-inline-value">—</span></div>
               </div>
             </div>
             <div class="store-summary-row store-summary-two">
               <div class="store-summary-cell">
-                <span class="store-summary-icon">□</span>
+                <span class="store-summary-icon" data-icon="store"></span>
                 <div><span class="store-summary-label">店鋪實收</span><span id="store-view-actual-received" class="store-summary-money">—</span></div>
               </div>
               <div class="store-summary-cell">
-                <span class="store-summary-icon">¥</span>
+                <span class="store-summary-icon" data-icon="money"></span>
                 <div><span class="store-summary-label">待付尾款</span><span id="store-view-balance" class="store-summary-money is-balance">—</span></div>
               </div>
             </div>
             <div class="store-summary-row store-summary-note">
-              <span class="store-summary-icon">≡</span>
+              <span class="store-summary-icon" data-icon="note"></span>
               <div>
                 <div class="store-summary-label">客服給客人的備註</div>
                 <div id="store-view-remark" class="store-summary-note-value whitespace-pre-wrap">—</div>
@@ -908,7 +908,7 @@
 <script src="./admin-assets/07-calendar.js?v=20260611-4"></script>
 <script src="./admin-assets/08-finance.js?v=20260605-14"></script>
 <script src="./admin-assets/09-reconcile.js?v=20260611-5"></script>
-<script src="./admin-assets/10-orders-edit.js?v=20260612-1"></script>
+<script src="./admin-assets/10-orders-edit.js?v=20260612-2"></script>
 <script src="./admin-assets/11-refunds-edit.js?v=20260605-14"></script>
 <script src="./admin-assets/12-ui-admin-tools.js?v=20260611-6"></script>
 <script src="./admin-assets/13-weather.js?v=20260605-14"></script>
