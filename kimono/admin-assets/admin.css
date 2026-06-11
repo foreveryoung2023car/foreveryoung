@@ -74,6 +74,8 @@
   .store-ops-layout{display:flex;flex-direction:column;gap:18px}
   .store-ops-group{padding:0 0 18px;border-bottom:1px solid #E2E8F0}
   .store-ops-inline{display:flex;flex-wrap:wrap;gap:18px 42px;align-items:center}
+  .store-ops-inline-people{gap:18px 28px}
+  .store-ops-inline-people .store-ops-item{min-width:auto}
   .store-ops-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;padding:0 0 18px;border-bottom:1px solid #E2E8F0}
   .store-ops-item{display:flex;align-items:baseline;gap:8px;min-width:210px}
   .store-ops-label{font-size:18px;font-weight:900;letter-spacing:.02em;color:#64748B;white-space:nowrap}
