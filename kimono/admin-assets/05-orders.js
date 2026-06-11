@@ -130,7 +130,7 @@ function renderTodos(){
     if (!isAnomaly(o)) return;
     const missing = [];
     if (!o.name) missing.push('姓名');
-    if (!o.phone) missing.push('電話');
+    if (!isStoreRole() && !o.phone) missing.push('電話');
     if (!o.bookingDate) missing.push('預約日');
     items.push({type:'info', icon:'⚠️', orderId:o.orderId, name:o.name||'(無名)',
       text:'資料不完整：缺 '+missing.join('/'),
@@ -736,6 +736,7 @@ function renderOrders(orders){
 
   const now = new Date();
   el.innerHTML = orders.map(o=>{
+    const storeRole = isStoreRole();
     const anomaly = isAnomaly(o);
     const overdueClass = (['pending_payment','pending_review'].includes(orderStatusOf(o)) && o.createdAt && (now-new Date(o.createdAt))>24*3600*1000) ? 'urgent' : '';
     const cls = anomaly ? 'urgent' : (overdueClass || '');
@@ -762,7 +763,7 @@ function renderOrders(orders){
               renderOrderStatusControl(o, 'card')+
             '</div>'+
             '<div class="flex items-center gap-2 mb-2 flex-wrap">'+
-              (o.submitDate? '<span class="text-[11px] text-slate-500 hidden xl:inline">下單 '+fmtJST(o.submitDate)+'</span>':'')+
+              (!storeRole && o.submitDate ? '<span class="text-[11px] text-slate-500 hidden xl:inline">下單 '+fmtJST(o.submitDate)+'</span>':'')+
               (o.platform? '<span class="pill bg-blue-100 text-blue-800">📱 '+o.platform+'</span>':'')+
               (o.storeKey? '<span class="pill bg-purple-100 text-purple-800">🏪 '+o.storeKey+'</span>':'')+
               daysTag+
@@ -777,10 +778,10 @@ function renderOrders(orders){
               '<div class="summary-item"><div class="summary-label">總價</div><div class="summary-value">'+fmtY(total)+'</div></div>'+
               '<div class="summary-item"><div class="summary-label">待收尾款</div><div class="summary-value '+(isPaidFull(o)?'text-emerald-700 line-through':(due>0?'text-amber-700':'text-emerald-700'))+'">'+(isPaidFull(o)?'¥0 ✓':fmtY(due))+'</div></div>'+
             '</div>'+
-            '<div class="summary-row summary-row-contact">'+
+            (!storeRole ? '<div class="summary-row summary-row-contact">'+
               '<div class="summary-item"><div class="summary-label">電話</div><div class="summary-value compact phone-value">' + (o.phone? '<a href="tel:'+o.phone+'" class="text-[#1A365D] hover:underline">'+o.phone+'</a><button onclick="event.stopPropagation();navigator.clipboard.writeText(\''+o.phone+'\').then(()=>toast(\'已複製電話\'))" class="text-[10px] px-1 bg-slate-100 hover:bg-slate-200 rounded flex-shrink-0" title="複製">📋</button>' : '—') + '</div></div>'+
               '<div class="summary-item"><div class="summary-label">Email</div><div class="summary-value compact truncate" title="'+(o.email||'')+'">'+(o.email||'—')+'</div></div>'+
-            '</div>'+
+            '</div>' : '')+
           '</div>'+
           '<div class="flex flex-wrap gap-1">'+
             (o.coupon? '<span class="tag" style="background:#FCE7F3;color:#9F1239;border-color:#F9A8D4">🎟 '+o.coupon+'</span>':'')+

@@ -122,6 +122,25 @@ function isStoreOrderActor(actor: AuthContext) {
   return actor.role === "head_store_manager" || actor.role === "store_manager" || actor.role === "store_staff";
 }
 
+function sanitizeStoreOrderResponse(order: ReturnType<typeof toAdminOrderResponse>) {
+  return {
+    ...order,
+    phone: "",
+    email: "",
+    submitDate: ""
+  };
+}
+
+function sanitizeStoreOrderMutationResponse<T extends Record<string, unknown>>(order: T) {
+  return {
+    ...order,
+    phone: "",
+    email: "",
+    customerPhone: "",
+    customerEmail: ""
+  };
+}
+
 function assertOrderAccess(order: FirebaseFirestore.DocumentData, actor: AuthContext) {
   if (!isStoreScopedActor(actor)) return;
   if (!actor.storeId) throw new HttpError(403, "Store user has no storeId");
@@ -293,7 +312,10 @@ export async function listOrders(raw: unknown, actor: AuthContext) {
   const snap = await query.get();
   const orders = snap.docs
     .filter((doc) => !isStoreOrderActor(actor) || storeVisibleOrderStatuses.includes(resolveOrderStatus(doc.data())))
-    .map((doc) => toAdminOrderResponse(doc.id, doc.data()))
+    .map((doc) => {
+      const order = toAdminOrderResponse(doc.id, doc.data());
+      return isStoreOrderActor(actor) ? sanitizeStoreOrderResponse(order) : order;
+    })
     .sort((a, b) => String(b.submitDate || b.bookingDate || "").localeCompare(String(a.submitDate || a.bookingDate || "")));
 
   return { status: "success", orders };
@@ -629,7 +651,7 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
     afterData: result.after,
     metadata: { source: "admin" }
   });
-  return { status: "success", order: result.after };
+  return { status: "success", order: isStoreOrderActor(actor) ? sanitizeStoreOrderMutationResponse(result.after) : result.after };
 }
 
 export async function transitionOrder(orderId: string, nextStatus: OrderStatus, actor: AuthContext) {

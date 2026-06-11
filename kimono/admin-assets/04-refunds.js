@@ -109,7 +109,8 @@ async function unmarkPaidFull(orderId, name){
   catch(e){ alert('失敗：'+e.message); }
 }
 
-function isAnomaly(o){ return !o.name || !o.phone || !o.bookingDate; }
+function isStoreRole(){ return currentRole === 'store'; }
+function isAnomaly(o){ return !o.name || (!isStoreRole() && !o.phone) || !o.bookingDate; }
 function totalAmount(o){ return (Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0); }
 // v2.4.20: 客人本次體驗應付總額（不含訂金重複計入）
 // v2.4.20: 顯示 boolean 為「是/否」
