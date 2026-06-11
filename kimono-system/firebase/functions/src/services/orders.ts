@@ -127,6 +127,8 @@ function sanitizeStoreOrderResponse(order: ReturnType<typeof toAdminOrderRespons
     ...order,
     phone: "",
     email: "",
+    customerPhone: "",
+    customerEmail: "",
     submitDate: ""
   };
 }
@@ -302,8 +304,6 @@ export async function listOrders(raw: unknown, actor: AuthContext) {
   if (isStoreScopedActor(actor)) {
     if (!actor.storeId) throw new HttpError(403, "Store user has no storeId");
     query = query.where("storeId", "==", actor.storeId);
-    if (isStoreOrderActor(actor)) {
-    }
     query = query.limit(limit);
   } else {
     query = query.orderBy("createdAt", "desc").limit(limit);

@@ -141,7 +141,13 @@ function setCustFilter(f, btn){
 }
 
 function renderCustomers(){
-  const q = (document.getElementById('cust-search').value||'').toLowerCase();
+  const storeRole = isStoreRole();
+  const searchEl = document.getElementById('cust-search');
+  const subtitleEl = document.getElementById('cust-subtitle');
+  if(searchEl) searchEl.placeholder = storeRole ? '🔍 搜尋姓名' : '🔍 搜尋姓名 / 電話 / Email';
+  if(subtitleEl) subtitleEl.textContent = storeRole ? '自動從訂單聚合，依預約姓名識別客戶' : '自動從訂單聚合，依電話 / Email 識別客戶';
+
+  const q = ((searchEl && searchEl.value) || '').toLowerCase();
   const sort = document.getElementById('cust-sort').value;
   let arr = buildCustomers();
 
@@ -173,7 +179,10 @@ function renderCustomers(){
   document.getElementById('cust-stat-avg').textContent = fmtY0(avgPrice);
   document.getElementById('tab-count-customers').textContent = totalCust;
 
-  if(q) arr = arr.filter(c=>(c.name||'').toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.email||'').toLowerCase().includes(q));
+  if(q) arr = arr.filter(c=>
+    (c.name||'').toLowerCase().includes(q) ||
+    (!storeRole && ((c.phone||'').includes(q) || (c.email||'').toLowerCase().includes(q)))
+  );
 
   if(sort==='orders-desc') arr.sort((a,b)=>b.count-a.count);
   else if(sort==='spent-desc') arr.sort((a,b)=>b.totalSpent-a.totalSpent);
@@ -182,17 +191,20 @@ function renderCustomers(){
 
   const el = document.getElementById('customers-list');
   if(!arr.length){ el.innerHTML='<div class="text-center text-slate-600 py-8 font-semibold">無客戶資料</div>'; return; }
+  const contactHeaders = storeRole ? '' : '<th>電話</th><th>Email</th>';
   el.innerHTML = '<table class="data-table"><thead><tr>'+
-    '<th>客戶</th><th>電話</th><th>Email</th>'+
+    '<th>客戶</th>'+contactHeaders+
     '<th class="num">訂單數</th><th class="num">累積消費</th>'+
     '<th class="num">已收訂金</th>'+
     '<th>首次預約</th><th>最後預約</th><th>動作</th></tr></thead>'+
     '<tbody>'+arr.map(c=>{
       const safeKey = (c.key||'').replace(/'/g,"\\\\'");
+      const contactCells = storeRole ? '' :
+        '<td class="font-semibold">'+(c.phone?'<a href="tel:'+c.phone+'" onclick="event.stopPropagation()" class="text-[#1A365D] hover:underline">'+c.phone+'</a>':'—')+'</td>'+
+        '<td class="text-sm">'+(c.email||'—')+'</td>';
       return '<tr onclick="openCustomerDetail(\''+safeKey+'\')">'+
       '<td><div class="font-bold text-base whitespace-nowrap">'+(c.isVip?'<span title="VIP 客戶" class="text-amber-500 mr-1">⭐</span>':'')+c.name+'</div></td>'+
-      '<td class="font-semibold">'+(c.phone?'<a href="tel:'+c.phone+'" onclick="event.stopPropagation()" class="text-[#1A365D] hover:underline">'+c.phone+'</a>':'—')+'</td>'+
-      '<td class="text-sm">'+c.email+'</td>'+
+      contactCells+
       '<td class="num">'+c.count+'</td>'+
       '<td class="num">'+fmtY0(c.totalSpent)+'</td>'+
       '<td class="num">'+fmtY0(c.totalDeposit)+'</td>'+
@@ -206,8 +218,9 @@ function openCustomerDetail(key){
   const list = buildCustomers();
   const c = list.find(x=>x.key===key);
   if(!c) return;
+  const storeRole = isStoreRole();
   document.getElementById('cust-modal-name').innerHTML = (c.isVip?'<span title="VIP 客戶" class="text-amber-500 mr-1">⭐</span>':'') + c.name;
-  document.getElementById('cust-modal-sub').textContent = c.phone + (c.email? ' · '+c.email:'') + ' · 共 '+c.count+' 筆訂單';
+  document.getElementById('cust-modal-sub').textContent = storeRole ? ('共 '+c.count+' 筆訂單') : (c.phone + (c.email? ' · '+c.email:'') + ' · 共 '+c.count+' 筆訂單');
   const body = document.getElementById('cust-modal-body');
   body.innerHTML =
     '<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">'+
