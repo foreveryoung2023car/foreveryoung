@@ -10,6 +10,7 @@ function openEdit(orderId) {
   const o = allOrders.find(x => x.orderId === orderId);
   if (!o) return;
   editingOrder = o;
+  document.getElementById('edit-modal').classList.toggle('store-modal', currentRole === 'store');
   document.getElementById('modal-order-id').textContent = currentRole === 'store'
     ? orderId
     : orderId + (o.submitDate ? ' · 填單: ' + o.submitDate : '');
@@ -115,8 +116,8 @@ function renderStoreOrderDetailView(o) {
   document.getElementById('store-view-male').textContent = guests.maleAdults === null ? '未區分' : guests.maleAdults;
   document.getElementById('store-view-female').textContent = guests.femaleAdults === null ? guests.adults : guests.femaleAdults;
   document.getElementById('store-view-children').textContent = guests.children;
-  document.getElementById('store-view-hair').textContent = (o.hair === true || o.hair === 'true') ? '✅ 有' : '— 無';
-  document.getElementById('store-view-photo').textContent = (o.photo === true || o.photo === 'true') ? '📷 有' : '— 無';
+  document.getElementById('store-view-hair').textContent = (o.hair === true || o.hair === 'true') ? '有' : '無';
+  document.getElementById('store-view-photo').textContent = (o.photo === true || o.photo === 'true') ? '有' : '無';
   document.getElementById('store-view-remark').textContent = o.remark || '—';
   document.getElementById('store-view-actual-received').textContent = fmtY0(orderFinancialValue(o, 'storeActualReceived', 'storeActualReceivedJpy'));
   document.getElementById('store-view-balance').textContent = fmtY0(orderDisplayBalance(o));
@@ -300,7 +301,7 @@ function injectAnomalyWarning(o){
   if(tabBar) modalBox.insertBefore(banner, tabBar);
   else modalBox.insertBefore(banner, modalBox.children[1]);
 }
-function closeModal() { document.getElementById('edit-modal').classList.add('hidden'); document.body.style.overflow = ''; }
+function closeModal() { document.getElementById('edit-modal').classList.add('hidden'); document.getElementById('edit-modal').classList.remove('store-modal'); document.body.style.overflow = ''; }
 function switchTab(name, btn) {
   document.querySelectorAll('.edit-tab').forEach(t => t.classList.add('hidden'));
   document.querySelectorAll('#edit-modal .tab-btn').forEach(b => b.classList.remove('active'));

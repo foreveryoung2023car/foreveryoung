@@ -11,7 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./admin-assets/admin.css?v=20260611-6">
+<link rel="stylesheet" href="./admin-assets/admin.css?v=20260611-7">
 </head>
 <body class="min-h-screen" style="overflow-x:hidden">
 
@@ -665,55 +665,57 @@
       <div class="edit-panel space-y-5">
         <div id="store-order-detail-view" data-store-only="1" style="display:none" class="store-detail-view">
           <button type="button" class="store-detail-edit-btn" onclick="enableStoreOrderDetailEdit()">✏️ 編輯</button>
-          <div class="store-ops-layout">
-            <div class="store-ops-line store-ops-line-main">
-              <span class="store-ops-label">📅 體驗預約日：</span>
-              <div id="store-view-booking" class="store-detail-value store-ops-value store-ops-booking">—</div>
-            </div>
-            <div class="store-ops-group">
-              <div class="store-ops-inline store-ops-inline-people">
-                <div class="store-ops-item">
-                  <span class="store-ops-label">👨 男性大人：</span>
-                  <div id="store-view-male" class="store-detail-value store-ops-value">—</div>
+          <div class="store-summary-card">
+            <div class="store-summary-row store-summary-row-top">
+              <div class="store-summary-cell store-summary-booking">
+                <span class="store-summary-icon">📅</span>
+                <div>
+                  <div class="store-summary-label">體驗預約日</div>
+                  <div id="store-view-booking" class="store-summary-value store-summary-booking-value">—</div>
                 </div>
-                <div class="store-ops-item">
-                  <span class="store-ops-label">👩 女性大人：</span>
-                  <div id="store-view-female" class="store-detail-value store-ops-value">—</div>
+              </div>
+              <div class="store-summary-people">
+                <div class="store-summary-person">
+                  <span class="store-summary-icon">👨</span>
+                  <div><div class="store-summary-label">男性大人</div><div id="store-view-male" class="store-summary-value">—</div></div>
                 </div>
-                <div class="store-ops-item">
-                  <span class="store-ops-label">🧒 小孩：</span>
-                  <div id="store-view-children" class="store-detail-value store-ops-value">—</div>
+                <div class="store-summary-person">
+                  <span class="store-summary-icon">👩</span>
+                  <div><div class="store-summary-label">女性大人</div><div id="store-view-female" class="store-summary-value">—</div></div>
+                </div>
+                <div class="store-summary-person">
+                  <span class="store-summary-icon">🧒</span>
+                  <div><div class="store-summary-label">小孩</div><div id="store-view-children" class="store-summary-value">—</div></div>
                 </div>
               </div>
             </div>
-            <div class="store-ops-group">
-              <div class="store-ops-inline">
-                <div class="store-ops-item store-ops-service">
-                  <span class="store-ops-label">✨ 妝髮造型：</span>
-                  <div id="store-view-hair" class="store-detail-value store-ops-value">—</div>
-                </div>
-                <div class="store-ops-item store-ops-service">
-                  <span class="store-ops-label">📷 攝影服務：</span>
-                  <div id="store-view-photo" class="store-detail-value store-ops-value">—</div>
-                </div>
+            <div class="store-summary-row store-summary-two">
+              <div class="store-summary-cell">
+                <span class="store-summary-icon">✂️</span>
+                <div><span class="store-summary-label">妝髮造型</span><span id="store-view-hair" class="store-summary-inline-value">—</span></div>
+              </div>
+              <div class="store-summary-cell">
+                <span class="store-summary-icon">📷</span>
+                <div><span class="store-summary-label">攝影服務</span><span id="store-view-photo" class="store-summary-inline-value">—</span></div>
               </div>
             </div>
-            <div class="store-ops-group">
-              <div class="store-ops-inline">
-                <div class="store-ops-item store-ops-money">
-                  <span class="store-ops-label">💴 店鋪實收：</span>
-                  <div id="store-view-actual-received" class="store-detail-value store-ops-value">—</div>
-                </div>
-                <div class="store-ops-item store-ops-balance">
-                  <span class="store-ops-label">💰 待付尾款：</span>
-                  <div id="store-view-balance" class="store-detail-value store-ops-value">—</div>
-                </div>
+            <div class="store-summary-row store-summary-two">
+              <div class="store-summary-cell">
+                <span class="store-summary-icon">🏪</span>
+                <div><span class="store-summary-label">店鋪實收</span><span id="store-view-actual-received" class="store-summary-money">—</span></div>
+              </div>
+              <div class="store-summary-cell">
+                <span class="store-summary-icon">💰</span>
+                <div><span class="store-summary-label">待付尾款</span><span id="store-view-balance" class="store-summary-money is-balance">—</span></div>
               </div>
             </div>
-          </div>
-          <div class="store-ops-note">
-            <span class="store-ops-label">📝 客服給客人的備註：</span>
-            <div id="store-view-remark" class="store-detail-value whitespace-pre-wrap store-ops-note-value">—</div>
+            <div class="store-summary-row store-summary-note">
+              <span class="store-summary-icon">📝</span>
+              <div>
+                <div class="store-summary-label">客服給客人的備註</div>
+                <div id="store-view-remark" class="store-summary-note-value whitespace-pre-wrap">—</div>
+              </div>
+            </div>
           </div>
         </div>
         <div id="store-order-detail-form">
@@ -906,7 +908,7 @@
 <script src="./admin-assets/07-calendar.js?v=20260611-4"></script>
 <script src="./admin-assets/08-finance.js?v=20260605-14"></script>
 <script src="./admin-assets/09-reconcile.js?v=20260611-5"></script>
-<script src="./admin-assets/10-orders-edit.js?v=20260611-9"></script>
+<script src="./admin-assets/10-orders-edit.js?v=20260611-11"></script>
 <script src="./admin-assets/11-refunds-edit.js?v=20260605-14"></script>
 <script src="./admin-assets/12-ui-admin-tools.js?v=20260611-6"></script>
 <script src="./admin-assets/13-weather.js?v=20260605-14"></script>
