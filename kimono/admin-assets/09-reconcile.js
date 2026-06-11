@@ -69,6 +69,11 @@ function reconcileStatusBadge(o) {
   return {html:'<span class="badge badge-pending">○ 未對帳</span>', rowClass:'pending'};
 }
 
+function shouldShowStoreReceivable(o) {
+  const status = typeof orderStatusOf === 'function' ? orderStatusOf(o) : String(o && o.status || '');
+  return status === 'balance_due' || status === 'completed';
+}
+
 function renderReconcileStats(list) {
   const total = list.length;
   const matched = list.filter(o=>o._recState==='matched').length;
@@ -95,7 +100,7 @@ function renderReconcileStats(list) {
     card1.className = 'stat-card green';
     card2.className = 'stat-card red';
     card3.style.display = 'none';
-    label1.textContent = '店鋪結餘';
+    label1.textContent = '店鋪利潤';
     label2.textContent = '需付平台';
     value1.className = 'stat-num green';
     value2.className = 'stat-num red';
@@ -123,7 +128,9 @@ function renderReconcileStats(list) {
   value3.style.fontSize = '22px';
   value1.textContent = fmtY0(sum('total'));
   value2.textContent = fmtY0(sum('platformFee'));
-  value3.textContent = fmtSignedY0(sum('storeReceivable'));
+  value3.textContent = fmtSignedY0(list.reduce((totalAmount, order) => {
+    return shouldShowStoreReceivable(order) ? totalAmount + reconcileAmounts(order).storeReceivable : totalAmount;
+  }, 0));
 }
 
 function renderReconcile(){
@@ -206,7 +213,7 @@ function renderReconcile(){
         '<th class="num">妝髮費</th><th class="num">攝影費</th>'+
         '<th class="num">折扣與退款</th><th class="num">總價</th>'+
         '<th class="num">實際收款</th><th class="num">平台費</th>'+
-        '<th class="num">店鋪結餘</th><th class="num">需付平台</th>'
+        '<th class="num">店鋪利潤</th><th class="num">需付平台</th>'
       : '<th>狀態</th><th>訂單號</th><th>客戶</th><th>體驗日期</th>'+
         '<th class="num">已收訂金</th><th class="num">和服原價</th>'+
         '<th class="num">折扣與退款</th><th class="num">總價</th>'+
@@ -216,6 +223,7 @@ function renderReconcile(){
     list.map(o=>{
       const statusBadge = reconcileStatusBadge(o);
       const amount = reconcileAmounts(o);
+      const showStoreReceivable = shouldShowStoreReceivable(o);
       const commonCells =
         '<td>'+statusBadge.html+'</td>'+
         (showStoreColumn ? '<td class="font-mono text-sm whitespace-nowrap">'+adminEsc(o.storeKey || o.storeId || '—')+'</td>' : '')+
@@ -240,7 +248,7 @@ function renderReconcile(){
           '<td class="num">'+fmtY0(amount.actualReceived)+'</td>'+
           '<td class="num font-bold" style="color:#991B1B">'+fmtY0(amount.balance)+'</td>'+
           '<td class="num font-bold text-[#C9A961]">'+fmtY0(amount.platformFee)+'</td>'+
-          '<td class="num font-bold" style="color:#991B1B">'+fmtSignedY0(amount.storeReceivable)+'</td>';
+          '<td class="num font-bold" style="color:#991B1B">'+(showStoreReceivable ? fmtSignedY0(amount.storeReceivable) : '')+'</td>';
       return '<tr class="recon-row '+statusBadge.rowClass+'" onclick="openEdit(\''+(o.orderId||'')+'\')">'+
         commonCells+amountCells+
       '</tr>';
@@ -255,7 +263,7 @@ function exportReconCSV(){
   }
   if(month && month!=='all') list = list.filter(o=>bookingMonth(o)===month);
   const headers = currentRole === 'store'
-    ? ['狀態','訂單號','客戶','體驗日期','已收訂金','和服原價','妝髮費','攝影費','折扣與退款','總價','實際收款','平台費','店鋪結餘','需付平台']
+    ? ['狀態','訂單號','客戶','體驗日期','已收訂金','和服原價','妝髮費','攝影費','折扣與退款','總價','實際收款','平台費','店鋪利潤','需付平台']
     : ['狀態','訂單號','客戶','體驗日期','已收訂金','和服原價','折扣與退款','總價','店鋪實收','尾款','平台費','需收店鋪'];
   const rows = list.map(o=>{
     const expect = expectedDeposit(o); const got = Number(o.deposit)||0;
@@ -268,7 +276,7 @@ function exportReconCSV(){
     const amount = reconcileAmounts(o);
     return currentRole === 'store'
       ? [st, o.orderId, o.name, fmtDate(o.bookingDate), amount.deposit, amount.kimonoPrice, amount.hairFee, amount.photoFee, amount.discountRefund, amount.total, amount.actualReceived, amount.platformFee, amount.storeBalance, amount.platformPayable]
-      : [st, o.orderId, o.name, fmtDate(o.bookingDate), amount.deposit, amount.kimonoPrice, amount.discountRefund, amount.total, amount.actualReceived, amount.balance, amount.platformFee, amount.storeReceivable];
+      : [st, o.orderId, o.name, fmtDate(o.bookingDate), amount.deposit, amount.kimonoPrice, amount.discountRefund, amount.total, amount.actualReceived, amount.balance, amount.platformFee, shouldShowStoreReceivable(o) ? amount.storeReceivable : ''];
   });
   const csv = [headers, ...rows].map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\n');
   const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
