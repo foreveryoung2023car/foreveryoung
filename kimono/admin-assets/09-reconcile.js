@@ -12,15 +12,19 @@ function initReconMonths(){
   const now = new Date();
   const cur = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
   if(!sorted.includes(cur)) sorted.unshift(cur);
-  const prevSelected = sel.value || sorted.find(m => m < cur) || cur;
-  sel.innerHTML = sorted.map(m=>{
-    const isFuture = m >= cur;
+  const currentValue = sel.value;
+  const prevSelected = currentValue && (currentValue === 'all' || sorted.includes(currentValue))
+    ? currentValue
+    : (sorted.includes(cur) ? cur : (sorted.find(m => m < cur) || 'all'));
+  const monthOptions = sorted.map(m=>{
+    const isFuture = m > cur;
     const isArchived = archivedSet.has(m);
-    const label = fmtMonth(m) + (isFuture ? '（未到）' : isArchived ? '（已歸檔）' : '');
+    const label = fmtMonth(m) + (m === cur ? '（本月）' : isFuture ? '（未到）' : isArchived ? '（已歸檔）' : '');
     const disabled = isFuture ? ' disabled style="color:#94A3B8"' : '';
     const selected = (m === prevSelected) ? ' selected' : '';
     return '<option value="'+m+'"'+selected+disabled+'>'+label+'</option>';
   }).join('');
+  sel.innerHTML = '<option value="all"'+(prevSelected==='all'?' selected':'')+'>全部月份</option>' + monthOptions;
 }
 
 function reconcileAmounts(o) {
@@ -89,6 +93,23 @@ function reconcileOrderStatusLabel(o) {
   const status = typeof orderStatusOf === 'function' ? orderStatusOf(o) : String(o && o.status || (o && o.confirmed ? 'confirmed' : 'pending_review'));
   const meta = typeof orderStatusMeta === 'function' ? orderStatusMeta(status) : null;
   return meta ? meta.label : (status || '未知狀態');
+}
+
+function reconcileOrderStatusRank(o) {
+  const status = typeof orderStatusOf === 'function' ? orderStatusOf(o) : String(o && o.status || (o && o.confirmed ? 'confirmed' : 'pending_review'));
+  const order = {
+    pending_payment: 0,
+    pending_review: 1,
+    confirmed: 2,
+    checked_in: 3,
+    balance_due: 4,
+    completed: 5,
+    refund_requested: 6,
+    refunding: 7,
+    refunded: 8,
+    cancelled: 9
+  };
+  return order[status] == null ? 99 : order[status];
 }
 
 function renderReconcileStats(list) {
@@ -187,7 +208,10 @@ function renderReconcile(){
     return {...o, _expect:expect, _got:got, _tc:tc, _recState:recState, _diff:got-expect, _isWalkIn:isWalkIn};
   });
 
-  if(status!=='all') list = list.filter(o=>o._recState===status);
+  if(status!=='all') list = list.filter(o=>{
+    const orderStatus = typeof orderStatusOf === 'function' ? orderStatusOf(o) : String(o && o.status || (o && o.confirmed ? 'confirmed' : 'pending_review'));
+    return orderStatus === status;
+  });
 
   renderReconcileStats(list);
 
@@ -197,13 +221,14 @@ function renderReconcile(){
   list.sort((a,b)=>{
     // v2.4.20: 依使用者選擇排序
     const sortMode = (document.getElementById('recon-sort')||{}).value || 'status-asc';
-    const order = {overpaid:0, partial:1, unmatched:2, matched:3};
+    const orderA = reconcileOrderStatusRank(a);
+    const orderB = reconcileOrderStatusRank(b);
     const dateA = new Date(a.bookingDate||0).getTime() || 0;
     const dateB = new Date(b.bookingDate||0).getTime() || 0;
     if (sortMode === 'date-asc') return dateA - dateB;
     if (sortMode === 'date-desc') return dateB - dateA;
     // status-asc / status-desc：先狀態，再日期
-    if(order[a._recState]!==order[b._recState]) return order[a._recState]-order[b._recState];
+    if(orderA!==orderB) return sortMode === 'status-desc' ? orderB-orderA : orderA-orderB;
     return sortMode === 'status-desc' ? dateB - dateA : dateA - dateB;
     return new Date(b.bookingDate||0)-new Date(a.bookingDate||0);
   });
