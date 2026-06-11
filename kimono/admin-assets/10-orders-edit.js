@@ -45,8 +45,18 @@ function openEdit(orderId) {
   document.getElementById('e-discount-refund-amount').value = Number(o.discountRefundAmount || 0) || '';
   const storeActualReceived = orderFinancialValue(o, 'storeActualReceived', 'storeActualReceivedJpy');
   const balanceDue = orderFinancialValue(o, 'balanceDue', 'balanceDueJpy');
-  document.getElementById('e-store-actual-received').value = String(storeActualReceived);
-  document.getElementById('e-store-actual-received').dataset.savedValue = String(storeActualReceived);
+  const storeActualInput = document.getElementById('e-store-actual-received');
+  const isBeforeCheckout = currentRole === 'store' && ['confirmed', 'checked_in'].includes(orderStatusOf(o));
+  const defaultActualReceived = Math.max(0,
+    Number(o.price || o.kimonoPrice || 0)
+    + Number(o.hairFee || 0)
+    + Number(o.photoFee || 0)
+    - Number(o.discountRefundAmount || 0)
+    - Number(o.deposit || 0)
+  );
+  storeActualInput.dataset.autoMode = isBeforeCheckout ? 'true' : 'false';
+  storeActualInput.value = String(isBeforeCheckout && !storeActualReceived ? defaultActualReceived : storeActualReceived);
+  storeActualInput.dataset.savedValue = String(storeActualReceived);
   document.getElementById('calc-store-balance').dataset.savedValue = String(balanceDue);
   document.getElementById('calc-store-balance').dataset.savedSignature = [
     Number(o.price || o.kimonoPrice || 0),
@@ -303,9 +313,13 @@ function updateCalc() {
   const photo = Number(document.getElementById('e-photo-fee').value) || 0;
   const deposit = Number(document.getElementById('e-deposit').value) || 0;
   const discountRefund = Number(document.getElementById('e-discount-refund-amount').value) || 0;
-  const storeActualReceived = Number(document.getElementById('e-store-actual-received').value) || 0;
+  const storeActualInput = document.getElementById('e-store-actual-received');
   const onsite = Math.max(0, price + hair + photo - discountRefund);
   const afterDep = Math.max(0, onsite - deposit);
+  if (storeActualInput && storeActualInput.dataset.autoMode === 'true') {
+    storeActualInput.value = String(afterDep);
+  }
+  const storeActualReceived = Number(storeActualInput && storeActualInput.value) || 0;
   const storedBalance = Number(document.getElementById('calc-store-balance').dataset.savedValue || 0);
   const currentSignature = [price, hair, photo, deposit, discountRefund, storeActualReceived].join('|');
   const savedSignature = document.getElementById('calc-store-balance').dataset.savedSignature || '';
@@ -318,4 +332,9 @@ function updateCalc() {
   document.getElementById('calc-due').textContent = onsite ? fmtY0(onsite) : '—';
   document.getElementById('calc-net').textContent = onsite ? fmtY0(afterDep) : '—';
   document.getElementById('calc-store-balance').textContent = fmtY0(storeBalance);
+}
+
+function markStoreActualReceivedManual() {
+  const input = document.getElementById('e-store-actual-received');
+  if (input) input.dataset.autoMode = 'false';
 }

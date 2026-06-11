@@ -759,7 +759,7 @@
             <div class="grid grid-cols-2 gap-4 items-end">
               <div>
                 <div class="section-label">店鋪實際收款 JPY</div>
-                <input id="e-store-actual-received" class="input-field" type="number" min="0" step="1" placeholder="0" oninput="updateCalc()">
+                <input id="e-store-actual-received" class="input-field" type="number" min="0" step="1" placeholder="0" onfocus="markStoreActualReceivedManual()" oninput="markStoreActualReceivedManual();updateCalc()">
               </div>
               <div>
                 <div class="section-label">尾款 JPY</div>
@@ -906,7 +906,7 @@
 <script src="./admin-assets/07-calendar.js?v=20260611-4"></script>
 <script src="./admin-assets/08-finance.js?v=20260605-14"></script>
 <script src="./admin-assets/09-reconcile.js?v=20260611-5"></script>
-<script src="./admin-assets/10-orders-edit.js?v=20260611-8"></script>
+<script src="./admin-assets/10-orders-edit.js?v=20260611-9"></script>
 <script src="./admin-assets/11-refunds-edit.js?v=20260605-14"></script>
 <script src="./admin-assets/12-ui-admin-tools.js?v=20260611-6"></script>
 <script src="./admin-assets/13-weather.js?v=20260605-14"></script>
