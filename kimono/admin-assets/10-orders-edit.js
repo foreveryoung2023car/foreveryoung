@@ -169,6 +169,23 @@ function resetStoreOrderDetailMode() {
   }
 }
 
+function cancelStoreInlineEdit() {
+  const modal = document.getElementById('edit-modal');
+  const view = document.getElementById('store-order-detail-view');
+  if (!modal || !view || !view.classList.contains('is-editing')) return;
+  if (editingOrder) renderStoreOrderDetailView(editingOrder);
+  view.classList.remove('is-editing');
+  modal.dataset.storeReservationEdit = 'false';
+  applyStoreOrderReadOnlyMode(editingOrder);
+}
+
+function handleStoreDetailBlankClick(event) {
+  const view = document.getElementById('store-order-detail-view');
+  if (!view || !view.classList.contains('is-editing')) return;
+  if (event.target.closest('.store-inline-editor,.store-detail-edit-btn')) return;
+  cancelStoreInlineEdit();
+}
+
 function isStoreOrderReadOnly(o) {
   return currentRole === 'store' && ['completed', 'balance_due'].includes(String(o && o.status || ''));
 }
