@@ -287,8 +287,17 @@ function renderTrendChart(){
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     months.push({ key: d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'), label: (d.getMonth()+1)+'月' });
   }
-  const depositData = months.map(m => allOrders.filter(o => bookingMonth(o) === m.key).reduce((s,o) => s + (Number(o.deposit)||0), 0));
-  const refundData = months.map(m => allOrders.filter(o => bookingMonth(o) === m.key).reduce((s,o) => s + (Number(o.refundAmount)||0), 0));
+  const monthKeys = new Set(months.map(m => m.key));
+  const monthTotals = {};
+  months.forEach(m => { monthTotals[m.key] = { deposit:0, refund:0 }; });
+  allOrders.forEach(o => {
+    const key = bookingMonth(o);
+    if (!monthKeys.has(key)) return;
+    monthTotals[key].deposit += Number(o.deposit) || 0;
+    monthTotals[key].refund += Number(o.refundAmount) || 0;
+  });
+  const depositData = months.map(m => monthTotals[m.key].deposit);
+  const refundData = months.map(m => monthTotals[m.key].refund);
   if (__trendChart) __trendChart.destroy();
   __trendChart = new Chart(canvas, {
     type: 'line',

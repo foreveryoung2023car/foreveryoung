@@ -8,11 +8,17 @@ function renderDashboard(){
   document.getElementById('dash-date').textContent = now.toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'long'}) + ' · ' + (currentAgent||'');
 
   const total = filtered.length;
-  const pending = filtered.filter(o=>['pending_payment','pending_review'].includes(orderStatusOf(o))).length;
-  const confirmed = filtered.filter(o=>orderStatusOf(o)==='confirmed').length;
-  const deposit = filtered.reduce((s,o)=>s+(Number(o.deposit)||0),0);
-  const due = filtered.filter(o=>orderStatusOf(o)==='balance_due').reduce((s,o)=>s+orderDisplayBalance(o),0);
-  const refund = filtered.reduce((s,o)=>s+(Number(o.refundAmount)||0),0);
+  let pending = 0, confirmed = 0, deposit = 0, due = 0, refund = 0, refundCount = 0;
+  filtered.forEach(o => {
+    const status = orderStatusOf(o);
+    if (status === 'pending_payment' || status === 'pending_review') pending++;
+    if (status === 'confirmed') confirmed++;
+    deposit += Number(o.deposit) || 0;
+    if (status === 'balance_due') due += orderDisplayBalance(o);
+    const refundAmount = Number(o.refundAmount) || 0;
+    refund += refundAmount;
+    if (refundAmount > 0) refundCount++;
+  });
 
   document.getElementById('kpi-total').textContent = total;
   document.getElementById('kpi-pending').textContent = pending;
@@ -27,7 +33,6 @@ function renderDashboard(){
   document.getElementById('kpi-confirmed-trend').textContent = '待到店比例 ' + confirmRate + '%';
   document.getElementById('kpi-deposit-trend').textContent = total? '平均每筆 ¥'+Math.round(deposit/total||0).toLocaleString() : '—';
   document.getElementById('kpi-due-trend').textContent = '待付尾款訂單';
-  const refundCount = filtered.filter(o=>Number(o.refundAmount)>0).length;
   document.getElementById('kpi-refund-trend').textContent = refundCount? refundCount+' 筆' : '無退款';
 
   // v2.4.20 D ── 今日入帳計算（今天 JST 收的訂金）
@@ -231,10 +236,15 @@ function renderHeat(){
   const visible = filterOrdersForRole(allOrders);
   const list = document.getElementById('heat-list');
   const today = new Date(); today.setHours(0,0,0,0);
+  const countsByDay = new Map();
+  visible.forEach(o => {
+    const key = orderDayKey(o);
+    if (key) countsByDay.set(key, (countsByDay.get(key) || 0) + 1);
+  });
   const days = [];
   for(let i=0;i<14;i++){
     const d = new Date(today); d.setDate(today.getDate()+i);
-    const cnt = visible.filter(o=>{const od=new Date(o.bookingDate); return !isNaN(od) && od.toDateString()===d.toDateString();}).length;
+    const cnt = countsByDay.get(orderDayKeyFromDate(d)) || 0;
     days.push({d:d,cnt:cnt});
   }
   const wd = ['日','一','二','三','四','五','六'];
@@ -302,13 +312,20 @@ function renderTodayTimeline(){
   const visible = filterOrdersForRole(allOrders);
   const t0 = new Date(); t0.setHours(0,0,0,0);
   const t1 = new Date(); t1.setHours(23,59,59,999);
-  const todays = visible.filter(o=>{ const d = parseBookingDate(o.bookingDate); return d && d>=t0 && d<=t1; })
-    .sort((a,b)=>parseBookingDate(a.bookingDate)-parseBookingDate(b.bookingDate));
+  const todays = visible.map(o => ({ order:o, date:orderBookingDate(o) }))
+    .filter(x => x.date && !isNaN(x.date) && x.date>=t0 && x.date<=t1)
+    .sort((a,b)=>a.date-b.date);
   if (!todays.length) { el.innerHTML = '<div class="text-xs text-slate-400 italic">今天無預約</div>'; return; }
-  const totalHair = todays.filter(o=>o.hair===true||o.hair==='true'||o.hair==='是').length;
-  const totalPhoto = todays.filter(o=>o.photo===true||o.photo==='true'||o.photo==='是').length;
-  const pending = todays.filter(o=>!['balance_due','completed'].includes(orderStatusOf(o)));
-  const checked = todays.filter(o=>['balance_due','completed'].includes(orderStatusOf(o)));
+  let totalHair = 0, totalPhoto = 0;
+  const pending = [];
+  const checked = [];
+  todays.forEach(x => {
+    const o = x.order;
+    if (orderHasHair(o)) totalHair++;
+    if (orderHasPhoto(o)) totalPhoto++;
+    if (['balance_due','completed'].includes(orderStatusOf(o))) checked.push(x);
+    else pending.push(x);
+  });
   let html = '<div class="flex items-center gap-3 mb-2 flex-wrap"><span class="text-xs font-bold text-amber-600">⏰ 今日時間軸 ('+todays.length+' 單)</span>';
   html += '<span class="text-[10px] bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded">⏳ 待結帳 '+pending.length+'</span>';
   html += '<span class="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">✓ 已結帳 '+checked.length+'</span>';
@@ -318,12 +335,13 @@ function renderTodayTimeline(){
   // 待結帳 section
   if (pending.length) {
     html += '<div class="text-[10px] font-bold text-amber-600 mt-2 mb-1">⏳ 待結帳</div>';
-    html += pending.map(o=>{
-    const d = parseBookingDate(o.bookingDate);
+    html += pending.map(x=>{
+    const o = x.order;
+    const d = x.date;
     const hh = String(d.getHours()).padStart(2,'0');
     const mm = String(d.getMinutes()).padStart(2,'0');
-    const hair = (o.hair===true||o.hair==='true'||o.hair==='是')?'💆':'';
-    const photo = (o.photo===true||o.photo==='true'||o.photo==='是')?'📷':'';
+    const hair = orderHasHair(o)?'💆':'';
+    const photo = orderHasPhoto(o)?'📷':'';
     const status = orderStatusOf(o);
     const checked = ['balance_due','completed'].includes(status);
     const dot = checked ? 'bg-emerald-500' : (status === 'confirmed' ? 'bg-amber-400' : 'bg-slate-300');
@@ -338,12 +356,13 @@ function renderTodayTimeline(){
   // 已結帳 section
   if (checked.length) {
     html += '<div class="text-[10px] font-bold text-emerald-600 mt-3 mb-1">✓ 已結帳</div>';
-    html += checked.map(o=>{
-      const d = parseBookingDate(o.bookingDate);
+    html += checked.map(x=>{
+      const o = x.order;
+      const d = x.date;
       const hh = String(d.getHours()).padStart(2,'0');
       const mm = String(d.getMinutes()).padStart(2,'0');
-      const hair = (o.hair===true||o.hair==='true'||o.hair==='是')?'💆':'';
-      const photo = (o.photo===true||o.photo==='true'||o.photo==='是')?'📷':'';
+      const hair = orderHasHair(o)?'💆':'';
+      const photo = orderHasPhoto(o)?'📷':'';
       return '<div class="flex items-center gap-2 py-1 text-xs cursor-pointer hover:bg-slate-50 rounded px-1 opacity-70" onclick="openEdit(\''+o.orderId+'\')">' +
         '<span class="font-mono font-bold text-emerald-700 w-12">'+hh+':'+mm+'</span>' +
         '<span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>' +
@@ -368,18 +387,21 @@ function renderUpcoming(){
   else if(range==='tomorrow') { start.setDate(today0.getDate()+1); endDate.setDate(today0.getDate()+2); }
   else if(range==='3days') endDate.setDate(today0.getDate()+3);
   else endDate.setDate(today0.getDate()+7);
-  const upcoming = visible.filter(o=>{const d=parseBookingDate(o.bookingDate); return d && d>=start && d<endDate;}).sort((a,b)=>{const da=parseBookingDate(a.bookingDate)||0;const db=parseBookingDate(b.bookingDate)||0;return da-db;});
+  const upcoming = visible.map(o => ({ order:o, date:orderBookingDate(o) }))
+    .filter(x => x.date && !isNaN(x.date) && x.date>=start && x.date<endDate)
+    .sort((a,b)=>a.date-b.date);
   if(!upcoming.length){ list.innerHTML='<div class="text-center text-slate-500 py-4 font-semibold">此期間無預約</div>'; return; }
-  list.innerHTML = upcoming.map(o=>{
-    const d = parseBookingDate(o.bookingDate) || new Date(o.bookingDate);
-    const dDay = d ? new Date(d.getFullYear(), d.getMonth(), d.getDate()) : null;  // v2.4.42h: zero out hours
+  list.innerHTML = upcoming.map(x=>{
+    const o = x.order;
+    const d = x.date;
+    const dDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());  // v2.4.42h: zero out hours
     const days = dDay ? Math.round((dDay-today0)/(86400000)) : 0;
     const dayLabel = days<=0?'今天':days===1?'明天':'剩 '+days+' 天';
     const statusMeta = orderStatusMeta(orderStatusOf(o));
     const badge = '<span class="order-status-control '+statusMeta.css+'"><span class="order-status-icon">'+statusMeta.icon+'</span><span>'+statusMeta.label+'</span></span>';
     return '<div class="flex items-center justify-between p-2 hover:bg-slate-50 rounded cursor-pointer border border-slate-100" onclick="openEdit(\''+(o.orderId||'')+'\')">'+
       '<div class="flex-1 min-w-0"><div class="font-bold text-sm truncate">'+(o.name||'—')+' <span class="text-[10px] text-slate-500 font-mono font-normal">'+(o.orderId||'')+'</span></div>'+
-      '<div class="text-[11px] text-slate-700">'+fmtDate(o.bookingDate)+' '+(function(){const dd=parseBookingDate(o.bookingDate);return dd? (String(dd.getHours()).padStart(2,'0')+':'+String(dd.getMinutes()).padStart(2,'0')):'';})()+' · '+formatGuestCount(o)+' '+((o.hair===true||o.hair==='true'||o.hair==='是')?'💆':'')+((o.photo===true||o.photo==='true'||o.photo==='是')?'📷':'')+'</div></div>'+
+      '<div class="text-[11px] text-slate-700">'+fmtDate(o.bookingDate)+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+' · '+formatGuestCount(o)+' '+(orderHasHair(o)?'💆':'')+(orderHasPhoto(o)?'📷':'')+'</div></div>'+
       '<div class="flex flex-col items-end gap-0.5 ml-2">'+badge+'<span class="text-[10px] font-bold text-[#C9A961]">'+dayLabel+'</span></div></div>';
   }).join('');
 }
@@ -423,6 +445,27 @@ function resetAllFilters(){
 
 function normalizedOrderPhone(o) {
   return String(o && o.phone || '').replace(/\D/g, '');
+}
+
+function orderBookingDate(o) {
+  return parseBookingDate(o && o.bookingDate) || new Date(o && o.bookingDate);
+}
+
+function orderDayKeyFromDate(d) {
+  if (!d || isNaN(d)) return '';
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function orderDayKey(o) {
+  return orderDayKeyFromDate(orderBookingDate(o));
+}
+
+function orderHasHair(o) {
+  return o && (o.hair === true || o.hair === 'true' || o.hair === '是');
+}
+
+function orderHasPhoto(o) {
+  return o && (o.photo === true || o.photo === 'true' || o.photo === '是');
 }
 
 function buildVisitCountMap(orders) {

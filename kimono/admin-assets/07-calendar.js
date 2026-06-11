@@ -4,6 +4,14 @@ function goToday(){ calCursor = new Date(); renderCalendar(); }
 function renderCalendar(){
   // v2.4.29: store 角色行事曆只看自家
   const visible = filterOrdersForRole(allOrders);
+  const visitCounts = buildVisitCountMap(allOrders);
+  const ordersByDay = new Map();
+  visible.forEach(o => {
+    const key = orderDayKey(o);
+    if (!key) return;
+    if (!ordersByDay.has(key)) ordersByDay.set(key, []);
+    ordersByDay.get(key).push(o);
+  });
   const y = calCursor.getFullYear(); const m = calCursor.getMonth();
   document.getElementById('cal-title').textContent = y+' 年 '+(m+1)+' 月';
   const first = new Date(y,m,1); const startDay = first.getDay();
@@ -15,7 +23,7 @@ function renderCalendar(){
   for(let i=startDay-1;i>=0;i--){ html += '<div class="calendar-day other-month"><div>'+(prevDays-i)+'</div></div>'; }
   for(let d=1; d<=daysInMonth; d++){
     const dt = new Date(y,m,d);
-    const dayOrders = visible.filter(o=>{const od=new Date(o.bookingDate); return !isNaN(od) && od.toDateString()===dt.toDateString();});
+    const dayOrders = ordersByDay.get(orderDayKeyFromDate(dt)) || [];
     const cnt = dayOrders.length;
     let cls = '';
     if(dt.toDateString()===today.toDateString()) cls += ' today';
@@ -29,7 +37,7 @@ function renderCalendar(){
     const isToday = (dt.toDateString()===today.toDateString());
     const isPast = dt < today;
     const peek = dayOrders.slice(0,2).map(o=>{
-      const isVip = (function(){var ph=String(o.phone||'').replace(/\D/g,'');if(!ph)return false;return allOrders.filter(x=>String(x.phone||'').replace(/\D/g,'')===ph).length>=3;})();
+      const isVip = (visitCounts.get(normalizedOrderPhone(o)) || 0) >= 3;
       return '<div class="text-[11px] truncate font-semibold" title="'+(o.name||'')+'">'+(isVip?'⭐':'')+(o.name||'').slice(0,5)+'</div>';
     }).join('');
     const stats = cnt ? ('<div class="flex items-center gap-1 text-[10px] mt-0.5">' +
@@ -49,10 +57,11 @@ function showDayOrders(dateStr){
   const dt = new Date(y, m-1, d);
   const dayStr = y+'/'+String(m).padStart(2,'0')+'/'+String(d).padStart(2,'0');
   const visible = filterOrdersForRole(allOrders);
+  const visitCounts = buildVisitCountMap(allOrders);
   const orders = visible.filter(o=>{
-    const od = parseBookingDate(o.bookingDate);
+    const od = orderBookingDate(o);
     return od && od.getFullYear()===y && od.getMonth()===m-1 && od.getDate()===d;
-  }).sort((a,b)=>parseBookingDate(a.bookingDate)-parseBookingDate(b.bookingDate));
+  }).sort((a,b)=>orderBookingDate(a)-orderBookingDate(b));
 
   const old = document.getElementById('cal-day-modal');
   if (old) old.remove();
@@ -74,15 +83,15 @@ function showDayOrders(dateStr){
     html += '<span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">✓ '+checkedCnt+'/'+orders.length+'</span>';
     html += '</div>';
     html += orders.map(o=>{
-      const bd = parseBookingDate(o.bookingDate);
+      const bd = orderBookingDate(o);
       const hh = String(bd.getHours()).padStart(2,'0');
       const mm = String(bd.getMinutes()).padStart(2,'0');
       const phoneTail = String(o.phone||'').replace(/\D/g, '').slice(-3);
-      const hair = (o.hair===true||o.hair==='true'||o.hair==='是')?'💆':'';
-      const photo = (o.photo===true||o.photo==='true'||o.photo==='是')?'📷':'';
+      const hair = orderHasHair(o)?'💆':'';
+      const photo = orderHasPhoto(o)?'📷':'';
       const status = orderStatusOf(o);
       const checked = ['checked_in','balance_due','completed'].includes(status);
-      const isVip = (function(){var ph=String(o.phone||'').replace(/\D/g,'');if(!ph)return false;return allOrders.filter(x=>String(x.phone||'').replace(/\D/g,'')===ph).length>=3;})();
+      const isVip = (visitCounts.get(normalizedOrderPhone(o)) || 0) >= 3;
       const statusMeta = orderStatusMeta(status);
       const st = statusMeta.icon + statusMeta.label;
       const dotColor = checked?'bg-emerald-500':(status==='confirmed'?'bg-amber-400':'bg-slate-300');
