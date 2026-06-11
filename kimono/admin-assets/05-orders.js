@@ -523,15 +523,18 @@ function filterOrders(){
 // v2.5d: 訂單管理 列表/卡片 view mode
 function setOrderView(mode){
   try{ localStorage.setItem('orders_view', mode); }catch(e){}
+  syncOrderViewIndicator(mode);
+  if(typeof filterOrders==='function') filterOrders();
+}
+function syncOrderViewIndicator(mode){
   document.querySelectorAll('#orders-view-card, #orders-view-list').forEach(b=>{
     b.classList.remove('bg-[#1A365D]','text-white');
     b.classList.add('bg-white','text-slate-600');
   });
   const active = document.getElementById('orders-view-' + mode);
   if(active){ active.classList.remove('bg-white','text-slate-600'); active.classList.add('bg-[#1A365D]','text-white'); }
-  if(typeof filterOrders==='function') filterOrders();
 }
-function getOrderView(){ try{ return localStorage.getItem('orders_view') || 'card'; }catch(e){ return 'card'; } }
+function getOrderView(){ try{ return localStorage.getItem('orders_view') || 'list'; }catch(e){ return 'list'; } }
 
 function orderDisplayTotal(o) {
   if (Number.isFinite(Number(o && o.totalJpy)) && Number(o.totalJpy) > 0) {
@@ -673,8 +676,10 @@ async function changeOrderStatus(orderId, nextStatus, selectEl) {
 function renderOrders(orders){
   const el = document.getElementById('orders-list');
   const visitCounts = buildVisitCountMap(allOrders);
+  const viewMode = getOrderView();
+  syncOrderViewIndicator(viewMode);
   // v2.5d: 列表 view
-  if (getOrderView() === 'list' && orders.length > 0) {
+  if (viewMode === 'list' && orders.length > 0) {
     const empty = document.getElementById('orders-empty');
     if (empty) empty.classList.add('hidden');
     el.className = '';

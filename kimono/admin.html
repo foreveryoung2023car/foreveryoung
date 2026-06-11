@@ -11,7 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./admin-assets/admin.css?v=20260610-3">
+<link rel="stylesheet" href="./admin-assets/admin.css?v=20260611-1">
 </head>
 <body class="min-h-screen" style="overflow-x:hidden">
 
@@ -194,7 +194,7 @@
   <section id="sec-orders" class="section">
     <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
       <h2 class="text-2xl font-bold text-[#1A365D] title-serif">訂單管理</h2>
-      <div class="inline-flex gap-1 ml-3"><button id="orders-view-card" onclick="setOrderView('card')" class="px-2 py-1 text-xs border border-slate-200 rounded bg-[#1A365D] text-white">🎴 卡片</button><button id="orders-view-list" onclick="setOrderView('list')" class="px-2 py-1 text-xs border border-slate-200 rounded bg-white text-slate-600">📋 列表</button></div>
+      <div class="inline-flex gap-1 ml-3"><button id="orders-view-card" onclick="setOrderView('card')" class="px-2 py-1 text-xs border border-slate-200 rounded bg-white text-slate-600">🎴 卡片</button><button id="orders-view-list" onclick="setOrderView('list')" class="px-2 py-1 text-xs border border-slate-200 rounded bg-[#1A365D] text-white">📋 列表</button></div>
       <div class="flex gap-2 flex-wrap">
         <button onclick="exportCSV()" class="btn-outline px-4 py-2 rounded-xl text-sm">📥 匯出 CSV</button>
         <button onclick="loadOrders()" class="btn-navy px-4 py-2 rounded-xl text-sm">↻ 重新載入</button>
@@ -655,11 +655,9 @@
     <div class="flex gap-2 mb-5 flex-wrap border-b border-slate-200 pb-4">
       <button class="tab-btn active" data-store-hidden="1" onclick="switchTab('basic',this)">訂單資訊</button>
       <button class="tab-btn" data-store-hidden="1" onclick="switchTab('refund',this)">退款記錄</button>
-      <div data-store-display-field="1" class="hidden w-full flex-wrap items-center gap-x-6 gap-y-1 text-sm font-semibold text-slate-500">
-        <span>姓名：<b id="e-name-display" class="text-[#1A365D]">—</b></span>
-        <span>電話：<b id="e-phone-display" class="text-[#1A365D]">—</b></span>
-        <span>Email：<b id="e-email-display" class="text-[#1A365D] break-all">—</b></span>
-        <span>預付訂金：<b id="e-deposit-display" class="text-[#1A365D]">—</b></span>
+      <div data-store-display-field="1" class="hidden w-full flex-wrap items-center gap-3 text-sm font-semibold">
+        <span class="store-customer-pill">客人 <b id="e-name-display">—</b></span>
+        <span class="store-customer-pill is-deposit">預付訂金 <b id="e-deposit-display">—</b></span>
       </div>
     </div>
 
@@ -667,19 +665,43 @@
       <div class="edit-panel space-y-5">
         <div id="store-order-detail-view" data-store-only="1" style="display:none" class="store-detail-view">
           <button type="button" class="store-detail-edit-btn" onclick="enableStoreOrderDetailEdit()">✏️ 編輯</button>
-          <div class="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-5">
-            <div><div class="section-label">體驗預約日</div><div id="store-view-booking" class="store-detail-value">—</div></div>
-            <div><div class="section-label">男性大人</div><div id="store-view-male" class="store-detail-value">—</div></div>
-            <div><div class="section-label">女性大人</div><div id="store-view-female" class="store-detail-value">—</div></div>
-            <div><div class="section-label">小孩</div><div id="store-view-children" class="store-detail-value">—</div></div>
-            <div><div class="section-label">妝髮造型</div><div id="store-view-hair" class="store-detail-value">—</div></div>
-            <div><div class="section-label">攝影服務</div><div id="store-view-photo" class="store-detail-value">—</div></div>
-            <div><div class="section-label">店鋪實收</div><div id="store-view-actual-received" class="store-detail-value">—</div></div>
-            <div><div class="section-label">待付尾款</div><div id="store-view-balance" class="store-detail-value">—</div></div>
+          <div class="store-ops-grid">
+            <div class="store-ops-card store-ops-card-primary">
+              <div class="store-ops-label">體驗預約日</div>
+              <div id="store-view-booking" class="store-detail-value store-ops-value">—</div>
+            </div>
+            <div class="store-ops-card">
+              <div class="store-ops-label">男性大人</div>
+              <div id="store-view-male" class="store-detail-value store-ops-value">—</div>
+            </div>
+            <div class="store-ops-card">
+              <div class="store-ops-label">女性大人</div>
+              <div id="store-view-female" class="store-detail-value store-ops-value">—</div>
+            </div>
+            <div class="store-ops-card">
+              <div class="store-ops-label">小孩</div>
+              <div id="store-view-children" class="store-detail-value store-ops-value">—</div>
+            </div>
+            <div class="store-ops-card store-ops-card-service">
+              <div class="store-ops-label">妝髮造型</div>
+              <div id="store-view-hair" class="store-detail-value store-ops-value">—</div>
+            </div>
+            <div class="store-ops-card store-ops-card-service">
+              <div class="store-ops-label">攝影服務</div>
+              <div id="store-view-photo" class="store-detail-value store-ops-value">—</div>
+            </div>
+            <div class="store-ops-card store-ops-card-money">
+              <div class="store-ops-label">店鋪實收</div>
+              <div id="store-view-actual-received" class="store-detail-value store-ops-value">—</div>
+            </div>
+            <div class="store-ops-card store-ops-card-balance">
+              <div class="store-ops-label">待付尾款</div>
+              <div id="store-view-balance" class="store-detail-value store-ops-value">—</div>
+            </div>
           </div>
-          <div class="mt-5 pt-4 border-t border-slate-200">
-            <div class="section-label">客服給客人的備註</div>
-            <div id="store-view-remark" class="store-detail-value whitespace-pre-wrap">—</div>
+          <div class="store-ops-note">
+            <div class="store-ops-label">客服給客人的備註</div>
+            <div id="store-view-remark" class="store-detail-value whitespace-pre-wrap store-ops-note-value">—</div>
           </div>
         </div>
         <div id="store-order-detail-form">
@@ -867,12 +889,12 @@
 <script src="./admin-assets/02-firebase-api.js?v=20260611-4"></script>
 <script src="./admin-assets/03-ui-utils.js?v=20260611-5"></script>
 <script src="./admin-assets/04-refunds.js?v=20260610-1"></script>
-<script src="./admin-assets/05-orders.js?v=20260611-6"></script>
+<script src="./admin-assets/05-orders.js?v=20260611-7"></script>
 <script src="./admin-assets/06-checkin-actions.js?v=20260610-1"></script>
 <script src="./admin-assets/07-calendar.js?v=20260611-1"></script>
 <script src="./admin-assets/08-finance.js?v=20260605-14"></script>
 <script src="./admin-assets/09-reconcile.js?v=20260611-5"></script>
-<script src="./admin-assets/10-orders-edit.js?v=20260611-6"></script>
+<script src="./admin-assets/10-orders-edit.js?v=20260611-7"></script>
 <script src="./admin-assets/11-refunds-edit.js?v=20260605-14"></script>
 <script src="./admin-assets/12-ui-admin-tools.js?v=20260611-6"></script>
 <script src="./admin-assets/13-weather.js?v=20260605-14"></script>

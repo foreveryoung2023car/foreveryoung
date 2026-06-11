@@ -10,14 +10,19 @@ function openEdit(orderId) {
   const o = allOrders.find(x => x.orderId === orderId);
   if (!o) return;
   editingOrder = o;
-  document.getElementById('modal-order-id').textContent = orderId + (o.submitDate ? ' · 填單: ' + o.submitDate : '');
+  document.getElementById('modal-order-id').textContent = currentRole === 'store'
+    ? orderId
+    : orderId + (o.submitDate ? ' · 填單: ' + o.submitDate : '');
   renderEditModalStatus(o);
   document.getElementById('e-name').value = o.name || '';
   document.getElementById('e-phone').value = o.phone || '';
   document.getElementById('e-email').value = o.email || '';
-  document.getElementById('e-name-display').textContent = o.name || '—';
-  document.getElementById('e-phone-display').textContent = o.phone || '—';
-  document.getElementById('e-email-display').textContent = o.email || '—';
+  const nameDisplay = document.getElementById('e-name-display');
+  const phoneDisplay = document.getElementById('e-phone-display');
+  const emailDisplay = document.getElementById('e-email-display');
+  if (nameDisplay) nameDisplay.textContent = o.name || '—';
+  if (phoneDisplay) phoneDisplay.textContent = o.phone || '—';
+  if (emailDisplay) emailDisplay.textContent = o.email || '—';
   document.getElementById('e-booking-date').value = (function(bd){ if(!bd) return ''; const d=parseBookingDate(bd); if(!d||isNaN(d)) return String(bd).slice(0,10); const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes()); })(o.bookingDate);
   const guestCount = parseEditGuestCount(o);
   document.getElementById('e-adults').value = guestCount.adults;
