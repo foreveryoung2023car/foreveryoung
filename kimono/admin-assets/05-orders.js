@@ -642,7 +642,8 @@ const ORDER_STATUS_NEXT = {
 const ORDER_STATUS_EXTRA_NEXT = {
   pending_payment: ['cancelled'],
   pending_review: ['cancelled'],
-  confirmed: ['cancelled']
+  confirmed: ['cancelled'],
+  cancelled: ['pending_review', 'confirmed']
 };
 
 function canManageOrderStatus(status) {
@@ -653,6 +654,8 @@ function canManageOrderStatus(status) {
 }
 
 function orderNextStatusOptions(status) {
+  const role = localStorage.getItem('admin_firebaseRole') || '';
+  if (status === 'cancelled' && role !== 'owner') return [];
   const options = [];
   if (ORDER_STATUS_NEXT[status]) options.push(ORDER_STATUS_NEXT[status]);
   (ORDER_STATUS_EXTRA_NEXT[status] || []).forEach(next => {
@@ -708,7 +711,9 @@ async function changeOrderStatus(orderId, nextStatus, selectEl) {
   const nextMeta = orderStatusMeta(nextStatus);
   const confirmMessage = nextStatus === 'cancelled'
     ? '確認取消訂單「'+orderId+'」？\n\n取消後狀態會變為「已取消」，請確認客人確實取消，且此操作已完成內部確認。'
-    : '確認將訂單「'+orderId+'」改為「'+nextMeta.label+'」？';
+    : previousStatus === 'cancelled'
+      ? '確認恢復已取消訂單「'+orderId+'」為「'+nextMeta.label+'」？\n\n此操作僅 owner 可執行，請確認訂單需要重新進入流程。'
+      : '確認將訂單「'+orderId+'」改為「'+nextMeta.label+'」？';
   if (!confirm(confirmMessage)) {
     selectEl.value = previousStatus;
     return;
@@ -722,6 +727,8 @@ async function changeOrderStatus(orderId, nextStatus, selectEl) {
     o.status = nextStatus;
     o.confirmed = isOrderConfirmedOrLater(o);
     if (nextStatus === 'cancelled') o.confirmed = false;
+    if (previousStatus === 'cancelled' && nextStatus === 'pending_review') o.confirmed = false;
+    if (previousStatus === 'cancelled' && nextStatus === 'confirmed') o.confirmed = true;
     if (nextStatus === 'completed') o.balanceDue = 0;
     if (editingOrder && editingOrder.orderId === orderId) {
       editingOrder = o;

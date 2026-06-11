@@ -82,7 +82,7 @@ export const allowedTransitions: Record<OrderStatus, OrderStatus[]> = {
   refund_requested: ["refunding"],
   refunding: ["refunded"],
   refunded: [],
-  cancelled: []
+  cancelled: ["pending_review", "confirmed"]
 };
 
 export function assertTransition(from: OrderStatus, to: OrderStatus) {

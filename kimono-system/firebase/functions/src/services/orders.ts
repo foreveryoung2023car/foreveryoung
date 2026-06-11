@@ -682,11 +682,20 @@ export async function transitionOrder(orderId: string, nextStatus: OrderStatus, 
     assertOrderAccess(before, actor);
     const beforeStatus = resolveOrderStatus(before);
     assertTransition(beforeStatus, nextStatus);
+    if (beforeStatus === "cancelled" && actor.role !== "owner") {
+      throw new HttpError(403, "Only owner can restore a cancelled order");
+    }
     const patch: FirebaseFirestore.UpdateData<FirebaseFirestore.DocumentData> = {
       status: nextStatus,
       updatedBy: actor.uid,
       updatedAt: FieldValue.serverTimestamp()
     };
+    if (beforeStatus === "cancelled" && nextStatus === "pending_review") {
+      patch.confirmed = false;
+    }
+    if (beforeStatus === "cancelled" && nextStatus === "confirmed") {
+      patch.confirmed = true;
+    }
     if (beforeStatus === "balance_due" && nextStatus === "completed") {
       patch.balanceDueJpy = 0;
       patch.balancePaidAt = FieldValue.serverTimestamp();
