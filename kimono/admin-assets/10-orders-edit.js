@@ -324,7 +324,7 @@ function injectAnomalyWarning(o){
 
   const reasons = [];
   if(!o.name) reasons.push('缺姓名');
-  if(!o.phone) reasons.push('缺電話');
+  if(!isStoreRole() && !o.phone) reasons.push('缺電話');
   if(!o.bookingDate) reasons.push('缺預約日');
 
   const exp = (typeof expectedDeposit === 'function') ? expectedDeposit(o) : 0;
