@@ -89,6 +89,7 @@ function assertStoreAccess(actor: AuthContext, storeId: string) {
 function isPlatformStoreManager(actor: AuthContext) {
   return actor.role === "owner" ||
     actor.role === "admin" ||
+    actor.role === "head_store_manager" ||
     (actor.role === "store_manager" && !actor.storeId);
 }
 
