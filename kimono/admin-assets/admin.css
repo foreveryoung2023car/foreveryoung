@@ -71,13 +71,12 @@
   .store-customer-pill b{font-size:16px;color:#1E3A8A}
   .store-customer-pill.is-deposit{background:#FFF7ED;border-color:#FED7AA;color:#9A3412}
   .store-customer-pill.is-deposit b{color:#9A3412}
-  .store-ops-layout{display:flex;flex-direction:column;gap:22px}
+  .store-ops-layout{display:flex;flex-direction:column;gap:18px}
   .store-ops-group{padding:0 0 18px;border-bottom:1px solid #E2E8F0}
-  .store-ops-group-main{padding-bottom:20px}
-  .store-ops-group-title{font-size:15px;font-weight:900;color:#64748B;margin-bottom:10px;letter-spacing:.04em}
-  .store-ops-inline{display:flex;flex-wrap:wrap;gap:28px 44px;align-items:flex-start}
-  .store-ops-item{min-width:112px}
-  .store-ops-label{font-size:12px;font-weight:900;letter-spacing:.08em;color:#64748B;margin-bottom:5px}
+  .store-ops-inline{display:flex;flex-wrap:wrap;gap:18px 42px;align-items:center}
+  .store-ops-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;padding:0 0 18px;border-bottom:1px solid #E2E8F0}
+  .store-ops-item{display:flex;align-items:baseline;gap:8px;min-width:210px}
+  .store-ops-label{font-size:18px;font-weight:900;letter-spacing:.02em;color:#64748B;white-space:nowrap}
   .store-ops-value{font-size:30px;font-weight:900;color:#1E3A8A;line-height:1.18}
   .store-ops-booking{font-size:42px;color:#1D4ED8}
   .store-ops-service .store-ops-value{font-size:34px;color:#15803D}

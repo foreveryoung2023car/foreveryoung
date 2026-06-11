@@ -11,7 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./admin-assets/admin.css?v=20260611-2">
+<link rel="stylesheet" href="./admin-assets/admin.css?v=20260611-3">
 </head>
 <body class="min-h-screen" style="overflow-x:hidden">
 
@@ -656,7 +656,7 @@
       <button class="tab-btn active" data-store-hidden="1" onclick="switchTab('basic',this)">訂單資訊</button>
       <button class="tab-btn" data-store-hidden="1" onclick="switchTab('refund',this)">退款記錄</button>
       <div data-store-display-field="1" class="hidden w-full flex-wrap items-center gap-3 text-sm font-semibold">
-        <span class="store-customer-pill">客人 <b id="e-name-display">—</b></span>
+        <span class="store-customer-pill">預約姓名：<b id="e-name-display">—</b></span>
         <span class="store-customer-pill is-deposit">預付訂金 <b id="e-deposit-display">—</b></span>
       </div>
     </div>
@@ -666,56 +666,53 @@
         <div id="store-order-detail-view" data-store-only="1" style="display:none" class="store-detail-view">
           <button type="button" class="store-detail-edit-btn" onclick="enableStoreOrderDetailEdit()">✏️ 編輯</button>
           <div class="store-ops-layout">
-            <div class="store-ops-group store-ops-group-main">
-              <div class="store-ops-label">📅 體驗預約日</div>
+            <div class="store-ops-line store-ops-line-main">
+              <span class="store-ops-label">📅 體驗預約日：</span>
               <div id="store-view-booking" class="store-detail-value store-ops-value store-ops-booking">—</div>
             </div>
             <div class="store-ops-group">
-              <div class="store-ops-group-title">👥 人數</div>
               <div class="store-ops-inline">
                 <div class="store-ops-item">
-                  <div class="store-ops-label">男性大人</div>
+                  <span class="store-ops-label">👨 男性大人：</span>
                   <div id="store-view-male" class="store-detail-value store-ops-value">—</div>
                 </div>
                 <div class="store-ops-item">
-                  <div class="store-ops-label">女性大人</div>
+                  <span class="store-ops-label">👩 女性大人：</span>
                   <div id="store-view-female" class="store-detail-value store-ops-value">—</div>
                 </div>
                 <div class="store-ops-item">
-                  <div class="store-ops-label">小孩</div>
+                  <span class="store-ops-label">🧒 小孩：</span>
                   <div id="store-view-children" class="store-detail-value store-ops-value">—</div>
                 </div>
               </div>
             </div>
             <div class="store-ops-group">
-              <div class="store-ops-group-title">✨ 需求</div>
               <div class="store-ops-inline">
                 <div class="store-ops-item store-ops-service">
-                  <div class="store-ops-label">妝髮造型</div>
+                  <span class="store-ops-label">✨ 妝髮造型：</span>
                   <div id="store-view-hair" class="store-detail-value store-ops-value">—</div>
                 </div>
                 <div class="store-ops-item store-ops-service">
-                  <div class="store-ops-label">攝影服務</div>
+                  <span class="store-ops-label">📷 攝影服務：</span>
                   <div id="store-view-photo" class="store-detail-value store-ops-value">—</div>
                 </div>
               </div>
             </div>
             <div class="store-ops-group">
-              <div class="store-ops-group-title">💰 收款</div>
               <div class="store-ops-inline">
                 <div class="store-ops-item store-ops-money">
-                  <div class="store-ops-label">店鋪實收</div>
+                  <span class="store-ops-label">💴 店鋪實收：</span>
                   <div id="store-view-actual-received" class="store-detail-value store-ops-value">—</div>
                 </div>
                 <div class="store-ops-item store-ops-balance">
-                  <div class="store-ops-label">待付尾款</div>
+                  <span class="store-ops-label">💰 待付尾款：</span>
                   <div id="store-view-balance" class="store-detail-value store-ops-value">—</div>
                 </div>
               </div>
             </div>
           </div>
           <div class="store-ops-note">
-            <div class="store-ops-label">客服給客人的備註</div>
+            <span class="store-ops-label">📝 客服給客人的備註：</span>
             <div id="store-view-remark" class="store-detail-value whitespace-pre-wrap store-ops-note-value">—</div>
           </div>
         </div>
