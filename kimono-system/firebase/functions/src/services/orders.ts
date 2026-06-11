@@ -517,8 +517,8 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
     if (isStoreOrderActor(actor) && ["completed", "balance_due"].includes(beforeStatus)) {
       throw new HttpError(403, "Completed or balance-due orders are read-only for store users");
     }
-    if (isStoreOrderActor(actor) && input.checkout && beforeStatus !== "checked_in") {
-      throw new HttpError(400, `Only checked-in orders can be checked out (current: ${beforeStatus})`);
+    if (isStoreOrderActor(actor) && input.checkout && !["confirmed", "checked_in"].includes(beforeStatus)) {
+      throw new HttpError(400, `Only pending-arrival orders can be checked out (current: ${beforeStatus})`);
     }
     const patch: FirebaseFirestore.UpdateData<FirebaseFirestore.DocumentData> = {
       updatedBy: actor.uid,
@@ -634,7 +634,7 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
 
 export async function transitionOrder(orderId: string, nextStatus: OrderStatus, actor: AuthContext) {
   if (isStoreOrderActor(actor)) {
-    throw new HttpError(403, "Store users must use the check-in and checkout flows");
+    throw new HttpError(403, "Store users must use the checkout flow");
   }
   const result = await db.runTransaction(async (tx) => {
     const ref = db.collection("orders").doc(orderId);
@@ -643,11 +643,6 @@ export async function transitionOrder(orderId: string, nextStatus: OrderStatus, 
     const before = snap.data()!;
     assertOrderAccess(before, actor);
     const beforeStatus = resolveOrderStatus(before);
-    if (beforeStatus === "confirmed" || beforeStatus === "checked_in") {
-      throw new HttpError(400, beforeStatus === "confirmed"
-        ? "Use the check-in flow to advance a confirmed order"
-        : "Use the checkout flow to advance a checked-in order");
-    }
     assertTransition(beforeStatus, nextStatus);
     const patch: FirebaseFirestore.UpdateData<FirebaseFirestore.DocumentData> = {
       status: nextStatus,

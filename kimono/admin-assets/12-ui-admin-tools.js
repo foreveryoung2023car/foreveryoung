@@ -543,7 +543,8 @@ async function saveOrder() {
     toast('此訂單已結帳，店鋪端僅可查看', 'warning');
     return;
   }
-  if (currentRole === 'store' && editingOrder.status === 'checked_in') {
+  const isStoreCheckout = currentRole === 'store' && ['confirmed', 'checked_in'].includes(orderStatusOf(editingOrder));
+  if (isStoreCheckout) {
     const consumption = Math.max(0,
       Number(document.getElementById('e-price').value || 0)
       + Number(document.getElementById('e-hair-fee').value || 0)
@@ -613,7 +614,7 @@ async function saveOrder() {
         discountRate: Number(payload.rate || 0),
         discountRefundAmountJpy: Number(payload.discountRefundAmount || 0),
         storeActualReceivedJpy: Number(payload.storeActualReceived || 0),
-        ...(currentRole === 'store' && editingOrder.status === 'checked_in' ? { checkout: true } : {}),
+        ...(isStoreCheckout ? { checkout: true } : {}),
         ...(currentRole === 'store' ? {} : {
           refundAmountJpy: Number(payload.refundAmt || 0),
           refundTime: refundDateValue || '',
@@ -640,6 +641,18 @@ async function saveOrder() {
         editingOrder.storeActualReceivedJpy = savedActual;
         editingOrder.balanceDue = savedBalance;
         editingOrder.balanceDueJpy = savedBalance;
+        editingOrder.status = data.order.status || editingOrder.status;
+      }
+      let proofNotice = '';
+      if (isStoreCheckout) {
+        try {
+          await callFirebaseAdminFunction('/sendProofReceivedEmail', {
+            orderId: editingOrder.firebaseDocId || editingOrder.orderId
+          });
+          proofNotice = '，付款憑證信已寄出';
+        } catch (emailErr) {
+          proofNotice = '，但付款憑證信寄送失敗：' + (emailErr.message || emailErr);
+        }
       }
       const savedId = editingOrder.orderId;
       msg.textContent = '正在重新載入…';
@@ -647,7 +660,7 @@ async function saveOrder() {
       msg.classList.remove('hidden');
       setTimeout(() => {
         closeModal();
-        toast('已儲存 ' + savedId + '，重新載入中…', 'success');
+        toast('已儲存 ' + savedId + proofNotice + '，重新載入中…', proofNotice.indexOf('失敗') >= 0 ? 'warning' : 'success');
         window.__highlightAfterLoad = savedId;
         loadOrders();
       }, 200);

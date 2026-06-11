@@ -30,9 +30,9 @@ export const rolePermissions: Record<Role, Permission[]> = {
   owner: [...permissions],
   admin: ["orders:read", "orders:create", "orders:update", "orders:transition", "checkins:create", "refunds:request", "refunds:pay", "audit:read", "users:manage", "stores:manage"],
   agent: ["orders:read", "orders:create", "orders:update", "orders:transition", "checkins:create", "refunds:request"],
-  head_store_manager: ["orders:read", "orders:create", "orders:update", "checkins:create", "users:manage", "stores:manage"],
-  store_manager: ["orders:read", "orders:create", "orders:update", "checkins:create", "users:manage", "stores:manage"],
-  store_staff: ["orders:read", "orders:create", "orders:update", "checkins:create"],
+  head_store_manager: ["orders:read", "orders:create", "orders:update", "users:manage", "stores:manage"],
+  store_manager: ["orders:read", "orders:create", "orders:update", "users:manage", "stores:manage"],
+  store_staff: ["orders:read", "orders:create", "orders:update"],
   accountant: ["orders:read", "refunds:pay", "audit:read"],
   readonly: ["orders:read"]
 };
@@ -75,7 +75,7 @@ export function resolveOrderStatus(order: {
 export const allowedTransitions: Record<OrderStatus, OrderStatus[]> = {
   pending_payment: ["pending_review"],
   pending_review: ["confirmed"],
-  confirmed: ["checked_in", "refund_requested"],
+  confirmed: ["refund_requested"],
   checked_in: ["completed", "balance_due", "refund_requested"],
   completed: ["refund_requested"],
   balance_due: ["completed", "refund_requested"],

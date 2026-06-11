@@ -307,17 +307,17 @@ function renderTodayTimeline(){
   if (!todays.length) { el.innerHTML = '<div class="text-xs text-slate-400 italic">今天無預約</div>'; return; }
   const totalHair = todays.filter(o=>o.hair===true||o.hair==='true'||o.hair==='是').length;
   const totalPhoto = todays.filter(o=>o.photo===true||o.photo==='true'||o.photo==='是').length;
-  const pending = todays.filter(o=>!o.checkedInAt);
-  const checked = todays.filter(o=>!!o.checkedInAt);
+  const pending = todays.filter(o=>!['balance_due','completed'].includes(orderStatusOf(o)));
+  const checked = todays.filter(o=>['balance_due','completed'].includes(orderStatusOf(o)));
   let html = '<div class="flex items-center gap-3 mb-2 flex-wrap"><span class="text-xs font-bold text-amber-600">⏰ 今日時間軸 ('+todays.length+' 單)</span>';
-  html += '<span class="text-[10px] bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded">⏳ 待報到 '+pending.length+'</span>';
-  html += '<span class="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">✓ 已報到 '+checked.length+'</span>';
+  html += '<span class="text-[10px] bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded">⏳ 待結帳 '+pending.length+'</span>';
+  html += '<span class="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">✓ 已結帳 '+checked.length+'</span>';
   if (totalHair) html += '<span class="text-[10px] bg-pink-100 text-pink-700 px-1.5 py-0.5 rounded">💆 '+totalHair+'</span>';
   if (totalPhoto) html += '<span class="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">📷 '+totalPhoto+'</span>';
   html += '</div>';
-  // 未報到 section
+  // 待結帳 section
   if (pending.length) {
-    html += '<div class="text-[10px] font-bold text-amber-600 mt-2 mb-1">⏳ 待報到</div>';
+    html += '<div class="text-[10px] font-bold text-amber-600 mt-2 mb-1">⏳ 待結帳</div>';
     html += pending.map(o=>{
     const d = parseBookingDate(o.bookingDate);
     const hh = String(d.getHours()).padStart(2,'0');
@@ -325,19 +325,19 @@ function renderTodayTimeline(){
     const hair = (o.hair===true||o.hair==='true'||o.hair==='是')?'💆':'';
     const photo = (o.photo===true||o.photo==='true'||o.photo==='是')?'📷':'';
     const status = orderStatusOf(o);
-    const checked = ['checked_in','balance_due','completed'].includes(status);
+    const checked = ['balance_due','completed'].includes(status);
     const dot = checked ? 'bg-emerald-500' : (status === 'confirmed' ? 'bg-amber-400' : 'bg-slate-300');
     return '<div class="flex items-center gap-2 py-1 text-xs cursor-pointer hover:bg-slate-50 rounded px-1" onclick="openEdit(\''+o.orderId+'\')">' +
       '<span class="font-mono font-bold text-[#1A365D] w-12">'+hh+':'+mm+'</span>' +
       '<span class="inline-block w-2 h-2 rounded-full '+dot+'"></span>' +
       '<span class="flex-1 truncate"><b>'+(o.name||'—')+'</b> · '+formatGuestCount(o)+' '+hair+photo+'</span>' +
-      (checked?'<span class="text-[10px] text-emerald-700">已報到</span>':'') +
+      (checked?'<span class="text-[10px] text-emerald-700">已結帳</span>':'') +
       '</div>';
     }).join('');
   }
-  // 已報到 section
+  // 已結帳 section
   if (checked.length) {
-    html += '<div class="text-[10px] font-bold text-emerald-600 mt-3 mb-1">✓ 已報到</div>';
+    html += '<div class="text-[10px] font-bold text-emerald-600 mt-3 mb-1">✓ 已結帳</div>';
     html += checked.map(o=>{
       const d = parseBookingDate(o.bookingDate);
       const hh = String(d.getHours()).padStart(2,'0');
@@ -348,7 +348,7 @@ function renderTodayTimeline(){
         '<span class="font-mono font-bold text-emerald-700 w-12">'+hh+':'+mm+'</span>' +
         '<span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>' +
         '<span class="flex-1 truncate"><b>'+(o.name||'—')+'</b> · '+formatGuestCount(o)+' '+hair+photo+'</span>' +
-        '<span class="text-[10px] text-emerald-700">已報到</span>' +
+        '<span class="text-[10px] text-emerald-700">已結帳</span>' +
         '</div>';
     }).join('');
   }
@@ -572,7 +572,7 @@ const ORDER_STATUS_META = {
   pending_payment: { label:'待付款', icon:'💳', css:'status-pending-payment' },
   pending_review: { label:'待確認', icon:'⏳', css:'status-pending-review' },
   confirmed: { label:'待到店', icon:'📅', css:'status-confirmed' },
-  checked_in: { label:'已報到', icon:'🎌', css:'status-checked-in' },
+  checked_in: { label:'待結帳', icon:'💰', css:'status-checked-in' },
   balance_due: { label:'待付尾款', icon:'💰', css:'status-balance-due' },
   completed: { label:'已完成', icon:'✓', css:'status-completed' },
   refund_requested: { label:'申請退款', icon:'↩', css:'status-refund-requested' },
@@ -584,7 +584,6 @@ const ORDER_STATUS_META = {
 const ORDER_STATUS_NEXT = {
   pending_payment: 'pending_review',
   pending_review: 'confirmed',
-  confirmed: 'checked_in',
   balance_due: 'completed',
   refund_requested: 'refunding',
   refunding: 'refunded'
@@ -593,7 +592,7 @@ const ORDER_STATUS_NEXT = {
 function canManageOrderStatus(status) {
   if (!useFirebaseAdmin()) return false;
   const role = localStorage.getItem('admin_firebaseRole') || '';
-  if (['head_store_manager', 'store_manager', 'store_staff'].includes(role)) return status === 'confirmed';
+  if (['head_store_manager', 'store_manager', 'store_staff'].includes(role)) return false;
   return ['owner', 'admin', 'agent'].includes(role);
 }
 
@@ -648,12 +647,6 @@ async function changeOrderStatus(orderId, nextStatus, selectEl) {
   }
   selectEl.disabled = true;
   try {
-    if (previousStatus === 'confirmed' && nextStatus === 'checked_in') {
-      selectEl.value = previousStatus;
-      selectEl.disabled = false;
-      await checkInOrder(orderId);
-      return;
-    }
     const data = await callFirebaseAdminFunction('/transitionOrder', {
       orderId: o.firebaseDocId || o.orderId,
       status: nextStatus

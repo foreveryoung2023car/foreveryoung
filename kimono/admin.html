@@ -47,7 +47,6 @@
       <div class="nav-tab active" data-sec="dashboard" onclick="switchSection('dashboard',this)">📊 儀表板</div>
       <div class="nav-tab" data-sec="orders" onclick="switchSection('orders',this)">📋 訂單管理 <span id="tab-count-orders" class="bg-white/25 px-1.5 rounded text-[11px]">0</span></div>
       <div class="nav-tab" data-sec="stores" onclick="switchSection('stores',this)" style="display:none">🏪 店鋪管理</div>
-      <div class="nav-tab" data-sec="checkin" onclick="switchSection('checkin',this)" style="display:none">🎌 報到中心 <span id="tab-count-checkin" class="bg-white/25 px-1.5 rounded text-[11px]">0</span></div>
       <div class="nav-tab" data-sec="employees" data-store-admin-only="1" onclick="switchSection('employees',this)" style="display:none">👥 員工管理</div>
       <div class="nav-tab" data-sec="calendar" onclick="switchSection('calendar',this)">📅 行事曆</div>
       <div class="nav-tab" data-sec="customers" onclick="switchSection('customers',this)">👥 客戶名單 <span id="tab-count-customers" class="bg-white/25 px-1.5 rounded text-[11px]">0</span></div>
@@ -253,34 +252,6 @@
     <div id="orders-empty" class="text-center py-12 text-slate-500 hidden font-semibold"><div class="text-3xl mb-2">🔍</div>查無符合訂單</div>
     <!-- v2.4.35: 訂單卡左右並排 — ≥600 (小平板/橫向) 2 欄，≥1280 桌機 3 欄 -->
     <div id="orders-list" class="smart-3col"></div>
-  </section>
-
-  <!-- v2.5: 報到中心 — 今日 ±1 天訂單看板 -->
-  <section id="sec-checkin" class="section hidden" style="display:none">
-    <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
-      <div>
-        <h2 class="text-2xl font-bold text-[#1A365D] title-serif">🎌 報到中心</h2>
-        <div class="inline-flex gap-1 ml-3"><button id="ci-view-card" onclick="setCheckinView('card')" class="px-2 py-1 text-xs border border-slate-200 rounded bg-[#1A365D] text-white">🎴 卡片</button><button id="ci-view-list" onclick="setCheckinView('list')" class="px-2 py-1 text-xs border border-slate-200 rounded bg-white text-slate-600">📋 列表</button></div>
-        <p class="text-sm text-slate-600 mt-1 font-semibold">今日 ±1 天的體驗訂單，依時間排序</p>
-      </div>
-      <div class="flex gap-2 flex-wrap items-center">
-        <input id="checkin-search" type="text" inputmode="numeric" maxlength="5" placeholder="搜尋手機末 3-5 碼"
-          oninput="renderCheckIn()" class="input-field !w-40 font-mono">
-        <button onclick="renderCheckIn()" class="btn-outline px-3 py-2 rounded-xl text-sm">↻ 重整</button>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-      <div class="stat-card"><div class="section-label">待報到</div><div id="ci-stat-pending" class="stat-num" style="color:#94A3B8">0</div></div>
-      <div class="stat-card"><div class="section-label">已自助報到</div><div id="ci-stat-self" class="stat-num" style="color:#F59E0B">0</div></div>
-      <div class="stat-card"><div class="section-label">已店家代客</div><div id="ci-stat-agent" class="stat-num" style="color:#10B981">0</div></div>
-    </div>
-
-    <div id="checkin-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
-    <div id="checkin-empty" class="hidden text-center py-12 text-slate-400">
-      <div class="text-5xl mb-3">🌸</div>
-      <p class="text-base font-bold">今日 ±1 天沒有需要報到的訂單</p>
-    </div>
   </section>
 
   <section id="sec-stores" class="section">
@@ -833,7 +804,7 @@
       <button onclick="sendConfirmEmailFromModal()" id="send-confirm-email-btn" data-confirmation-ui="1" class="px-4 py-3 rounded-xl text-base bg-emerald-600 hover:bg-emerald-700 text-white font-semibold whitespace-nowrap" title="寄送確認信給客人 (使用 Email 欄位)">✉️ 寄確認信</button>
       <button onclick="sendRefundConfirmEmailFromModal()" id="send-refund-email-btn" data-store-hidden="1" class="px-4 py-3 rounded-xl text-base bg-rose-600 hover:bg-rose-700 text-white font-semibold whitespace-nowrap" title="寄送退款完成通知給客人">↩️ 寄退款信</button>
       <button onclick="sendBookingReminderEmailFromModal()" id="send-reminder-email-btn" data-store-hidden="1" class="px-4 py-3 rounded-xl text-base bg-amber-500 hover:bg-amber-600 text-white font-semibold whitespace-nowrap" title="寄送預約前一日提醒給客人">⏰ 寄提醒信</button>
-      <button onclick="sendProofReceivedEmailFromModal()" id="send-proof-email-btn" class="px-4 py-3 rounded-xl text-base bg-sky-600 hover:bg-sky-700 text-white font-semibold whitespace-nowrap" title="通知客人已收到付款憑證">🧾 寄憑證信</button>
+      <button onclick="sendProofReceivedEmailFromModal()" id="send-proof-email-btn" data-store-hidden="1" class="px-4 py-3 rounded-xl text-base bg-sky-600 hover:bg-sky-700 text-white font-semibold whitespace-nowrap" title="通知客人已收到付款憑證">🧾 寄憑證信</button>
       <button onclick="closeModal()" class="btn-outline px-6 py-3 rounded-xl text-base">取消</button>
     </div>
     <div id="save-msg" class="text-center text-sm mt-3 hidden font-semibold"></div>
@@ -896,16 +867,15 @@
 <script src="./admin-assets/02-firebase-api.js?v=20260611-4"></script>
 <script src="./admin-assets/03-ui-utils.js?v=20260611-5"></script>
 <script src="./admin-assets/04-refunds.js?v=20260610-1"></script>
-<script src="./admin-assets/05-orders.js?v=20260611-4"></script>
+<script src="./admin-assets/05-orders.js?v=20260611-6"></script>
 <script src="./admin-assets/06-checkin-actions.js?v=20260610-1"></script>
 <script src="./admin-assets/07-calendar.js?v=20260611-1"></script>
 <script src="./admin-assets/08-finance.js?v=20260605-14"></script>
 <script src="./admin-assets/09-reconcile.js?v=20260611-5"></script>
-<script src="./admin-assets/10-orders-edit.js?v=20260610-5"></script>
+<script src="./admin-assets/10-orders-edit.js?v=20260611-6"></script>
 <script src="./admin-assets/11-refunds-edit.js?v=20260605-14"></script>
-<script src="./admin-assets/12-ui-admin-tools.js?v=20260611-5"></script>
+<script src="./admin-assets/12-ui-admin-tools.js?v=20260611-6"></script>
 <script src="./admin-assets/13-weather.js?v=20260605-14"></script>
-<script src="./admin-assets/14-checkins.js?v=20260605-14"></script>
 <script src="./admin-assets/15-walkin-reconcile.js?v=20260605-14"></script>
 <script src="./admin-assets/16-audit-email.js?v=20260605-14"></script>
 <script src="./admin-assets/17-walkin-orders.js?v=20260605-14"></script>

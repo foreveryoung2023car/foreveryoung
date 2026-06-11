@@ -134,7 +134,7 @@ function applyStoreOrderReadOnlyMode(o) {
   const saveBtn = document.getElementById('save-btn');
   if (saveBtn) {
     saveBtn.style.display = readOnly ? 'none' : '';
-    saveBtn.textContent = currentRole === 'store' && o.status === 'checked_in'
+    saveBtn.textContent = currentRole === 'store' && ['confirmed', 'checked_in'].includes(orderStatusOf(o))
       ? '💰 儲存並完成結帳'
       : '💾 儲存變更';
   }
