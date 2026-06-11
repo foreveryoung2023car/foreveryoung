@@ -105,8 +105,8 @@ function renderStoreOrderDetailView(o) {
   document.getElementById('store-view-male').textContent = guests.maleAdults === null ? '未區分' : guests.maleAdults;
   document.getElementById('store-view-female').textContent = guests.femaleAdults === null ? guests.adults : guests.femaleAdults;
   document.getElementById('store-view-children').textContent = guests.children;
-  document.getElementById('store-view-hair').textContent = (o.hair === true || o.hair === 'true') ? '✅ 有妝髮' : '❌ 無妝髮';
-  document.getElementById('store-view-photo').textContent = (o.photo === true || o.photo === 'true') ? '✅ 有攝影' : '❌ 無攝影';
+  document.getElementById('store-view-hair').textContent = (o.hair === true || o.hair === 'true') ? '✅ 有' : '— 無';
+  document.getElementById('store-view-photo').textContent = (o.photo === true || o.photo === 'true') ? '📷 有' : '— 無';
   document.getElementById('store-view-remark').textContent = o.remark || '—';
   document.getElementById('store-view-actual-received').textContent = fmtY0(orderFinancialValue(o, 'storeActualReceived', 'storeActualReceivedJpy'));
   document.getElementById('store-view-balance').textContent = fmtY0(orderDisplayBalance(o));

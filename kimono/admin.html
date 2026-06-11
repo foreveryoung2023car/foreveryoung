@@ -11,7 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./admin-assets/admin.css?v=20260611-1">
+<link rel="stylesheet" href="./admin-assets/admin.css?v=20260611-2">
 </head>
 <body class="min-h-screen" style="overflow-x:hidden">
 
@@ -665,38 +665,53 @@
       <div class="edit-panel space-y-5">
         <div id="store-order-detail-view" data-store-only="1" style="display:none" class="store-detail-view">
           <button type="button" class="store-detail-edit-btn" onclick="enableStoreOrderDetailEdit()">✏️ 編輯</button>
-          <div class="store-ops-grid">
-            <div class="store-ops-card store-ops-card-primary">
-              <div class="store-ops-label">體驗預約日</div>
-              <div id="store-view-booking" class="store-detail-value store-ops-value">—</div>
+          <div class="store-ops-layout">
+            <div class="store-ops-group store-ops-group-main">
+              <div class="store-ops-label">📅 體驗預約日</div>
+              <div id="store-view-booking" class="store-detail-value store-ops-value store-ops-booking">—</div>
             </div>
-            <div class="store-ops-card">
-              <div class="store-ops-label">男性大人</div>
-              <div id="store-view-male" class="store-detail-value store-ops-value">—</div>
+            <div class="store-ops-group">
+              <div class="store-ops-group-title">👥 人數</div>
+              <div class="store-ops-inline">
+                <div class="store-ops-item">
+                  <div class="store-ops-label">男性大人</div>
+                  <div id="store-view-male" class="store-detail-value store-ops-value">—</div>
+                </div>
+                <div class="store-ops-item">
+                  <div class="store-ops-label">女性大人</div>
+                  <div id="store-view-female" class="store-detail-value store-ops-value">—</div>
+                </div>
+                <div class="store-ops-item">
+                  <div class="store-ops-label">小孩</div>
+                  <div id="store-view-children" class="store-detail-value store-ops-value">—</div>
+                </div>
+              </div>
             </div>
-            <div class="store-ops-card">
-              <div class="store-ops-label">女性大人</div>
-              <div id="store-view-female" class="store-detail-value store-ops-value">—</div>
+            <div class="store-ops-group">
+              <div class="store-ops-group-title">✨ 需求</div>
+              <div class="store-ops-inline">
+                <div class="store-ops-item store-ops-service">
+                  <div class="store-ops-label">妝髮造型</div>
+                  <div id="store-view-hair" class="store-detail-value store-ops-value">—</div>
+                </div>
+                <div class="store-ops-item store-ops-service">
+                  <div class="store-ops-label">攝影服務</div>
+                  <div id="store-view-photo" class="store-detail-value store-ops-value">—</div>
+                </div>
+              </div>
             </div>
-            <div class="store-ops-card">
-              <div class="store-ops-label">小孩</div>
-              <div id="store-view-children" class="store-detail-value store-ops-value">—</div>
-            </div>
-            <div class="store-ops-card store-ops-card-service">
-              <div class="store-ops-label">妝髮造型</div>
-              <div id="store-view-hair" class="store-detail-value store-ops-value">—</div>
-            </div>
-            <div class="store-ops-card store-ops-card-service">
-              <div class="store-ops-label">攝影服務</div>
-              <div id="store-view-photo" class="store-detail-value store-ops-value">—</div>
-            </div>
-            <div class="store-ops-card store-ops-card-money">
-              <div class="store-ops-label">店鋪實收</div>
-              <div id="store-view-actual-received" class="store-detail-value store-ops-value">—</div>
-            </div>
-            <div class="store-ops-card store-ops-card-balance">
-              <div class="store-ops-label">待付尾款</div>
-              <div id="store-view-balance" class="store-detail-value store-ops-value">—</div>
+            <div class="store-ops-group">
+              <div class="store-ops-group-title">💰 收款</div>
+              <div class="store-ops-inline">
+                <div class="store-ops-item store-ops-money">
+                  <div class="store-ops-label">店鋪實收</div>
+                  <div id="store-view-actual-received" class="store-detail-value store-ops-value">—</div>
+                </div>
+                <div class="store-ops-item store-ops-balance">
+                  <div class="store-ops-label">待付尾款</div>
+                  <div id="store-view-balance" class="store-detail-value store-ops-value">—</div>
+                </div>
+              </div>
             </div>
           </div>
           <div class="store-ops-note">
@@ -894,7 +909,7 @@
 <script src="./admin-assets/07-calendar.js?v=20260611-1"></script>
 <script src="./admin-assets/08-finance.js?v=20260605-14"></script>
 <script src="./admin-assets/09-reconcile.js?v=20260611-5"></script>
-<script src="./admin-assets/10-orders-edit.js?v=20260611-7"></script>
+<script src="./admin-assets/10-orders-edit.js?v=20260611-8"></script>
 <script src="./admin-assets/11-refunds-edit.js?v=20260605-14"></script>
 <script src="./admin-assets/12-ui-admin-tools.js?v=20260611-6"></script>
 <script src="./admin-assets/13-weather.js?v=20260605-14"></script>
