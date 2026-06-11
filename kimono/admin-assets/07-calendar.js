@@ -265,26 +265,50 @@ function openCustomerDetail(key){
   document.getElementById('cust-modal-name').innerHTML = (c.isVip?'<span title="VIP 客戶" class="text-amber-500 mr-1">⭐</span>':'') + c.name;
   document.getElementById('cust-modal-sub').textContent = storeRole ? ('共 '+c.count+' 筆訂單') : (c.phone + (c.email? ' · '+c.email:'') + ' · 共 '+c.count+' 筆訂單');
   const body = document.getElementById('cust-modal-body');
+  const summaryCards = storeRole
+    ? '<div class="grid grid-cols-2 lg:grid-cols-6 gap-3 mb-4">'+
+        '<div class="stat-card blue"><div class="section-label">訂單數</div><div class="stat-num">'+c.count+'</div></div>'+
+        '<div class="stat-card green"><div class="section-label">累積消費</div><div class="stat-num green" style="font-size:20px">'+fmtY0(c.totalSpent)+'</div></div>'+
+        '<div class="stat-card"><div class="section-label">和服原價</div><div class="stat-num" style="font-size:20px">'+fmtY0(c.kimonoPrice)+'</div></div>'+
+        '<div class="stat-card"><div class="section-label">妝髮費</div><div class="stat-num" style="font-size:20px">'+fmtY0(c.hairFee)+'</div></div>'+
+        '<div class="stat-card"><div class="section-label">攝影費</div><div class="stat-num" style="font-size:20px">'+fmtY0(c.photoFee)+'</div></div>'+
+        '<div class="stat-card green"><div class="section-label">店鋪利潤</div><div class="stat-num green" style="font-size:20px">'+fmtY0(c.storeProfit)+'</div></div>'+
+      '</div>'
+    : '<div class="grid grid-cols-2 lg:grid-cols-6 gap-3 mb-4">'+
+        '<div class="stat-card blue"><div class="section-label">訂單數</div><div class="stat-num">'+c.count+'</div></div>'+
+        '<div class="stat-card green"><div class="section-label">累積消費</div><div class="stat-num green" style="font-size:20px">'+fmtY0(c.totalSpent)+'</div></div>'+
+        '<div class="stat-card gold"><div class="section-label">已收訂金</div><div class="stat-num" style="font-size:20px;color:#C9A961">'+fmtY0(c.totalDeposit)+'</div></div>'+
+        '<div class="stat-card gold"><div class="section-label">平台費</div><div class="stat-num" style="font-size:20px;color:#C9A961">'+fmtY0(c.platformFee)+'</div></div>'+
+        '<div class="stat-card red"><div class="section-label">尾款</div><div class="stat-num red" style="font-size:20px">'+fmtY0(c.balance)+'</div></div>'+
+        '<div class="stat-card red"><div class="section-label">退款次數</div><div class="stat-num red">'+c.refundCount+'</div></div>'+
+      '</div>';
+  const detailMoneyHeaders = storeRole
+    ? '<th class="num">和服原價</th><th class="num">妝髮費</th><th class="num">攝影費</th><th class="num">店鋪利潤</th>'
+    : '<th class="num">訂金</th><th class="num">總價</th><th class="num">平台費</th><th class="num">尾款</th>';
   body.innerHTML =
-    '<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">'+
-      '<div class="stat-card blue"><div class="section-label">訂單數</div><div class="stat-num">'+c.count+'</div></div>'+
-      '<div class="stat-card green"><div class="section-label">累積消費</div><div class="stat-num green" style="font-size:20px">'+fmtY0(c.totalSpent)+'</div></div>'+
-      '<div class="stat-card gold"><div class="section-label">已收訂金</div><div class="stat-num" style="font-size:20px;color:#C9A961">'+fmtY0(c.totalDeposit)+'</div></div>'+
-      '<div class="stat-card red"><div class="section-label">退款次數</div><div class="stat-num red">'+c.refundCount+'</div></div>'+
-    '</div>'+
+    summaryCards+
     '<h3 class="text-[#1A365D] mb-2 title-serif font-bold">📋 訂單記錄</h3>'+
-    '<div class="overflow-x-auto"><table class="data-table">'+
-      '<thead><tr><th>訂單號</th><th>體驗日期</th><th>款式</th><th>人數</th><th class="num">訂金</th><th class="num">總價</th><th>狀態</th></tr></thead>'+
+    '<div class="overflow-x-auto"><table class="data-table customer-data-table">'+
+      '<thead><tr><th>訂單號</th><th>體驗日期</th><th>款式</th><th>人數</th>'+detailMoneyHeaders+'<th>狀態</th></tr></thead>'+
       '<tbody>'+c.orders.sort((a,b)=>new Date(b.bookingDate||0)-new Date(a.bookingDate||0)).map(o=>{
         const statusMeta = orderStatusMeta(orderStatusOf(o));
         const status = '<span class="order-status-control '+statusMeta.css+'"><span class="order-status-icon">'+statusMeta.icon+'</span><span>'+statusMeta.label+'</span></span>';
+        const amount = customerOrderAmounts(o);
+        const detailMoneyCells = storeRole
+          ? '<td class="num">'+fmtY0(amount.kimonoPrice)+'</td>'+
+            '<td class="num">'+fmtY0(amount.hairFee)+'</td>'+
+            '<td class="num">'+fmtY0(amount.photoFee)+'</td>'+
+            '<td class="num font-bold text-emerald-700">'+fmtY0(amount.storeProfit)+'</td>'
+          : '<td class="num">'+fmtY(o.deposit)+'</td>'+
+            '<td class="num">'+fmtY(orderDisplayTotal(o))+'</td>'+
+            '<td class="num text-[#C9A961] font-bold">'+fmtY0(amount.platformFee)+'</td>'+
+            '<td class="num font-bold" style="color:#991B1B">'+fmtY0(amount.balance)+'</td>';
         return '<tr onclick="closeCustomerModal();openEdit(\''+(o.orderId||'')+'\')">'+
           '<td class="font-mono text-sm">'+(o.orderId||'')+'</td>'+
           '<td>'+fmtDate(o.bookingDate)+'</td>'+
           '<td>'+(o.plan||'—')+'</td>'+
           '<td>'+formatGuestCount(o)+'</td>'+
-          '<td class="num">'+fmtY(o.deposit)+'</td>'+
-          '<td class="num">'+fmtY(orderDisplayTotal(o))+'</td>'+
+          detailMoneyCells+
           '<td>'+status+'</td>'+
         '</tr>';
       }).join('')+'</tbody></table></div>';
