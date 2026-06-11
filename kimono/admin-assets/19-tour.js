@@ -2,44 +2,46 @@
 // v2.5: 教學導覽 (Admin Tour)
 // ============================================================
 
-// v2.5: 合併重整按鈕 = 清快取 + 重整
+// v2.6: 重整按鈕改為熱刷新，只重載訂單資料，避免每次清快取 + 整頁冷啟動。
 function fullReload() {
-  showReloadCurtain();
-  if (typeof useFirebaseAdmin === 'function' && useFirebaseAdmin()) {
-    try {
-      const user = window.firebase && firebase.apps.length ? firebase.auth().currentUser : null;
-      const label = user ? (user.email || user.displayName || '') : '';
-      if (label) {
-        currentAgent = label;
-        const nav = document.getElementById('nav-agent');
-        if (nav) nav.textContent = '';
-      }
-      localStorage.removeItem('admin_agent');
-      localStorage.removeItem('admin_token');
-      localStorage.removeItem('admin_role');
-      localStorage.removeItem('admin_storeKey');
-      localStorage.removeItem('admin_uid');
-      localStorage.removeItem('admin_firebaseRole');
-    } catch (_) {}
-  }
-  if ('caches' in window) {
-    caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).finally(() => location.reload());
-  } else {
+  if (typeof loadOrders !== 'function') {
     location.reload();
+    return;
   }
+  showReloadCurtain('正在重新載入資料', '保留登入狀態與快取，只更新最新訂單...');
+  window.__firstLoadDone = true;
+  const section = typeof currentSection === 'string' ? currentSection : 'orders';
+  Promise.resolve(loadOrders({
+    manual: true,
+    keepCurrentList: true,
+    skipDashboard: section !== 'dashboard',
+    skipOrdersRender: section !== 'orders'
+  })).then(result => {
+    hideReloadCurtain();
+    if (result && result.status === 'error') return;
+    if (typeof toast === 'function') toast('資料已重新載入', 'success');
+  }).catch(e => {
+    hideReloadCurtain();
+    if (typeof toast === 'function') toast('重新載入失敗：' + ((e && e.message) || e), 'error');
+  });
 }
 
-function showReloadCurtain() {
+function showReloadCurtain(title, detail) {
   try {
-    const nav = document.getElementById('nav-agent');
-    if (nav) nav.textContent = '';
     const existing = document.getElementById('reload-curtain');
     if (existing) existing.remove();
     const curtain = document.createElement('div');
     curtain.id = 'reload-curtain';
-    curtain.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:#ffffff;display:flex;align-items:center;justify-content:center;font-family:Arial,"Noto Sans TC",sans-serif;color:#1A365D;';
-    curtain.innerHTML = '<div style="text-align:center"><div style="width:64px;height:64px;border:4px solid #1A365D;border-top-color:transparent;border-radius:999px;margin:0 auto 16px;animation:spin 0.8s linear infinite"></div><div style="font-size:18px;font-weight:800">正在重新整理後台</div><div style="margin-top:8px;font-size:13px;color:#64748b">重新載入目前登入帳號與最新資料...</div></div>';
+    curtain.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:rgba(255,255,255,.72);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;font-family:Arial,"Noto Sans TC",sans-serif;color:#1A365D;';
+    curtain.innerHTML = '<div style="text-align:center;background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:28px 34px;box-shadow:0 20px 45px rgba(15,23,42,.16)"><div style="width:48px;height:48px;border:4px solid #1A365D;border-top-color:transparent;border-radius:999px;margin:0 auto 14px;animation:spin 0.8s linear infinite"></div><div style="font-size:17px;font-weight:800">'+(title || '正在重新整理後台')+'</div><div style="margin-top:8px;font-size:13px;color:#64748b">'+(detail || '重新載入最新資料...')+'</div></div>';
     document.body.appendChild(curtain);
+  } catch (_) {}
+}
+
+function hideReloadCurtain() {
+  try {
+    const curtain = document.getElementById('reload-curtain');
+    if (curtain) curtain.remove();
   } catch (_) {}
 }
 

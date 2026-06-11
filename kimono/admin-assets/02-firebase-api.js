@@ -43,7 +43,7 @@ async function getFirebaseUserProfile(uid, token) {
 }
 
 function firebaseRoleToAdminRole(role) {
-  return ['store_manager', 'store_staff'].includes(role) ? 'store' : 'agent';
+  return ['head_store_manager', 'store_manager', 'store_staff'].includes(role) ? 'store' : 'agent';
 }
 
 function firestoreFieldsToObject(fields) {

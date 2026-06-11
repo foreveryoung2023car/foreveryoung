@@ -31,7 +31,7 @@ async function loadStoreSchedules(preferredStoreId) {
     ).join('');
     if (storeScheduleRows.some(row => row.id === previousStoreId)) storeEl.value = previousStoreId;
     else if (storeScheduleRows[0]) storeEl.value = storeScheduleRows[0].id;
-    storeEl.disabled = role === 'store_manager' && !!currentStoreKey;
+    storeEl.disabled = ['head_store_manager', 'store_manager'].indexOf(role) >= 0 && !!currentStoreKey;
     document.getElementById('add-store-btn').classList.toggle('hidden', !canCreateStore);
     const employeeStoreEl = document.getElementById('new-emp-store');
     if (employeeStoreEl && canCreateStore) {

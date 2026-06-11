@@ -57,11 +57,11 @@ async function doLogin() {
   btn.disabled = true; btn.textContent = '驗證中…';
   try {
     const data = await firebaseSignInAdmin(email, pass);
-    if (!['store_manager', 'store_staff'].includes(data.firebaseRole)) {
+    if (!['head_store_manager', 'store_manager', 'store_staff'].includes(data.firebaseRole)) {
       await firebase.auth().signOut();
       throw new Error('此帳號不是門市帳號，請使用管理後台登入');
     }
-    if (!data.storeKey) {
+    if (data.firebaseRole !== 'head_store_manager' && !data.storeKey) {
       await firebase.auth().signOut();
       throw new Error('此帳號尚未綁定門市，請聯絡管理員設定 storeId');
     }

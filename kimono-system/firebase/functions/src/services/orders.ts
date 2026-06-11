@@ -119,7 +119,7 @@ const storeVisibleOrderStatuses: OrderStatus[] = [
 ];
 
 function isStoreOrderActor(actor: AuthContext) {
-  return actor.role === "store_manager" || actor.role === "store_staff";
+  return actor.role === "head_store_manager" || actor.role === "store_manager" || actor.role === "store_staff";
 }
 
 function assertOrderAccess(order: FirebaseFirestore.DocumentData, actor: AuthContext) {

@@ -141,6 +141,8 @@ function orderBelongsToStore(o, storeKey) {
 
 function filterOrdersForRole(list) {
   if (currentRole !== 'store') return list;
+  const firebaseRole = localStorage.getItem('admin_firebaseRole') || '';
+  if (firebaseRole === 'head_store_manager') return list.filter(isConfirmedOrderForStore);
   if (!currentStoreKey) return [];
   return list.filter(o => orderBelongsToStore(o, currentStoreKey) && isConfirmedOrderForStore(o));
 }
@@ -167,7 +169,7 @@ function applyRolePermissions() {
 
   const isStore = currentRole === 'store';
   const firebaseRole = localStorage.getItem('admin_firebaseRole') || '';
-  const isStoreManager = useFirebaseAdmin() && firebaseRole === 'store_manager';
+  const isStoreManager = useFirebaseAdmin() && ['head_store_manager', 'store_manager'].indexOf(firebaseRole) >= 0;
   const checkinTab = document.querySelector('[data-sec="checkin"]');
   const checkinSection = document.getElementById('sec-checkin');
   if (checkinTab) checkinTab.style.display = 'none';
@@ -223,14 +225,17 @@ function applyRolePermissions() {
   // v2.4.41: 員工管理 tab 限店家管理者 + Jun 看
   const empTab = document.querySelector('.nav-tab[data-sec="employees"]');
   if (empTab) {
-    const canManageFirebaseUsers = useFirebaseAdmin() && ['owner', 'admin', 'store_manager'].indexOf(firebaseRole) >= 0;
+    const canManageFirebaseUsers = useFirebaseAdmin() && (
+      ['owner', 'admin'].indexOf(firebaseRole) >= 0 ||
+      (['head_store_manager', 'store_manager'].indexOf(firebaseRole) >= 0 && !!currentStoreKey)
+    );
     const isStoreAdmin = isStore && (localStorage.getItem('admin_isStoreAdmin') === '1' || !localStorage.getItem('admin_employeeId'));
     empTab.style.display = (canManageFirebaseUsers || (!useFirebaseAdmin() && isStoreAdmin)) ? '' : 'none';
   }
   const storesTab = document.querySelector('.nav-tab[data-sec="stores"]');
   if (storesTab) {
     const canManageStores = ['owner', 'admin'].indexOf(firebaseRole) >= 0 ||
-      firebaseRole === 'store_manager';
+      (['head_store_manager', 'store_manager'].indexOf(firebaseRole) >= 0 && !!currentStoreKey);
     storesTab.style.display = useFirebaseAdmin() && canManageStores ? '' : 'none';
   }
 }
@@ -332,14 +337,52 @@ function switchSection(sec, el){
   else if(sec==='permissions' && typeof renderPermissions==='function') renderPermissions();
 }
 
-function loadOrders() {
+function renderLoadedOrders(options) {
+  options = options || {};
+  populateFilters();
+  const skipDashboard = options.skipDashboard && currentSection !== 'dashboard';
+  if (skipDashboard) {
+    const tabCount = document.getElementById('tab-count-orders');
+    if (tabCount) tabCount.textContent = allOrders.length;
+  } else if (typeof renderDashboard === 'function') {
+    renderDashboard();
+  }
+  if (!(options.skipOrdersRender && currentSection !== 'orders') && typeof filterOrders === 'function') {
+    filterOrders();
+  }
+  // 首次 load 後恢復上次 section（不是 dashboard 才切）
+  if (!window.__sectionRestored) {
+    window.__sectionRestored = true;
+    const last = localStorage.getItem('admin_lastSection');
+    const tab = last ? document.querySelector('.nav-tab[data-sec="'+last+'"]') : null;
+    if (last && last !== 'dashboard' && last !== 'checkin' && document.getElementById('sec-'+last) && tab && tab.style.display !== 'none') {
+      switchSection(last, tab);
+    }
+  } else {
+    // 後續 reload 後重 render 當前 section（保證資料最新）
+    if(currentSection==='reconcile' && typeof renderReconcile==='function') renderReconcile();
+    else if(currentSection==='customers' && typeof renderCustomers==='function') renderCustomers();
+    else if(currentSection==='finance' && typeof renderFinance==='function') renderFinance();
+    else if(currentSection==='walkin' && typeof renderWalkinMonth==='function') renderWalkinMonth();
+    else if(currentSection==='calendar' && typeof renderCalendar==='function') renderCalendar();
+    else if(currentSection==='checkin' && typeof renderCheckIn==='function') renderCheckIn();
+    else if(currentSection==='employees' && typeof renderEmployees==='function') renderEmployees();
+    else if(currentSection==='stores' && typeof loadStoreSchedules==='function') loadStoreSchedules();
+    else if(currentSection==='archive' && typeof loadArchivedList==='function') loadArchivedList();
+    else if(currentSection==='permissions' && typeof renderPermissions==='function') renderPermissions();
+  }
+}
+
+function loadOrders(options) {
+  options = options || {};
+  window.__loadStart = Date.now();
   // v2.4.20: 首次載入時顯示全頁 loading overlay
-  if (!window.__firstLoadDone) {
+  if (!window.__firstLoadDone && !options.manual) {
     const ov = document.getElementById('loading-overlay');
     if (ov) ov.classList.remove('hidden');
   }
   document.getElementById('orders-loading').classList.remove('hidden');
-  document.getElementById('orders-list').innerHTML = '';
+  if (!options.keepCurrentList) document.getElementById('orders-list').innerHTML = '';
   document.getElementById('orders-empty').classList.add('hidden');
   // v2.4.23: 保險絲 — 不論結果如何 12 秒後一定關閉 overlay
   setTimeout(() => {
@@ -350,14 +393,13 @@ function loadOrders() {
     }
   }, 12000);
   if (useFirebaseAdmin()) {
-    loadOrdersFromFirestore();
-    return;
+    return loadOrdersFromFirestore(options);
   }
-  fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'adminGetOrders', filter:'all', search:'', token:adminToken, agent:currentAgent }) })
+  return fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'adminGetOrders', filter:'all', search:'', token:adminToken, agent:currentAgent }) })
     .then(r => r.json())
     .then(data => {
       document.getElementById('orders-loading').classList.add('hidden');
-      if (data.status === 'unauthorized') { showLogin(); return; }
+      if (data.status === 'unauthorized') { showLogin(); return { status:'unauthorized' }; }
       if (data.status === 'success' || data.status === 'ok') {
         const elapsed = Date.now() - (window.__loadStart || Date.now());
         console.log('[載入] ✅ 完成，耗時 ' + elapsed + 'ms (' + (data.orders||[]).length + ' 筆)');
@@ -370,9 +412,7 @@ function loadOrders() {
             .then(r=>r.json()).then(d=>{ if(d.status==='ok') window.__archivedMonthsList = (d.months||[]).map(m => normMonth(m.month)); })
             .catch(()=>{});
         }
-        populateFilters();
-        renderDashboard();
-        filterOrders();
+        renderLoadedOrders(options);
         // v2.4.20: 關閉首次載入 overlay
         const ov = document.getElementById('loading-overlay');
         if (ov && !window.__firstLoadDone) {
@@ -407,24 +447,11 @@ function loadOrders() {
             }
           }, 400);
         }
-        // 首次 load 後恢復上次 section（不是 dashboard 才切）
-        if (!window.__sectionRestored) {
-          window.__sectionRestored = true;
-          const last = localStorage.getItem('admin_lastSection');
-          const tab = last ? document.querySelector('.nav-tab[data-sec="'+last+'"]') : null;
-          if (last && last !== 'dashboard' && last !== 'checkin' && document.getElementById('sec-'+last) && tab && tab.style.display !== 'none') {
-            switchSection(last, tab);
-          }
-        } else {
-          // 後續 reload 後重 render 當前 section（保證資料最新）
-          if(currentSection==='reconcile' && typeof renderReconcile==='function') renderReconcile();
-          else if(currentSection==='customers' && typeof renderCustomers==='function') renderCustomers();
-          else if(currentSection==='finance' && typeof renderFinance==='function') renderFinance();
-          else if(currentSection==='walkin' && typeof renderWalkinMonth==='function') renderWalkinMonth();
-          else if(currentSection==='calendar' && typeof renderCalendar==='function') renderCalendar();
-        }
+        return data;
       } else {
-        showErr(data.message || '載入失敗');
+        if (options.keepCurrentList && typeof toast === 'function') toast(data.message || '載入失敗', 'error');
+        else showErr(data.message || '載入失敗');
+        return { status:'error', message:data.message || '載入失敗' };
       }
     })
     .catch(e => {
@@ -433,28 +460,31 @@ function loadOrders() {
       const ov = document.getElementById('loading-overlay');
       if (ov) ov.classList.add('hidden');
       window.__firstLoadDone = true;
-      showErr('連線失敗: ' + e.message);
+      if (options.keepCurrentList && typeof toast === 'function') toast('連線失敗: ' + e.message, 'error');
+      else showErr('連線失敗: ' + e.message);
+      return { status:'error', message:e.message };
 	    });
 }
 
-async function loadOrdersFromFirestore() {
+async function loadOrdersFromFirestore(options) {
+  options = options || {};
   try {
     const data = await callFirebaseAdminFunction('/listOrders?limit=500', null, { method: 'GET' });
     document.getElementById('orders-loading').classList.add('hidden');
     allOrders = filterOrdersForRole(data.orders || []);
-    populateFilters();
-    renderDashboard();
-    filterOrders();
+    renderLoadedOrders(options);
     const ov = document.getElementById('loading-overlay');
     if (ov && !window.__firstLoadDone) {
       ov.classList.add('hidden');
       window.__firstLoadDone = true;
     }
+    return data;
   } catch (e) {
     document.getElementById('orders-loading').classList.add('hidden');
     const ov = document.getElementById('loading-overlay');
     if (ov) ov.classList.add('hidden');
     toast((e && e.message) || 'Firestore 載入失敗', 'error');
+    return { status:'error', message:(e && e.message) || 'Firestore 載入失敗' };
   }
 }
 

@@ -22,6 +22,7 @@ async function renderEmployees() {
         owner: 'Owner',
         admin: '管理者',
         agent: '客服',
+        head_store_manager: '總店長',
         store_manager: '店長',
         store_staff: '店員',
         accountant: '會計',
@@ -129,7 +130,7 @@ function openAddEmployeeModal() {
     roleEl.innerHTML = roleOptions.map(r => '<option value="' + r.value + '">' + r.label + '</option>').join('');
     roleEl.value = roleOptions[0].value;
     roleEl.onchange = updateEmployeeStoreSelector;
-    if (storeEl) storeEl.value = firebaseRole === 'store_manager' ? (currentStoreKey || '') : '';
+    if (storeEl) storeEl.value = ['head_store_manager', 'store_manager'].indexOf(firebaseRole) >= 0 ? (currentStoreKey || '') : '';
     updateEmployeeStoreSelector();
   } else {
     roleEl.innerHTML = '<option value="staff">店員 (staff)</option><option value="admin">店家管理者 (admin)</option>';
@@ -152,14 +153,14 @@ function updateEmployeeStoreSelector() {
   if (!useFirebaseAdmin()) { row.classList.add('hidden'); return; }
   const role = roleEl.value;
   const firebaseRole = localStorage.getItem('admin_firebaseRole') || 'readonly';
-  const scopedRoles = ['agent', 'store_manager', 'store_staff', 'accountant', 'readonly'];
+  const scopedRoles = ['agent', 'head_store_manager', 'store_manager', 'store_staff', 'accountant', 'readonly'];
   const shouldShow = scopedRoles.indexOf(role) >= 0;
   row.classList.toggle('hidden', !shouldShow);
   if (!shouldShow) {
     storeEl.value = '';
     return;
   }
-  if (firebaseRole === 'store_manager') {
+  if (['head_store_manager', 'store_manager'].indexOf(firebaseRole) >= 0) {
     storeEl.value = currentStoreKey || '';
     storeEl.disabled = true;
     if (hint) hint.textContent = '店長新增帳號會固定綁定自己的店鋪';
@@ -173,14 +174,16 @@ function getAssignableFirebaseRoles(firebaseRole) {
   const labels = {
     admin: '管理者 (admin)',
     agent: '客服 (agent)',
+    head_store_manager: '總店長 (head_store_manager)',
     store_manager: '店長 (store_manager)',
     store_staff: '店員 (store_staff)',
     accountant: '會計 (accountant)',
     readonly: '唯讀 (readonly)'
   };
   const matrix = {
-    owner: ['admin', 'agent', 'store_manager', 'store_staff', 'accountant', 'readonly'],
-    admin: ['agent', 'store_manager', 'store_staff', 'accountant', 'readonly'],
+    owner: ['admin', 'agent', 'head_store_manager', 'store_manager', 'store_staff', 'accountant', 'readonly'],
+    admin: ['agent', 'head_store_manager', 'store_manager', 'store_staff', 'accountant', 'readonly'],
+    head_store_manager: ['store_staff', 'accountant', 'readonly'],
     store_manager: ['store_staff', 'accountant', 'readonly']
   };
   return (matrix[firebaseRole] || []).map(value => ({ value, label: labels[value] || value }));

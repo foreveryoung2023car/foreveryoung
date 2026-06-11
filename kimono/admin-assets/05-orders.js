@@ -421,6 +421,37 @@ function resetAllFilters(){
   setFilter('all', allBtn);
 }
 
+function normalizedOrderPhone(o) {
+  return String(o && o.phone || '').replace(/\D/g, '');
+}
+
+function buildVisitCountMap(orders) {
+  const counts = new Map();
+  (orders || []).forEach(o => {
+    const phone = normalizedOrderPhone(o);
+    if (!phone) return;
+    counts.set(phone, (counts.get(phone) || 0) + 1);
+  });
+  return counts;
+}
+
+function visitCountBadge(o, counts, compact) {
+  const phone = normalizedOrderPhone(o);
+  if (!phone || !counts) return '';
+  const cnt = counts.get(phone) || 0;
+  if (cnt >= 3) {
+    return compact
+      ? '<span class="text-[10px] bg-amber-100 text-amber-700 px-1 rounded">⭐'+cnt+'</span>'
+      : '<span class="text-[11px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded ml-1">⭐'+cnt+'</span>';
+  }
+  if (cnt >= 2) {
+    return compact
+      ? '<span class="text-[10px] text-slate-500">'+cnt+'訪</span>'
+      : '<span class="text-[11px] text-slate-500 ml-1">'+cnt+'訪</span>';
+  }
+  return '';
+}
+
 function filterOrders(){
   if (currentRole === 'store' && ['pending', 'confirmed', 'refund', 'duebalance', 'anomaly'].indexOf(currentFilter) >= 0) currentFilter = 'all';
   const q = (document.getElementById('f-search').value||'').toLowerCase();
@@ -479,7 +510,10 @@ function filterOrders(){
   if(fSort==='amount-desc') list.sort((a,b)=>totalAmount(b)-totalAmount(a));
   if(fSort==='due-desc') list.sort((a,b)=>{const td=function(o){const t=(Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0);return t-(Number(o.deposit)||0);};return td(b)-td(a);});
   if(fSort==='recent-submit') list.sort((a,b)=>new Date(b.submitDate||b.createdAt||0)-new Date(a.submitDate||a.createdAt||0));
-  if(fSort==='visits-desc') list.sort((a,b)=>{const cnt=function(o){const ph=String(o.phone||'').replace(/\D/g,'');return ph?allOrders.filter(x=>String(x.phone||'').replace(/\D/g,'')===ph).length:0;};return cnt(b)-cnt(a);});
+  if(fSort==='visits-desc') {
+    const visitCounts = buildVisitCountMap(allOrders);
+    list.sort((a,b)=>(visitCounts.get(normalizedOrderPhone(b))||0)-(visitCounts.get(normalizedOrderPhone(a))||0));
+  }
 
   document.getElementById('showing-count').textContent = list.length;
   document.getElementById('total-count').textContent = allOrders.length;
@@ -559,7 +593,7 @@ const ORDER_STATUS_NEXT = {
 function canManageOrderStatus(status) {
   if (!useFirebaseAdmin()) return false;
   const role = localStorage.getItem('admin_firebaseRole') || '';
-  if (['store_manager', 'store_staff'].includes(role)) return status === 'confirmed';
+  if (['head_store_manager', 'store_manager', 'store_staff'].includes(role)) return status === 'confirmed';
   return ['owner', 'admin', 'agent'].includes(role);
 }
 
@@ -645,6 +679,7 @@ async function changeOrderStatus(orderId, nextStatus, selectEl) {
 
 function renderOrders(orders){
   const el = document.getElementById('orders-list');
+  const visitCounts = buildVisitCountMap(allOrders);
   // v2.5d: 列表 view
   if (getOrderView() === 'list' && orders.length > 0) {
     const empty = document.getElementById('orders-empty');
@@ -659,7 +694,8 @@ function renderOrders(orders){
       const total = orderDisplayTotal(o);
       const due = orderDisplayBalance(o);
       const statusCell = '<td class="p-2 text-center">' + renderOrderStatusControl(o, 'card') + '</td>';
-      return '<tr class="border-t hover:bg-slate-50"><td class="p-2 font-mono text-xs">' + (o.orderId||'') + '</td><td class="p-2 font-bold">' + (o.name||'—') + (function(){var ph=String(o.phone||'').replace(/\D/g,'');if(!ph)return '';var arr=(typeof allOrders!=='undefined'?allOrders:[]);var cnt=arr.filter(function(x){return String(x.phone||'').replace(/\D/g,'')===ph;}).length;return cnt>=3?' <span class="text-[10px] bg-amber-100 text-amber-700 px-1 rounded">⭐'+cnt+'</span>':(cnt>=2?' <span class="text-[10px] text-slate-500">'+cnt+'訪</span>':'');})() + '</td><td class="p-2">' + (o.storeKey||'—') + '</td><td class="p-2 whitespace-nowrap">' + bdStr + '</td><td class="p-2 text-center">' + formatGuestCount(o) + '</td><td class="p-2 text-center">' + (hair+photo||'—') + '</td><td class="p-2 text-right font-bold">¥' + total.toLocaleString() + '</td><td class="p-2 text-right ' + (due>0?'text-amber-700 font-bold':'text-slate-400') + '">' + (due>0?'¥'+due.toLocaleString():'—') + '</td>' + statusCell + '<td class="p-2 text-right whitespace-nowrap"><button onclick="openEdit(\'' + o.orderId + '\')" class="px-2 py-1 bg-[#1A365D] text-white text-xs rounded">✏️</button></td></tr>';
+      const visits = visitCountBadge(o, visitCounts, true);
+      return '<tr class="border-t hover:bg-slate-50"><td class="p-2 font-mono text-xs">' + (o.orderId||'') + '</td><td class="p-2 font-bold">' + (o.name||'—') + (visits ? ' ' + visits : '') + '</td><td class="p-2">' + (o.storeKey||'—') + '</td><td class="p-2 whitespace-nowrap">' + bdStr + '</td><td class="p-2 text-center">' + formatGuestCount(o) + '</td><td class="p-2 text-center">' + (hair+photo||'—') + '</td><td class="p-2 text-right font-bold">¥' + total.toLocaleString() + '</td><td class="p-2 text-right ' + (due>0?'text-amber-700 font-bold':'text-slate-400') + '">' + (due>0?'¥'+due.toLocaleString():'—') + '</td>' + statusCell + '<td class="p-2 text-right whitespace-nowrap"><button onclick="openEdit(\'' + o.orderId + '\')" class="px-2 py-1 bg-[#1A365D] text-white text-xs rounded">✏️</button></td></tr>';
     }).join('') + '</tbody></table></div>';
     document.getElementById('showing-count').textContent = orders.length;
     return;
@@ -722,7 +758,7 @@ function renderOrders(orders){
           '<div class="flex-1 min-w-0">'+
             '<div class="flex items-start justify-between gap-2 mb-2">'+
               '<div class="flex items-center gap-2 flex-wrap min-w-0">'+
-                '<span class="font-bold text-[#1A365D] text-base md:text-lg">'+(o.name||'—')+'</span>' + (function(){const ph=String(o.phone||'').replace(/\D/g,'');if(!ph) return '';const arr=(typeof allOrders!=='undefined'?allOrders:[]);const cnt=arr.filter(x=>String(x.phone||'').replace(/\D/g,'')===ph).length;return cnt>=3?'<span class="text-[11px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded ml-1">⭐'+cnt+'</span>':(cnt>=2?'<span class="text-[11px] text-slate-500 ml-1">'+cnt+'訪</span>':'');})()+
+                '<span class="font-bold text-[#1A365D] text-base md:text-lg">'+(o.name||'—')+'</span>' + visitCountBadge(o, visitCounts, false)+
                 '<span class="order-id-copy-wrap"><span class="text-slate-600 text-xs md:text-sm font-mono">'+(o.orderId||'')+'</span><button type="button" onclick="event.stopPropagation();copyOrderId(\''+(o.orderId||'')+'\')" class="order-id-copy-btn" title="複製訂單編號" aria-label="複製訂單編號">📋</button></span>'+
               '</div>'+
               renderOrderStatusControl(o, 'card')+

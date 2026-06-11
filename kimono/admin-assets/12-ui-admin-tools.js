@@ -144,8 +144,9 @@ function renderRoleAssignmentMatrix() {
   if (!box) return;
   const firebaseRole = localStorage.getItem('admin_firebaseRole') || (currentAgent === 'Jun' ? 'owner' : 'readonly');
   const rows = [
-    { role: 'owner', label: 'Owner', desc: '最高管理者', canAssign: ['admin', 'agent', 'store_manager', 'store_staff', 'accountant', 'readonly'] },
-    { role: 'admin', label: 'Admin', desc: '全局管理者', canAssign: ['agent', 'store_manager', 'store_staff', 'accountant', 'readonly'] },
+    { role: 'owner', label: 'Owner', desc: '最高管理者', canAssign: ['admin', 'agent', 'head_store_manager', 'store_manager', 'store_staff', 'accountant', 'readonly'] },
+    { role: 'admin', label: 'Admin', desc: '全局管理者', canAssign: ['agent', 'head_store_manager', 'store_manager', 'store_staff', 'accountant', 'readonly'] },
+    { role: 'head_store_manager', label: 'Head Store Manager', desc: '總店長', canAssign: ['store_staff', 'accountant', 'readonly'], scope: '店家後台，可看四店訂單' },
     { role: 'store_manager', label: 'Store Manager', desc: '店鋪管理者', canAssign: ['store_staff', 'accountant', 'readonly'], scope: '限自己店鋪' },
     { role: 'agent', label: 'Agent', desc: '客服', canAssign: [] },
     { role: 'store_staff', label: 'Store Staff', desc: '店員', canAssign: [] },
@@ -155,6 +156,7 @@ function renderRoleAssignmentMatrix() {
   const roleLabel = {
     admin: '管理者',
     agent: '客服',
+    head_store_manager: '總店長',
     store_manager: '店長',
     store_staff: '店員',
     accountant: '會計',
@@ -187,7 +189,7 @@ function renderRoleAssignmentMatrix() {
       '<div class="p-4 border-b border-slate-100">' +
         '<div class="text-xs font-bold text-slate-500 mb-2">你目前可以添加</div>' +
         (canAssign ? '<div class="flex flex-wrap gap-2">' + current.canAssign.map(chip).join('') + '</div>' : '<div class="text-sm text-slate-500">目前角色沒有新增/授權其他角色的權限。</div>') +
-        (firebaseRole === 'store_manager' ? '<div class="mt-2 text-xs text-amber-700">店長新增的帳號會自動綁定自己的店鋪，不能跨店建立或管理。</div>' : '') +
+        (['head_store_manager','store_manager'].indexOf(firebaseRole) >= 0 ? '<div class="mt-2 text-xs text-amber-700">店長新增的帳號會自動綁定自己的店鋪，不能跨店建立或管理。</div>' : '') +
       '</div>' +
       '<div class="overflow-x-auto">' +
         '<table class="data-table"><thead><tr><th class="text-left">授權者角色</th><th class="text-left">可以添加的角色</th></tr></thead><tbody>' + rowHtml + '</tbody></table>' +

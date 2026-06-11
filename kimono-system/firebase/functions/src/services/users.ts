@@ -5,9 +5,13 @@ import type { AuthContext } from "../lib/auth.js";
 import { writeAuditLog } from "../lib/audit.js";
 
 const roleSchema = z.enum(roles);
-const ownerAssignableRoles = ["admin", "agent", "store_manager", "store_staff", "accountant", "readonly"];
-const adminAssignableRoles = ["agent", "store_manager", "store_staff", "accountant", "readonly"];
+const ownerAssignableRoles = ["admin", "agent", "head_store_manager", "store_manager", "store_staff", "accountant", "readonly"];
+const adminAssignableRoles = ["agent", "head_store_manager", "store_manager", "store_staff", "accountant", "readonly"];
 const storeManagerAssignableRoles = ["store_staff", "accountant", "readonly"];
+
+function isStoreManagerRole(role: string | undefined) {
+  return role === "head_store_manager" || role === "store_manager";
+}
 
 export const createAdminUserSchema = z.object({
   email: z.string().email(),
@@ -31,7 +35,7 @@ export const resetAdminUserPasswordSchema = z.object({
 function assignableRoles(actor: AuthContext) {
   if (actor.role === "owner") return ownerAssignableRoles;
   if (actor.role === "admin") return adminAssignableRoles;
-  if (actor.role === "store_manager") return storeManagerAssignableRoles;
+  if (isStoreManagerRole(actor.role)) return storeManagerAssignableRoles;
   return [];
 }
 
@@ -43,13 +47,13 @@ function assertAssignableRole(actor: AuthContext, targetRole?: string) {
 }
 
 function assertSameStoreForStoreManager(actor: AuthContext, targetStoreId: string | null | undefined) {
-  if (actor.role !== "store_manager") return;
+  if (!isStoreManagerRole(actor.role)) return;
   if (!actor.storeId) throw new HttpError(403, "Store manager has no storeId");
   if (targetStoreId !== actor.storeId) throw new HttpError(403, "Cannot manage users from another store");
 }
 
 function normalizedStoreIdForCreate(actor: AuthContext, inputStoreId?: string | null) {
-  if (actor.role === "store_manager") {
+  if (isStoreManagerRole(actor.role)) {
     if (!actor.storeId) throw new HttpError(403, "Store manager has no storeId");
     return actor.storeId;
   }
@@ -63,7 +67,7 @@ function assertManageable(actor: AuthContext, target: { role?: string; storeId?:
 
 function canListUser(actor: AuthContext, target: { role?: string; storeId?: string | null }) {
   if (!assignableRoles(actor).includes(String(target.role || ""))) return false;
-  if (actor.role === "store_manager") {
+  if (isStoreManagerRole(actor.role)) {
     if (!actor.storeId) return false;
     return target.storeId === actor.storeId;
   }
@@ -73,7 +77,7 @@ function canListUser(actor: AuthContext, target: { role?: string; storeId?: stri
 export async function listAdminUsers(actor: AuthContext) {
   if (!assignableRoles(actor).length) throw new HttpError(403, "Permission denied");
   let query: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> = db.collection("users");
-  if (actor.role === "store_manager") {
+  if (isStoreManagerRole(actor.role)) {
     if (!actor.storeId) throw new HttpError(403, "Store manager has no storeId");
     query = query.where("storeId", "==", actor.storeId);
   }
