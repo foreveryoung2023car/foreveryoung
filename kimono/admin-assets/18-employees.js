@@ -130,7 +130,7 @@ function openAddEmployeeModal() {
     roleEl.innerHTML = roleOptions.map(r => '<option value="' + r.value + '">' + r.label + '</option>').join('');
     roleEl.value = roleOptions[0].value;
     roleEl.onchange = updateEmployeeStoreSelector;
-    if (storeEl) storeEl.value = ['head_store_manager', 'store_manager'].indexOf(firebaseRole) >= 0 ? (currentStoreKey || '') : '';
+    if (storeEl) storeEl.value = firebaseRole === 'store_manager' ? (currentStoreKey || '') : '';
     updateEmployeeStoreSelector();
   } else {
     roleEl.innerHTML = '<option value="staff">店員 (staff)</option><option value="admin">店家管理者 (admin)</option>';
@@ -160,7 +160,7 @@ function updateEmployeeStoreSelector() {
     storeEl.value = '';
     return;
   }
-  if (['head_store_manager', 'store_manager'].indexOf(firebaseRole) >= 0) {
+  if (firebaseRole === 'store_manager') {
     storeEl.value = currentStoreKey || '';
     storeEl.disabled = true;
     if (hint) hint.textContent = '店長新增帳號會固定綁定自己的店鋪';
@@ -183,7 +183,7 @@ function getAssignableFirebaseRoles(firebaseRole) {
   const matrix = {
     owner: ['admin', 'agent', 'head_store_manager', 'store_manager', 'store_staff', 'accountant', 'readonly'],
     admin: ['agent', 'head_store_manager', 'store_manager', 'store_staff', 'accountant', 'readonly'],
-    head_store_manager: ['store_staff', 'accountant', 'readonly'],
+    head_store_manager: ['store_manager', 'store_staff'],
     store_manager: ['store_staff', 'accountant', 'readonly']
   };
   return (matrix[firebaseRole] || []).map(value => ({ value, label: labels[value] || value }));

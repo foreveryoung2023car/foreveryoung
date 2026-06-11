@@ -227,7 +227,8 @@ function applyRolePermissions() {
   if (empTab) {
     const canManageFirebaseUsers = useFirebaseAdmin() && (
       ['owner', 'admin'].indexOf(firebaseRole) >= 0 ||
-      (['head_store_manager', 'store_manager'].indexOf(firebaseRole) >= 0 && !!currentStoreKey)
+      firebaseRole === 'head_store_manager' ||
+      (firebaseRole === 'store_manager' && !!currentStoreKey)
     );
     const isStoreAdmin = isStore && (localStorage.getItem('admin_isStoreAdmin') === '1' || !localStorage.getItem('admin_employeeId'));
     empTab.style.display = (canManageFirebaseUsers || (!useFirebaseAdmin() && isStoreAdmin)) ? '' : 'none';

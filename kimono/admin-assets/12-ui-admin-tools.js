@@ -146,7 +146,7 @@ function renderRoleAssignmentMatrix() {
   const rows = [
     { role: 'owner', label: 'Owner', desc: '最高管理者', canAssign: ['admin', 'agent', 'head_store_manager', 'store_manager', 'store_staff', 'accountant', 'readonly'] },
     { role: 'admin', label: 'Admin', desc: '全局管理者', canAssign: ['agent', 'head_store_manager', 'store_manager', 'store_staff', 'accountant', 'readonly'] },
-    { role: 'head_store_manager', label: 'Head Store Manager', desc: '總店長', canAssign: ['store_staff', 'accountant', 'readonly'], scope: '店家後台，可看四店訂單' },
+    { role: 'head_store_manager', label: 'Head Store Manager', desc: '總店長', canAssign: ['store_manager', 'store_staff'], scope: '店家後台，可看四店訂單' },
     { role: 'store_manager', label: 'Store Manager', desc: '店鋪管理者', canAssign: ['store_staff', 'accountant', 'readonly'], scope: '限自己店鋪' },
     { role: 'agent', label: 'Agent', desc: '客服', canAssign: [] },
     { role: 'store_staff', label: 'Store Staff', desc: '店員', canAssign: [] },

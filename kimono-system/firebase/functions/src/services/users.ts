@@ -8,9 +8,10 @@ const roleSchema = z.enum(roles);
 const ownerAssignableRoles = ["admin", "agent", "head_store_manager", "store_manager", "store_staff", "accountant", "readonly"];
 const adminAssignableRoles = ["agent", "head_store_manager", "store_manager", "store_staff", "accountant", "readonly"];
 const storeManagerAssignableRoles = ["store_staff", "accountant", "readonly"];
+const headStoreManagerAssignableRoles = ["store_manager", "store_staff"];
 
 function isStoreManagerRole(role: string | undefined) {
-  return role === "head_store_manager" || role === "store_manager";
+  return role === "store_manager";
 }
 
 export const createAdminUserSchema = z.object({
@@ -35,6 +36,7 @@ export const resetAdminUserPasswordSchema = z.object({
 function assignableRoles(actor: AuthContext) {
   if (actor.role === "owner") return ownerAssignableRoles;
   if (actor.role === "admin") return adminAssignableRoles;
+  if (actor.role === "head_store_manager") return headStoreManagerAssignableRoles;
   if (isStoreManagerRole(actor.role)) return storeManagerAssignableRoles;
   return [];
 }
@@ -52,10 +54,13 @@ function assertSameStoreForStoreManager(actor: AuthContext, targetStoreId: strin
   if (targetStoreId !== actor.storeId) throw new HttpError(403, "Cannot manage users from another store");
 }
 
-function normalizedStoreIdForCreate(actor: AuthContext, inputStoreId?: string | null) {
+function normalizedStoreIdForCreate(actor: AuthContext, targetRole: string, inputStoreId?: string | null) {
   if (isStoreManagerRole(actor.role)) {
     if (!actor.storeId) throw new HttpError(403, "Store manager has no storeId");
     return actor.storeId;
+  }
+  if (actor.role === "head_store_manager" && ["store_manager", "store_staff"].includes(targetRole) && !inputStoreId) {
+    throw new HttpError(400, "Store role requires storeId");
   }
   return inputStoreId || null;
 }
@@ -114,7 +119,7 @@ export async function listAdminUsers(actor: AuthContext) {
 export async function createAdminUser(raw: unknown, actor: AuthContext) {
   const input = createAdminUserSchema.parse(raw);
   assertAssignableRole(actor, input.role);
-  const storeId = normalizedStoreIdForCreate(actor, input.storeId);
+  const storeId = normalizedStoreIdForCreate(actor, input.role, input.storeId);
   const user = await auth.createUser({
     email: input.email,
     password: input.password,
