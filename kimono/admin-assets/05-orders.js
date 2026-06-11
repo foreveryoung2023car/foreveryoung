@@ -606,6 +606,10 @@ function orderDisplayBalance(o) {
   );
 }
 
+function orderPaidDeposit(o) {
+  return Math.max(0, Number(o && o.deposit || 0) - Number(o && o.refundAmount || 0));
+}
+
 function orderStatusOf(o) {
   return String(o && o.status || (o && o.confirmed ? 'confirmed' : 'pending_review'));
 }
@@ -817,7 +821,7 @@ function renderOrders(orders){
               '<div class="summary-item"><div class="summary-label">人數</div><div class="summary-value">'+formatGuestCount(o)+'</div></div>'+
             '</div>'+
             '<div class="summary-row summary-row-money">'+
-              '<div class="summary-item"><div class="summary-label">訂金</div><div class="summary-value">'+fmtY(o.deposit)+'</div></div>'+
+              '<div class="summary-item"><div class="summary-label">已付定金</div><div class="summary-value">'+fmtY(orderPaidDeposit(o))+'</div></div>'+
               '<div class="summary-item"><div class="summary-label">總價</div><div class="summary-value">'+fmtY(total)+'</div></div>'+
               '<div class="summary-item"><div class="summary-label">待收尾款</div><div class="summary-value '+(isPaidFull(o)?'text-emerald-700 line-through':(due>0?'text-amber-700':'text-emerald-700'))+'">'+(isPaidFull(o)?'¥0 ✓':fmtY(due))+'</div></div>'+
             '</div>'+
