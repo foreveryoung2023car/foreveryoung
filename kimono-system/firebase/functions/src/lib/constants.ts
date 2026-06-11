@@ -73,9 +73,9 @@ export function resolveOrderStatus(order: {
 }
 
 export const allowedTransitions: Record<OrderStatus, OrderStatus[]> = {
-  pending_payment: ["pending_review"],
-  pending_review: ["confirmed"],
-  confirmed: ["refund_requested"],
+  pending_payment: ["pending_review", "cancelled"],
+  pending_review: ["confirmed", "cancelled"],
+  confirmed: ["cancelled", "refund_requested"],
   checked_in: ["completed", "balance_due", "refund_requested"],
   completed: ["refund_requested"],
   balance_due: ["completed", "refund_requested"],

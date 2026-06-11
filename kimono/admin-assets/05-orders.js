@@ -639,11 +639,26 @@ const ORDER_STATUS_NEXT = {
   refunding: 'refunded'
 };
 
+const ORDER_STATUS_EXTRA_NEXT = {
+  pending_payment: ['cancelled'],
+  pending_review: ['cancelled'],
+  confirmed: ['cancelled']
+};
+
 function canManageOrderStatus(status) {
   if (!useFirebaseAdmin()) return false;
   const role = localStorage.getItem('admin_firebaseRole') || '';
   if (['head_store_manager', 'store_manager', 'store_staff'].includes(role)) return false;
   return ['owner', 'admin', 'agent'].includes(role);
+}
+
+function orderNextStatusOptions(status) {
+  const options = [];
+  if (ORDER_STATUS_NEXT[status]) options.push(ORDER_STATUS_NEXT[status]);
+  (ORDER_STATUS_EXTRA_NEXT[status] || []).forEach(next => {
+    if (!options.includes(next)) options.push(next);
+  });
+  return options;
 }
 
 function orderStatusMeta(status) {
@@ -653,9 +668,9 @@ function orderStatusMeta(status) {
 function renderOrderStatusControl(o, size) {
   const status = orderStatusOf(o);
   const meta = orderStatusMeta(status);
-  const nextStatus = ORDER_STATUS_NEXT[status] || '';
-  const editable = canManageOrderStatus(status) && Boolean(nextStatus);
-  const options = [status].concat(editable ? [nextStatus] : []);
+  const nextStatuses = orderNextStatusOptions(status);
+  const editable = canManageOrderStatus(status) && nextStatuses.length > 0;
+  const options = [status].concat(editable ? nextStatuses : []);
   return '<span class="order-status-control '+(size === 'large' ? 'is-large ' : '')+(editable ? 'is-editable ' : '')+meta.css+'" onclick="openOrderStatusPicker(event,this)">'+
     '<span class="order-status-icon" aria-hidden="true">'+meta.icon+'</span>'+
     '<select aria-label="訂單狀態" title="'+(editable?'點擊修改訂單狀態':'目前帳號不可修改狀態')+'" '+
@@ -685,13 +700,16 @@ async function changeOrderStatus(orderId, nextStatus, selectEl) {
   if (!o) return;
   const previousStatus = orderStatusOf(o);
   if (nextStatus === previousStatus) return;
-  if (ORDER_STATUS_NEXT[previousStatus] !== nextStatus) {
+  if (!orderNextStatusOptions(previousStatus).includes(nextStatus)) {
     selectEl.value = previousStatus;
-    alert('訂單狀態只能推進到下一步。');
+    alert('此狀態不可切換到「'+orderStatusMeta(nextStatus).label+'」。');
     return;
   }
   const nextMeta = orderStatusMeta(nextStatus);
-  if (!confirm('確認將訂單「'+orderId+'」改為「'+nextMeta.label+'」？')) {
+  const confirmMessage = nextStatus === 'cancelled'
+    ? '確認取消訂單「'+orderId+'」？\n\n取消後狀態會變為「已取消」，請確認客人確實取消，且此操作已完成內部確認。'
+    : '確認將訂單「'+orderId+'」改為「'+nextMeta.label+'」？';
+  if (!confirm(confirmMessage)) {
     selectEl.value = previousStatus;
     return;
   }
@@ -703,6 +721,7 @@ async function changeOrderStatus(orderId, nextStatus, selectEl) {
     });
     o.status = nextStatus;
     o.confirmed = isOrderConfirmedOrLater(o);
+    if (nextStatus === 'cancelled') o.confirmed = false;
     if (nextStatus === 'completed') o.balanceDue = 0;
     if (editingOrder && editingOrder.orderId === orderId) {
       editingOrder = o;
