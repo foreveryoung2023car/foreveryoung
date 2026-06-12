@@ -567,7 +567,13 @@ async function saveOrder() {
       + Number(document.getElementById('e-photo-fee').value || 0)
       - Number(document.getElementById('e-discount-refund-amount').value || 0)
     );
-    const paid = Number(document.getElementById('e-deposit').value || editingOrder.deposit || 0)
+    const paidDeposit = typeof orderPaidDeposit === 'function'
+      ? orderPaidDeposit({
+          deposit: Number(document.getElementById('e-deposit').value || editingOrder.deposit || 0),
+          refundAmount: Number(document.getElementById('e-refund-amt').value || editingOrder.refundAmount || 0)
+        })
+      : Number(document.getElementById('e-deposit').value || editingOrder.deposit || 0);
+    const paid = paidDeposit
       + Number(document.getElementById('e-store-actual-received').value || 0);
     const balance = Math.max(0, consumption - paid);
     const nextLabel = balance === 0 ? '已完成' : '待付尾款（¥' + balance.toLocaleString() + '）';

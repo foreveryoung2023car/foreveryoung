@@ -56,7 +56,7 @@ function openEdit(orderId) {
     + Number(o.hairFee || 0)
     + Number(o.photoFee || 0)
     - Number(o.discountRefundAmount || 0)
-    - Number(o.deposit || 0)
+    - paidDeposit
   );
   storeActualInput.dataset.autoMode = isBeforeCheckout ? 'true' : 'false';
   storeActualInput.value = String(isBeforeCheckout && !storeActualReceived ? defaultActualReceived : storeActualReceived);
@@ -66,7 +66,8 @@ function openEdit(orderId) {
     Number(o.price || o.kimonoPrice || 0),
     Number(o.hairFee || 0),
     Number(o.photoFee || 0),
-    Number(o.deposit || 0),
+    paidDeposit,
+    Number(o.refundAmount || 0),
     Number(o.discountRefundAmount || 0),
     storeActualReceived
   ].join('|');
@@ -375,16 +376,18 @@ function updateCalc() {
   const hair = Number(document.getElementById('e-hair-fee').value) || 0;
   const photo = Number(document.getElementById('e-photo-fee').value) || 0;
   const deposit = Number(document.getElementById('e-deposit').value) || 0;
+  const refundAmount = Number(document.getElementById('e-refund-amt').value) || 0;
+  const paidDeposit = Math.max(0, deposit - refundAmount);
   const discountRefund = Number(document.getElementById('e-discount-refund-amount').value) || 0;
   const storeActualInput = document.getElementById('e-store-actual-received');
   const onsite = Math.max(0, price + hair + photo - discountRefund);
-  const afterDep = Math.max(0, onsite - deposit);
+  const afterDep = Math.max(0, onsite - paidDeposit);
   if (storeActualInput && storeActualInput.dataset.autoMode === 'true') {
     storeActualInput.value = String(afterDep);
   }
   const storeActualReceived = Number(storeActualInput && storeActualInput.value) || 0;
   const storedBalance = Number(document.getElementById('calc-store-balance').dataset.savedValue || 0);
-  const currentSignature = [price, hair, photo, deposit, discountRefund, storeActualReceived].join('|');
+  const currentSignature = [price, hair, photo, paidDeposit, refundAmount, discountRefund, storeActualReceived].join('|');
   const savedSignature = document.getElementById('calc-store-balance').dataset.savedSignature || '';
   const useStoredBalance = editingOrder
     && ['balance_due', 'completed'].includes(orderStatusOf(editingOrder))

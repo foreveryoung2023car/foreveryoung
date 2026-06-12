@@ -13,7 +13,7 @@ function renderDashboard(){
     const status = orderStatusOf(o);
     if (status === 'pending_payment' || status === 'pending_review') pending++;
     if (status === 'confirmed') confirmed++;
-    deposit += Number(o.deposit) || 0;
+    deposit += orderPaidDeposit(o);
     if (status === 'balance_due') due += orderDisplayBalance(o);
     const refundAmount = Number(o.refundAmount) || 0;
     refund += refundAmount;
@@ -43,8 +43,9 @@ function renderDashboard(){
   visible.forEach(o => {
     // 用 submitDate 或 paidAt 都行；簡單用 submitDate
     const sd = new Date(o.submitDate || 0);
-    if (!isNaN(sd) && sd >= today0 && sd < tomorrow0 && Number(o.deposit) > 0) {
-      todayDepSum += Number(o.deposit) || 0;
+    const paidDeposit = orderPaidDeposit(o);
+    if (!isNaN(sd) && sd >= today0 && sd < tomorrow0 && paidDeposit > 0) {
+      todayDepSum += paidDeposit;
       todayCount++;
     }
   });
@@ -551,7 +552,7 @@ function filterOrders(){
   if(fSort==='booking-asc') list.sort((a,b)=>new Date(a.bookingDate||0)-new Date(b.bookingDate||0));
   if(fSort==='booking-desc') list.sort((a,b)=>new Date(b.bookingDate||0)-new Date(a.bookingDate||0));
   if(fSort==='amount-desc') list.sort((a,b)=>totalAmount(b)-totalAmount(a));
-  if(fSort==='due-desc') list.sort((a,b)=>{const td=function(o){const t=(Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.photoFee)||0);return t-(Number(o.deposit)||0);};return td(b)-td(a);});
+  if(fSort==='due-desc') list.sort((a,b)=>orderDisplayBalance(b)-orderDisplayBalance(a));
   if(fSort==='recent-submit') list.sort((a,b)=>new Date(b.submitDate||b.createdAt||0)-new Date(a.submitDate||a.createdAt||0));
   if(fSort==='visits-desc') {
     const visitCounts = buildVisitCountMap(allOrders);
@@ -593,21 +594,18 @@ function orderDisplayTotal(o) {
 
 function orderDisplayBalance(o) {
   const status = orderStatusOf(o);
-  const storedBalance = o && o.balanceDue !== undefined ? o.balanceDue : o && o.balanceDueJpy;
   const actualReceived = o && o.storeActualReceived !== undefined ? o.storeActualReceived : o && o.storeActualReceivedJpy;
   if (status === 'completed') return 0;
-  if (status === 'balance_due' && Number.isFinite(Number(storedBalance))) {
-    return Math.max(0, Number(storedBalance));
-  }
   return Math.max(0,
     orderDisplayTotal(o)
-    - Number(o.deposit || 0)
+    - orderPaidDeposit(o)
     - Number(actualReceived || 0)
   );
 }
 
 function orderPaidDeposit(o) {
-  return Math.max(0, Number(o && o.deposit || 0) - Number(o && o.refundAmount || 0));
+  const refundAmount = o && o.refundAmount !== undefined ? o.refundAmount : o && o.refundAmountJpy;
+  return Math.max(0, Number(o && o.deposit || 0) - Number(refundAmount || 0));
 }
 
 function orderStatusOf(o) {

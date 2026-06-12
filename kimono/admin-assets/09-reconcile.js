@@ -61,7 +61,8 @@ function reconcileAmounts(o) {
 }
 
 function reconcileDeposit(o) {
-  return Number(o && o.deposit || 0) - Number(o && (o.refundAmount !== undefined ? o.refundAmount : o.refundAmountJpy) || 0);
+  if (typeof orderPaidDeposit === 'function') return orderPaidDeposit(o);
+  return Math.max(0, Number(o && o.deposit || 0) - Number(o && (o.refundAmount !== undefined ? o.refundAmount : o.refundAmountJpy) || 0));
 }
 
 function fmtSignedY0(n) {

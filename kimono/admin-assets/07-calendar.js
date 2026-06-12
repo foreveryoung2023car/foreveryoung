@@ -122,7 +122,7 @@ function customerOrderAmounts(o) {
     : Math.max(0, kimonoPrice + hairFee + photoFee - discountRefund);
   const balance = typeof orderDisplayBalance === 'function'
     ? orderDisplayBalance(o)
-    : Math.max(0, total - Number(o.deposit || 0) - Number(o.storeActualReceived || o.storeActualReceivedJpy || 0));
+    : Math.max(0, total - (typeof orderPaidDeposit === 'function' ? orderPaidDeposit(o) : Math.max(0, Number(o.deposit || 0) - Number(o.refundAmount || 0))) - Number(o.storeActualReceived || o.storeActualReceivedJpy || 0));
   const platformFee = Math.max(0, (kimonoPrice - discountRefund) * 0.5);
   return {
     kimonoPrice,
@@ -153,7 +153,7 @@ function buildCustomers(){
   return Object.values(map).map(c=>{
     const orders = c.orders;
     const totalSpent = orders.reduce((s,o)=>s+orderDisplayTotal(o),0);
-    const totalDeposit = orders.reduce((s,o)=>s+(Number(o.deposit)||0),0);
+    const totalDeposit = orders.reduce((s,o)=>s+(typeof orderPaidDeposit === 'function' ? orderPaidDeposit(o) : Math.max(0, Number(o.deposit || 0) - Number(o.refundAmount || 0))),0);
     const money = orders.reduce((sum,o)=>{
       const amount = customerOrderAmounts(o);
       sum.kimonoPrice += amount.kimonoPrice;
@@ -308,7 +308,7 @@ function openCustomerDetail(key){
             '<td class="num">'+fmtY0(amount.hairFee)+'</td>'+
             '<td class="num">'+fmtY0(amount.photoFee)+'</td>'+
             '<td class="num font-bold text-emerald-700">'+fmtY0(amount.storeProfit)+'</td>'
-          : '<td class="num">'+fmtY(o.deposit)+'</td>'+
+          : '<td class="num">'+fmtY(typeof orderPaidDeposit === 'function' ? orderPaidDeposit(o) : Math.max(0, Number(o.deposit || 0) - Number(o.refundAmount || 0)))+'</td>'+
             '<td class="num">'+fmtY(orderDisplayTotal(o))+'</td>'+
             '<td class="num text-[#C9A961] font-bold">'+fmtY0(amount.platformFee)+'</td>'+
             '<td class="num font-bold" style="color:#991B1B">'+fmtY0(amount.balance)+'</td>';

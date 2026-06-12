@@ -2,9 +2,12 @@
 function renderFinance(){
   const range = document.getElementById('fin-range').value;
   const filtered = allOrders.filter(o=>isInRange(o,range));
-  const deposit = filtered.reduce((s,o)=>s+(Number(o.deposit)||0),0);
-  const total = filtered.reduce((s,o)=>s+totalAmount(o),0);
-  const due = total - deposit;
+  const paidDepositOf = o => typeof orderPaidDeposit === 'function' ? orderPaidDeposit(o) : Math.max(0, (Number(o.deposit)||0) - (Number(o.refundAmount)||0));
+  const deposit = filtered.reduce((s,o)=>s+paidDepositOf(o),0);
+  const displayTotalOf = o => typeof orderDisplayTotal === 'function' ? orderDisplayTotal(o) : totalAmount(o);
+  const displayBalanceOf = o => typeof orderDisplayBalance === 'function' ? orderDisplayBalance(o) : Math.max(0, displayTotalOf(o) - paidDepositOf(o));
+  const total = filtered.reduce((s,o)=>s+displayTotalOf(o),0);
+  const due = filtered.reduce((s,o)=>s+displayBalanceOf(o),0);
   const refund = filtered.reduce((s,o)=>s+(Number(o.refundAmount)||0),0);
   document.getElementById('fin-deposit').textContent = fmtY0(deposit);
   document.getElementById('fin-due').textContent = fmtY0(due);
@@ -17,8 +20,8 @@ function renderFinance(){
     const k = (o.bookingDate+'').slice(0,7);
     if(!months[k]) months[k] = {count:0, deposit:0, total:0, refund:0, confirmed:0};
     months[k].count++;
-    months[k].deposit += Number(o.deposit)||0;
-    months[k].total += totalAmount(o);
+    months[k].deposit += paidDepositOf(o);
+    months[k].total += displayTotalOf(o);
     months[k].refund += Number(o.refundAmount)||0;
     if(o.confirmed) months[k].confirmed++;
   });
