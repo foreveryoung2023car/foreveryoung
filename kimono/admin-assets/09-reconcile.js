@@ -39,9 +39,7 @@ function reconcileAmounts(o) {
   const total = typeof orderDisplayTotal === 'function'
     ? orderDisplayTotal(o)
     : Math.max(0, kimonoPrice + hairFee + photoFee - discountRefund);
-  const balance = typeof orderDisplayBalance === 'function'
-    ? orderDisplayBalance(o)
-    : Math.max(0, total - deposit - actualReceived);
+  const balance = Math.max(0, total - deposit - actualReceived);
   const platformFee = (kimonoPrice - discountRefund) * 0.5;
   const storeBalance = total - platformFee;
   return {
