@@ -377,9 +377,8 @@ function updateCalc() {
   const price = Number(document.getElementById('e-price').value) || 0;
   const hair = Number(document.getElementById('e-hair-fee').value) || 0;
   const photo = Number(document.getElementById('e-photo-fee').value) || 0;
-  const deposit = Number(document.getElementById('e-deposit').value) || 0;
+  const paidDeposit = Number(document.getElementById('e-deposit').value) || 0;
   const refundAmount = Number(document.getElementById('e-refund-amt').value) || 0;
-  const paidDeposit = Math.max(0, deposit - refundAmount);
   const discountRefund = Number(document.getElementById('e-discount-refund-amount').value) || 0;
   const storeActualInput = document.getElementById('e-store-actual-received');
   const onsite = Math.max(0, price + hair + photo - discountRefund);
@@ -397,6 +396,7 @@ function updateCalc() {
   const storeBalance = useStoredBalance
     ? (orderStatusOf(editingOrder) === 'completed' ? 0 : storedBalance)
     : Math.max(0, afterDep - storeActualReceived);
+  document.getElementById('e-deposit-display').textContent = '¥' + paidDeposit.toLocaleString();
   document.getElementById('calc-due').textContent = onsite ? fmtY0(onsite) : '—';
   document.getElementById('calc-net').textContent = onsite ? fmtY0(afterDep) : '—';
   document.getElementById('calc-store-balance').textContent = fmtY0(storeBalance);
