@@ -387,15 +387,7 @@ function updateCalc() {
     storeActualInput.value = String(afterDep);
   }
   const storeActualReceived = Number(storeActualInput && storeActualInput.value) || 0;
-  const storedBalance = Number(document.getElementById('calc-store-balance').dataset.savedValue || 0);
-  const currentSignature = [price, hair, photo, paidDeposit, refundAmount, discountRefund, storeActualReceived].join('|');
-  const savedSignature = document.getElementById('calc-store-balance').dataset.savedSignature || '';
-  const useStoredBalance = editingOrder
-    && ['balance_due', 'completed'].includes(orderStatusOf(editingOrder))
-    && currentSignature === savedSignature;
-  const storeBalance = useStoredBalance
-    ? (orderStatusOf(editingOrder) === 'completed' ? 0 : storedBalance)
-    : Math.max(0, afterDep - storeActualReceived);
+  const storeBalance = Math.max(0, afterDep - storeActualReceived);
   document.getElementById('e-deposit-display').textContent = '¥' + paidDeposit.toLocaleString();
   document.getElementById('calc-due').textContent = onsite ? fmtY0(onsite) : '—';
   document.getElementById('calc-net').textContent = onsite ? fmtY0(afterDep) : '—';
