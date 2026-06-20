@@ -593,9 +593,7 @@ function orderDisplayTotal(o) {
 }
 
 function orderDisplayBalance(o) {
-  const status = orderStatusOf(o);
   const actualReceived = o && o.storeActualReceived !== undefined ? o.storeActualReceived : o && o.storeActualReceivedJpy;
-  if (status === 'completed') return 0;
   return Math.max(0,
     orderDisplayTotal(o)
     - orderPaidDeposit(o)
@@ -820,6 +818,7 @@ function renderOrders(orders){
 
     const total = orderDisplayTotal(o);
     const due = orderDisplayBalance(o);
+    const paidFull = isPaidFull(o) && due <= 0;
     const days = (function(){if(!o.bookingDate)return null;const d=parseBookingDate(o.bookingDate);if(!d)return null;const t=new Date();t.setHours(0,0,0,0);const dd=new Date(d.getFullYear(),d.getMonth(),d.getDate());return Math.round((dd-t)/86400000);})();
     const daysTag = days!==null && !isNaN(days) ? (days<0? '<span class="pill bg-slate-200 text-slate-700">已過 '+Math.abs(days)+' 天</span>' : days===0? '<span class="pill bg-amber-100 text-amber-800">📍 今天到店</span>' : days<=3? '<span class="pill bg-amber-100 text-amber-800">⏰ 剩 '+days+' 天</span>' : '<span class="pill bg-blue-100 text-blue-800">剩 '+days+' 天</span>') : '';
 
@@ -850,7 +849,7 @@ function renderOrders(orders){
             '<div class="summary-row summary-row-money">'+
               '<div class="summary-item"><div class="summary-label">已付定金</div><div class="summary-value">'+fmtY(orderPaidDeposit(o))+'</div></div>'+
               '<div class="summary-item"><div class="summary-label">總價</div><div class="summary-value">'+fmtY(total)+'</div></div>'+
-              '<div class="summary-item"><div class="summary-label">待收尾款</div><div class="summary-value '+(isPaidFull(o)?'text-emerald-700 line-through':(due>0?'text-amber-700':'text-emerald-700'))+'">'+(isPaidFull(o)?'¥0 ✓':fmtY(due))+'</div></div>'+
+              '<div class="summary-item"><div class="summary-label">待收尾款</div><div class="summary-value '+(paidFull?'text-emerald-700 line-through':(due>0?'text-amber-700':'text-emerald-700'))+'">'+(paidFull?'¥0 ✓':fmtY(due))+'</div></div>'+
             '</div>'+
             (!storeRole ? '<div class="summary-row summary-row-contact">'+
               '<div class="summary-item"><div class="summary-label">電話</div><div class="summary-value compact phone-value">' + (o.phone? '<a href="tel:'+o.phone+'" class="text-[#1A365D] hover:underline">'+o.phone+'</a><button onclick="event.stopPropagation();navigator.clipboard.writeText(\''+o.phone+'\').then(()=>toast(\'已複製電話\'))" class="text-[10px] px-1 bg-slate-100 hover:bg-slate-200 rounded flex-shrink-0" title="複製">📋</button>' : '—') + '</div></div>'+
