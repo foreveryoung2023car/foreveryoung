@@ -581,15 +581,25 @@ function syncOrderViewIndicator(mode){
 function getOrderView(){ try{ return localStorage.getItem('orders_view') || 'list'; }catch(e){ return 'list'; } }
 
 function orderDisplayTotal(o) {
+  const hasItemizedAmount = !!(o && (
+    o.price !== undefined ||
+    o.kimonoPrice !== undefined ||
+    o.hairFee !== undefined ||
+    o.photoFee !== undefined ||
+    o.discountRefundAmount !== undefined
+  ));
+  if (hasItemizedAmount) {
+    return Math.max(0,
+      Number(o.price || o.kimonoPrice || 0)
+      + Number(o.hairFee || 0)
+      + Number(o.photoFee || 0)
+      - Number(o.discountRefundAmount || 0)
+    );
+  }
   if (Number.isFinite(Number(o && o.totalJpy)) && Number(o.totalJpy) > 0) {
     return Number(o.totalJpy);
   }
-  return Math.max(0,
-    Number(o.price || o.kimonoPrice || 0)
-    + Number(o.hairFee || 0)
-    + Number(o.photoFee || 0)
-    - Number(o.discountRefundAmount || 0)
-  );
+  return 0;
 }
 
 function orderDisplayBalance(o) {
