@@ -5,6 +5,6 @@ import { listAuditLogs } from "../services/audit.js";
 
 export const getAuditLogs = onRequest({ region: "asia-northeast1", cors: true }, (req, res) => handleHttp(req, res, async () => {
   requireMethod(req, "GET");
-  await requirePermission(req, "audit:read");
-  return listAuditLogs(Number(req.query.limit || 200));
+  const actor = await requirePermission(req, "audit:read");
+  return listAuditLogs(Number(req.query.limit || 200), actor);
 }));

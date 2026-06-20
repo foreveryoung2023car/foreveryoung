@@ -181,12 +181,19 @@ function renderReconcile(){
   const status = document.getElementById('recon-status').value;
   const firebaseRole = localStorage.getItem('admin_firebaseRole') || '';
   const showStoreColumn = firebaseRole === 'head_store_manager';
+  const brandEl = document.getElementById('recon-brand');
+  const brand = brandEl ? brandEl.value : 'all';
+  if (brandEl) {
+    brandEl.classList.toggle('hidden', !canSeeMultipleBrandPlatforms());
+    if (!canSeeMultipleBrandPlatforms()) brandEl.value = 'all';
+  }
   let list = allOrders.slice();
   // v2.5: 店家身份只看自己門市的對帳，agent 看全部
   if (currentRole === 'store' && firebaseRole !== 'head_store_manager' && currentStoreKey) {
     list = list.filter(o => orderBelongsToStore(o, currentStoreKey));
   }
   if(month && month!=='all') list = list.filter(o=>bookingMonth(o)===month);
+  if(brand && brand!=='all') list = list.filter(o=>orderBrandPlatform(o)===brand);
 
   // 計算對帳狀態
   list = list.map(o=>{
@@ -253,15 +260,16 @@ function renderReconcile(){
     }
     return;
   }
+  const brandHeader = canSeeMultipleBrandPlatforms() ? '<th>平台</th>' : '';
   tbl.innerHTML = '<table class="data-table"><thead><tr>'+
     (currentRole === 'store'
-      ? '<th>狀態</th>' + (showStoreColumn ? '<th>門市</th>' : '') + '<th>訂單號</th><th>客戶</th><th>體驗日期</th>'+
+      ? '<th>狀態</th>' + (showStoreColumn ? '<th>門市</th>' : '') + '<th>訂單號</th>' + brandHeader + '<th>客戶</th><th>體驗日期</th>'+
         '<th class="num">已收訂金</th><th class="num">和服原價</th>'+
         '<th class="num">妝髮費</th><th class="num">攝影費</th>'+
         '<th class="num">折扣與退款</th><th class="num">總價</th>'+
         '<th class="num">實際收款</th><th class="num">平台費</th>'+
         '<th class="num">店鋪利潤</th><th class="num">需付平台</th>'
-      : '<th>狀態</th><th>訂單號</th><th>客戶</th><th>體驗日期</th>'+
+      : '<th>狀態</th><th>訂單號</th>' + brandHeader + '<th>客戶</th><th>體驗日期</th>'+
         '<th class="num">已收訂金</th><th class="num">和服原價</th>'+
         '<th class="num">折扣與退款</th><th class="num">總價</th>'+
         '<th class="num">店鋪實收</th><th class="num">尾款</th>'+
@@ -275,6 +283,7 @@ function renderReconcile(){
         '<td>'+renderReconcileOrderStatus(o)+'</td>'+
         (showStoreColumn ? '<td class="font-mono text-sm whitespace-nowrap">'+adminEsc(o.storeKey || o.storeId || '—')+'</td>' : '')+
         '<td class="font-mono text-sm whitespace-nowrap">'+(o.orderId||'')+'</td>'+
+        (canSeeMultipleBrandPlatforms() ? '<td>'+platformBadge(o)+'</td>' : '')+
         '<td class="font-bold whitespace-nowrap">'+(o.name||'—')+'</td>'+
         '<td>'+fmtDate(o.bookingDate)+'</td>';
       const amountCells = currentRole === 'store'
@@ -304,20 +313,23 @@ function renderReconcile(){
 
 function exportReconCSV(){
   const month = document.getElementById('recon-month').value;
+  const brandEl = document.getElementById('recon-brand');
+  const brand = brandEl ? brandEl.value : 'all';
   let list = allOrders.slice();
   if (currentRole === 'store' && currentStoreKey) {
     list = list.filter(o => orderBelongsToStore(o, currentStoreKey));
   }
   if(month && month!=='all') list = list.filter(o=>bookingMonth(o)===month);
+  if(brand && brand!=='all') list = list.filter(o=>orderBrandPlatform(o)===brand);
   const headers = currentRole === 'store'
-    ? ['狀態','訂單號','客戶','體驗日期','已收訂金','和服原價','妝髮費','攝影費','折扣與退款','總價','實際收款','平台費','店鋪利潤','需付平台']
-    : ['狀態','訂單號','客戶','體驗日期','已收訂金','和服原價','折扣與退款','總價','店鋪實收','尾款','平台費','需收店鋪'];
+    ? ['平台','狀態','訂單號','客戶','體驗日期','已收訂金','和服原價','妝髮費','攝影費','折扣與退款','總價','實際收款','平台費','店鋪利潤','需付平台']
+    : ['平台','狀態','訂單號','客戶','體驗日期','已收訂金','和服原價','折扣與退款','總價','店鋪實收','尾款','平台費','需收店鋪'];
   const rows = list.map(o=>{
     const st = reconcileOrderStatusLabel(o);
     const amount = reconcileAmounts(o);
     return currentRole === 'store'
-      ? [st, o.orderId, o.name, fmtDate(o.bookingDate), amount.deposit, amount.kimonoPrice, amount.hairFee, amount.photoFee, amount.discountRefund, amount.total, amount.actualReceived, amount.platformFee, amount.storeBalance, amount.platformPayable]
-      : [st, o.orderId, o.name, fmtDate(o.bookingDate), amount.deposit, amount.kimonoPrice, amount.discountRefund, amount.total, amount.actualReceived, amount.balance, amount.platformFee, shouldShowStoreReceivable(o) ? amount.storeReceivable : ''];
+      ? [platformLabel(orderBrandPlatform(o)), st, o.orderId, o.name, fmtDate(o.bookingDate), amount.deposit, amount.kimonoPrice, amount.hairFee, amount.photoFee, amount.discountRefund, amount.total, amount.actualReceived, amount.platformFee, amount.storeBalance, amount.platformPayable]
+      : [platformLabel(orderBrandPlatform(o)), st, o.orderId, o.name, fmtDate(o.bookingDate), amount.deposit, amount.kimonoPrice, amount.discountRefund, amount.total, amount.actualReceived, amount.balance, amount.platformFee, shouldShowStoreReceivable(o) ? amount.storeReceivable : ''];
   });
   const csv = [headers, ...rows].map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\n');
   const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});

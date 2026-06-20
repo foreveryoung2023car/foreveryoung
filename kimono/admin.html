@@ -373,6 +373,15 @@
               </select>
               <p id="emp-store-hint" class="text-[10px] text-slate-400 mt-1">綁定店鋪後，該帳號只能查看/操作該店鋪資料</p>
             </div>
+            <div id="emp-platform-row" class="hidden">
+              <label class="block text-xs font-bold text-slate-600 mb-1">可查看訂單平台</label>
+              <select id="new-emp-platform" class="input-field w-full">
+                <option value="both">旅乘 + 樂禾</option>
+                <option value="foreveryoung">只看旅乘</option>
+                <option value="japan-go">只看樂禾</option>
+              </select>
+              <p id="emp-platform-hint" class="text-[10px] text-slate-400 mt-1">受限管理者新增帳號時，平台範圍會自動沿用自己的限制</p>
+            </div>
             <div id="emp-err" class="hidden text-red-600 text-sm"></div>
             <div class="flex gap-2 pt-3">
               <button onclick="closeAddEmployeeModal()" class="flex-1 py-2 border-2 border-slate-200 hover:border-slate-400 rounded font-bold text-sm text-slate-600">取消</button>
@@ -498,6 +507,11 @@
           <option value="refunding">退款中</option>
           <option value="refunded">已退款</option>
           <option value="cancelled">已取消</option>
+        </select>
+        <select id="recon-brand" class="input-field !w-auto hidden" onchange="renderReconcile()" title="訂單平台">
+          <option value="all">全部平台</option>
+          <option value="foreveryoung">旅乘訂單</option>
+          <option value="japan-go">樂禾訂單</option>
         </select>
         <button onclick="exportReconCSV()" class="btn-outline px-4 py-2 rounded-xl text-sm">📥 匯出對帳</button>
         <button id="auto-reconcile-btn" onclick="runAutoReconcile()" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-bold" title="從収款辨識分頁自動配對銀行入帳到訂單（限 Jun）">🤖 自動配對銀行入帳</button>

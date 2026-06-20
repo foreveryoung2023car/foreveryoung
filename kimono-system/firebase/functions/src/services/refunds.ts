@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { db, FieldValue } from "../lib/firebase.js";
-import { assertTransition, HttpError, resolveOrderStatus } from "../lib/constants.js";
+import { assertTransition, HttpError, orderBrandPlatform, platformAccessContains, resolveOrderStatus } from "../lib/constants.js";
 import type { AuthContext } from "../lib/auth.js";
 import { writeAuditLog } from "../lib/audit.js";
 
@@ -21,6 +21,9 @@ export async function requestRefund(orderId: string, raw: unknown, actor?: AuthC
     const orderSnap = await tx.get(orderRef);
     if (!orderSnap.exists) throw new HttpError(404, "Order not found");
     const before = orderSnap.data()!;
+    if (actor && !platformAccessContains(actor.platformAccess, orderBrandPlatform(before))) {
+      throw new HttpError(403, "Order belongs to another platform");
+    }
     assertTransition(resolveOrderStatus(before), "refund_requested");
     const refundRef = db.collection("refundRequests").doc();
     const refund = {

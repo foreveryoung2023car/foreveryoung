@@ -17,6 +17,7 @@ type ResendMessageInput = {
   text: string;
   html?: string;
   replyTo?: string;
+  fromName?: string;
 };
 
 function getSecretValue(secret: { value: () => string }, name: string) {
@@ -27,7 +28,7 @@ function getSecretValue(secret: { value: () => string }, name: string) {
 
 export async function sendResendMessage(input: ResendMessageInput) {
   const fromEmail = getSecretValue(resendFromEmail, "RESEND_FROM_EMAIL");
-  const fromName = resendFromName.value() || "Foreveryoung Kimono";
+  const fromName = input.fromName || resendFromName.value() || "Foreveryoung Kimono";
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {

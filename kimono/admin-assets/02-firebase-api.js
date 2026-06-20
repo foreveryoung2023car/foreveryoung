@@ -6,6 +6,50 @@ function getFirebaseProjectId() {
   return (KIMONO_CONFIG && KIMONO_CONFIG.FIREBASE_CONFIG && KIMONO_CONFIG.FIREBASE_CONFIG.projectId) || 'foreveryoung-kimono-prod';
 }
 
+const BRAND_PLATFORM_LABELS = {
+  'foreveryoung': '旅乘',
+  'japan-go': '樂禾'
+};
+
+function normalizeBrandPlatform(value) {
+  const raw = String(value || '').trim().toLowerCase();
+  if (raw === 'japan-go' || raw === 'japango' || raw === '樂禾' || raw === '楽禾') return 'japan-go';
+  return 'foreveryoung';
+}
+
+function normalizePlatformAccess(value) {
+  if (!Array.isArray(value)) return ['foreveryoung', 'japan-go'];
+  const out = [];
+  value.forEach(v => {
+    const p = normalizeBrandPlatform(v);
+    if (out.indexOf(p) < 0) out.push(p);
+  });
+  return out.length ? out : ['foreveryoung', 'japan-go'];
+}
+
+function currentBrandPlatform() {
+  return normalizeBrandPlatform((KIMONO_CONFIG && KIMONO_CONFIG.BRAND_PLATFORM) || 'foreveryoung');
+}
+
+function orderBrandPlatform(order) {
+  return normalizeBrandPlatform(order && (order.brandPlatform || order.platformBrand));
+}
+
+function platformLabel(platform) {
+  return BRAND_PLATFORM_LABELS[normalizeBrandPlatform(platform)] || platform;
+}
+
+function platformBadge(order) {
+  if (!canSeeMultipleBrandPlatforms()) return '';
+  const platform = orderBrandPlatform(order);
+  const cls = platform === 'japan-go' ? 'bg-teal-100 text-teal-800' : 'bg-amber-100 text-amber-800';
+  return '<span class="pill ' + cls + '">' + platformLabel(platform) + '</span>';
+}
+
+function canSeeMultipleBrandPlatforms() {
+  return normalizePlatformAccess(currentPlatformAccess).length > 1;
+}
+
 function ensureFirebaseAdminApp() {
   if (!useFirebaseAdmin()) return null;
   const cfg = KIMONO_CONFIG.FIREBASE_CONFIG || {};
@@ -30,7 +74,8 @@ async function firebaseSignInAdmin(email, password) {
     displayName: profile.displayName || user.displayName || user.email || email,
     firebaseRole: profile.role || 'readonly',
     role: firebaseRoleToAdminRole(profile.role),
-    storeKey: profile.storeId || profile.storeKey || ''
+    storeKey: profile.storeId || profile.storeKey || '',
+    platformAccess: normalizePlatformAccess(profile.platformAccess)
   };
 }
 
@@ -153,6 +198,7 @@ function firestoreOrderToAdminOrder(doc) {
     bookingDate: data.bookingAt || '',
     submitDate: data.createdAt || '',
     platform: data.platform || '',
+    brandPlatform: orderBrandPlatform(data),
     source: data.source || '',
     storeKey: data.storeId || '',
     adults: Number(data.adults || 0),

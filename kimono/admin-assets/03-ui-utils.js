@@ -25,12 +25,13 @@ function showLogin() {
   if (useFirebaseAdmin() && window.firebase && firebase.apps.length && firebase.auth().currentUser) {
     firebase.auth().signOut().catch(()=>{});
   }
-  currentAgent = ''; adminToken = ''; currentRole = 'agent'; currentStoreKey = ''; currentFirebaseUid = '';
+  currentAgent = ''; adminToken = ''; currentRole = 'agent'; currentStoreKey = ''; currentPlatformAccess = ['foreveryoung', 'japan-go']; currentFirebaseUid = '';
   localStorage.removeItem('admin_agent');
   localStorage.removeItem('admin_token');
   localStorage.removeItem('admin_role');
   localStorage.removeItem('admin_firebaseRole');
   localStorage.removeItem('admin_storeKey');
+  localStorage.removeItem('admin_platformAccess');
   localStorage.removeItem('admin_uid');
 }
 
@@ -48,6 +49,8 @@ async function doLogin() {
       currentFirebaseUid = data.user.uid;
       localStorage.setItem('admin_uid', currentFirebaseUid);
       localStorage.setItem('admin_firebaseRole', data.firebaseRole || 'readonly');
+      currentPlatformAccess = normalizePlatformAccess(data.platformAccess);
+      localStorage.setItem('admin_platformAccess', JSON.stringify(currentPlatformAccess));
       enterDashboard(data.displayName, data.token, data.role, data.storeKey);
       return;
     }
@@ -87,6 +90,7 @@ function enterDashboard(name, token, role, storeKey) {
   adminToken = token || '';
   currentRole = role || 'agent';
   currentStoreKey = storeKey || '';
+  try { currentPlatformAccess = normalizePlatformAccess(JSON.parse(localStorage.getItem('admin_platformAccess') || 'null')); } catch(e) { currentPlatformAccess = ['foreveryoung', 'japan-go']; }
   localStorage.setItem('admin_agent', name);
   if (adminToken) localStorage.setItem('admin_token', adminToken);
   localStorage.setItem('admin_role', currentRole);
@@ -140,6 +144,8 @@ function orderBelongsToStore(o, storeKey) {
 }
 
 function filterOrdersForRole(list) {
+  const platformAccess = normalizePlatformAccess(currentPlatformAccess);
+  list = (list || []).filter(o => platformAccess.indexOf(orderBrandPlatform(o)) >= 0);
   if (currentRole !== 'store') return list;
   const firebaseRole = localStorage.getItem('admin_firebaseRole') || '';
   if (firebaseRole === 'head_store_manager') return list.filter(isConfirmedOrderForStore);
@@ -262,6 +268,8 @@ function applyRolePermissions() {
           currentFirebaseUid = user.uid;
           localStorage.setItem('admin_uid', currentFirebaseUid);
           localStorage.setItem('admin_firebaseRole', profile.role || 'readonly');
+          currentPlatformAccess = normalizePlatformAccess(profile.platformAccess);
+          localStorage.setItem('admin_platformAccess', JSON.stringify(currentPlatformAccess));
           enterDashboard(profile.displayName || user.displayName || user.email || 'Admin', token, firebaseRoleToAdminRole(profile.role), profile.storeId || profile.storeKey || '');
         } catch (e) {
           console.warn('[Firebase Auth] auto login failed', e);

@@ -1,6 +1,17 @@
 import { z } from "zod";
 import { FieldValue, Timestamp, db } from "../lib/firebase.js";
-import { HttpError, assertTransition, resolveOrderStatus, type OrderStatus } from "../lib/constants.js";
+import {
+  brandPlatforms,
+  defaultBrandPlatform,
+  HttpError,
+  assertTransition,
+  normalizeBrandPlatform,
+  orderBrandPlatform,
+  platformAccessContains,
+  resolveOrderStatus,
+  type BrandPlatform,
+  type OrderStatus
+} from "../lib/constants.js";
 import type { AuthContext } from "../lib/auth.js";
 import { writeAuditLog } from "../lib/audit.js";
 import { getIdempotentResponse, rememberIdempotentResponse } from "../lib/idempotency.js";
@@ -24,6 +35,7 @@ export const createPublicOrderSchema = z.object({
   photo: z.boolean().optional(),
   source: z.string().optional(),
   platform: z.string().optional(),
+  brandPlatform: z.enum(brandPlatforms).optional(),
   couponCode: z.string().optional(),
   discountRate: z.number().optional(),
   depositJpy: z.number().int().optional(),
@@ -57,6 +69,7 @@ export const updateOrderByStaffSchema = z.object({
   children: z.number().int().min(0).optional(),
   plan: z.string().optional(),
   platform: z.string().optional(),
+  brandPlatform: z.enum(brandPlatforms).optional(),
   hair: z.boolean().optional(),
   photo: z.boolean().optional(),
   depositJpy: z.number().int().min(0).optional(),
@@ -92,6 +105,7 @@ export const createWalkInOrderSchema = z.object({
   plan: z.string().optional(),
   hair: z.boolean().optional(),
   photo: z.boolean().optional(),
+  brandPlatform: z.enum(brandPlatforms).optional(),
   discountRate: z.number().optional(),
   kimonoPriceJpy: z.number().int().min(0).default(0),
   hairFeeJpy: z.number().int().min(0).default(0),
@@ -144,9 +158,28 @@ function sanitizeStoreOrderMutationResponse<T extends Record<string, unknown>>(o
 }
 
 function assertOrderAccess(order: FirebaseFirestore.DocumentData, actor: AuthContext) {
+  if (!platformAccessContains(actor.platformAccess, orderBrandPlatform(order))) {
+    throw new HttpError(403, "Order belongs to another platform");
+  }
   if (!isStoreScopedActor(actor)) return;
   if (!actor.storeId) throw new HttpError(403, "Store user has no storeId");
   if (order.storeId !== actor.storeId) throw new HttpError(403, "Order belongs to another store");
+}
+
+function actorCanAccessOrder(order: FirebaseFirestore.DocumentData, actor: AuthContext) {
+  if (!platformAccessContains(actor.platformAccess, orderBrandPlatform(order))) return false;
+  if (!isStoreScopedActor(actor)) return true;
+  if (!actor.storeId) return false;
+  return order.storeId === actor.storeId;
+}
+
+function brandPlatformForActorInput(actor: AuthContext, input?: BrandPlatform) {
+  if (actor.platformAccess.length === 1) return actor.platformAccess[0];
+  const platform = normalizeBrandPlatform(input || defaultBrandPlatform);
+  if (!platformAccessContains(actor.platformAccess, platform)) {
+    throw new HttpError(403, "Cannot create order for another platform");
+  }
+  return platform;
 }
 
 function normalizeDigits(value: unknown) {
@@ -253,6 +286,7 @@ function toAdminOrderResponse(orderId: string, order: FirebaseFirestore.Document
     bookingDate: timestampToIso(order.bookingAt),
     submitDate: timestampToIso(order.createdAt),
     platform: order.platform || "",
+    brandPlatform: orderBrandPlatform(order),
     source: order.source || "",
     storeKey: order.storeId || "",
     adults,
@@ -311,6 +345,7 @@ export async function listOrders(raw: unknown, actor: AuthContext) {
 
   const snap = await query.get();
   const orders = snap.docs
+    .filter((doc) => actorCanAccessOrder(doc.data(), actor))
     .filter((doc) => !isStoreOrderActor(actor) || storeVisibleOrderStatuses.includes(resolveOrderStatus(doc.data())))
     .map((doc) => {
       const order = toAdminOrderResponse(doc.id, doc.data());
@@ -397,6 +432,7 @@ export async function createPublicOrder(raw: unknown) {
       photo: input.photo || false,
       source: input.source || "web",
       platform: input.platform || "LINE",
+      brandPlatform: normalizeBrandPlatform(input.brandPlatform || defaultBrandPlatform),
       couponCode: input.couponCode || "",
       discountRate: input.discountRate || 10,
       depositJpy: input.depositJpy || 0,
@@ -477,6 +513,7 @@ export async function createWalkInOrder(raw: unknown, actor: AuthContext) {
       photo: input.photo || false,
       source: "walk-in",
       platform: storeId ? `walk-in:${storeId}` : "walk-in",
+      brandPlatform: brandPlatformForActorInput(actor, input.brandPlatform),
       couponCode: "",
       discountRate: input.discountRate || 10,
       depositJpy: 0,
@@ -579,6 +616,10 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
     if (input.children !== undefined) patch.children = input.children;
     if (input.plan !== undefined) patch.plan = input.plan;
     if (input.platform !== undefined) patch.platform = input.platform;
+    if (input.brandPlatform !== undefined) {
+      if (!platformAccessContains(actor.platformAccess, input.brandPlatform)) throw new HttpError(403, "Cannot move order to another platform");
+      patch.brandPlatform = input.brandPlatform;
+    }
     if (input.hair !== undefined) patch.hair = input.hair;
     if (input.photo !== undefined) patch.photo = input.photo;
     if (input.depositJpy !== undefined) patch.depositJpy = input.depositJpy;

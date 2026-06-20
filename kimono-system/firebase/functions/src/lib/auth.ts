@@ -1,6 +1,6 @@
 import type { Request } from "express";
 import { auth, db } from "./firebase.js";
-import { hasPermission, HttpError, type Permission, type Role } from "./constants.js";
+import { hasPermission, HttpError, normalizePlatformAccess, type BrandPlatform, type Permission, type Role } from "./constants.js";
 
 export type AuthContext = {
   uid: string;
@@ -8,6 +8,7 @@ export type AuthContext = {
   displayName: string;
   role: Role;
   storeId?: string | null;
+  platformAccess: BrandPlatform[];
 };
 
 export async function requireAuth(req: Request): Promise<AuthContext> {
@@ -22,7 +23,8 @@ export async function requireAuth(req: Request): Promise<AuthContext> {
     email: decoded.email || user.email || "",
     displayName: user.displayName || decoded.name || decoded.email || decoded.uid,
     role: user.role,
-    storeId: user.storeId || user.storeKey || null
+    storeId: user.storeId || user.storeKey || null,
+    platformAccess: normalizePlatformAccess(user.platformAccess)
   };
 }
 

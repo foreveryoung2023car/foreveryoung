@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { FieldValue, Timestamp, db } from "../lib/firebase.js";
-import { HttpError } from "../lib/constants.js";
+import { HttpError, orderBrandPlatform, platformAccessContains, type BrandPlatform } from "../lib/constants.js";
 import type { AuthContext } from "../lib/auth.js";
 import { writeAuditLog } from "../lib/audit.js";
 import { sendResendMessage } from "../lib/resend.js";
@@ -18,6 +18,7 @@ type RenderedEmail = {
   subject: string;
   text: string;
   html?: string;
+  fromName?: string;
 };
 
 type StoreContact = {
@@ -49,103 +50,128 @@ const emailActionMap: Record<EmailKind, { sent: string; failed: string; message:
   }
 };
 
-const defaultTemplates: Record<EmailKind, EmailTemplate> = {
-  confirm: {
-    subject: "【Foreveryoung 和服體驗】訂單確認 {{orderNo}}",
-    text: [
-      "{{name}} 您好：",
-      "",
-      "您的和服體驗預約已確認，資訊如下：",
-      "訂單編號：{{orderNo}}",
-      "體驗日期：{{bookingAt}} (JST)",
-      "人數：{{guests}}",
-      "預約店鋪：{{storeName}}",
-      "店鋪地址：{{storeAddress}}",
-      "店鋪電話：{{storePhone}}",
-      "方案：{{plan}}",
-      "妝髮：{{hair}}",
-      "攝影：{{photo}}",
-      "總額：{{total}}",
-      "已收訂金：{{deposit}}",
-      "現場應收：{{onsiteDue}}",
-      "",
-      "如需更改、取消或有任何問題，請直接聯繫客服。",
-      "",
-      "Foreveryoung 旅乘"
-    ].join("\n")
+type BrandEmailProfile = {
+  fromName: string;
+  signature: string;
+  subjectBrand: string;
+};
+
+const brandEmailProfiles: Record<BrandPlatform, BrandEmailProfile> = {
+  foreveryoung: {
+    fromName: "Foreveryoung Kimono",
+    signature: "Foreveryoung 旅乘",
+    subjectBrand: "Foreveryoung"
   },
-  refund_confirmed: {
-    subject: "【Foreveryoung 和服體驗】退款完成通知 {{orderNo}}",
-    text: [
-      "{{name}} 您好：",
-      "",
-      "您的退款已完成處理，資訊如下：",
-      "訂單編號：{{orderNo}}",
-      "體驗日期：{{bookingAt}} (JST)",
-      "人數：{{guests}}",
-      "預約店鋪：{{storeName}}",
-      "店鋪地址：{{storeAddress}}",
-      "店鋪電話：{{storePhone}}",
-      "退款金額：{{refundAmount}}",
-      "退款時間：{{refundTime}}",
-      "退款說明：{{refundReason}}",
-      "",
-      "款項實際入帳時間可能依銀行作業而略有延遲。",
-      "",
-      "Foreveryoung 旅乘"
-    ].join("\n")
-  },
-  booking_reminder: {
-    subject: "【Foreveryoung 和服體驗】明日預約提醒 {{orderNo}}",
-    text: [
-      "{{name}} 您好：",
-      "",
-      "提醒您明天有和服體驗預約：",
-      "訂單編號：{{orderNo}}",
-      "體驗日期：{{bookingAt}} (JST)",
-      "人數：{{guests}}",
-      "預約店鋪：{{storeName}}",
-      "店鋪地址：{{storeAddress}}",
-      "店鋪電話：{{storePhone}}",
-      "方案：{{plan}}",
-      "妝髮：{{hair}}",
-      "攝影：{{photo}}",
-      "現場應收：{{onsiteDue}}",
-      "",
-      "請依預約時間前來。如需調整，請提前聯繫客服。",
-      "",
-      "Foreveryoung 旅乘"
-    ].join("\n")
-  },
-  proof_received: {
-    subject: "【Foreveryoung 和服體驗】消費明細 {{orderNo}}",
-    text: [
-      "{{name}} 您好：",
-      "",
-      "感謝您今日蒞臨 Foreveryoung 體驗和服，希望這次體驗為您的旅程留下美好回憶。",
-      "以下是本次消費明細：",
-      "訂單編號：{{orderNo}}",
-      "體驗日期：{{bookingAt}} (JST)",
-      "人數：{{guests}}",
-      "預約店鋪：{{storeName}}",
-      "店鋪地址：{{storeAddress}}",
-      "店鋪電話：{{storePhone}}",
-      "已收訂金：{{deposit}}",
-      "和服價格：{{kimonoPrice}}",
-      "妝髮費：{{hairFee}}",
-      "攝影費：{{photoFee}}",
-      "折扣與退款：{{discountRefundAmount}}",
-      "總價：{{total}}",
-      "店內付款：{{storeActualReceived}}",
-      "尾款：{{balanceDue}}",
-      "",
-      "再次感謝您的光臨，祝您旅途愉快、平安順心，期待下次再為您服務。",
-      "",
-      "Foreveryoung 旅乘"
-    ].join("\n")
+  "japan-go": {
+    fromName: "Japan Go Kimono",
+    signature: "Japan Go 樂禾",
+    subjectBrand: "Japan Go"
   }
 };
 
+function makeDefaultTemplates(profile: BrandEmailProfile): Record<EmailKind, EmailTemplate> {
+  return {
+    confirm: {
+      subject: `【${profile.subjectBrand} 和服體驗】訂單確認 {{orderNo}}`,
+      text: [
+        "{{name}} 您好：",
+        "",
+        "您的和服體驗預約已確認，資訊如下：",
+        "訂單編號：{{orderNo}}",
+        "體驗日期：{{bookingAt}} (JST)",
+        "人數：{{guests}}",
+        "預約店鋪：{{storeName}}",
+        "店鋪地址：{{storeAddress}}",
+        "店鋪電話：{{storePhone}}",
+        "方案：{{plan}}",
+        "妝髮：{{hair}}",
+        "攝影：{{photo}}",
+        "總額：{{total}}",
+        "已收訂金：{{deposit}}",
+        "現場應收：{{onsiteDue}}",
+        "",
+        "如需更改、取消或有任何問題，請直接聯繫客服。",
+        "",
+        profile.signature
+      ].join("\n")
+    },
+    refund_confirmed: {
+      subject: `【${profile.subjectBrand} 和服體驗】退款完成通知 {{orderNo}}`,
+      text: [
+        "{{name}} 您好：",
+        "",
+        "您的退款已完成處理，資訊如下：",
+        "訂單編號：{{orderNo}}",
+        "體驗日期：{{bookingAt}} (JST)",
+        "人數：{{guests}}",
+        "預約店鋪：{{storeName}}",
+        "店鋪地址：{{storeAddress}}",
+        "店鋪電話：{{storePhone}}",
+        "退款金額：{{refundAmount}}",
+        "退款時間：{{refundTime}}",
+        "退款說明：{{refundReason}}",
+        "",
+        "款項實際入帳時間可能依銀行作業而略有延遲。",
+        "",
+        profile.signature
+      ].join("\n")
+    },
+    booking_reminder: {
+      subject: `【${profile.subjectBrand} 和服體驗】明日預約提醒 {{orderNo}}`,
+      text: [
+        "{{name}} 您好：",
+        "",
+        "提醒您明天有和服體驗預約：",
+        "訂單編號：{{orderNo}}",
+        "體驗日期：{{bookingAt}} (JST)",
+        "人數：{{guests}}",
+        "預約店鋪：{{storeName}}",
+        "店鋪地址：{{storeAddress}}",
+        "店鋪電話：{{storePhone}}",
+        "方案：{{plan}}",
+        "妝髮：{{hair}}",
+        "攝影：{{photo}}",
+        "現場應收：{{onsiteDue}}",
+        "",
+        "請依預約時間前來。如需調整，請提前聯繫客服。",
+        "",
+        profile.signature
+      ].join("\n")
+    },
+    proof_received: {
+      subject: `【${profile.subjectBrand} 和服體驗】消費明細 {{orderNo}}`,
+      text: [
+        "{{name}} 您好：",
+        "",
+        "感謝您今日蒞臨 {{brandName}} 體驗和服，希望這次體驗為您的旅程留下美好回憶。",
+        "以下是本次消費明細：",
+        "訂單編號：{{orderNo}}",
+        "體驗日期：{{bookingAt}} (JST)",
+        "人數：{{guests}}",
+        "預約店鋪：{{storeName}}",
+        "店鋪地址：{{storeAddress}}",
+        "店鋪電話：{{storePhone}}",
+        "已收訂金：{{deposit}}",
+        "和服價格：{{kimonoPrice}}",
+        "妝髮費：{{hairFee}}",
+        "攝影費：{{photoFee}}",
+        "折扣與退款：{{discountRefundAmount}}",
+        "總價：{{total}}",
+        "店內付款：{{storeActualReceived}}",
+        "尾款：{{balanceDue}}",
+        "",
+        "再次感謝您的光臨，祝您旅途愉快、平安順心，期待下次再為您服務。",
+        "",
+        profile.signature
+      ].join("\n")
+    }
+  };
+}
+
+const defaultTemplatesByBrand: Record<BrandPlatform, Record<EmailKind, EmailTemplate>> = {
+  foreveryoung: makeDefaultTemplates(brandEmailProfiles.foreveryoung),
+  "japan-go": makeDefaultTemplates(brandEmailProfiles["japan-go"])
+};
 export const sendOrderEmailSchema = z.object({
   orderId: z.string().min(1),
   email: z.string().email().optional()
@@ -213,6 +239,9 @@ function isStoreScopedActor(actor: AuthContext) {
 }
 
 function assertOrderAccess(order: FirebaseFirestore.DocumentData, actor: AuthContext) {
+  if (!platformAccessContains(actor.platformAccess, orderBrandPlatform(order))) {
+    throw new HttpError(403, "Order belongs to another platform");
+  }
   if (!isStoreScopedActor(actor)) return;
   if (!actor.storeId) throw new HttpError(403, "Store user has no storeId");
   if (order.storeId !== actor.storeId) throw new HttpError(403, "Order belongs to another store");
@@ -229,12 +258,15 @@ async function findOrder(orderNoOrId: string) {
   return { id: doc.id, data: doc.data() };
 }
 
-async function loadTemplate(kind: EmailKind) {
+async function loadTemplate(kind: EmailKind, brandPlatform: BrandPlatform) {
   const snap = await db.collection("settings").doc("emailTemplates").get();
-  const configured = snap.data()?.[kind] || {};
+  const settings = snap.data() || {};
+  const brandConfigured = settings[brandPlatform]?.[kind] || (brandPlatform === "japan-go" ? settings.japanGo?.[kind] : settings.foreveryoung?.[kind]) || {};
+  const legacyConfigured = brandPlatform === "foreveryoung" ? (settings[kind] || {}) : {};
   const template = {
-    ...defaultTemplates[kind],
-    ...configured
+    ...defaultTemplatesByBrand[brandPlatform][kind],
+    ...legacyConfigured,
+    ...brandConfigured
   } as EmailTemplate;
   return ensureRequiredTemplateLines(kind, template);
 }
@@ -302,9 +334,12 @@ async function loadStoreContact(storeId: unknown): Promise<StoreContact> {
 async function templateVariables(orderId: string, order: FirebaseFirestore.DocumentData) {
   const orderNo = order.orderNo || orderId;
   const store = await loadStoreContact(order.storeId);
+  const profile = brandEmailProfiles[orderBrandPlatform(order)];
   return {
     name: order.customerName || "貴賓",
     orderNo,
+    brandName: profile.subjectBrand,
+    brandSignature: profile.signature,
     bookingAt: formatJst(order.bookingAt),
     guests: guestLabel(order),
     storeName: store.name,
@@ -367,14 +402,15 @@ function textToHtml(text: string) {
 }
 
 async function buildOrderEmail(kind: EmailKind, orderId: string, order: FirebaseFirestore.DocumentData, to: string): Promise<RenderedEmail> {
-  const template = await loadTemplate(kind);
+  const brandPlatform = orderBrandPlatform(order);
+  const template = await loadTemplate(kind, brandPlatform);
   const vars = await templateVariables(orderId, order);
   const subject = renderString(template.subject, vars);
   const text = renderString(removeMissingStoreFields(template.text, vars, false), vars);
   const html = template.html
     ? renderString(removeMissingStoreFields(template.html, vars, true), vars)
     : textToHtml(text);
-  return { to, subject, text, html };
+  return { to, subject, text, html, fromName: brandEmailProfiles[brandPlatform].fromName };
 }
 
 function wait(ms: number) {

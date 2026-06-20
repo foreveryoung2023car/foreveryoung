@@ -3,6 +3,7 @@ let currentAgent = '';
 let adminToken = '';
 let currentRole = 'agent';      // v2.5: 'agent' (客服) | 'store' (店家)
 let currentStoreKey = '';       // v2.5: when role=store, this is the store identifier
+let currentPlatformAccess = ['foreveryoung', 'japan-go'];
 let currentFirebaseUid = '';
 let allOrders = [];
 let currentFilter = 'pending';  // v2.4.33: default to 待確認 for faster execution

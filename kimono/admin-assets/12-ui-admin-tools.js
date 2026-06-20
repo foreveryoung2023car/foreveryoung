@@ -358,6 +358,7 @@ function showMyPermissions(){
   const isJun = currentAgent === 'Jun';
   const isAgent = currentRole === 'agent';
   const isStore = currentRole === 'store';
+  const accessLabel = normalizePlatformAccess(currentPlatformAccess).map(platformLabel).join(' / ');
   const perms = [
     { label: '👀 看訂單', who: '客服全部 / 店家僅自己門市 walk-in', can: true },
     { label: '✏️ 編輯訂單', who: '客服 / 店家', can: true },
@@ -373,7 +374,7 @@ function showMyPermissions(){
     '<div class="modal-box" style="max-width:560px;height:auto;max-height:80vh;padding-top:72px">' +
     '<div class="mb-4 modal-title-block">' +
     '<h3 class="text-xl font-bold text-[#1A365D]">' + (isStore?'🏪':'👤') + ' ' + currentAgent + (isStore?' (店家)':'') + '</h3>' +
-    '<p class="text-sm text-slate-600 mt-1">角色：<b>' + (isStore?'店家':'客服') + '</b>' + (currentStoreKey?'｜門市：'+currentStoreKey:'') + '</p></div>' +
+    '<p class="text-sm text-slate-600 mt-1">角色：<b>' + (isStore?'店家':'客服') + '</b>' + (currentStoreKey?'｜門市：'+currentStoreKey:'') + '｜平台：' + accessLabel + '</p></div>' +
     '<h4 class="text-sm font-bold text-slate-700 mb-2 mt-2">我能做什麼</h4>' +
     '<div class="space-y-1 text-sm">' +
     perms.map(p => '<div class="flex items-center gap-2 p-2 rounded ' + (p.can?'bg-emerald-50':'bg-slate-100 opacity-60') + '">' +

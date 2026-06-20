@@ -755,7 +755,8 @@ function renderOrders(orders){
     if (empty) empty.classList.add('hidden');
     el.className = '';
     const statusHeader = '<th class="p-2 text-center">狀態</th>';
-    el.innerHTML = '<div class="overflow-x-auto bg-white rounded-lg border border-slate-200"><table class="w-full text-sm"><thead class="bg-slate-50 text-xs"><tr><th class="p-2 text-left">編號</th><th class="p-2 text-left">姓名</th><th class="p-2 text-left">門市</th><th class="p-2 text-left">體驗日</th><th class="p-2 text-center">人</th><th class="p-2 text-center">加值</th><th class="p-2 text-right">總價</th><th class="p-2 text-right">尾款</th>' + statusHeader + '<th class="p-2 text-right">動作</th></tr></thead><tbody>' + orders.map(o => {
+    const brandHeader = canSeeMultipleBrandPlatforms() ? '<th class="p-2 text-left">平台</th>' : '';
+    el.innerHTML = '<div class="overflow-x-auto bg-white rounded-lg border border-slate-200"><table class="w-full text-sm"><thead class="bg-slate-50 text-xs"><tr><th class="p-2 text-left">編號</th><th class="p-2 text-left">姓名</th>' + brandHeader + '<th class="p-2 text-left">門市</th><th class="p-2 text-left">體驗日</th><th class="p-2 text-center">人</th><th class="p-2 text-center">加值</th><th class="p-2 text-right">總價</th><th class="p-2 text-right">尾款</th>' + statusHeader + '<th class="p-2 text-right">動作</th></tr></thead><tbody>' + orders.map(o => {
       const bd = parseBookingDate(o.bookingDate) || new Date(o.bookingDate);
       const bdStr = bd && !isNaN(bd) ? ((bd.getMonth()+1) + '/' + bd.getDate() + ' ' + String(bd.getHours()).padStart(2,'0') + ':' + String(bd.getMinutes()).padStart(2,'0')) : '—';
       const hair = (o.hair===true||o.hair==='true'||o.hair==='是') ? '💆' : '';
@@ -764,7 +765,8 @@ function renderOrders(orders){
       const due = orderDisplayBalance(o);
       const statusCell = '<td class="p-2 text-center">' + renderOrderStatusControl(o, 'card') + '</td>';
       const visits = visitCountBadge(o, visitCounts, true);
-      return '<tr class="border-t hover:bg-slate-50"><td class="p-2 font-mono text-xs">' + (o.orderId||'') + '</td><td class="p-2 font-bold">' + (o.name||'—') + (visits ? ' ' + visits : '') + '</td><td class="p-2">' + (o.storeKey||'—') + '</td><td class="p-2 whitespace-nowrap">' + bdStr + '</td><td class="p-2 text-center">' + formatGuestCount(o) + '</td><td class="p-2 text-center">' + (hair+photo||'—') + '</td><td class="p-2 text-right font-bold">¥' + total.toLocaleString() + '</td><td class="p-2 text-right ' + (due>0?'text-amber-700 font-bold':'text-slate-400') + '">' + (due>0?'¥'+due.toLocaleString():'—') + '</td>' + statusCell + '<td class="p-2 text-right whitespace-nowrap"><button onclick="openEdit(\'' + o.orderId + '\')" class="px-2 py-1 bg-[#1A365D] text-white text-xs rounded">✏️</button></td></tr>';
+      const brandCell = canSeeMultipleBrandPlatforms() ? '<td class="p-2">' + platformBadge(o) + '</td>' : '';
+      return '<tr class="border-t hover:bg-slate-50"><td class="p-2 font-mono text-xs">' + (o.orderId||'') + '</td><td class="p-2 font-bold">' + (o.name||'—') + (visits ? ' ' + visits : '') + '</td>' + brandCell + '<td class="p-2">' + (o.storeKey||'—') + '</td><td class="p-2 whitespace-nowrap">' + bdStr + '</td><td class="p-2 text-center">' + formatGuestCount(o) + '</td><td class="p-2 text-center">' + (hair+photo||'—') + '</td><td class="p-2 text-right font-bold">¥' + total.toLocaleString() + '</td><td class="p-2 text-right ' + (due>0?'text-amber-700 font-bold':'text-slate-400') + '">' + (due>0?'¥'+due.toLocaleString():'—') + '</td>' + statusCell + '<td class="p-2 text-right whitespace-nowrap"><button onclick="openEdit(\'' + o.orderId + '\')" class="px-2 py-1 bg-[#1A365D] text-white text-xs rounded">✏️</button></td></tr>';
     }).join('') + '</tbody></table></div>';
     document.getElementById('showing-count').textContent = orders.length;
     return;
@@ -835,6 +837,7 @@ function renderOrders(orders){
             '</div>'+
             '<div class="flex items-center gap-2 mb-2 flex-wrap">'+
               (!storeRole && o.submitDate ? '<span class="text-[11px] text-slate-500 hidden xl:inline">下單 '+fmtJST(o.submitDate)+'</span>':'')+
+              platformBadge(o)+
               (o.platform? '<span class="pill bg-blue-100 text-blue-800">📱 '+o.platform+'</span>':'')+
               (o.storeKey? '<span class="pill bg-purple-100 text-purple-800">🏪 '+o.storeKey+'</span>':'')+
               daysTag+

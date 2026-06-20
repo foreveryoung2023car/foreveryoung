@@ -1327,6 +1327,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 photo: payload.photo === '是',
                 source: payload.source || '官網',
                 platform: payload.platform || 'LINE',
+                brandPlatform: (KIMONO_CONFIG && KIMONO_CONFIG.BRAND_PLATFORM) || 'foreveryoung',
                 couponCode: payload.couponCode || '',
                 depositJpy: (Number(payload.adults || 0) + Number(payload.children || 0)) * 1000,
                 proofUrl,

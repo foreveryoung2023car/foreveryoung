@@ -182,6 +182,7 @@ async function wiSubmit() {
       const d = await callFirebaseAdminFunction('/createWalkInOrder', {
         clientRequestId: 'walkin-' + Date.now() + '-' + Math.random().toString(36).slice(2),
         storeCode: currentStoreKey || undefined,
+        brandPlatform: currentBrandPlatform(),
         name, phone, nationality,
         adults: wiCount.maleAdults + wiCount.femaleAdults,
         maleAdults: wiCount.maleAdults,

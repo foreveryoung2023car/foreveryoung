@@ -29,7 +29,7 @@ async function renderEmployees() {
         readonly: '唯讀'
       };
       let html = '<table class="w-full text-sm"><thead><tr class="bg-slate-100 text-slate-600">';
-      html += '<th class="p-2 text-left">Email</th><th class="p-2 text-left">姓名</th><th class="p-2 text-left">角色</th><th class="p-2 text-left">門市</th><th class="p-2 text-left">狀態</th><th class="p-2 text-left">最後登入</th><th class="p-2 text-right">操作</th></tr></thead><tbody>';
+      html += '<th class="p-2 text-left">Email</th><th class="p-2 text-left">姓名</th><th class="p-2 text-left">角色</th><th class="p-2 text-left">平台</th><th class="p-2 text-left">門市</th><th class="p-2 text-left">狀態</th><th class="p-2 text-left">最後登入</th><th class="p-2 text-right">操作</th></tr></thead><tbody>';
       emps.forEach(e => {
         const lastLogin = e.lastSignInAt ? new Date(e.lastSignInAt).toLocaleString('zh-TW', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
         const statusLabel = e.active ? '<span class="text-emerald-600 font-bold">啟用</span>' : '<span class="text-slate-400">已停用</span>';
@@ -40,6 +40,7 @@ async function renderEmployees() {
         html += '<td class="p-2"><div class="font-bold">' + adminEsc(e.email || '—') + '</div><div class="font-mono text-[10px] text-slate-400">' + adminEsc(e.uid) + '</div></td>';
         html += '<td class="p-2 font-bold">' + adminEsc(e.displayName || '—') + '</td>';
         html += '<td class="p-2"><span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-bold">' + adminEsc(roleLabel[e.role] || e.role || '—') + '</span></td>';
+        html += '<td class="p-2 text-xs font-bold">' + adminEsc(normalizePlatformAccess(e.platformAccess).map(platformLabel).join(' / ')) + '</td>';
         html += '<td class="p-2">' + adminEsc(e.storeId || '—') + '</td>';
         html += '<td class="p-2">' + statusLabel + '</td>';
         html += '<td class="p-2 text-xs text-slate-500">' + adminEsc(lastLogin) + '</td>';
@@ -132,6 +133,7 @@ function openAddEmployeeModal() {
     roleEl.onchange = updateEmployeeStoreSelector;
     if (storeEl) storeEl.value = firebaseRole === 'store_manager' ? (currentStoreKey || '') : '';
     updateEmployeeStoreSelector();
+    updateEmployeePlatformSelector();
   } else {
     roleEl.innerHTML = '<option value="staff">店員 (staff)</option><option value="admin">店家管理者 (admin)</option>';
     roleEl.value = 'staff';
@@ -189,6 +191,38 @@ function getAssignableFirebaseRoles(firebaseRole) {
   return (matrix[firebaseRole] || []).map(value => ({ value, label: labels[value] || value }));
 }
 
+function updateEmployeePlatformSelector() {
+  const row = document.getElementById('emp-platform-row');
+  const sel = document.getElementById('new-emp-platform');
+  const hint = document.getElementById('emp-platform-hint');
+  if (!row || !sel) return;
+  if (!useFirebaseAdmin()) { row.classList.add('hidden'); return; }
+  row.classList.remove('hidden');
+  const access = normalizePlatformAccess(currentPlatformAccess);
+  if (access.length === 1) {
+    sel.innerHTML = '<option value="' + access[0] + '">只看' + platformLabel(access[0]) + '</option>';
+    sel.value = access[0];
+    sel.disabled = true;
+    if (hint) hint.textContent = '你的帳號已限制平台，新建帳號會固定沿用此平台範圍';
+    return;
+  }
+  sel.disabled = false;
+  sel.innerHTML =
+    '<option value="both">旅乘 + 樂禾</option>' +
+    '<option value="foreveryoung">只看旅乘</option>' +
+    '<option value="japan-go">只看樂禾</option>';
+  sel.value = 'both';
+  if (hint) hint.textContent = '選擇此帳號可查看的訂單平台；Owner/Admin 不受店鋪限制，但仍受平台範圍限制';
+}
+
+function selectedEmployeePlatformAccess() {
+  const sel = document.getElementById('new-emp-platform');
+  const value = sel ? sel.value : 'both';
+  if (value === 'foreveryoung') return ['foreveryoung'];
+  if (value === 'japan-go') return ['japan-go'];
+  return ['foreveryoung', 'japan-go'];
+}
+
 async function submitNewEmployee() {
   const emailEl = document.getElementById('new-emp-email');
   const email = emailEl ? emailEl.value.trim() : '';
@@ -212,7 +246,8 @@ async function submitNewEmployee() {
         displayName: name,
         role,
         active: true,
-        storeId: storeId || null
+        storeId: storeId || null,
+        platformAccess: selectedEmployeePlatformAccess()
       });
       toast('已新增 Firebase 使用者 ' + name);
       closeAddEmployeeModal();

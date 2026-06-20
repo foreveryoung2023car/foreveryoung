@@ -12,6 +12,7 @@ const KIMONO_CONFIG = {
     API_BASE_URL:    'https://asia-northeast1-foreveryoung-kimono-prod.cloudfunctions.net',
     USE_NEW_API:     true,
     LEGACY_GAS_READONLY: true,
+    BRAND_PLATFORM: 'foreveryoung',
     FIREBASE_CONFIG: {
         apiKey: 'AIzaSyD6m300aSu4gEcYrorTOK8aKq2pth4rNwo',
         authDomain: 'foreveryoung-kimono-prod.firebaseapp.com',
@@ -55,4 +56,3 @@ window.addEventListener('load', () => {
         }, 300);
     }
 });
-
