@@ -36,10 +36,12 @@ function openEdit(orderId) {
   document.getElementById('e-hair').value = (o.hair === true || o.hair === 'true') ? 'true' : 'false';
   document.getElementById('e-photo').value = (o.photo === true || o.photo === 'true') ? 'true' : 'false';
   document.getElementById('e-confirmed').value = o.confirmed ? 'true' : 'false';
-  document.getElementById('e-deposit').value = o.deposit || '';
   const paidDeposit = typeof orderPaidDeposit === 'function'
     ? orderPaidDeposit(o)
     : Math.max(0, Number(o.deposit || 0) - Number(o.refundAmount || 0));
+  const depositInput = document.getElementById('e-deposit');
+  depositInput.value = paidDeposit || '';
+  depositInput.dataset.rawDeposit = String(Number(o.deposit || 0));
   document.getElementById('e-deposit-display').textContent = '¥' + paidDeposit.toLocaleString();
   document.getElementById('e-price').value = o.price || o.kimonoPrice || '';
   document.getElementById('e-hair-fee').value = o.hairFee || '';
