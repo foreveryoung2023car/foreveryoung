@@ -6,3 +6,4 @@ export { uploadOrderProof } from "./http/proofs.js";
 export { createAdminUser, listAdminUsers, resetAdminUserPassword, setAdminUserActive } from "./http/users.js";
 export { sendBookingReminderEmail, sendConfirmEmail, sendDailyBookingReminderEmails, sendProofReceivedEmail, sendRefundConfirmEmail } from "./http/emails.js";
 export { getStoreAvailability, listStoreSchedules, saveStore, saveStoreSchedule } from "./http/stores.js";
+export { getPaymentSettings, savePaymentSettings } from "./http/paymentSettings.js";

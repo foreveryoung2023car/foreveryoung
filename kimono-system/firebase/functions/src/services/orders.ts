@@ -18,6 +18,7 @@ import { getIdempotentResponse, rememberIdempotentResponse } from "../lib/idempo
 import { calculateOrderTotal } from "../lib/money.js";
 import { assertStoreSlotAvailable } from "./stores.js";
 import { nextOrderNo } from "./orderNumber.js";
+import { calculateBookingDepositJpy } from "./paymentSettings.js";
 
 export const createPublicOrderSchema = z.object({
   clientRequestId: z.string().optional(),
@@ -395,13 +396,20 @@ export async function createPublicOrder(raw: unknown) {
   const adults = hasAdultBreakdown ? Number(input.maleAdults || 0) + Number(input.femaleAdults || 0) : input.adults;
   const cached = await getIdempotentResponse(input.clientRequestId);
   if (cached) return cached;
+  const brandPlatform = normalizeBrandPlatform(input.brandPlatform || defaultBrandPlatform);
+  const depositJpy = await calculateBookingDepositJpy(brandPlatform, {
+    maleAdults: input.maleAdults,
+    femaleAdults: input.femaleAdults,
+    adults,
+    children: input.children
+  });
 
   const result = await db.runTransaction(async (tx) => {
-    const orderNo = await nextOrderNo(tx);
+    const orderNo = await nextOrderNo(tx, brandPlatform);
     const orderRef = db.collection("orders").doc();
     const customerRef = db.collection("customers").doc();
     const total = calculateOrderTotal({
-      depositJpy: input.depositJpy || 0,
+      depositJpy,
       kimonoPriceJpy: input.kimonoPriceJpy || 0,
       hairFeeJpy: input.hairFeeJpy || 0,
       photoFeeJpy: input.photoFeeJpy || 0,
@@ -432,10 +440,10 @@ export async function createPublicOrder(raw: unknown) {
       photo: input.photo || false,
       source: input.source || "web",
       platform: input.platform || "LINE",
-      brandPlatform: normalizeBrandPlatform(input.brandPlatform || defaultBrandPlatform),
+      brandPlatform,
       couponCode: input.couponCode || "",
       discountRate: input.discountRate || 10,
-      depositJpy: input.depositJpy || 0,
+      depositJpy,
       kimonoPriceJpy: input.kimonoPriceJpy || 0,
       hairFeeJpy: input.hairFeeJpy || 0,
       photoFeeJpy: input.photoFeeJpy || 0,
@@ -473,7 +481,8 @@ export async function createWalkInOrder(raw: unknown, actor: AuthContext) {
   if (cached) return cached;
 
   const result = await db.runTransaction(async (tx) => {
-    const orderNo = await nextOrderNo(tx);
+    const brandPlatform = brandPlatformForActorInput(actor, input.brandPlatform);
+    const orderNo = await nextOrderNo(tx, brandPlatform, "L");
     const orderRef = db.collection("orders").doc();
     const customerRef = db.collection("customers").doc();
     const storeId = input.storeCode || actor.storeId || null;
@@ -513,7 +522,7 @@ export async function createWalkInOrder(raw: unknown, actor: AuthContext) {
       photo: input.photo || false,
       source: "walk-in",
       platform: storeId ? `walk-in:${storeId}` : "walk-in",
-      brandPlatform: brandPlatformForActorInput(actor, input.brandPlatform),
+      brandPlatform,
       couponCode: "",
       discountRate: input.discountRate || 10,
       depositJpy: 0,

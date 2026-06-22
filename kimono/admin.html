@@ -48,6 +48,7 @@
       <div class="nav-tab" data-sec="orders" onclick="switchSection('orders',this)">📋 訂單管理 <span id="tab-count-orders" class="bg-white/25 px-1.5 rounded text-[11px]">0</span></div>
       <div class="nav-tab" data-sec="stores" onclick="switchSection('stores',this)" style="display:none">🏪 店鋪管理</div>
       <div class="nav-tab" data-sec="employees" data-store-admin-only="1" onclick="switchSection('employees',this)" style="display:none">👥 員工管理</div>
+      <div class="nav-tab" data-sec="payment-settings" data-owner-only="1" onclick="switchSection('payment-settings',this)" style="display:none">🏦 匯款設定</div>
       <div class="nav-tab" data-sec="calendar" onclick="switchSection('calendar',this)">📅 行事曆</div>
       <div class="nav-tab" data-sec="customers" onclick="switchSection('customers',this)">👥 客戶名單 <span id="tab-count-customers" class="bg-white/25 px-1.5 rounded text-[11px]">0</span></div>
       <div class="nav-tab" data-sec="finance" onclick="switchSection('finance',this)">💰 財務報表</div>
@@ -388,6 +389,65 @@
               <button onclick="submitNewEmployee()" id="emp-submit-btn" class="flex-1 py-2 bg-[#1A365D] hover:bg-blue-900 text-white rounded font-bold text-sm">新增</button>
             </div>
           </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="sec-payment-settings" class="section">
+    <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
+      <div>
+        <h2 class="text-2xl font-bold text-[#1A365D] title-serif">🏦 匯款設定</h2>
+        <p class="text-sm text-slate-600 mt-1 font-semibold">設定用戶端顯示的匯款帳戶與預約訂金，僅 owner 可修改</p>
+      </div>
+      <div class="flex gap-2 items-center">
+        <select id="payset-platform" class="input-field !w-auto" onchange="loadPaymentSettings()">
+          <option value="foreveryoung">旅乘</option>
+          <option value="japan-go">樂禾</option>
+        </select>
+        <button onclick="loadPaymentSettings()" class="btn-outline px-4 py-2 rounded-xl text-sm">↻ 重新載入</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="space-y-3">
+          <h3 class="text-[#1A365D] font-bold title-serif">收款帳戶</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div><div class="section-label">銀行代碼</div><input id="payset-bank-code" class="input-field" placeholder="例：008"></div>
+            <div><div class="section-label">銀行名稱</div><input id="payset-bank-name" class="input-field" placeholder="例：華南銀行"></div>
+            <div><div class="section-label">分行</div><input id="payset-bank-branch" class="input-field" placeholder="例：營業部"></div>
+            <div><div class="section-label">戶名</div><input id="payset-bank-holder" class="input-field" placeholder="收款戶名"></div>
+          </div>
+          <div><div class="section-label">匯款帳號</div><input id="payset-bank-account" class="input-field" placeholder="請輸入完整帳號"></div>
+          <div><div class="section-label">付款說明</div><textarea id="payset-note" class="input-field" rows="4" placeholder="顯示給客人的補充說明"></textarea></div>
+          <label class="inline-flex items-center gap-2 text-sm font-bold text-slate-700">
+            <input id="payset-enabled" type="checkbox" class="w-5 h-5" checked>
+            啟用此平台匯款設定
+          </label>
+        </div>
+
+        <div class="space-y-3">
+          <h3 class="text-[#1A365D] font-bold title-serif">預約訂金</h3>
+          <p class="text-xs text-slate-500 font-semibold">台幣金額會顯示給客人匯款；日幣金額會寫入訂單作為到店折抵訂金。</p>
+          <div class="overflow-x-auto">
+            <table class="data-table">
+              <thead><tr><th>類別</th><th class="num">匯款台幣 NT$</th><th class="num">折抵日幣 ¥</th></tr></thead>
+              <tbody>
+                <tr><td class="font-bold">男性</td><td class="num"><input id="payset-male-twd" type="number" min="0" class="input-field text-right"></td><td class="num"><input id="payset-male-jpy" type="number" min="0" class="input-field text-right"></td></tr>
+                <tr><td class="font-bold">女性</td><td class="num"><input id="payset-female-twd" type="number" min="0" class="input-field text-right"></td><td class="num"><input id="payset-female-jpy" type="number" min="0" class="input-field text-right"></td></tr>
+                <tr><td class="font-bold">小孩</td><td class="num"><input id="payset-child-twd" type="number" min="0" class="input-field text-right"></td><td class="num"><input id="payset-child-jpy" type="number" min="0" class="input-field text-right"></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm text-slate-700">
+            預覽：<span id="payset-preview" class="font-bold text-[#1A365D]">—</span>
+          </div>
+          <div id="payset-error" class="hidden text-red-600 text-sm font-semibold"></div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button onclick="loadPaymentSettings()" class="btn-outline px-5 py-2 rounded-xl text-sm">取消變更</button>
+            <button id="payset-save-btn" onclick="savePaymentSettings()" class="btn-navy px-5 py-2 rounded-xl text-sm">儲存設定</button>
           </div>
         </div>
       </div>
@@ -957,6 +1017,7 @@
 <script src="./admin-assets/17-walkin-orders.js?v=20260605-14"></script>
 <script src="./admin-assets/18-employees.js?v=20260611-5"></script>
 <script src="./admin-assets/19-tour.js?v=20260611-1"></script>
+<script src="./admin-assets/21-payment-settings.js?v=20260622-1"></script>
 <script src="./admin-assets/20-stores.js?v=20260611-4"></script>
 
 <!-- v2.4: 新增現場訂單 FAB -->

@@ -214,6 +214,9 @@ function applyRolePermissions() {
   document.querySelectorAll('[data-jun-only="1"]').forEach(tab => {
     tab.style.display = (currentAgent === 'Jun') ? '' : 'none';
   });
+  document.querySelectorAll('[data-owner-only="1"]').forEach(tab => {
+    tab.style.display = (firebaseRole === 'owner') ? '' : 'none';
+  });
   // 全站搜尋只給客服
   const gs = document.getElementById('global-search-wrap');
   if (gs) gs.style.display = isStore ? 'none' : '';
@@ -331,6 +334,7 @@ function switchSection(sec, el){
   else if(sec==='calendar') renderCalendar();
   else if(sec==='customers') renderCustomers();
   else if(sec==='finance') renderFinance();
+  else if(sec==='payment-settings') loadPaymentSettings();
   else if(sec==='reconcile') {
     // v2.4.20: 每次進對帳都重建月份下拉
     const sel = document.getElementById('recon-month');

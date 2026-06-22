@@ -1,7 +1,15 @@
 import type { Transaction } from "firebase-admin/firestore";
 import { db, FieldValue } from "../lib/firebase.js";
+import { normalizeBrandPlatform, type BrandPlatform } from "../lib/constants.js";
 
-export async function nextOrderNo(tx: Transaction) {
+type OrderNoPrefix = "K" | "J" | "L";
+
+function orderNoPrefix(platform?: BrandPlatform, prefixOverride?: OrderNoPrefix) {
+  if (prefixOverride) return prefixOverride;
+  return normalizeBrandPlatform(platform) === "japan-go" ? "J" : "K";
+}
+
+export async function nextOrderNo(tx: Transaction, platform?: BrandPlatform, prefixOverride?: OrderNoPrefix) {
   const parts = new Intl.DateTimeFormat("ja-JP", {
     timeZone: "Asia/Tokyo",
     year: "2-digit",
@@ -16,5 +24,5 @@ export async function nextOrderNo(tx: Transaction) {
   const snap = await tx.get(ref);
   const next = (Number(snap.data()?.seq) || 0) + 1;
   tx.set(ref, { seq: next, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
-  return `K${key}${String(next).padStart(3, "0")}`;
+  return `${orderNoPrefix(platform, prefixOverride)}${key}${String(next).padStart(3, "0")}`;
 }
