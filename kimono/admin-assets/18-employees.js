@@ -197,15 +197,16 @@ function updateEmployeePlatformSelector() {
   const hint = document.getElementById('emp-platform-hint');
   if (!row || !sel) return;
   if (!useFirebaseAdmin()) { row.classList.add('hidden'); return; }
-  row.classList.remove('hidden');
   const access = normalizePlatformAccess(currentPlatformAccess);
   if (access.length === 1) {
+    row.classList.add('hidden');
     sel.innerHTML = '<option value="' + access[0] + '">只看' + platformLabel(access[0]) + '</option>';
     sel.value = access[0];
     sel.disabled = true;
     if (hint) hint.textContent = '你的帳號已限制平台，新建帳號會固定沿用此平台範圍';
     return;
   }
+  row.classList.remove('hidden');
   sel.disabled = false;
   sel.innerHTML =
     '<option value="both">旅乘 + 樂禾</option>' +
@@ -216,6 +217,8 @@ function updateEmployeePlatformSelector() {
 }
 
 function selectedEmployeePlatformAccess() {
+  const access = normalizePlatformAccess(currentPlatformAccess);
+  if (access.length === 1) return access;
   const sel = document.getElementById('new-emp-platform');
   const value = sel ? sel.value : 'both';
   if (value === 'foreveryoung') return ['foreveryoung'];
