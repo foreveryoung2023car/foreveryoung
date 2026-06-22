@@ -2,6 +2,10 @@ function paysetNumber(id) {
   return Math.max(0, Math.round(Number(document.getElementById(id)?.value || 0)));
 }
 
+function canManagePaymentSettings() {
+  return (localStorage.getItem('admin_firebaseRole') || '') === 'owner';
+}
+
 function paymentSettingsPayload() {
   return {
     brandPlatform: document.getElementById('payset-platform')?.value || currentBrandPlatform(),
@@ -52,6 +56,10 @@ async function loadPaymentSettings() {
   const err = document.getElementById('payset-error');
   if (err) err.classList.add('hidden');
   if (!useFirebaseAdmin()) return;
+  if (!canManagePaymentSettings()) {
+    if (typeof switchSection === 'function') switchSection('dashboard', document.querySelector('[data-sec="dashboard"]'));
+    return;
+  }
   const platform = document.getElementById('payset-platform')?.value || currentBrandPlatform();
   try {
     const res = await callFirebaseAdminFunction('/getPaymentSettings?platform=' + encodeURIComponent(platform), null, { method: 'GET' });
@@ -68,6 +76,13 @@ async function savePaymentSettings() {
   const err = document.getElementById('payset-error');
   const btn = document.getElementById('payset-save-btn');
   if (err) err.classList.add('hidden');
+  if (!canManagePaymentSettings()) {
+    if (err) {
+      err.textContent = '只有 owner 可修改匯款設定';
+      err.classList.remove('hidden');
+    }
+    return;
+  }
   const payload = paymentSettingsPayload();
   if (!payload.bankCode || !payload.bankName || !payload.bankAccount || !payload.bankHolder) {
     if (err) {

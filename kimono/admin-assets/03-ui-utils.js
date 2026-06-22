@@ -161,6 +161,10 @@ function isConfirmedOrderForStore(order) {
   return order.confirmed === true || order.confirmed === 'true' || order.confirmed === 'TRUE';
 }
 
+function isOwnerRole() {
+  return (localStorage.getItem('admin_firebaseRole') || '') === 'owner';
+}
+
 // v2.5: 依角色控制 UI 顯示
 function applyRolePermissions() {
   // v2.4.20: 只有 Jun 看得到關帳按鈕（用 classList 切，不是 style.display）
@@ -215,13 +219,13 @@ function applyRolePermissions() {
     tab.style.display = (currentAgent === 'Jun') ? '' : 'none';
   });
   document.querySelectorAll('[data-owner-only="1"]').forEach(tab => {
-    tab.style.display = (firebaseRole === 'owner') ? '' : 'none';
+    tab.style.display = isOwnerRole() ? '' : 'none';
   });
   // 全站搜尋只給客服
   const gs = document.getElementById('global-search-wrap');
   if (gs) gs.style.display = isStore ? 'none' : '';
   // If store currently sits on a hidden section, kick to dashboard
-  if (storeHiddenSections.indexOf(currentSection) >= 0) {
+  if (storeHiddenSections.indexOf(currentSection) >= 0 || (currentSection === 'payment-settings' && !isOwnerRole())) {
     const dashTab = document.querySelector('[data-sec="dashboard"]');
     if (dashTab && typeof switchSection === 'function') switchSection('dashboard', dashTab);
   }
@@ -318,6 +322,11 @@ window.addEventListener('load', () => {
 });
 
 function switchSection(sec, el){
+  if (sec === 'payment-settings' && !isOwnerRole()) {
+    if (typeof toast === 'function') toast('只有 owner 可查看匯款設定', 'warning');
+    sec = 'dashboard';
+    el = document.querySelector('[data-sec="dashboard"]');
+  }
   currentSection = sec;
   // v2.4.20: 記住當前分頁，重整後恢復
   try { localStorage.setItem('admin_lastSection', sec); } catch(e){}
