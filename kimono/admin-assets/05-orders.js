@@ -586,13 +586,16 @@ function orderDisplayTotal(o) {
     o.kimonoPrice !== undefined ||
     o.hairFee !== undefined ||
     o.photoFee !== undefined ||
-    o.discountRefundAmount !== undefined
+    o.discountRefundAmount !== undefined ||
+    o.overtimeDamageDeduction !== undefined ||
+    o.overtimeDamageDeductionJpy !== undefined
   ));
   if (hasItemizedAmount) {
     return Math.max(0,
       Number(o.price || o.kimonoPrice || 0)
       + Number(o.hairFee || 0)
       + Number(o.photoFee || 0)
+      + Number(o.overtimeDamageDeduction || o.overtimeDamageDeductionJpy || 0)
       - Number(o.discountRefundAmount || 0)
     );
   }
