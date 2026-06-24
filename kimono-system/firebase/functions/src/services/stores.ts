@@ -211,7 +211,14 @@ function buildSlotAvailability(slots: string[], capacities: Record<string, SlotC
   });
 }
 
-async function availabilityFromSnapshot(store: StoreRecord, data: FirebaseFirestore.DocumentData, date: string, scheduleSnap: FirebaseFirestore.DocumentSnapshot, tx?: FirebaseFirestore.Transaction) {
+async function availabilityFromSnapshot(
+  store: StoreRecord,
+  data: FirebaseFirestore.DocumentData,
+  date: string,
+  scheduleSnap: FirebaseFirestore.DocumentSnapshot,
+  tx?: FirebaseFirestore.Transaction,
+  excludeOrderId?: string
+) {
   const defaultSlots = defaultSlotsFromData(data);
   const defaultSlotCapacities = defaultCapacitiesFromData(data, defaultSlots);
   const overrideSlots = scheduleSnap.data()?.slots;
@@ -220,7 +227,7 @@ async function availabilityFromSnapshot(store: StoreRecord, data: FirebaseFirest
   const slotCapacities = hasOverride
     ? normalizeSlotCapacities(scheduleSnap.data()?.slotCapacities, slots, defaultSlotCapacities)
     : defaultSlotCapacities;
-  const usage = await loadSlotUsage(store.id, date, tx);
+  const usage = await loadSlotUsage(store.id, date, tx, excludeOrderId);
   return {
     status: "success",
     ...store,
@@ -361,7 +368,7 @@ export async function assertStoreSlotCapacityAvailable(
   const { store, data } = await loadStore(storeId);
   const scheduleRef = db.collection("storeSchedules").doc(`${storeId}_${match[1]}`);
   const scheduleSnap = tx ? await tx.get(scheduleRef) : await scheduleRef.get();
-  const availability = await availabilityFromSnapshot(store, data, match[1], scheduleSnap, tx);
+  const availability = await availabilityFromSnapshot(store, data, match[1], scheduleSnap, tx, excludeOrderId);
   const slotAvailability = availability.slotAvailability.find((item) => item.slot === match[2]);
   if (!slotAvailability) throw new HttpError(400, "Selected booking time is not available");
   const shortages = [
