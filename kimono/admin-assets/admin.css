@@ -172,6 +172,24 @@
     #edit-modal .order-proof-layout{gap:12px}
     #edit-modal .order-modal-actions{gap:8px;margin-top:10px;padding-top:10px}
     #edit-modal .order-modal-actions button{padding-top:9px;padding-bottom:9px}
+    #edit-modal.store-modal .edit-panel{padding:0}
+    #edit-modal.store-modal .order-modal-header{margin-bottom:8px}
+    #edit-modal.store-modal .order-modal-tabs{margin-bottom:8px;padding-bottom:6px}
+    #edit-modal.store-modal .store-customer-pill{height:44px;gap:8px;padding:0 14px}
+    #edit-modal.store-modal .store-pill-icon{width:24px;height:24px;background-size:18px}
+    #edit-modal.store-modal .store-customer-pill b{font-size:16px}
+    #edit-modal.store-modal .store-detail-view{padding:0}
+    #edit-modal.store-modal .store-summary-card{padding:18px 20px}
+    #edit-modal.store-modal .store-summary-row{gap:12px;padding:12px 0}
+    #edit-modal.store-modal .store-summary-cell,
+    #edit-modal.store-modal .store-summary-person{gap:10px}
+    #edit-modal.store-modal .store-summary-people{gap:10px;padding-left:14px}
+    #edit-modal.store-modal .store-summary-icon{width:42px;height:42px;background-size:23px}
+    #edit-modal.store-modal .store-summary-label{margin-right:8px}
+    #edit-modal.store-modal .store-summary-booking-value{font-size:32px}
+    #edit-modal.store-modal .store-summary-inline-value{margin-left:8px}
+    #edit-modal.store-modal .store-summary-money{margin-left:10px}
+    #edit-modal.store-modal .store-summary-note-value{margin-top:4px;min-height:20px}
   }
 
   .tag { display:inline-block;background:#DBEAFE;color:#1E40AF;border-radius:6px;padding:3px 9px;font-size:12px;margin:2px;border:1px solid #93C5FD;font-weight:600 }
