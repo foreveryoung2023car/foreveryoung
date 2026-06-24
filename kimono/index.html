@@ -241,8 +241,13 @@
         .upload-zone { cursor: pointer; }
         .upload-zone:hover { border-color: #f9a8d4; color: #ec4899; }
         #file-label-text { transition: color 0.2s; }
+        .booking-lang-wrap { position: relative; flex: 0 0 auto; }
         .language-select {
-            min-width: 116px;
+            position: absolute;
+            left: calc(100% + 8px);
+            top: 50%;
+            transform: translateY(-50%);
+            width: 104px;
             height: 34px;
             border-radius: 2px;
             border: 1px solid rgba(255,255,255,0.42);
@@ -252,7 +257,7 @@
             font-weight: 700;
             letter-spacing: 0.08em;
             text-transform: uppercase;
-            padding: 0 2rem 0 0.75rem;
+            padding: 0 1.6rem 0 0.55rem;
             outline: none;
             cursor: pointer;
         }
@@ -263,6 +268,9 @@
             background: rgba(255,255,255,0.9);
         }
         .mobile-language-select {
+            position: absolute;
+            top: 7rem;
+            right: 1.5rem;
             min-width: 96px;
             height: 34px;
             border-radius: 2px;
@@ -350,26 +358,20 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 <button onclick="scrollToId('sec-photo')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">旅拍攝影</button>
                 <button onclick="scrollToId('sec-faq')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">常見問題</button>
                 <button onclick="scrollToId('sec-3')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">門市資訊</button>
-                <button onclick="scrollToId('booking')" id="nav-booking-btn" class="ml-4 px-8 py-2 text-[10px] font-bold rounded-sm border border-white/40 text-white hover:bg-white hover:text-[#1A365D] transition-all cursor-pointer uppercase font-sans shadow-sm">立即預約</button>
-                <select id="language-select" class="language-select font-sans" aria-label="選擇語言" onchange="setLanguage(this.value)">
-                    <option value="zh-Hant">繁中</option>
-                    <option value="zh-Hans">简中</option>
-                    <option value="ja">日本語</option>
-                    <option value="en">English</option>
-                    <option value="ko">한국어</option>
-                    <option value="id">Indonesia</option>
-                </select>
+                <span class="booking-lang-wrap">
+                    <button onclick="scrollToId('booking')" id="nav-booking-btn" class="ml-4 px-8 py-2 text-[10px] font-bold rounded-sm border border-white/40 text-white hover:bg-white hover:text-[#1A365D] transition-all cursor-pointer uppercase font-sans shadow-sm">立即預約</button>
+                    <select id="language-select" class="language-select font-sans" aria-label="選擇語言" onchange="setLanguage(this.value)">
+                        <option value="zh-Hant">繁中</option>
+                        <option value="zh-Hans">简中</option>
+                        <option value="ja">日本語</option>
+                        <option value="en">English</option>
+                        <option value="ko">한국어</option>
+                        <option value="id">Indonesia</option>
+                    </select>
+                </span>
             </div>
             <!-- ★ 漢堡按鈕加 z-index relative 避免被遮 -->
-            <div class="lg:hidden flex items-center gap-3 relative z-[460]">
-                <select id="language-select-mobile-top" class="mobile-language-select font-sans" aria-label="選擇語言" onchange="setLanguage(this.value)">
-                    <option value="zh-Hant">繁中</option>
-                    <option value="zh-Hans">简中</option>
-                    <option value="ja">日本語</option>
-                    <option value="en">English</option>
-                    <option value="ko">한국어</option>
-                    <option value="id">Indonesia</option>
-                </select>
+            <div class="lg:hidden flex items-center relative z-[460]">
                 <button id="hamburger-btn" class="w-10 h-10 flex flex-col justify-center items-center gap-1.5 rounded-sm transition-all" aria-label="開啟選單" onclick="toggleMobileMenu()">
                     <span id="ham-line1" class="block w-6 h-0.5 bg-white transition-all duration-300"></span>
                     <span id="ham-line2" class="block w-6 h-0.5 bg-white transition-all duration-300"></span>
