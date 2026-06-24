@@ -15,13 +15,6 @@
         { "fieldPath": "storeId", "order": "ASCENDING" },
         { "fieldPath": "bookingAt", "order": "ASCENDING" }
       ]
-    },
-    {
-      "collectionGroup": "auditLogs",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
     }
   ],
   "fieldOverrides": []
