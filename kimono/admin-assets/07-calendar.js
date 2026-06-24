@@ -123,7 +123,7 @@ function customerOrderAmounts(o) {
   const balance = typeof orderDisplayBalance === 'function'
     ? orderDisplayBalance(o)
     : Math.max(0, total - (typeof orderPaidDeposit === 'function' ? orderPaidDeposit(o) : Math.max(0, Number(o.deposit || 0) - Number(o.refundAmount || 0))) - Number(o.storeActualReceived || o.storeActualReceivedJpy || 0));
-  const platformFee = Math.max(0, (kimonoPrice - discountRefund) * 0.5);
+  const platformFee = Math.max(0, kimonoPrice * 0.5);
   return {
     kimonoPrice,
     hairFee,
