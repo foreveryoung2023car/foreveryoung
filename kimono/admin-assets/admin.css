@@ -140,8 +140,8 @@
   .modal-floating-close:hover,.custom-modal-close:hover { color:#DBEAFE;transform:scale(1.04);text-shadow:0 3px 12px rgba(15,23,42,.6) }
   .modal-floating-close:focus-visible,.custom-modal-close:focus-visible { outline:3px solid rgba(59,130,246,.45);outline-offset:3px;border-radius:8px }
   @media (min-width: 768px) { .modal-box { padding:28px; border-radius:20px; height:80vh; max-height:80vh } }
-  .modal-overlay.store-modal .modal-frame{max-width:950px}
-  .modal-overlay.store-modal .modal-box{max-width:950px;background:#F8FAFC}
+  .modal-overlay.store-modal .modal-frame{max-width:1310px}
+  .modal-overlay.store-modal .modal-box{max-width:1310px;background:#F8FAFC}
   .modal-overlay.store-modal .edit-panel{background:transparent;border:0;padding:0}
   .modal-overlay.store-modal h2{font-size:30px;line-height:1.2;color:#0F172A}
   .modal-overlay.store-modal #modal-order-id{font-size:20px;letter-spacing:.08em;color:#475569}
