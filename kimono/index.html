@@ -14,6 +14,189 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="./config.js"></script>
     <script>
+        const languageNames = {
+            'zh-Hant': '繁中',
+            'zh-Hans': '简中',
+            ja: '日本語',
+            en: 'English',
+            ko: '한국어',
+            id: 'Indonesia'
+        };
+        const phraseMaps = {
+            'zh-Hans': {
+                '體驗流程': '体验流程', '方案價格': '方案价格', '旅客好評': '旅客好评', '髮型美學': '发型美学', '旅拍攝影': '旅拍摄影', '常見問題': '常见问题', '門市資訊': '门店资讯', '立即預約': '立即预约',
+                '旅乘': '旅乘', '和服': '和服', '穿上優雅，漫步時光，紀錄專屬於您的和風瞬間': '穿上优雅，漫步时光，记录专属于您的和风瞬间', '了解體驗流程': '了解体验流程', '立即開啟預約': '立即开始预约',
+                '服務旅客組數': '服务旅客组数', '京都 大阪 東京 祇園': '京都 大阪 东京 祇园', '顧客滿意度': '顾客满意度', '款式供選擇': '款式可选择',
+                '旅客真實 ': '旅客真实 ', '好評回饋': '好评反馈', '綜合評分 · 500+ 則評價': '综合评分 · 500+ 条评价', '和服體驗 ': '和服体验 ', '六步驟': '六步骤', '精選方案 ': '精选方案 ', '& 價格': '& 价格',
+                '和風 ': '和风 ', '瞬間映像': '瞬间影像', '職人 ': '匠人 ', '專業髮型師依您的臉型與和服，編織如藝術品般的專屬造型。髮型是完美和服體驗的靈魂。': '专业发型师会根据您的脸型与和服，打造如艺术品般的专属造型。发型是完美和服体验的灵魂。',
+                '精細職人編髮': '精细匠人编发', '和風髮飾點綴': '和风发饰点缀', '專業技術培訓': '专业技术培训', '蓬鬆空氣感造型': '蓬松空气感造型',
+                '依臉型量身設計': '依脸型量身设计', '現場參考造型冊': '现场参考造型册', '約 20 分鐘完成': '约 20 分钟完成',
+                '旅拍攝影 ': '旅拍摄影 ', '方案價格': '方案价格', '專業攝影師全程陪同，捕捉每個和風瞬間': '专业摄影师全程陪同，捕捉每个和风瞬间',
+                '隨行攝影': '随行摄影', '輕量記錄，適合單一景點': '轻量记录，适合单一景点', '精修電子檔交付': '精修电子档交付', '最受歡迎': '最受欢迎', '漫步景點完整記錄': '漫步景点完整记录', '多景點深度全程記錄': '多景点深度全程记录', 'JPY／組': 'JPY／组',
+                '攝影服務流程 / Shooting Flow': '摄影服务流程 / Shooting Flow', '和服挑選': '和服挑选', '職人著裝': '匠人着装', '髮型設計': '发型设计', '歸還和服': '归还和服',
+                '＊ 攝影費用不含景點門票，進入收費景區時攝影師門票費由客人一同支付': '* 摄影费用不含景点门票，进入收费景区时摄影师门票费由客人一同支付', '＊ 精選修圖後電子檔，於體驗後 7 個工作天內透過雲端連結交付': '* 精选修图后的电子档，将于体验后 7 个工作日内通过云端链接交付',
+                '精選門市 ': '精选门店 ', '填單預約 ': '填写预约 ', '訂金折抵': '订金抵扣', '填寫預約資料 → 匯款訂金 → 客服核對確認': '填写预约资料 → 汇款订金 → 客服核对确认', '全程線上完成，訂金體驗當日全額折抵': '全程线上完成，订金于体验当日全额抵扣',
+                '選擇時段 / Step 1': '选择时段 / Step 1', '請先選擇店鋪、日期、時段與人數': '请先选择门店、日期、时段与人数', '選擇體驗門市 / Store': '选择体验门店 / Store', '請選擇門市': '请选择门店', '預約日期': '预约日期', '選擇預約時段': '选择预约时段',
+                '請先選擇門市與日期，下方會顯示各時段剩餘名額': '请先选择门店与日期，下方会显示各时段剩余名额', '每人和服選擇': '每人和服选择', '應付預約訂金：': '应付预约订金：', '* 訂金於體驗當日全額折抵現場結帳消費。': '* 订金于体验当日全额抵扣现场消费。', '下一步：填寫個人資料': '下一步：填写个人资料',
+                '個人資料 / Step 2': '个人资料 / Step 2', '請填寫聯絡資料並提交匯款憑證': '请填写联系资料并提交汇款凭证', '指定匯款帳戶 / Bank Info': '指定汇款账户 / Bank Info', '銀行代碼：': '银行代码：', '分行：': '分行：', '戶名：': '户名：', '匯款帳號：': '汇款账号：',
+                '預約姓名 / Name': '预约姓名 / Name', '電話 / Phone': '电话 / Phone', '電子郵件 / Email': '电子邮件 / Email', '妝造需求（共用）': '妆造需求（共用）', '不需要妝造': '不需要妆造', '需要髮型設計 (+1500 JPY)': '需要发型设计 (+1500 JPY)', '攝影方案（共用）': '摄影方案（共用）', '不需要攝影': '不需要摄影', '需要專業攝影': '需要专业摄影',
+                '折扣優惠碼（選填）': '折扣优惠码（选填）', '若有活動優惠碼請填寫，無則留空': '若有活动优惠码请填写，无则留空', '匯款後 5 碼 (僅數字)': '汇款后 5 码（仅数字）', '對帳憑證': '对账凭证', '圖片上傳': '图片上传', '文字說明': '文字说明', '點擊上傳截圖': '点击上传截图', '返回修改預約資訊': '返回修改预约信息', '確認提交並取得編號': '确认提交并取得编号',
+                '提交成功！': '提交成功！', '您的預約資料已收到，請完成以下步驟': '您的预约资料已收到，请完成以下步骤', '您的專屬預約編號': '您的专属预约编号', '複製編號': '复制编号', '接下來會發生什麼？': '接下来会发生什么？', '請選擇您習慣的聯絡方式': '请选择您习惯的联系方式', '回到預約首頁': '回到预约首页', '下次查詢訂單狀態': '下次查询订单状态', '查詢': '查询',
+                '快速導覽': '快速导览', '聯絡資訊': '联系信息', '日本客服': '日本客服', '門市據點': '门店据点', '每日營業 09:30 – 17:30': '每日营业 09:30 – 17:30', '立即預約 Book Now ↗': '立即预约 Book Now ↗', 'LINE 聯絡': 'LINE 联系'
+            },
+            ja: {
+                '體驗流程': '体験の流れ', '方案價格': 'プラン料金', '旅客好評': 'お客様の声', '髮型美學': 'ヘアセット', '旅拍攝影': 'ロケ撮影', '常見問題': 'よくある質問', '門市資訊': '店舗情報', '立即預約': '今すぐ予約',
+                '穿上優雅，漫步時光，紀錄專屬於您的和風瞬間': '優雅に着替えて、和の時間を歩き、あなただけの瞬間を残しましょう', '了解體驗流程': '流れを見る', '立即開啟預約': '予約を始める',
+                '服務旅客組數': 'ご利用組数', '京都 大阪 東京 祇園': '京都 大阪 東京 祇園', '顧客滿意度': '満足度', '款式供選擇': '選べる着物',
+                '旅客真實 ': 'お客様の ', '好評回饋': 'リアルな声', '綜合評分 · 500+ 則評價': '総合評価 · 500件以上', '和服體驗 ': '着物体験 ', '六步驟': '6ステップ', '精選方案 ': '厳選プラン ', '& 價格': '& 料金',
+                '職人 ': '職人の ', '專業髮型師依您的臉型與和服，編織如藝術品般的專屬造型。髮型是完美和服體驗的靈魂。': 'プロのスタイリストが顔立ちと着物に合わせて、特別なヘアスタイルを仕上げます。',
+                '旅拍攝影 ': 'ロケ撮影 ', '方案價格': 'プラン料金', '專業攝影師全程陪同，捕捉每個和風瞬間': 'プロカメラマンが同行し、和の一瞬を美しく残します',
+                '隨行攝影': '同行撮影', '最受歡迎': '人気No.1', '和服挑選': '着物選び', '職人著裝': '着付け', '髮型設計': 'ヘアセット', '歸還和服': '返却',
+                '精選門市 ': '店舗 ', '填單預約 ': 'オンライン予約 ', '訂金折抵': '予約金充当', '填寫預約資料 → 匯款訂金 → 客服核對確認': '予約情報入力 → 予約金のお支払い → スタッフ確認', '全程線上完成，訂金體驗當日全額折抵': 'オンラインで完結。予約金は当日の料金に充当されます',
+                '選擇時段 / Step 1': '日時選択 / Step 1', '請先選擇店鋪、日期、時段與人數': '店舗、日付、時間、人数を選択してください', '請選擇門市': '店舗を選択', '預約日期': '予約日', '選擇預約時段': '予約時間を選択', '下一步：填寫個人資料': '次へ：お客様情報',
+                '個人資料 / Step 2': 'お客様情報 / Step 2', '請填寫聯絡資料並提交匯款憑證': '連絡先とお支払い証明を入力してください', '指定匯款帳戶 / Bank Info': '振込先 / Bank Info', '預約姓名 / Name': 'お名前 / Name', '電話 / Phone': '電話番号 / Phone', '電子郵件 / Email': 'メール / Email',
+                '不需要妝造': 'ヘアセット不要', '需要髮型設計 (+1500 JPY)': 'ヘアセット希望 (+1500 JPY)', '不需要攝影': '撮影不要', '需要專業攝影': 'プロ撮影希望', '確認提交並取得編號': '送信して予約番号を取得',
+                '提交成功！': '送信完了！', '您的專屬預約編號': '予約番号', '複製編號': '番号をコピー', '請選擇您習慣的聯絡方式': '連絡方法を選択してください', '查詢': '検索'
+            },
+            en: {
+                '體驗流程': 'Experience', '方案價格': 'Plans', '旅客好評': 'Reviews', '髮型美學': 'Hair Styling', '旅拍攝影': 'Photoshoot', '常見問題': 'FAQ', '門市資訊': 'Stores', '立即預約': 'Book Now',
+                '穿上優雅，漫步時光，紀錄專屬於您的和風瞬間': 'Dress in elegance, walk through timeless streets, and capture your own Japanese-style moments', '了解體驗流程': 'View Guide', '立即開啟預約': 'Start Booking',
+                '服務旅客組數': 'Guest Groups', '京都 大阪 東京 祇園': 'Kyoto Osaka Tokyo Gion', '顧客滿意度': 'Satisfaction', '款式供選擇': 'Styles Available',
+                '旅客真實 ': 'Real Guest ', '好評回饋': 'Reviews', '綜合評分 · 500+ 則評價': 'Overall rating · 500+ reviews', '和服體驗 ': 'Kimono Experience ', '六步驟': '6 Steps', '精選方案 ': 'Selected Plans ', '& 價格': '& Prices',
+                '和風 ': 'Japanese ', '瞬間映像': 'Moments', '職人 ': 'Artisan ', '髮型美學': 'Hair Styling', '專業髮型師依您的臉型與和服，編織如藝術品般的專屬造型。髮型是完美和服體驗的靈魂。': 'Our stylists create a look tailored to your face shape and kimono. Hair styling completes the whole kimono experience.',
+                '精細職人編髮': 'Detailed styling', '和風髮飾點綴': 'Japanese hair accessories', '專業技術培訓': 'Professional training', '蓬鬆空氣感造型': 'Soft airy styling',
+                '旅拍攝影 ': 'Photoshoot ', '方案價格': 'Plans', '專業攝影師全程陪同，捕捉每個和風瞬間': 'A professional photographer accompanies you and captures every moment',
+                '隨行攝影': 'Walkalong Shoot', '輕量記錄，適合單一景點': 'Light coverage for one location', '精修電子檔交付': 'Retouched digital delivery', '最受歡迎': 'Most Popular', '漫步景點完整記錄': 'Full walkaround coverage', '多景點深度全程記錄': 'In-depth multi-location coverage', 'JPY／組': 'JPY / group',
+                '攝影服務流程 / Shooting Flow': 'Shooting Flow', '和服挑選': 'Choose Kimono', '職人著裝': 'Dressing', '髮型設計': 'Hair Styling', '歸還和服': 'Return',
+                '精選門市 ': 'Selected Stores ', '填單預約 ': 'Online Booking ', '訂金折抵': 'Deposit Credit', '填寫預約資料 → 匯款訂金 → 客服核對確認': 'Fill in details → Pay deposit → Staff confirmation', '全程線上完成，訂金體驗當日全額折抵': 'Complete online. Your deposit is fully credited on the day.',
+                '選擇時段 / Step 1': 'Select Time / Step 1', '請先選擇店鋪、日期、時段與人數': 'Choose store, date, time, and guests first', '選擇體驗門市 / Store': 'Store', '請選擇門市': 'Select a store', '預約日期': 'Date', '選擇預約時段': 'Select a time',
+                '應付預約訂金：': 'Reservation deposit: ', '下一步：填寫個人資料': 'Next: Contact Details', '個人資料 / Step 2': 'Contact Details / Step 2', '請填寫聯絡資料並提交匯款憑證': 'Enter your contact details and upload payment proof', '指定匯款帳戶 / Bank Info': 'Bank Info',
+                '銀行代碼：': 'Bank code:', '分行：': 'Branch:', '戶名：': 'Account name:', '匯款帳號：': 'Account number:', '預約姓名 / Name': 'Name', '電話 / Phone': 'Phone', '電子郵件 / Email': 'Email', '妝造需求（共用）': 'Hair Styling', '不需要妝造': 'No styling', '需要髮型設計 (+1500 JPY)': 'Add hair styling (+1500 JPY)', '攝影方案（共用）': 'Photoshoot', '不需要攝影': 'No photoshoot', '需要專業攝影': 'Add professional photoshoot',
+                '折扣優惠碼（選填）': 'Coupon code (optional)', '匯款後 5 碼 (僅數字)': 'Last 5 transfer digits', '對帳憑證': 'Payment Proof', '圖片上傳': 'Image Upload', '文字說明': 'Text Note', '點擊上傳截圖': 'Upload screenshot', '返回修改預約資訊': 'Back to booking details', '確認提交並取得編號': 'Submit and Get Number',
+                '提交成功！': 'Submitted!', '您的預約資料已收到，請完成以下步驟': 'We received your booking. Please complete the steps below.', '您的專屬預約編號': 'Your Booking Number', '複製編號': 'Copy Number', '接下來會發生什麼？': 'What happens next?', '請選擇您習慣的聯絡方式': 'Choose your preferred contact method', '回到預約首頁': 'Back to booking home', '下次查詢訂單狀態': 'Check booking status next time', '查詢': 'Search',
+                '快速導覽': 'Quick Links', '聯絡資訊': 'Contact', '日本客服': 'Japan Support', '門市據點': 'Store Locations', '每日營業 09:30 – 17:30': 'Open daily 09:30 – 17:30', '立即預約 Book Now ↗': 'Book Now ↗', 'LINE 聯絡': 'Contact LINE'
+            },
+            ko: {
+                '體驗流程': '체험 순서', '方案價格': '플랜 가격', '旅客好評': '후기', '髮型美學': '헤어 스타일링', '旅拍攝影': '스냅 촬영', '常見問題': 'FAQ', '門市資訊': '매장 정보', '立即預約': '예약하기',
+                '穿上優雅，漫步時光，紀錄專屬於您的和風瞬間': '우아한 기모노를 입고 일본 감성의 순간을 남겨보세요', '了解體驗流程': '체험 순서 보기', '立即開啟預約': '예약 시작',
+                '服務旅客組數': '이용 고객팀', '顧客滿意度': '고객 만족도', '款式供選擇': '선택 가능한 스타일', '和服體驗 ': '기모노 체험 ', '六步驟': '6단계', '精選方案 ': '추천 플랜 ', '& 價格': '& 가격',
+                '職人 ': '장인의 ', '髮型美學': '헤어 스타일링', '旅拍攝影 ': '스냅 촬영 ', '方案價格': '플랜 가격', '隨行攝影': '동행 촬영', '最受歡迎': '인기 플랜', '和服挑選': '기모노 선택', '職人著裝': '착장', '髮型設計': '헤어 세팅', '歸還和服': '반납',
+                '精選門市 ': '추천 매장 ', '填單預約 ': '온라인 예약 ', '訂金折抵': '예약금 차감', '選擇時段 / Step 1': '시간 선택 / Step 1', '請選擇門市': '매장 선택', '預約日期': '예약일', '選擇預約時段': '예약 시간 선택', '下一步：填寫個人資料': '다음: 개인정보 입력',
+                '個人資料 / Step 2': '개인정보 / Step 2', '預約姓名 / Name': '이름', '電話 / Phone': '전화번호', '電子郵件 / Email': '이메일', '不需要妝造': '헤어 불필요', '需要髮型設計 (+1500 JPY)': '헤어 스타일링 추가 (+1500 JPY)', '不需要攝影': '촬영 불필요', '需要專業攝影': '전문 촬영 추가', '確認提交並取得編號': '제출하고 번호 받기',
+                '提交成功！': '제출 완료!', '您的專屬預約編號': '예약 번호', '複製編號': '번호 복사', '查詢': '조회'
+            },
+            id: {
+                '體驗流程': 'Alur', '方案價格': 'Paket', '旅客好評': 'Ulasan', '髮型美學': 'Tata Rambut', '旅拍攝影': 'Foto', '常見問題': 'FAQ', '門市資訊': 'Toko', '立即預約': 'Pesan',
+                '穿上優雅，漫步時光，紀錄專屬於您的和風瞬間': 'Kenakan kimono elegan dan abadikan momen khas Jepang Anda', '了解體驗流程': 'Lihat Alur', '立即開啟預約': 'Mulai Pesan',
+                '服務旅客組數': 'Grup Tamu', '顧客滿意度': 'Kepuasan', '款式供選擇': 'Pilihan Gaya', '和服體驗 ': 'Pengalaman Kimono ', '六步驟': '6 Langkah', '精選方案 ': 'Paket Pilihan ', '& 價格': '& Harga',
+                '職人 ': 'Artisan ', '髮型美學': 'Tata Rambut', '旅拍攝影 ': 'Paket Foto ', '方案價格': 'Harga', '隨行攝影': 'Foto Jalan', '最受歡迎': 'Terpopuler', '和服挑選': 'Pilih Kimono', '職人著裝': 'Pemakaian', '髮型設計': 'Tata Rambut', '歸還和服': 'Pengembalian',
+                '精選門市 ': 'Toko Pilihan ', '填單預約 ': 'Reservasi Online ', '訂金折抵': 'Deposit Kredit', '選擇時段 / Step 1': 'Pilih Waktu / Step 1', '請選擇門市': 'Pilih toko', '預約日期': 'Tanggal', '選擇預約時段': 'Pilih waktu', '下一步：填寫個人資料': 'Lanjut: Data Diri',
+                '個人資料 / Step 2': 'Data Diri / Step 2', '預約姓名 / Name': 'Nama', '電話 / Phone': 'Telepon', '電子郵件 / Email': 'Email', '不需要妝造': 'Tanpa tata rambut', '需要髮型設計 (+1500 JPY)': 'Tambah tata rambut (+1500 JPY)', '不需要攝影': 'Tanpa foto', '需要專業攝影': 'Tambah foto profesional', '確認提交並取得編號': 'Kirim dan Ambil Nomor',
+                '提交成功！': 'Berhasil dikirim!', '您的專屬預約編號': 'Nomor Reservasi Anda', '複製編號': 'Salin Nomor', '查詢': 'Cari'
+            }
+        };
+        Object.assign(phraseMaps['zh-Hans'], {
+            '每人': '每人', '人': '人', '（依即時匯率）': '（依实时汇率）', '需付金額：': '需付金额：', '上午 ': '上午 ', '下午 ': '下午 ', '男性': '男性', '女性': '女性', '小孩': '小孩', '可預約': '可预约', '已滿': '已满', '可選': '可选', '目前選擇人數超過此時段名額': '目前选择人数超过此时段名额', '當日無可預約時段': '当日无可预约时段', '請先選擇門市與日期': '请先选择门店与日期', '此店當日共有': '此店当日共有', '個可預約時段，請點選下方時段': '个可预约时段，请点击下方时段', '此店當日未開放預約': '此店当日未开放预约', '載入可預約時段中...': '正在载入可预约时段...', '暫時無法取得店鋪時段，請稍後重選門市或日期': '暂时无法取得门店时段，请稍后重新选择门店或日期', '起': '起', '特別款': '特别款', '待確認（現場選擇）': '待确认（现场选择）', '請先選擇人數': '请先选择人数', '查看 Google 地圖': '查看 Google 地图', '您的姓名': '您的姓名', '輸入優惠碼': '输入优惠码', '請輸入 5 位數字': '请输入 5 位数字', '輸入對帳相關資訊，如訂單截圖說明、銀行轉帳相關...': '输入对账相关信息，如订单截图说明、银行转账信息...'
+        });
+        Object.assign(phraseMaps.ja, {
+            '每人': '1名あたり', '人': '名', '（依即時匯率）': '（為替目安）', '需付金額：': 'お支払い金額：', '上午 ': '午前 ', '下午 ': '午後 ', '男性': '男性', '女性': '女性', '小孩': '子供', '可預約': '予約可', '已滿': '満席', '可選': '残り', '目前選擇人數超過此時段名額': '選択人数がこの時間枠の残数を超えています', '當日無可預約時段': 'この日は予約可能な時間がありません', '請先選擇門市與日期': '店舗と日付を先に選択してください', '此店當日共有': 'この店舗には当日', '個可預約時段，請點選下方時段': '個の予約可能時間があります', '此店當日未開放預約': 'この日は予約を受け付けていません', '載入可預約時段中...': '予約時間を読み込み中...', '暫時無法取得店鋪時段，請稍後重選門市或日期': '時間枠を取得できません。後ほど再選択してください', '起': 'から', '特別款': '特別プラン', '待確認（現場選擇）': '未定（店頭で選択）', '請先選擇人數': '人数を選択してください', '查看 Google 地圖': 'Google マップを見る', '您的姓名': 'お名前', '輸入優惠碼': 'クーポンコード', '請輸入 5 位數字': '5桁の数字を入力', '輸入對帳相關資訊，如訂單截圖說明、銀行轉帳相關...': '振込情報やスクリーンショットの説明を入力してください...'
+        });
+        Object.assign(phraseMaps.en, {
+            '每人': 'Per person', '人': 'guest(s)', '（依即時匯率）': ' (estimated rate)', '需付金額：': 'Amount due: ', '上午 ': 'AM ', '下午 ': 'PM ', '男性': 'Men', '女性': 'Women', '小孩': 'Children', '可預約': 'Available', '已滿': 'Full', '可選': 'Left', '目前選擇人數超過此時段名額': 'Selected guests exceed this slot capacity', '當日無可預約時段': 'No available slots for this date', '請先選擇門市與日期': 'Please select a store and date first', '此店當日共有': 'This store has', '個可預約時段，請點選下方時段': 'available slots. Please select one below.', '此店當日未開放預約': 'This store is not open for booking that day', '載入可預約時段中...': 'Loading available slots...', '暫時無法取得店鋪時段，請稍後重選門市或日期': 'Unable to load slots. Please reselect the store or date later.', '起': 'up', '特別款': 'Special', '待確認（現場選擇）': 'To confirm at store', '請先選擇人數': 'Please select guests first', '查看 Google 地圖': 'View Google Maps', '您的姓名': 'Your name', '輸入優惠碼': 'Enter coupon', '請輸入 5 位數字': 'Enter 5 digits', '輸入對帳相關資訊，如訂單截圖說明、銀行轉帳相關...': 'Enter payment proof details, such as transfer notes...'
+        });
+        Object.assign(phraseMaps.ko, {
+            '每人': '1인당', '人': '명', '（依即時匯率）': '（환율 기준）', '需付金額：': '결제 금액：', '上午 ': '오전 ', '下午 ': '오후 ', '男性': '남성', '女性': '여성', '小孩': '어린이', '可預約': '예약 가능', '已滿': '마감', '可選': '남음', '當日無可預約時段': '해당 날짜에 예약 가능한 시간이 없습니다', '請先選擇門市與日期': '매장과 날짜를 먼저 선택하세요', '載入可預約時段中...': '예약 가능 시간 불러오는 중...', '起': '부터', '特別款': '특별', '待確認（現場選擇）': '현장 선택', '請先選擇人數': '인원을 먼저 선택하세요', '查看 Google 地圖': 'Google 지도 보기'
+        });
+        Object.assign(phraseMaps.id, {
+            '每人': 'Per orang', '人': 'orang', '（依即時匯率）': ' (kurs perkiraan)', '需付金額：': 'Jumlah dibayar: ', '上午 ': 'AM ', '下午 ': 'PM ', '男性': 'Pria', '女性': 'Wanita', '小孩': 'Anak', '可預約': 'Tersedia', '已滿': 'Penuh', '可選': 'Sisa', '當日無可預約時段': 'Tidak ada slot tersedia pada tanggal ini', '請先選擇門市與日期': 'Pilih toko dan tanggal terlebih dahulu', '載入可預約時段中...': 'Memuat slot...', '起': 'mulai', '特別款': 'Spesial', '待確認（現場選擇）': 'Pilih di toko', '請先選擇人數': 'Pilih jumlah tamu dulu', '查看 Google 地圖': 'Lihat Google Maps'
+        });
+        const compactTerms = {
+            'zh-Hans': {
+                '素雅和服': '素雅和服', '俏麗和服': '俏丽和服', '精緻和服': '精致和服', '女士浴衣': '女士浴衣', '豪華振袖': '豪华振袖', '男士和服': '男士和服', '武士畢業袴': '武士毕业袴', '兒童和服': '儿童和服',
+                '門市報到': '门店报到', '漫步體驗': '漫步体验', '輕鬆歸還': '轻松归还', '預約與門市': '预约与门店', '款式與穿著': '款式与穿着', '費用與退款': '费用与退款', '攝影與行李': '摄影与行李',
+                '京都清水寺店': '京都清水寺店', '大阪日本橋店': '大阪日本桥店', '京都祇園店': '京都祇园店', '東京淺草寺店': '东京浅草寺店'
+            },
+            ja: {
+                '素雅和服': 'シンプル着物', '俏麗和服': '華やか着物', '精緻和服': '上質着物', '女士浴衣': '女性浴衣', '豪華振袖': '豪華振袖', '男士和服': '男性着物', '武士畢業袴': '袴プラン', '兒童和服': '子供着物',
+                '門市報到': '受付', '漫步體驗': '散策体験', '輕鬆歸還': '返却', '預約與門市': '予約・店舗', '款式與穿著': '着物・着付け', '費用與退款': '料金・返金', '攝影與行李': '撮影・荷物',
+                '京都清水寺店': '京都清水寺店', '大阪日本橋店': '大阪日本橋店', '京都祇園店': '京都祇園店', '東京淺草寺店': '東京浅草寺店'
+            },
+            en: {
+                '素雅和服': 'Elegant Kimono', '俏麗和服': 'Pretty Kimono', '精緻和服': 'Premium Kimono', '女士浴衣': 'Women Yukata', '豪華振袖': 'Luxury Furisode', '男士和服': 'Men Kimono', '武士畢業袴': 'Hakama Plan', '兒童和服': 'Children Kimono',
+                '門市報到': 'Check In', '漫步體驗': 'Walk & Enjoy', '輕鬆歸還': 'Easy Return', '預約與門市': 'Booking & Stores', '款式與穿著': 'Styles & Dressing', '費用與退款': 'Fees & Refunds', '攝影與行李': 'Photo & Luggage',
+                '京都清水寺店': 'Kyoto Kiyomizu Store', '大阪日本橋店': 'Osaka Nippombashi Store', '京都祇園店': 'Kyoto Gion Store', '東京淺草寺店': 'Tokyo Asakusa Store'
+            },
+            ko: {
+                '素雅和服': '심플 기모노', '俏麗和服': '화사한 기모노', '精緻和服': '프리미엄 기모노', '女士浴衣': '여성 유카타', '豪華振袖': '고급 후리소데', '男士和服': '남성 기모노', '武士畢業袴': '하카마 플랜', '兒童和服': '어린이 기모노',
+                '門市報到': '매장 접수', '漫步體驗': '산책 체험', '輕鬆歸還': '반납', '預約與門市': '예약 및 매장', '款式與穿著': '스타일 및 착장', '費用與退款': '요금 및 환불', '攝影與行李': '촬영 및 짐',
+                '京都清水寺店': '교토 기요미즈데라점', '大阪日本橋店': '오사카 닛폰바시점', '京都祇園店': '교토 기온점', '東京淺草寺店': '도쿄 아사쿠사점'
+            },
+            id: {
+                '素雅和服': 'Kimono Elegan', '俏麗和服': 'Kimono Cantik', '精緻和服': 'Kimono Premium', '女士浴衣': 'Yukata Wanita', '豪華振袖': 'Furisode Mewah', '男士和服': 'Kimono Pria', '武士畢業袴': 'Paket Hakama', '兒童和服': 'Kimono Anak',
+                '門市報到': 'Check-in Toko', '漫步體驗': 'Jalan-jalan', '輕鬆歸還': 'Pengembalian', '預約與門市': 'Reservasi & Toko', '款式與穿著': 'Gaya & Pemakaian', '費用與退款': 'Biaya & Refund', '攝影與行李': 'Foto & Bagasi',
+                '京都清水寺店': 'Kyoto Kiyomizu', '大阪日本橋店': 'Osaka Nippombashi', '京都祇園店': 'Kyoto Gion', '東京淺草寺店': 'Tokyo Asakusa'
+            }
+        };
+        Object.keys(compactTerms).forEach(lang => Object.assign(phraseMaps[lang], compactTerms[lang]));
+        let currentLanguage = (() => {
+            try { return localStorage.getItem('kimono_lang') || 'zh-Hant'; } catch(err) { return 'zh-Hant'; }
+        })();
+        const textNodeSources = new WeakMap();
+        const attrSources = new WeakMap();
+        function t(source) {
+            return currentLanguage === 'zh-Hant' ? source : ((phraseMaps[currentLanguage] || {})[source] || source);
+        }
+        function setLanguage(lang) {
+            currentLanguage = phraseMaps[lang] || lang === 'zh-Hant' ? lang : 'zh-Hant';
+            try { localStorage.setItem('kimono_lang', currentLanguage); } catch(err) {}
+            document.documentElement.lang = currentLanguage;
+            const activeFaq = Array.from(document.querySelectorAll('.faq-tab-btn')).findIndex(btn => btn.classList.contains('text-white'));
+            const activeStore = Array.from(document.querySelectorAll('.store-tab-btn')).findIndex(btn => btn.classList.contains('text-white'));
+            ['language-select', 'language-select-mobile', 'language-select-mobile-top'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = currentLanguage;
+            });
+            translatePage();
+            updateDepositDisplay();
+            renderPersonKimonoSelects();
+            renderBookingSlotList();
+            translateFormOptions();
+            if (activeFaq >= 0) switchFaq(activeFaq);
+            if (activeStore >= 0) switchStore(activeStore);
+        }
+        function translatePage(root = document.body) {
+            if (!root) return;
+            const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+                acceptNode(node) {
+                    const parent = node.parentElement;
+                    if (!parent || ['SCRIPT', 'STYLE', 'TEXTAREA', 'OPTION'].includes(parent.tagName)) return NodeFilter.FILTER_REJECT;
+                    return node.nodeValue.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+                }
+            });
+            const nodes = [];
+            while (walker.nextNode()) nodes.push(walker.currentNode);
+            nodes.forEach(node => {
+                const original = textNodeSources.get(node) || node.nodeValue.trim();
+                textNodeSources.set(node, original);
+                node.nodeValue = node.nodeValue.replace(node.nodeValue.trim(), t(original));
+            });
+            root.querySelectorAll('input[placeholder], textarea[placeholder], [aria-label], [title]').forEach(el => {
+                ['placeholder', 'aria-label', 'title'].forEach(attr => {
+                    if (!el.hasAttribute(attr)) return;
+                    const key = attr + ':' + (attrSources.get(el)?.[attr] || el.getAttribute(attr));
+                    const store = attrSources.get(el) || {};
+                    if (!store[attr]) store[attr] = el.getAttribute(attr);
+                    attrSources.set(el, store);
+                    el.setAttribute(attr, t(store[attr]));
+                });
+            });
+        }
+        function translateFormOptions() {
+            document.querySelectorAll('option').forEach(option => {
+                if (!option.dataset.i18nSource) option.dataset.i18nSource = option.textContent.trim();
+                option.textContent = t(option.dataset.i18nSource);
+            });
+        }
         function initLucide() {
             if (typeof lucide !== 'undefined') { lucide.createIcons(); }
             else { setTimeout(initLucide, 50); }
@@ -58,6 +241,39 @@
         .upload-zone { cursor: pointer; }
         .upload-zone:hover { border-color: #f9a8d4; color: #ec4899; }
         #file-label-text { transition: color 0.2s; }
+        .language-select {
+            min-width: 116px;
+            height: 34px;
+            border-radius: 2px;
+            border: 1px solid rgba(255,255,255,0.42);
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 0 2rem 0 0.75rem;
+            outline: none;
+            cursor: pointer;
+        }
+        .language-select option { color: #1A365D; background: #fff; }
+        .language-select.is-scrolled {
+            border-color: #1A365D;
+            color: #1A365D;
+            background: rgba(255,255,255,0.9);
+        }
+        .mobile-language-select {
+            min-width: 96px;
+            height: 34px;
+            border-radius: 2px;
+            border: 1px solid rgba(255,255,255,0.42);
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 0 0.6rem;
+            outline: none;
+        }
 
         /* ★ 好評無限滾動 */
         @keyframes scroll-left {
@@ -135,13 +351,31 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 <button onclick="scrollToId('sec-faq')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">常見問題</button>
                 <button onclick="scrollToId('sec-3')" class="nav-link text-white font-bold text-xs tracking-widest uppercase bg-transparent border-none cursor-pointer transition-colors hover:text-pink-300 font-sans">門市資訊</button>
                 <button onclick="scrollToId('booking')" id="nav-booking-btn" class="ml-4 px-8 py-2 text-[10px] font-bold rounded-sm border border-white/40 text-white hover:bg-white hover:text-[#1A365D] transition-all cursor-pointer uppercase font-sans shadow-sm">立即預約</button>
+                <select id="language-select" class="language-select font-sans" aria-label="選擇語言" onchange="setLanguage(this.value)">
+                    <option value="zh-Hant">繁中</option>
+                    <option value="zh-Hans">简中</option>
+                    <option value="ja">日本語</option>
+                    <option value="en">English</option>
+                    <option value="ko">한국어</option>
+                    <option value="id">Indonesia</option>
+                </select>
             </div>
             <!-- ★ 漢堡按鈕加 z-index relative 避免被遮 -->
-            <button id="hamburger-btn" class="lg:hidden w-10 h-10 flex flex-col justify-center items-center gap-1.5 rounded-sm transition-all relative z-[460]" aria-label="開啟選單" onclick="toggleMobileMenu()">
-                <span id="ham-line1" class="block w-6 h-0.5 bg-white transition-all duration-300"></span>
-                <span id="ham-line2" class="block w-6 h-0.5 bg-white transition-all duration-300"></span>
-                <span id="ham-line3" class="block w-6 h-0.5 bg-white transition-all duration-300"></span>
-            </button>
+            <div class="lg:hidden flex items-center gap-3 relative z-[460]">
+                <select id="language-select-mobile-top" class="mobile-language-select font-sans" aria-label="選擇語言" onchange="setLanguage(this.value)">
+                    <option value="zh-Hant">繁中</option>
+                    <option value="zh-Hans">简中</option>
+                    <option value="ja">日本語</option>
+                    <option value="en">English</option>
+                    <option value="ko">한국어</option>
+                    <option value="id">Indonesia</option>
+                </select>
+                <button id="hamburger-btn" class="w-10 h-10 flex flex-col justify-center items-center gap-1.5 rounded-sm transition-all" aria-label="開啟選單" onclick="toggleMobileMenu()">
+                    <span id="ham-line1" class="block w-6 h-0.5 bg-white transition-all duration-300"></span>
+                    <span id="ham-line2" class="block w-6 h-0.5 bg-white transition-all duration-300"></span>
+                    <span id="ham-line3" class="block w-6 h-0.5 bg-white transition-all duration-300"></span>
+                </button>
+            </div>
         </div>
     </nav>
 
@@ -155,6 +389,14 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
         <button onclick="closeMobileMenu(); scrollToId('sec-faq')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">常見問題</button>
         <button onclick="closeMobileMenu(); scrollToId('sec-3')" class="text-white font-bold text-2xl tracking-widest uppercase font-sans hover:text-pink-300 transition-colors">門市資訊</button>
         <button onclick="closeMobileMenu(); scrollToId('booking')" class="px-12 py-4 border-2 border-white/50 text-white font-bold tracking-widest uppercase text-sm font-sans rounded-sm hover:bg-white hover:text-[#1A365D] transition-all">立即預約</button>
+        <select id="language-select-mobile" class="mobile-language-select font-sans" aria-label="選擇語言" onchange="setLanguage(this.value)">
+            <option value="zh-Hant">繁中</option>
+            <option value="zh-Hans">简中</option>
+            <option value="ja">日本語</option>
+            <option value="en">English</option>
+            <option value="ko">한국어</option>
+            <option value="id">Indonesia</option>
+        </select>
         <!-- ★ LINE + Messenger 在漢堡裡 -->
         <div class="flex gap-4 mt-2">
             <a href="https://lin.ee/TgFCvYQ" target="_blank" rel="noopener" onclick="closeMobileMenu()"
@@ -968,6 +1210,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                     }
                 }, 300);
             }
+            translatePage();
+            translateFormOptions();
         }
 
         function drawProcessLines() {
@@ -1024,12 +1268,13 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             document.getElementById('faq-content').innerHTML = faqData[idx].items.map((item, i) => `
                 <div class="py-6 text-left">
                     <button onclick="toggleAccordion('faq-item-${idx}-${i}')" class="w-full flex items-center justify-between text-left cursor-pointer group outline-none bg-transparent border-none">
-                        <span class="text-base font-bold group-hover:text-pink-500 transition-colors font-sans text-[#1A365D]">Q. ${item.q}</span>
+                        <span class="text-base font-bold group-hover:text-pink-500 transition-colors font-sans text-[#1A365D]">Q. ${t(item.q)}</span>
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-300 group-hover:text-pink-400 transition-transform flex-shrink-0 ml-4" id="faq-icon-${idx}-${i}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
                     </button>
-                    <div id="faq-item-${idx}-${i}" class="faq-answer text-slate-500 text-sm italic leading-relaxed font-sans">A: ${item.a}</div>
+                    <div id="faq-item-${idx}-${i}" class="faq-answer text-slate-500 text-sm italic leading-relaxed font-sans">A: ${t(item.a)}</div>
                 </div>
             `).join('');
+            translatePage(document.getElementById('faq-content'));
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
@@ -1059,13 +1304,13 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                         </div>
                         <div class="flex items-center gap-4 opacity-60">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="#f9a8d4" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            <p class="text-sm uppercase tracking-widest font-sans">每日 09:30 – 17:30</p>
+                            <p class="text-sm uppercase tracking-widest font-sans">${t('每日 09:30 – 17:30')}</p>
                         </div>
                     </div>
                     <div class="mt-14">
                         <a href="${s.map}" target="_blank" rel="noopener" class="inline-flex items-center gap-3 px-8 py-4 bg-[#1A365D] text-white rounded-sm font-bold text-xs uppercase tracking-[0.2em] hover:bg-pink-500 transition-colors font-sans">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                            查看 Google 地圖
+                            ${t('查看 Google 地圖')}
                         </a>
                     </div>
                 </div>
@@ -1073,6 +1318,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                     <img src="${s.img}" class="absolute inset-0 w-full h-full object-cover object-center transition-all duration-1000 hover:scale-105" alt="${s.name}" loading="lazy" decoding="async">
                 </div>
             `;
+            translatePage(document.getElementById('store-content'));
         }
 
         let guestData = { maleAdults: 0, femaleAdults: 0, children: 0 };
@@ -1086,9 +1332,9 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             const el = document.getElementById('deposit-display');
             const detail = document.getElementById('deposit-detail');
             if (el) el.textContent = `NT$ ${twd.toLocaleString()} 元`;
-            if (detail) detail.textContent = `每人 1,000 JPY × ${total} 人 ≈ NT$ ${twd.toLocaleString()}（依即時匯率）`;
+            if (detail) detail.textContent = t('每人') + ` 1,000 JPY × ${total} ` + t('人') + ` ≈ NT$ ${twd.toLocaleString()}` + t('（依即時匯率）');
             const amtEl = document.getElementById('bank-info-amount');
-            if (amtEl) amtEl.textContent = `需付金額：NT$ ${twd.toLocaleString()}`;
+            if (amtEl) amtEl.textContent = t('需付金額：') + `NT$ ${twd.toLocaleString()}`;
         
             const confEl = document.getElementById('confirm-deposit-text');
             if (confEl) confEl.textContent = twd.toLocaleString();}
@@ -1245,11 +1491,11 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 
         function bookingTimeLabel(slot) {
             const hour = Number(slot.slice(0, 2));
-            return (hour < 12 ? '上午 ' : '下午 ') + slot;
+            return (hour < 12 ? t('上午 ') : t('下午 ')) + slot;
         }
 
         function guestTypeLabel(type) {
-            return type === 'maleAdults' ? '男性' : (type === 'femaleAdults' ? '女性' : '小孩');
+            return type === 'maleAdults' ? t('男性') : (type === 'femaleAdults' ? t('女性') : t('小孩'));
         }
 
         function remainingLabel(remaining) {
@@ -1315,17 +1561,17 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             const available = canSelectSlot(remaining);
             const fits = selectedGuestFitsSlot(remaining);
             const disabledClass = available ? '' : ' opacity-45 cursor-not-allowed';
-            const warning = available && !fits ? '<div class="mt-3 text-[11px] font-bold text-pink-500">目前選擇人數超過此時段名額</div>' : '';
+            const warning = available && !fits ? '<div class="mt-3 text-[11px] font-bold text-pink-500">' + t('目前選擇人數超過此時段名額') + '</div>' : '';
             return '<div data-booking-slot="' + slot + '" onclick="selectBookingSlot(\'' + slot + '\')" ' +
                 ' class="w-full text-left p-5 rounded-xl border-2 border-slate-100 bg-white text-[#1A365D] hover:border-[#1A365D] transition-all font-sans cursor-pointer' + disabledClass + '">' +
                 '<div class="flex items-center justify-between gap-3">' +
                     '<div class="font-bold text-lg">' + bookingTimeLabel(slot) + '</div>' +
-                    '<div class="text-[10px] font-bold uppercase tracking-widest ' + (available ? 'text-emerald-600' : 'text-slate-400') + '">' + (available ? '可預約' : '已滿') + '</div>' +
+                    '<div class="text-[10px] font-bold uppercase tracking-widest ' + (available ? 'text-emerald-600' : 'text-slate-400') + '">' + (available ? t('可預約') : t('已滿')) + '</div>' +
                 '</div>' +
                 '<div class="grid grid-cols-3 gap-2 mt-4 text-center">' +
-                    renderSlotGuestControl(slot, 'maleAdults', '男性', remaining.maleAdults) +
-                    renderSlotGuestControl(slot, 'femaleAdults', '女性', remaining.femaleAdults) +
-                    renderSlotGuestControl(slot, 'children', '小孩', remaining.children) +
+                    renderSlotGuestControl(slot, 'maleAdults', t('男性'), remaining.maleAdults) +
+                    renderSlotGuestControl(slot, 'femaleAdults', t('女性'), remaining.femaleAdults) +
+                    renderSlotGuestControl(slot, 'children', t('小孩'), remaining.children) +
                 '</div>' + warning +
             '</div>';
         }
@@ -1337,7 +1583,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             const plusDisabled = selected >= remaining;
             return '<div class="rounded-lg bg-slate-50 px-2 py-3" onclick="event.stopPropagation()">' +
                 '<div class="text-[10px] text-slate-400 font-bold mb-1">' + label + '</div>' +
-                '<div class="text-[10px] text-slate-400 font-bold mb-2">可選 ' + remaining + '</div>' +
+                '<div class="text-[10px] text-slate-400 font-bold mb-2">' + t('可選') + ' ' + remaining + '</div>' +
                 '<div class="flex items-center justify-center gap-2">' +
                     '<button type="button" ' + (minusDisabled ? 'disabled' : '') + ' onclick="changeGuest(\'' + type + '\', -1, \'' + slot + '\')" class="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-500 font-bold disabled:opacity-30 hover:bg-blue-50 hover:border-[#1A365D] hover:text-[#1A365D]">-</button>' +
                     '<span class="font-mono font-bold text-xl w-6 text-center text-[#1A365D]">' + selected + '</span>' +
@@ -1351,6 +1597,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             if (!list || !bookingTimeSlots.length) return;
             list.innerHTML = bookingTimeSlots.map(renderTimeSlotCard).join('');
             renderSelectedTimeSlotState();
+            translatePage(list);
         }
 
         function renderBookingTimeSlots(slots, previousValue, availability) {
@@ -1367,14 +1614,14 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             if (list) {
                 list.innerHTML = validSlots.length
                     ? validSlots.map(renderTimeSlotCard).join('')
-                    : '<div class="md:col-span-2 p-6 rounded-xl bg-slate-50 text-center text-sm text-slate-400 font-bold font-sans">當日無可預約時段</div>';
+                    : '<div class="md:col-span-2 p-6 rounded-xl bg-slate-50 text-center text-sm text-slate-400 font-bold font-sans">' + t('當日無可預約時段') + '</div>';
             }
             if (previousValue && validSlots.includes(previousValue) && canSelectSlot(bookingSlotAvailability[previousValue]?.remaining)) {
                 input.value = previousValue;
             }
             if (hint) hint.textContent = validSlots.length
-                ? '此店當日共有 ' + validSlots.length + ' 個可預約時段，請點選下方時段'
-                : '此店當日未開放預約';
+                ? t('此店當日共有') + ' ' + validSlots.length + ' ' + t('個可預約時段，請點選下方時段')
+                : t('此店當日未開放預約');
             renderSelectedTimeSlotState();
             enforceGuestCapacity(false);
         }
@@ -1391,12 +1638,12 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 input.value = '';
                 bookingTimeSlots = [];
                 bookingSlotAvailability = {};
-                if (list) list.innerHTML = '<div class="md:col-span-2 p-6 rounded-xl bg-slate-50 text-center text-sm text-slate-400 font-bold font-sans">請先選擇門市與日期</div>';
-                if (hint) hint.textContent = '請先選擇門市與日期，下方會顯示各時段剩餘名額';
+                if (list) list.innerHTML = '<div class="md:col-span-2 p-6 rounded-xl bg-slate-50 text-center text-sm text-slate-400 font-bold font-sans">' + t('請先選擇門市與日期') + '</div>';
+                if (hint) hint.textContent = t('請先選擇門市與日期，下方會顯示各時段剩餘名額');
                 return;
             }
             input.value = '';
-            if (list) list.innerHTML = '<div class="md:col-span-2 p-6 rounded-xl bg-slate-50 text-center text-sm text-slate-400 font-bold font-sans">載入可預約時段中...</div>';
+            if (list) list.innerHTML = '<div class="md:col-span-2 p-6 rounded-xl bg-slate-50 text-center text-sm text-slate-400 font-bold font-sans">' + t('載入可預約時段中...') + '</div>';
             try {
                 const res = await fetch(API_BASE_URL + '/getStoreAvailability?storeId=' + encodeURIComponent(storeId) + '&date=' + encodeURIComponent(date));
                 const data = await res.json().catch(() => ({}));
@@ -1406,7 +1653,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             } catch (err) {
                 if (requestId !== timeSlotRequestId) return;
                 renderBookingTimeSlots([], '');
-                if (hint) hint.textContent = '暫時無法取得店鋪時段，請稍後重選門市或日期';
+                if (hint) hint.textContent = t('暫時無法取得店鋪時段，請稍後重選門市或日期');
             }
         }
 
@@ -1589,12 +1836,19 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 document.getElementById('nav-sub').style.color = isScrolled ? 'rgba(26,54,93,0.7)' : 'rgba(255,255,255,0.7)';
                 const btn = document.getElementById('nav-booking-btn');
                 if (btn) { btn.style.borderColor = isScrolled ? '#1A365D' : 'rgba(255,255,255,0.4)'; btn.style.color = isScrolled ? '#1A365D' : 'white'; }
+                document.querySelectorAll('.language-select, .mobile-language-select').forEach(el => {
+                    el.classList.toggle('is-scrolled', isScrolled);
+                    el.style.borderColor = isScrolled ? '#1A365D' : 'rgba(255,255,255,0.42)';
+                    el.style.color = isScrolled ? '#1A365D' : 'white';
+                    el.style.backgroundColor = isScrolled ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.08)';
+                });
                 const topBtn = document.getElementById('topBtn');
                 topBtn.style.opacity = window.scrollY > 500 ? '1' : '0';
                 topBtn.style.pointerEvents = window.scrollY > 500 ? 'auto' : 'none';
             });
 
             initContent();
+            setLanguage(currentLanguage);
             setTimeout(drawProcessLines, 400);
             window.addEventListener('resize', drawProcessLines);
             setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 200);
@@ -1641,38 +1895,38 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             const adults = maleAdults + femaleAdults;
             const children = guestData.children || 0;
             const planOpts = (typeof plans !== 'undefined' ? plans : []).map(p =>
-                `<option value="${p.name}">${p.name}（¥${p.price} 起）</option>`
+                `<option value="${p.name}">${t(p.name)}（¥${p.price} ${t('起')}）</option>`
             ).join('');
-            const childPlanOpts = planOpts + '<option value="兒童和服">兒童和服（特別款）</option>';
+            const childPlanOpts = planOpts + '<option value="兒童和服">' + t('兒童和服') + '（' + t('特別款') + '）</option>';
             for (let i = 1; i <= maleAdults; i++) {
                 list.innerHTML += `<div class="flex items-center gap-3 border-b border-slate-100 pb-2">
-                    <span class="text-xs font-bold text-slate-500 font-sans w-16 shrink-0">男性 ${i}</span>
+                    <span class="text-xs font-bold text-slate-500 font-sans w-16 shrink-0">${t('男性')} ${i}</span>
                     <select name="person-kimono" class="flex-1 py-1 outline-none font-bold text-sm bg-transparent cursor-pointer font-sans">
-                        <option value="">待確認（現場選擇）</option>
+                        <option value="">${t('待確認（現場選擇）')}</option>
                         ${planOpts}
                     </select>
                 </div>`;
             }
             for (let i = 1; i <= femaleAdults; i++) {
                 list.innerHTML += `<div class="flex items-center gap-3 border-b border-slate-100 pb-2">
-                    <span class="text-xs font-bold text-slate-500 font-sans w-16 shrink-0">女性 ${i}</span>
+                    <span class="text-xs font-bold text-slate-500 font-sans w-16 shrink-0">${t('女性')} ${i}</span>
                     <select name="person-kimono" class="flex-1 py-1 outline-none font-bold text-sm bg-transparent cursor-pointer font-sans">
-                        <option value="">待確認（現場選擇）</option>
+                        <option value="">${t('待確認（現場選擇）')}</option>
                         ${planOpts}
                     </select>
                 </div>`;
             }
             for (let i = 1; i <= children; i++) {
                 list.innerHTML += `<div class="flex items-center gap-3 border-b border-slate-100 pb-2">
-                    <span class="text-xs font-bold text-slate-500 font-sans w-16 shrink-0">小孩 ${i}</span>
+                    <span class="text-xs font-bold text-slate-500 font-sans w-16 shrink-0">${t('小孩')} ${i}</span>
                     <select name="person-kimono" class="flex-1 py-1 outline-none font-bold text-sm bg-transparent cursor-pointer font-sans">
-                        <option value="">待確認（現場選擇）</option>
+                        <option value="">${t('待確認（現場選擇）')}</option>
                         ${childPlanOpts}
                     </select>
                 </div>`;
             }
             if (adults === 0 && children === 0) {
-                list.innerHTML = '<p class="text-xs text-slate-400 font-sans">請先選擇人數</p>';
+                list.innerHTML = '<p class="text-xs text-slate-400 font-sans">' + t('請先選擇人數') + '</p>';
             }
             // Restore previous selections
             const newSelects = list.querySelectorAll('select[name="person-kimono"]');
