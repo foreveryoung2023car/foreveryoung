@@ -501,26 +501,10 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 <!-- Step 1 -->
                 <div id="form-step-1" class="step-content active text-left">
                     <div class="mb-12 text-center">
-                        <h3 class="text-3xl font-bold text-[#1A365D] mb-4 italic uppercase font-sans">需求選擇 / Step 1</h3>
-                        <p class="text-slate-400 text-xs tracking-[0.4em] uppercase font-bold italic font-sans">請填寫預約細節與正式聯絡資料</p>
+                        <h3 class="text-3xl font-bold text-[#1A365D] mb-4 italic uppercase font-sans">選擇時段 / Step 1</h3>
+                        <p class="text-slate-400 text-xs tracking-[0.4em] uppercase font-bold italic font-sans">請先選擇店鋪、日期、時段與人數</p>
                     </div>
                     <form id="booking-form-1" class="space-y-12">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 font-sans uppercase">
-                            <label class="block border-b border-slate-100 pb-2">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase">預約姓名 / Name</span>
-                                <input required type="text" id="input-name" placeholder="您的姓名" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent">
-                            </label>
-                            <label class="block border-b border-slate-100 pb-2">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase">電話 / Phone</span>
-                                <input required type="tel" id="input-phone" pattern="[0-9]{8,12}" minlength="8" maxlength="12" placeholder="例: 0912345678" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent font-mono" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-                            </label>
-                        </div>
-                        <div class="grid grid-cols-1 gap-10 font-sans uppercase">
-                            <label class="block border-b border-slate-100 pb-2">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase">電子郵件 / Email</span>
-                                <input required type="email" id="input-email" placeholder="example@gmail.com" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent">
-                            </label>
-                        </div>
                         <!-- v37 新增：選擇體驗門市 -->
                         <div class="grid grid-cols-1 gap-10 font-sans uppercase">
                             <label class="block border-b border-slate-100 pb-2">
@@ -612,7 +596,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                             <p class="text-[11px] text-slate-400 font-bold mt-1 italic font-sans">* 訂金於體驗當日全額折抵現場結帳消費。</p>
                         </div>
                         <div class="flex justify-center pt-8">
-                            <button type="submit" class="w-full max-w-sm px-8 py-5 bg-[#1A365D] text-white font-bold tracking-[0.2em] rounded-sm hover:bg-blue-800 transition-all cursor-pointer shadow-xl uppercase font-sans text-xs">下一步：匯款憑證與編號鎖定</button>
+                            <button type="submit" class="w-full max-w-sm px-8 py-5 bg-[#1A365D] text-white font-bold tracking-[0.2em] rounded-sm hover:bg-blue-800 transition-all cursor-pointer shadow-xl uppercase font-sans text-xs">下一步：填寫個人資料</button>
                         </div>
                     </form>
                 </div>
@@ -620,8 +604,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 <!-- Step 2 -->
                 <div id="form-step-2" class="step-content text-left">
                     <div class="mb-12 text-center">
-                        <h3 class="text-3xl font-bold text-pink-500 mb-4 italic uppercase font-sans">對帳證明 / Step 2</h3>
-                        <p class="text-slate-400 text-xs tracking-[0.2em] uppercase font-bold italic font-sans">請匯款後提交資訊以正式鎖定編號</p>
+                        <h3 class="text-3xl font-bold text-pink-500 mb-4 italic uppercase font-sans">個人資料 / Step 2</h3>
+                        <p class="text-slate-400 text-xs tracking-[0.2em] uppercase font-bold italic font-sans">請填寫聯絡資料並提交匯款憑證</p>
                     </div>
                     <div class="bg-[#1A365D] text-white p-10 rounded-xl mb-12 shadow-inner relative overflow-hidden">
                         <i data-lucide="credit-card" class="absolute top-4 right-4 w-32 h-32 opacity-10 rotate-12"></i>
@@ -635,6 +619,22 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                         </div>
                     </div>
                     <form id="booking-form-2" class="space-y-10">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 font-sans uppercase">
+                            <label class="block border-b border-slate-100 pb-2">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase">預約姓名 / Name</span>
+                                <input required type="text" id="input-name" placeholder="您的姓名" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent">
+                            </label>
+                            <label class="block border-b border-slate-100 pb-2">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase">電話 / Phone</span>
+                                <input required type="tel" id="input-phone" pattern="[0-9]{8,12}" minlength="8" maxlength="12" placeholder="例: 0912345678" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent font-mono" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                            </label>
+                        </div>
+                        <div class="grid grid-cols-1 gap-10 font-sans uppercase">
+                            <label class="block border-b border-slate-100 pb-2">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase">電子郵件 / Email</span>
+                                <input required type="email" id="input-email" placeholder="example@gmail.com" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent">
+                            </label>
+                        </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-10 font-sans uppercase">
                             <label class="block border-b border-slate-100 pb-2">
                                 <span class="text-[10px] font-bold text-slate-400 uppercase mb-1">匯款後 5 碼 (僅數字)</span>
@@ -1100,6 +1100,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
         }
 
         let guestData = { maleAdults: 0, femaleAdults: 1, children: 0 };
+        let bookingSlotAvailability = {};
         function adultCount() {
             return guestData.maleAdults + guestData.femaleAdults;
         }
@@ -1117,6 +1118,11 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             if (confEl) confEl.textContent = twd.toLocaleString();}
         
         function changeGuest(type, delta) {
+            const selectedCapacity = currentSelectedSlotRemaining();
+            if (delta > 0 && selectedCapacity && guestData[type] >= Number(selectedCapacity[type] || 0)) {
+                alert('此時段' + guestTypeLabel(type) + '剩餘名額不足，請選擇其他時段或調整人數。');
+                return;
+            }
             guestData[type] = Math.max(0, guestData[type] + delta);
             if (adultCount() === 0) {
                 guestData[type] = 1;
@@ -1258,17 +1264,54 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             return (hour < 12 ? '上午 ' : '下午 ') + slot;
         }
 
-        function renderBookingTimeSlots(slots, previousValue) {
+        function guestTypeLabel(type) {
+            return type === 'maleAdults' ? '男性' : (type === 'femaleAdults' ? '女性' : '小孩');
+        }
+
+        function remainingLabel(remaining) {
+            if (!remaining) return '';
+            return '｜剩 男' + Number(remaining.maleAdults || 0) +
+                ' / 女' + Number(remaining.femaleAdults || 0) +
+                ' / 小孩' + Number(remaining.children || 0);
+        }
+
+        function currentSelectedSlotRemaining() {
+            const slot = document.getElementById('input-time')?.value || '';
+            return slot && bookingSlotAvailability[slot] ? bookingSlotAvailability[slot].remaining : null;
+        }
+
+        function enforceGuestCapacity(showAlert) {
+            const remaining = currentSelectedSlotRemaining();
+            if (!remaining) return true;
+            const over = ['maleAdults', 'femaleAdults', 'children'].filter(type => guestData[type] > Number(remaining[type] || 0));
+            if (!over.length) return true;
+            if (showAlert) {
+                alert('目前人數超過此時段剩餘名額：' + over.map(guestTypeLabel).join('、') + '。請調整人數或改選其他時段。');
+            }
+            return false;
+        }
+
+        function renderBookingTimeSlots(slots, previousValue, availability) {
             const select = document.getElementById('input-time');
             const hint = document.getElementById('time-slot-hint');
             const validSlots = Array.isArray(slots) ? slots : [];
+            bookingSlotAvailability = {};
+            (Array.isArray(availability) ? availability : []).forEach(item => {
+                if (item && item.slot) bookingSlotAvailability[item.slot] = item;
+            });
             select.innerHTML = '<option value="">' + (validSlots.length ? '請選擇時段' : '當日無可預約時段') + '</option>' +
-                validSlots.map(slot => '<option value="' + slot + '">' + bookingTimeLabel(slot) + '</option>').join('');
+                validSlots.map(slot => {
+                    const info = bookingSlotAvailability[slot];
+                    const remaining = info && info.remaining;
+                    const full = remaining && Number(remaining.maleAdults || 0) === 0 && Number(remaining.femaleAdults || 0) === 0 && Number(remaining.children || 0) === 0;
+                    return '<option value="' + slot + '"' + (full ? ' disabled' : '') + '>' + bookingTimeLabel(slot) + remainingLabel(remaining) + (full ? '｜已滿' : '') + '</option>';
+                }).join('');
             select.disabled = validSlots.length === 0;
             if (previousValue && validSlots.includes(previousValue)) select.value = previousValue;
             if (hint) hint.textContent = validSlots.length
-                ? '此店當日共有 ' + validSlots.length + ' 個可預約時段'
+                ? '此店當日共有 ' + validSlots.length + ' 個可預約時段；請依剩餘男／女／小孩名額選擇'
                 : '此店當日未開放預約';
+            enforceGuestCapacity(false);
         }
 
         async function refreshBookingTimeSlots() {
@@ -1291,7 +1334,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 const data = await res.json().catch(() => ({}));
                 if (!res.ok || data.status !== 'success') throw new Error(data.message || '時段載入失敗');
                 if (requestId !== timeSlotRequestId) return;
-                renderBookingTimeSlots(data.slots || [], previousValue);
+                renderBookingTimeSlots(data.slots || [], previousValue, data.slotAvailability || []);
             } catch (err) {
                 if (requestId !== timeSlotRequestId) return;
                 renderBookingTimeSlots([], '');
@@ -1350,11 +1393,13 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             e.preventDefault();
             if (!document.getElementById('input-time').value) { alert('請選擇預約時段'); return; }
             if (!document.getElementById('input-store').value) { alert('請選擇體驗門市'); return; }
+            if (!enforceGuestCapacity(true)) return;
             setStep(2); scrollToId('booking');
         };
 
         document.getElementById('booking-form-2').onsubmit = async (e) => {
             e.preventDefault();
+            if (!enforceGuestCapacity(true)) return;
             const btn = document.getElementById('finalSubmitBtn');
             btn.innerHTML = '鎖定編號中...'; btn.disabled = true;
             let lastTime = null;
@@ -1445,6 +1490,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             document.getElementById('input-date').setAttribute('min', todayStr);
             document.getElementById('input-store').addEventListener('change', refreshBookingTimeSlots);
             document.getElementById('input-date').addEventListener('change', refreshBookingTimeSlots);
+            document.getElementById('input-time').addEventListener('change', () => enforceGuestCapacity(true));
             refreshBookingTimeSlots();
 
             const container = document.getElementById('sakura-container');

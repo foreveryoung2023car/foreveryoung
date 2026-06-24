@@ -66,12 +66,38 @@ function renderSelectedStoreSchedule() {
     ? '此日期已有個別設定'
     : '此日期目前沿用店鋪預設';
   const selected = new Set(row.slots || []);
+  const capacities = row.slotCapacities || {};
   document.getElementById('store-slot-grid').innerHTML = STORE_TIME_OPTIONS.map(slot =>
-    '<label class="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer ' + (selected.has(slot) ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200') + '">' +
-      '<input type="checkbox" name="store-slot" value="' + slot + '" ' + (selected.has(slot) ? 'checked' : '') + ' onchange="this.parentNode.classList.toggle(\'bg-blue-50\',this.checked);this.parentNode.classList.toggle(\'border-blue-200\',this.checked)">' +
-      '<span class="font-mono text-sm font-bold">' + slot + '</span>' +
-    '</label>'
+    renderStoreSlotEditor(slot, selected.has(slot), capacities[slot])
   ).join('');
+}
+
+function storeSlotCapacityValue(capacity, key) {
+  const val = Number(capacity && capacity[key]);
+  return Number.isFinite(val) && val >= 0 ? val : 99;
+}
+
+function renderStoreSlotEditor(slot, checked, capacity) {
+  return '<div class="p-3 border rounded-lg ' + (checked ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200') + '" data-store-slot-row="' + slot + '">' +
+    '<label class="flex items-center gap-2 cursor-pointer mb-2">' +
+      '<input type="checkbox" name="store-slot" value="' + slot + '" ' + (checked ? 'checked' : '') + ' onchange="toggleStoreSlotRow(this)">' +
+      '<span class="font-mono text-sm font-bold">' + slot + '</span>' +
+    '</label>' +
+    '<div class="grid grid-cols-3 gap-1 text-[10px] text-slate-500 font-bold">' +
+      '<label>男<input name="store-slot-capacity" data-slot="' + slot + '" data-type="maleAdults" type="number" min="0" step="1" value="' + storeSlotCapacityValue(capacity, 'maleAdults') + '" class="w-full mt-1 px-1 py-1 border border-slate-200 rounded font-mono text-xs"></label>' +
+      '<label>女<input name="store-slot-capacity" data-slot="' + slot + '" data-type="femaleAdults" type="number" min="0" step="1" value="' + storeSlotCapacityValue(capacity, 'femaleAdults') + '" class="w-full mt-1 px-1 py-1 border border-slate-200 rounded font-mono text-xs"></label>' +
+      '<label>小<input name="store-slot-capacity" data-slot="' + slot + '" data-type="children" type="number" min="0" step="1" value="' + storeSlotCapacityValue(capacity, 'children') + '" class="w-full mt-1 px-1 py-1 border border-slate-200 rounded font-mono text-xs"></label>' +
+    '</div>' +
+  '</div>';
+}
+
+function toggleStoreSlotRow(input) {
+  const row = input.closest('[data-store-slot-row]');
+  if (!row) return;
+  row.classList.toggle('bg-blue-50', input.checked);
+  row.classList.toggle('border-blue-200', input.checked);
+  row.classList.toggle('bg-white', !input.checked);
+  row.classList.toggle('border-slate-200', !input.checked);
 }
 
 function openStoreEditor(create) {
@@ -135,10 +161,23 @@ function selectedStoreSlots() {
   return Array.from(document.querySelectorAll('input[name="store-slot"]:checked')).map(input => input.value).sort();
 }
 
+function selectedStoreSlotCapacities() {
+  const selected = new Set(selectedStoreSlots());
+  const capacities = {};
+  document.querySelectorAll('input[name="store-slot-capacity"]').forEach(input => {
+    const slot = input.dataset.slot;
+    const type = input.dataset.type;
+    if (!selected.has(slot) || !type) return;
+    if (!capacities[slot]) capacities[slot] = { maleAdults: 0, femaleAdults: 0, children: 0 };
+    capacities[slot][type] = Math.max(0, Number(input.value || 0));
+  });
+  return capacities;
+}
+
 function selectStoreSlots(checked) {
   document.querySelectorAll('input[name="store-slot"]').forEach(input => {
     input.checked = checked;
-    input.dispatchEvent(new Event('change'));
+    toggleStoreSlotRow(input);
   });
 }
 
@@ -147,7 +186,7 @@ function restoreDefaultStoreSlots() {
   const defaults = new Set((row && row.defaultSlots) || []);
   document.querySelectorAll('input[name="store-slot"]').forEach(input => {
     input.checked = defaults.has(input.value);
-    input.dispatchEvent(new Event('change'));
+    toggleStoreSlotRow(input);
   });
 }
 
@@ -165,7 +204,8 @@ async function saveStoreSlots(mode) {
       storeId,
       mode,
       date,
-      slots: selectedStoreSlots()
+      slots: selectedStoreSlots(),
+      slotCapacities: selectedStoreSlotCapacities()
     });
     toast(mode === 'default' ? '店鋪預設時段已更新' : '指定日期時段已更新');
     await loadStoreSchedules(storeId);

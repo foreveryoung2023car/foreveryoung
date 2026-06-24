@@ -16,7 +16,7 @@ import type { AuthContext } from "../lib/auth.js";
 import { writeAuditLog } from "../lib/audit.js";
 import { getIdempotentResponse, rememberIdempotentResponse } from "../lib/idempotency.js";
 import { calculateOrderTotal } from "../lib/money.js";
-import { assertStoreSlotAvailable } from "./stores.js";
+import { assertStoreSlotAvailable, assertStoreSlotCapacityAvailable } from "./stores.js";
 import { nextOrderNo } from "./orderNumber.js";
 import { calculateBookingDepositJpy } from "./paymentSettings.js";
 
@@ -405,6 +405,13 @@ export async function createPublicOrder(raw: unknown) {
   });
 
   const result = await db.runTransaction(async (tx) => {
+    if (input.storeCode) {
+      await assertStoreSlotCapacityAvailable(input.storeCode, input.bookingAt, {
+        maleAdults: Number(input.maleAdults || 0),
+        femaleAdults: hasAdultBreakdown ? Number(input.femaleAdults || 0) : adults,
+        children: Number(input.children || 0)
+      }, tx);
+    }
     const orderNo = await nextOrderNo(tx, brandPlatform);
     const orderRef = db.collection("orders").doc();
     const customerRef = db.collection("customers").doc();
@@ -640,6 +647,37 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
     if (input.discountRefundAmountJpy !== undefined) patch.discountRefundAmountJpy = input.discountRefundAmountJpy;
     if (input.storeActualReceivedJpy !== undefined) patch.storeActualReceivedJpy = input.storeActualReceivedJpy;
     if (input.note !== undefined) patch.note = input.note;
+
+    const effectiveStoreId = String(before.storeId || "");
+    const effectiveBookingAt = input.bookingAt
+      ? input.bookingAt
+      : timestampToIso(before.bookingAt);
+    const effectiveMaleAdults = input.maleAdults !== undefined
+      ? input.maleAdults
+      : Number((patch as FirebaseFirestore.DocumentData).maleAdults ?? before.maleAdults ?? 0);
+    const effectiveFemaleAdults = input.femaleAdults !== undefined
+      ? input.femaleAdults
+      : Number((patch as FirebaseFirestore.DocumentData).femaleAdults ?? before.femaleAdults ?? 0);
+    const beforeHasBreakdown = before.maleAdults !== undefined || before.femaleAdults !== undefined;
+    const effectiveAdults = input.adults !== undefined
+      ? input.adults
+      : Number((patch as FirebaseFirestore.DocumentData).adults ?? before.adults ?? 0);
+    const effectiveChildren = input.children !== undefined
+      ? input.children
+      : Number(before.children || 0);
+    if (effectiveStoreId && effectiveBookingAt && (
+      input.bookingAt !== undefined ||
+      input.maleAdults !== undefined ||
+      input.femaleAdults !== undefined ||
+      input.adults !== undefined ||
+      input.children !== undefined
+    )) {
+      await assertStoreSlotCapacityAvailable(effectiveStoreId, effectiveBookingAt, {
+        maleAdults: beforeHasBreakdown || input.maleAdults !== undefined || input.femaleAdults !== undefined ? effectiveMaleAdults : 0,
+        femaleAdults: beforeHasBreakdown || input.maleAdults !== undefined || input.femaleAdults !== undefined ? effectiveFemaleAdults : effectiveAdults,
+        children: effectiveChildren
+      }, tx, input.orderId);
+    }
 
     const hasPaymentUpdate = [
       input.depositJpy,
