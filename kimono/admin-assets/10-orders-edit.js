@@ -7,7 +7,9 @@ function orderFinancialValue(order, displayKey, firestoreKey) {
 }
 
 function maskStorePhone(phone) {
-  const digits = String(phone || '').replace(/\D/g, '');
+  const value = String(phone || '').trim();
+  if (/^\*+\d{3}$/.test(value)) return value;
+  const digits = value.replace(/\D/g, '');
   if (!digits) return '—';
   if (digits.length <= 3) return digits;
   return '*'.repeat(digits.length - 3) + digits.slice(-3);

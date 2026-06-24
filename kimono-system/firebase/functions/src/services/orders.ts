@@ -137,23 +137,32 @@ function isStoreOrderActor(actor: AuthContext) {
   return actor.role === "head_store_manager" || actor.role === "store_manager" || actor.role === "store_staff";
 }
 
+function maskPhoneForStore(phone: unknown) {
+  const digits = String(phone || "").replace(/\D/g, "");
+  if (!digits) return "";
+  if (digits.length <= 3) return digits;
+  return "*".repeat(digits.length - 3) + digits.slice(-3);
+}
+
 function sanitizeStoreOrderResponse(order: ReturnType<typeof toAdminOrderResponse>) {
+  const maskedPhone = maskPhoneForStore(order.phone);
   return {
     ...order,
-    phone: "",
+    phone: maskedPhone,
     email: "",
-    customerPhone: "",
+    customerPhone: maskedPhone,
     customerEmail: "",
     submitDate: ""
   };
 }
 
 function sanitizeStoreOrderMutationResponse<T extends Record<string, unknown>>(order: T) {
+  const maskedPhone = maskPhoneForStore(order.phone || order.customerPhone);
   return {
     ...order,
-    phone: "",
+    phone: maskedPhone,
     email: "",
-    customerPhone: "",
+    customerPhone: maskedPhone,
     customerEmail: ""
   };
 }
