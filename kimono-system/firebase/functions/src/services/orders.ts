@@ -207,6 +207,14 @@ function timestampToIso(value: unknown) {
   return String(value);
 }
 
+function timestampToMillis(value: unknown) {
+  if (!value) return null;
+  if (value instanceof Timestamp) return value.toDate().getTime();
+  if (value instanceof Date) return value.getTime();
+  const date = new Date(String(value));
+  return Number.isNaN(date.getTime()) ? null : date.getTime();
+}
+
 function publicStatusCode(status: unknown) {
   switch (status) {
     case "confirmed":
@@ -675,13 +683,20 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
     const effectiveChildren = input.children !== undefined
       ? input.children
       : Number(before.children || 0);
-    if (effectiveStoreId && effectiveBookingAt && (
-      input.bookingAt !== undefined ||
-      input.maleAdults !== undefined ||
-      input.femaleAdults !== undefined ||
-      input.adults !== undefined ||
-      input.children !== undefined
-    )) {
+    const beforeBookingMillis = timestampToMillis(before.bookingAt);
+    const inputBookingMillis = input.bookingAt !== undefined ? timestampToMillis(input.bookingAt) : null;
+    const bookingAtChanged = input.bookingAt !== undefined && (
+      beforeBookingMillis === null ||
+      inputBookingMillis === null ||
+      beforeBookingMillis !== inputBookingMillis
+    );
+    const guestCountChanged = [
+      input.maleAdults !== undefined && input.maleAdults !== Number(before.maleAdults ?? 0),
+      input.femaleAdults !== undefined && input.femaleAdults !== Number(before.femaleAdults ?? 0),
+      input.adults !== undefined && input.adults !== Number(before.adults ?? 0),
+      input.children !== undefined && input.children !== Number(before.children ?? 0)
+    ].some(Boolean);
+    if (effectiveStoreId && effectiveBookingAt && (bookingAtChanged || guestCountChanged)) {
       await assertStoreSlotCapacityAvailable(effectiveStoreId, effectiveBookingAt, {
         maleAdults: beforeHasBreakdown || input.maleAdults !== undefined || input.femaleAdults !== undefined ? effectiveMaleAdults : 0,
         femaleAdults: beforeHasBreakdown || input.maleAdults !== undefined || input.femaleAdults !== undefined ? effectiveFemaleAdults : effectiveAdults,
