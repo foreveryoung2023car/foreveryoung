@@ -285,6 +285,56 @@
             }
         };
         Object.keys(uiTranslations).forEach(lang => Object.assign(phraseMaps[lang], uiTranslations[lang]));
+        const requestedTranslations = {
+            'zh-Hans': {
+                '間': '间', '旅乘': '旅乘', '和服': '和服', '旅客真實': '旅客真实', '和服體驗': '和服体验',
+                '攝影開始': '摄影开始', '精選門市': '精选门店', '填單預約': '填写预约',
+                '年/月/日': '年/月/日',
+                '＊ 攝影費用不含景點門票，進入收費景區時攝影師門票費由客人一同支付': '* 摄影费用不含景点门票，进入收费景区时摄影师门票费由客人一同支付',
+                '＊ 精選修圖後電子檔，於體驗後 7 個工作天內透過雲端連結交付': '* 精选修图后的电子档，将于体验后 7 个工作日内通过云端链接交付'
+            },
+            ja: {
+                '間': '店舗', '旅乘': 'Foreveryoung', '和服': '着物', '旅客真實': 'お客様の声', '和服體驗': '着物体験',
+                '攝影開始': '撮影開始', '精選門市': '店舗一覧', '填單預約': 'オンライン予約',
+                '請先選擇門市與日期，下方會顯示各時段剩餘名額': '店舗と日付を選択すると、各時間帯の残り枠が表示されます',
+                '年/月/日': '年/月/日',
+                '* 訂金於體驗當日全額折抵現場結帳消費。': '* 予約金は体験当日の店頭支払いに全額充当されます。',
+                '若有活動優惠碼請填寫，無則留空': 'キャンペーンコードをお持ちの場合は入力し、なければ空欄にしてください',
+                '＊ 攝影費用不含景點門票，進入收費景區時攝影師門票費由客人一同支付': '＊ 撮影料金に観光施設の入場料は含まれません。有料施設ではカメラマンの入場料もお客様にご負担いただきます。',
+                '＊ 精選修圖後電子檔，於體驗後 7 個工作天內透過雲端連結交付': '＊ 厳選・レタッチしたデータは、体験後7営業日以内にクラウドリンクでお渡しします。'
+            },
+            en: {
+                '間': 'stores', '旅乘': 'Foreveryoung', '和服': 'Kimono', '旅客真實': 'Real Guest', '和服體驗': 'Kimono Experience',
+                '攝影開始': 'Start Shooting', '精選門市': 'Selected Stores', '填單預約': 'Online Booking',
+                '請先選擇門市與日期，下方會顯示各時段剩餘名額': 'Select a store and date to view the remaining capacity for each time slot.',
+                '年/月/日': 'YYYY/MM/DD',
+                '* 訂金於體驗當日全額折抵現場結帳消費。': '* The deposit is fully credited toward your in-store payment on the experience date.',
+                '若有活動優惠碼請填寫，無則留空': 'Enter a promotional code if you have one; otherwise leave this blank.',
+                '＊ 攝影費用不含景點門票，進入收費景區時攝影師門票費由客人一同支付': '* Attraction admission is not included. Guests must also cover the photographer’s admission to paid attractions.',
+                '＊ 精選修圖後電子檔，於體驗後 7 個工作天內透過雲端連結交付': '* Selected, retouched digital files will be delivered by cloud link within 7 business days.'
+            },
+            ko: {
+                '間': '개 매장', '旅乘': 'Foreveryoung', '和服': '기모노', '旅客真實': '실제 고객', '和服體驗': '기모노 체험',
+                '攝影開始': '촬영 시작', '精選門市': '추천 매장', '填單預約': '온라인 예약',
+                '請先選擇門市與日期，下方會顯示各時段剩餘名額': '매장과 날짜를 선택하면 시간대별 잔여 인원이 표시됩니다',
+                '年/月/日': '연/월/일',
+                '* 訂金於體驗當日全額折抵現場結帳消費。': '* 예약금은 체험 당일 매장 결제 금액에서 전액 차감됩니다.',
+                '若有活動優惠碼請填寫，無則留空': '프로모션 코드가 있으면 입력하고, 없으면 비워 두세요',
+                '＊ 攝影費用不含景點門票，進入收費景區時攝影師門票費由客人一同支付': '＊ 촬영 요금에는 관광지 입장료가 포함되지 않습니다. 유료 관광지에서는 촬영기사의 입장료도 고객이 부담합니다.',
+                '＊ 精選修圖後電子檔，於體驗後 7 個工作天內透過雲端連結交付': '＊ 선별 및 보정된 사진 파일은 체험 후 영업일 기준 7일 이내에 클라우드 링크로 전달됩니다.'
+            },
+            id: {
+                '間': 'toko', '旅乘': 'Foreveryoung', '和服': 'Kimono', '旅客真實': 'Tamu Nyata', '和服體驗': 'Pengalaman Kimono',
+                '攝影開始': 'Mulai Foto', '精選門市': 'Toko Pilihan', '填單預約': 'Reservasi Online',
+                '請先選擇門市與日期，下方會顯示各時段剩餘名額': 'Pilih toko dan tanggal untuk melihat sisa kapasitas setiap slot waktu',
+                '年/月/日': 'TTTT/BB/HH',
+                '* 訂金於體驗當日全額折抵現場結帳消費。': '* Deposit sepenuhnya dipotong dari pembayaran di toko pada hari pengalaman.',
+                '若有活動優惠碼請填寫，無則留空': 'Masukkan kode promo jika ada; jika tidak, biarkan kosong',
+                '＊ 攝影費用不含景點門票，進入收費景區時攝影師門票費由客人一同支付': '＊ Biaya foto tidak termasuk tiket objek wisata. Tamu juga menanggung tiket fotografer untuk lokasi berbayar.',
+                '＊ 精選修圖後電子檔，於體驗後 7 個工作天內透過雲端連結交付': '＊ File digital pilihan yang telah diedit akan dikirim melalui tautan cloud dalam 7 hari kerja.'
+            }
+        };
+        Object.keys(requestedTranslations).forEach(lang => Object.assign(phraseMaps[lang], requestedTranslations[lang]));
         Object.assign(phraseMaps.en, {
             '填單預約': 'Online Booking', '請先選擇門市與日期，下方會顯示各時段剩餘名額': 'Select a store and date to view remaining capacity by time.',
             '* 訂金於體驗當日全額折抵現場結帳消費。': '* The deposit is fully credited toward your payment on the experience date.',
@@ -402,6 +452,7 @@
                 const el = document.getElementById(id);
                 if (el) el.value = currentLanguage;
             });
+            updateLocalizedDatePlaceholder();
             if (typeof initContent === 'function' && document.getElementById('process-grid')) initContent();
             translatePage();
             updateDepositDisplay();
@@ -410,6 +461,7 @@
             translateFormOptions();
             if (activeFaq >= 0) switchFaq(activeFaq);
             if (activeStore >= 0) switchStore(activeStore);
+            updateRequestedLocalizedText();
         }
         function translatePage(root = document.body) {
             if (!root) return;
@@ -443,6 +495,29 @@
                 if (!option.dataset.i18nSource) option.dataset.i18nSource = option.textContent.trim();
                 option.textContent = t(option.dataset.i18nSource);
             });
+        }
+        function updateLocalizedDatePlaceholder() {
+            const input = document.getElementById('input-date');
+            const placeholder = document.getElementById('date-placeholder');
+            if (!input || !placeholder) return;
+            placeholder.textContent = t('年/月/日');
+            const showPlaceholder = !input.value && document.activeElement !== input;
+            placeholder.classList.toggle('hidden', !showPlaceholder);
+            input.classList.toggle('date-input-empty', showPlaceholder);
+        }
+        function updateRequestedLocalizedText() {
+            const localized = {
+                'time-slot-hint': '請先選擇門市與日期，下方會顯示各時段剩餘名額',
+                'deposit-credit-note': '* 訂金於體驗當日全額折抵現場結帳消費。',
+                'coupon-help-text': '若有活動優惠碼請填寫，無則留空',
+                'photo-ticket-note': '＊ 攝影費用不含景點門票，進入收費景區時攝影師門票費由客人一同支付',
+                'photo-delivery-note': '＊ 精選修圖後電子檔，於體驗後 7 個工作天內透過雲端連結交付'
+            };
+            Object.entries(localized).forEach(([id, source]) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = t(source);
+            });
+            updateLocalizedDatePlaceholder();
         }
         function initLucide() {
             if (typeof lucide !== 'undefined') { lucide.createIcons(); }
@@ -574,6 +649,9 @@
 .text-white\/60{ color: rgba(255,255,255,0.78) !important; }
 .text-white\/70{ color: rgba(255,255,255,0.85) !important; }
 input.input-field, textarea.input-field, select.input-field { font-size: 15px !important; }
+.date-input-empty { color: transparent !important; }
+.date-input-empty::-webkit-datetime-edit { color: transparent; }
+.date-input-empty::-webkit-calendar-picker-indicator { opacity: 1; }
 </style>
 </head>
 <body class="bg-[#FDFCF8] text-[#1A365D] selection:bg-pink-100 overflow-x-hidden">
@@ -931,10 +1009,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                     </div>
                     <!-- 備註 -->
                     <div class="mt-10 bg-[#FDFCF8] border border-slate-100 rounded-sm p-6 max-w-2xl mx-auto text-center">
-                        <p class="text-slate-400 text-xs font-sans leading-relaxed">
-                            ＊ 攝影費用不含景點門票，進入收費景區時攝影師門票費由客人一同支付<br>
-                            ＊ 精選修圖後電子檔，於體驗後 7 個工作天內透過雲端連結交付
-                        </p>
+                        <p id="photo-ticket-note" class="text-slate-400 text-xs font-sans leading-relaxed">＊ 攝影費用不含景點門票，進入收費景區時攝影師門票費由客人一同支付</p>
+                        <p id="photo-delivery-note" class="text-slate-400 text-xs font-sans leading-relaxed mt-1">＊ 精選修圖後電子檔，於體驗後 7 個工作天內透過雲端連結交付</p>
                     </div>
                 </div>
             </div>
@@ -1009,7 +1085,10 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                                 </select>
                             </label>
                             <label class="block border-b border-slate-100 pb-2"><span class="text-[10px] font-bold text-slate-400 uppercase font-sans">預約日期</span>
-                                <input required type="date" id="input-date" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent cursor-pointer font-sans">
+                                <span class="relative block">
+                                    <input required type="date" id="input-date" class="w-full py-2 mt-1 outline-none font-bold text-lg bg-transparent cursor-pointer font-sans relative z-10">
+                                    <span id="date-placeholder" class="absolute left-0 top-1/2 -translate-y-1/2 text-lg font-bold text-[#1A365D] font-sans pointer-events-none z-0">年/月/日</span>
+                                </span>
                             </label>
                         </div>
                         <div>
@@ -1029,7 +1108,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                         <div class="p-8 bg-[#FDFCF8] border-l-4 border-[#1A365D] text-left rounded-r-lg">
                             <p class="font-bold text-[#1A365D] font-sans">應付預約訂金：<span id="deposit-display" class="text-pink-500 italic text-xl ml-2 font-bold">NT$ 220 元</span></p>
                             <p class="text-[11px] text-slate-400 font-bold mt-2 italic font-sans" id="deposit-detail">每人 1,000 JPY × 1 人 ≈ NT$ 220（依即時匯率）</p>
-                            <p class="text-[11px] text-slate-400 font-bold mt-1 italic font-sans">* 訂金於體驗當日全額折抵現場結帳消費。</p>
+                            <p id="deposit-credit-note" class="text-[11px] text-slate-400 font-bold mt-1 italic font-sans">* 訂金於體驗當日全額折抵現場結帳消費。</p>
                         </div>
                         <div class="flex justify-center pt-8">
                             <button type="submit" class="w-full max-w-sm px-8 py-5 bg-[#1A365D] text-white font-bold tracking-[0.2em] rounded-sm hover:bg-blue-800 transition-all cursor-pointer shadow-xl uppercase font-sans text-xs">下一步：填寫個人資料</button>
@@ -1094,7 +1173,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                                         class="flex-1 py-2 mt-1 outline-none font-bold text-lg bg-transparent font-sans tracking-widest uppercase">
                                     <div id="coupon-status" class="text-xs font-bold font-sans shrink-0 w-16 text-right"></div>
                                 </div>
-                                <p class="text-[10px] text-slate-300 mt-1 font-sans normal-case tracking-normal">若有活動優惠碼請填寫，無則留空</p>
+                                <p id="coupon-help-text" class="text-[10px] text-slate-300 mt-1 font-sans normal-case tracking-normal">若有活動優惠碼請填寫，無則留空</p>
                             </label>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-10 font-sans uppercase">
@@ -2056,7 +2135,13 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             renderPersonKimonoSelects();
             document.getElementById('input-date').setAttribute('min', todayStr);
             document.getElementById('input-store').addEventListener('change', refreshBookingTimeSlots);
-            document.getElementById('input-date').addEventListener('change', refreshBookingTimeSlots);
+            document.getElementById('input-date').addEventListener('change', () => {
+                updateLocalizedDatePlaceholder();
+                refreshBookingTimeSlots();
+            });
+            document.getElementById('input-date').addEventListener('focus', updateLocalizedDatePlaceholder);
+            document.getElementById('input-date').addEventListener('blur', updateLocalizedDatePlaceholder);
+            updateLocalizedDatePlaceholder();
             document.getElementById('input-time').addEventListener('change', () => enforceGuestCapacity(true));
             refreshBookingTimeSlots();
 
