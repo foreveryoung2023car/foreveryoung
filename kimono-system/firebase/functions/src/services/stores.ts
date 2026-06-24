@@ -120,7 +120,7 @@ type SlotCapacity = {
 
 type SlotUsage = SlotCapacity;
 
-const defaultSlotCapacity: SlotCapacity = { maleAdults: 99, femaleAdults: 99, children: 99 };
+const defaultSlotCapacity: SlotCapacity = { maleAdults: 10, femaleAdults: 10, children: 10 };
 
 function normalizeCapacity(value: unknown, fallback: SlotCapacity = defaultSlotCapacity): SlotCapacity {
   const raw = value && typeof value === "object" ? value as Record<string, unknown> : {};

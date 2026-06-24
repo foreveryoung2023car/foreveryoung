@@ -5,6 +5,7 @@ const STORE_TIME_OPTIONS = Array.from({ length: 48 }, (_, index) => {
 let storeScheduleRows = [];
 let canCreateStore = false;
 let creatingStore = false;
+const DEFAULT_STORE_SLOT_CAPACITY = 10;
 
 function storeTodayJst() {
   return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
@@ -66,7 +67,7 @@ function renderSelectedStoreSchedule() {
     ? '此日期已有個別設定'
     : '此日期目前沿用店鋪預設';
   const selected = new Set(row.slots || []);
-  const capacities = row.slotCapacities || {};
+  const capacities = row.slotCapacities || row.defaultSlotCapacities || {};
   document.getElementById('store-slot-grid').innerHTML = STORE_TIME_OPTIONS.map(slot =>
     renderStoreSlotEditor(slot, selected.has(slot), capacities[slot])
   ).join('');
@@ -74,7 +75,7 @@ function renderSelectedStoreSchedule() {
 
 function storeSlotCapacityValue(capacity, key) {
   const val = Number(capacity && capacity[key]);
-  return Number.isFinite(val) && val >= 0 ? val : 99;
+  return Number.isFinite(val) && val >= 0 ? val : DEFAULT_STORE_SLOT_CAPACITY;
 }
 
 function renderStoreSlotEditor(slot, checked, capacity) {
