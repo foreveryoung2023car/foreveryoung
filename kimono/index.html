@@ -1295,8 +1295,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             document.querySelectorAll('[data-booking-slot]').forEach(btn => {
                 const isSelected = btn.dataset.bookingSlot === selected;
                 btn.classList.toggle('border-[#1A365D]', isSelected);
-                btn.classList.toggle('bg-[#1A365D]', isSelected);
-                btn.classList.toggle('text-white', isSelected);
+                btn.classList.toggle('bg-blue-50', isSelected);
+                btn.classList.toggle('text-[#1A365D]', isSelected);
                 btn.classList.toggle('shadow-lg', isSelected);
                 btn.classList.toggle('border-slate-100', !isSelected);
                 btn.classList.toggle('bg-white', !isSelected);
@@ -1334,9 +1334,9 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 '<div class="text-[10px] text-slate-400 font-bold mb-1">' + label + '</div>' +
                 '<div class="text-[10px] text-slate-400 font-bold mb-2">可選 ' + remaining + '</div>' +
                 '<div class="flex items-center justify-center gap-2">' +
-                    '<button type="button" ' + (minusDisabled ? 'disabled' : '') + ' onclick="changeGuest(\'' + type + '\', -1, \'' + slot + '\')" class="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 font-bold disabled:opacity-30 hover:bg-[#1A365D] hover:text-white">-</button>' +
-                    '<span class="font-mono font-bold text-xl w-6 text-center">' + selected + '</span>' +
-                    '<button type="button" ' + (plusDisabled ? 'disabled' : '') + ' onclick="changeGuest(\'' + type + '\', 1, \'' + slot + '\')" class="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 font-bold disabled:opacity-30 hover:bg-[#1A365D] hover:text-white">+</button>' +
+                    '<button type="button" ' + (minusDisabled ? 'disabled' : '') + ' onclick="changeGuest(\'' + type + '\', -1, \'' + slot + '\')" class="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-500 font-bold disabled:opacity-30 hover:bg-blue-50 hover:border-[#1A365D] hover:text-[#1A365D]">-</button>' +
+                    '<span class="font-mono font-bold text-xl w-6 text-center text-[#1A365D]">' + selected + '</span>' +
+                    '<button type="button" ' + (plusDisabled ? 'disabled' : '') + ' onclick="changeGuest(\'' + type + '\', 1, \'' + slot + '\')" class="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-500 font-bold disabled:opacity-30 hover:bg-blue-50 hover:border-[#1A365D] hover:text-[#1A365D]">+</button>' +
                 '</div>' +
             '</div>';
         }
