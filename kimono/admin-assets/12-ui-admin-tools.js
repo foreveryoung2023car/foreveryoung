@@ -566,6 +566,7 @@ async function saveOrder() {
       Number(document.getElementById('e-price').value || 0)
       + Number(document.getElementById('e-hair-fee').value || 0)
       + Number(document.getElementById('e-photo-fee').value || 0)
+      + Number(document.getElementById('e-overtime-damage-deduction').value || 0)
       - Number(document.getElementById('e-discount-refund-amount').value || 0)
     );
     const paidDeposit = Number(document.getElementById('e-deposit').value || 0);
@@ -590,8 +591,9 @@ async function saveOrder() {
     hair: document.getElementById('e-hair').value, photo: document.getElementById('e-photo').value, confirmed: (document.getElementById('e-confirmed').value === 'true' ? 'TRUE' : 'FALSE'),
     deposit: rawDepositValue, kimonoPrice: document.getElementById('e-price').value,
     hairFee: document.getElementById('e-hair-fee').value, photoFee: document.getElementById('e-photo-fee').value,
-    coupon: document.getElementById('e-coupon').value, rate: document.getElementById('e-rate').value,
+    coupon: document.getElementById('e-coupon').value, rate: document.getElementById('e-rate')?.value || '',
     discountRefundAmount: document.getElementById('e-discount-refund-amount').value,
+    overtimeDamageDeduction: document.getElementById('e-overtime-damage-deduction').value,
     storeActualReceived: document.getElementById('e-store-actual-received').value,
     refundAmt: document.getElementById('e-refund-amt').value, refundDate: document.getElementById('e-refund-date').value,
     refundReason: composeRefundReason(), note: document.getElementById('e-remark').value,
@@ -628,6 +630,7 @@ async function saveOrder() {
           couponCode: payload.coupon,
           discountRate: Number(payload.rate || 0),
           discountRefundAmountJpy: Number(payload.discountRefundAmount || 0),
+          overtimeDamageDeductionJpy: Number(payload.overtimeDamageDeduction || 0),
           storeActualReceivedJpy: Number(payload.storeActualReceived || 0),
           note: payload.note
         }),
@@ -642,6 +645,7 @@ async function saveOrder() {
           hairFeeJpy: Number(payload.hairFee || 0),
           photoFeeJpy: Number(payload.photoFee || 0),
           discountRefundAmountJpy: Number(payload.discountRefundAmount || 0),
+          overtimeDamageDeductionJpy: Number(payload.overtimeDamageDeduction || 0),
           storeActualReceivedJpy: Number(payload.storeActualReceived || 0)
         } : {}),
         ...(currentRole === 'store' ? {} : {

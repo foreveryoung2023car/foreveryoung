@@ -56,8 +56,9 @@ function openEdit(orderId) {
   document.getElementById('e-hair-fee').value = o.hairFee || '';
   document.getElementById('e-photo-fee').value = o.photoFee || '';
   document.getElementById('e-coupon').value = o.coupon || '';
-  document.getElementById('e-rate').value = o.rate || '0.22';
   document.getElementById('e-discount-refund-amount').value = Number(o.discountRefundAmount || 0) || '';
+  const overtimeDamageDeduction = orderFinancialValue(o, 'overtimeDamageDeduction', 'overtimeDamageDeductionJpy');
+  document.getElementById('e-overtime-damage-deduction').value = overtimeDamageDeduction || '';
   const storeActualReceived = orderFinancialValue(o, 'storeActualReceived', 'storeActualReceivedJpy');
   const balanceDue = orderFinancialValue(o, 'balanceDue', 'balanceDueJpy');
   const storeActualInput = document.getElementById('e-store-actual-received');
@@ -66,6 +67,7 @@ function openEdit(orderId) {
     Number(o.price || o.kimonoPrice || 0)
     + Number(o.hairFee || 0)
     + Number(o.photoFee || 0)
+    + overtimeDamageDeduction
     - Number(o.discountRefundAmount || 0)
     - paidDeposit
   );
@@ -80,6 +82,7 @@ function openEdit(orderId) {
     paidDeposit,
     Number(o.refundAmount || 0),
     Number(o.discountRefundAmount || 0),
+    overtimeDamageDeduction,
     storeActualReceived
   ].join('|');
   renderPaymentProof(o);
@@ -394,8 +397,9 @@ function updateCalc() {
   const paidDeposit = Number(document.getElementById('e-deposit').value) || 0;
   const refundAmount = Number(document.getElementById('e-refund-amt').value) || 0;
   const discountRefund = Number(document.getElementById('e-discount-refund-amount').value) || 0;
+  const overtimeDamageDeduction = Number(document.getElementById('e-overtime-damage-deduction').value) || 0;
   const storeActualInput = document.getElementById('e-store-actual-received');
-  const onsite = Math.max(0, price + hair + photo - discountRefund);
+  const onsite = Math.max(0, price + hair + photo + overtimeDamageDeduction - discountRefund);
   const afterDep = Math.max(0, onsite - paidDeposit);
   if (storeActualInput && storeActualInput.dataset.autoMode === 'true') {
     storeActualInput.value = String(afterDep);

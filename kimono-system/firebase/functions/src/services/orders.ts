@@ -80,6 +80,7 @@ export const updateOrderByStaffSchema = z.object({
   couponCode: z.string().optional(),
   discountRate: z.number().optional(),
   discountRefundAmountJpy: z.number().int().min(0).optional(),
+  overtimeDamageDeductionJpy: z.number().int().min(0).optional(),
   storeActualReceivedJpy: z.number().int().min(0).optional(),
   checkout: z.boolean().optional(),
   refundAmountJpy: z.number().int().min(0).optional(),
@@ -329,6 +330,8 @@ function toAdminOrderResponse(orderId: string, order: FirebaseFirestore.Document
     coupon: order.couponCode || "",
     rate: order.discountRate || "",
     discountRefundAmount: Number(order.discountRefundAmountJpy || 0),
+    overtimeDamageDeduction: Number(order.overtimeDamageDeductionJpy || 0),
+    overtimeDamageDeductionJpy: Number(order.overtimeDamageDeductionJpy || 0),
     storeActualReceived: Number(order.storeActualReceivedJpy || 0),
     storeActualReceivedJpy: Number(order.storeActualReceivedJpy || 0),
     balanceDue: Number(order.balanceDueJpy || 0),
@@ -610,6 +613,7 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
       input.hairFeeJpy,
       input.photoFeeJpy,
       input.discountRefundAmountJpy,
+      input.overtimeDamageDeductionJpy,
       input.storeActualReceivedJpy
     ].some((value) => value !== undefined);
     if (hasCheckoutOnlyPaymentField && !input.checkout) {
@@ -663,6 +667,7 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
     if (input.couponCode !== undefined) patch.couponCode = input.couponCode;
     if (input.discountRate !== undefined) patch.discountRate = input.discountRate;
     if (input.discountRefundAmountJpy !== undefined) patch.discountRefundAmountJpy = input.discountRefundAmountJpy;
+    if (input.overtimeDamageDeductionJpy !== undefined) patch.overtimeDamageDeductionJpy = input.overtimeDamageDeductionJpy;
     if (input.storeActualReceivedJpy !== undefined) patch.storeActualReceivedJpy = input.storeActualReceivedJpy;
     if (input.note !== undefined) patch.note = input.note;
 
@@ -710,6 +715,7 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
       input.hairFeeJpy,
       input.photoFeeJpy,
       input.discountRefundAmountJpy,
+      input.overtimeDamageDeductionJpy,
       input.storeActualReceivedJpy
     ].some((value) => value !== undefined);
 
@@ -720,6 +726,7 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
         (input.kimonoPriceJpy ?? Number(before.kimonoPriceJpy || 0))
           + (input.hairFeeJpy ?? Number(before.hairFeeJpy || 0))
           + (input.photoFeeJpy ?? Number(before.photoFeeJpy || 0))
+          + (input.overtimeDamageDeductionJpy ?? Number(before.overtimeDamageDeductionJpy || 0))
           - (input.discountRefundAmountJpy ?? Number(before.discountRefundAmountJpy || 0))
       );
       const depositJpy = input.depositJpy ?? Number(before.depositJpy || 0);
