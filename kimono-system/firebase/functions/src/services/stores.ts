@@ -39,9 +39,9 @@ const saveStoreScheduleSchema = z.object({
   date: z.string().regex(datePattern).optional(),
   slots: z.array(z.string().regex(slotPattern)).max(48),
   slotCapacities: z.record(z.object({
-    maleAdults: z.number().int().min(0).max(999).default(0),
-    femaleAdults: z.number().int().min(0).max(999).default(0),
-    children: z.number().int().min(0).max(999).default(0)
+    maleAdults: z.coerce.number().int().min(0).max(999).default(0),
+    femaleAdults: z.coerce.number().int().min(0).max(999).default(0),
+    children: z.coerce.number().int().min(0).max(999).default(0)
   })).optional()
 });
 
