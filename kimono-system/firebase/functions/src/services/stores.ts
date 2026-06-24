@@ -154,7 +154,8 @@ function slotFromBookingAt(value: unknown) {
     ? (value as FirebaseFirestore.Timestamp).toDate()
     : new Date(String(value));
   if (Number.isNaN(date.getTime())) return "";
-  return `${String(date.getUTCHours()).padStart(2, "0")}:${String(date.getUTCMinutes()).padStart(2, "0")}`;
+  const jst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+  return `${String(jst.getUTCHours()).padStart(2, "0")}:${String(jst.getUTCMinutes()).padStart(2, "0")}`;
 }
 
 function countsFromOrder(order: FirebaseFirestore.DocumentData): SlotUsage {
