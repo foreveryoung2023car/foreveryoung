@@ -6,6 +6,13 @@ function orderFinancialValue(order, displayKey, firestoreKey) {
   return Number(value || 0);
 }
 
+function maskStorePhone(phone) {
+  const digits = String(phone || '').replace(/\D/g, '');
+  if (!digits) return '—';
+  if (digits.length <= 3) return digits;
+  return '*'.repeat(digits.length - 3) + digits.slice(-3);
+}
+
 function openEdit(orderId) {
   const o = allOrders.find(x => x.orderId === orderId);
   if (!o) return;
@@ -22,7 +29,7 @@ function openEdit(orderId) {
   const phoneDisplay = document.getElementById('e-phone-display');
   const emailDisplay = document.getElementById('e-email-display');
   if (nameDisplay) nameDisplay.textContent = o.name || '—';
-  if (phoneDisplay) phoneDisplay.textContent = o.phone || '—';
+  if (phoneDisplay) phoneDisplay.textContent = maskStorePhone(o.phone);
   if (emailDisplay) emailDisplay.textContent = o.email || '—';
   document.getElementById('e-booking-date').value = (function(bd){ if(!bd) return ''; const d=parseBookingDate(bd); if(!d||isNaN(d)) return String(bd).slice(0,10); const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes()); })(o.bookingDate);
   const guestCount = parseEditGuestCount(o);
