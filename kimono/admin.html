@@ -11,7 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./admin-assets/admin.css?v=20260624-1">
+<link rel="stylesheet" href="./admin-assets/admin.css?v=20260624-2">
 </head>
 <body class="min-h-screen" style="overflow-x:hidden">
 
@@ -871,23 +871,27 @@
           </div>
         </div>
         <div class="pt-4 border-t border-slate-200" data-store-hidden="1">
-          <div class="flex items-center justify-between gap-3 mb-3">
-            <div class="section-label !mb-0">付款憑證</div>
-            <a id="e-proof-link" href="#" target="_blank" rel="noopener" class="hidden text-sm font-bold text-blue-700 hover:underline">打開原圖</a>
-          </div>
-          <div id="e-proof-last5-row" class="hidden mb-3">
+          <div class="order-proof-layout">
+          <div id="e-proof-last5-row">
             <div class="order-proof-last5">匯款帳號末 5 碼 <span id="e-proof-last5">—</span></div>
           </div>
-          <div id="e-proof-empty" class="text-sm text-slate-500 font-semibold">尚未上傳付款憑證</div>
-          <div id="e-proof-content" class="hidden grid grid-cols-1 md:grid-cols-[220px_minmax(0,1fr)] gap-4 items-start">
-            <a id="e-proof-image-link" href="#" target="_blank" rel="noopener" class="block overflow-hidden">
-              <img id="e-proof-image" alt="付款憑證" class="w-full max-h-60 object-contain bg-white">
-            </a>
-            <div id="e-proof-no-image" class="hidden text-sm text-slate-500 font-semibold">未附圖片</div>
-            <div>
-              <div class="text-xs font-bold text-slate-500 mb-1">付款說明 / 匯款備註</div>
-              <div id="e-proof-note" class="min-h-[72px] whitespace-pre-wrap break-words text-sm font-semibold text-[#1A365D]">—</div>
+          <div>
+            <div class="flex items-center justify-between gap-3 mb-3">
+              <div class="section-label !mb-0">付款憑證</div>
+              <a id="e-proof-link" href="#" target="_blank" rel="noopener" class="hidden text-sm font-bold text-blue-700 hover:underline">打開原圖</a>
             </div>
+            <div id="e-proof-empty" class="text-sm text-slate-500 font-semibold">尚未上傳付款憑證</div>
+            <div id="e-proof-content" class="hidden grid grid-cols-1 md:grid-cols-[220px_minmax(0,1fr)] gap-4 items-start">
+              <a id="e-proof-image-link" href="#" target="_blank" rel="noopener" class="block overflow-hidden">
+                <img id="e-proof-image" alt="付款憑證" class="w-full max-h-60 object-contain bg-white">
+              </a>
+              <div id="e-proof-no-image" class="hidden text-sm text-slate-500 font-semibold">未附圖片</div>
+              <div>
+                <div class="text-xs font-bold text-slate-500 mb-1">付款說明 / 匯款備註</div>
+                <div id="e-proof-note" class="min-h-[72px] whitespace-pre-wrap break-words text-sm font-semibold text-[#1A365D]">—</div>
+              </div>
+            </div>
+          </div>
           </div>
         </div>
       </div>
@@ -1003,7 +1007,7 @@
 
 <script src="./admin-assets/00-gas-guard.js?v=20260605-14"></script>
 <script src="./admin-assets/01-state.js?v=20260605-14"></script>
-<script src="./admin-assets/02-firebase-api.js?v=20260624-1"></script>
+<script src="./admin-assets/02-firebase-api.js?v=20260624-2"></script>
 <script src="./admin-assets/03-ui-utils.js?v=20260611-5"></script>
 <script src="./admin-assets/04-refunds.js?v=20260611-1"></script>
 <script src="./admin-assets/05-orders.js?v=20260621-1"></script>
@@ -1011,7 +1015,7 @@
 <script src="./admin-assets/07-calendar.js?v=20260612-2"></script>
 <script src="./admin-assets/08-finance.js?v=20260612-2"></script>
 <script src="./admin-assets/09-reconcile.js?v=20260612-5"></script>
-<script src="./admin-assets/10-orders-edit.js?v=20260624-1"></script>
+<script src="./admin-assets/10-orders-edit.js?v=20260624-2"></script>
 <script src="./admin-assets/11-refunds-edit.js?v=20260605-14"></script>
 <script src="./admin-assets/12-ui-admin-tools.js?v=20260612-5"></script>
 <script src="./admin-assets/13-weather.js?v=20260605-14"></script>

@@ -133,8 +133,8 @@
 
   .modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;display:flex;align-items:center;justify-content:center;padding:18px 64px 16px 18px;backdrop-filter:blur(2px);overflow:hidden }
   @media (min-width: 768px) { .modal-overlay { padding:44px 74px 24px 42px } }
-  .modal-frame { position:relative;width:100%;max-width:1248px;height:90vh;max-height:90vh }
-  .modal-box { background:white;border-radius:14px;padding:16px;max-width:1248px;width:100%;height:90vh;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column }
+  .modal-frame { position:relative;width:100%;max-width:1310px;height:90vh;max-height:90vh }
+  .modal-box { background:white;border-radius:14px;padding:16px;max-width:1310px;width:100%;height:90vh;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column }
   .modal-frame > .modal-box { height:100%;max-height:100% }
   .modal-floating-close,.custom-modal-close { position:absolute;top:0;right:-54px;z-index:3;width:44px;height:44px;border:0;background:transparent;color:#fff;font-size:42px;line-height:1;display:flex;align-items:center;justify-content:center;font-weight:300;text-shadow:0 2px 8px rgba(15,23,42,.45);transition:color .15s ease,transform .15s ease,text-shadow .15s ease }
   .modal-floating-close:hover,.custom-modal-close:hover { color:#DBEAFE;transform:scale(1.04);text-shadow:0 3px 12px rgba(15,23,42,.6) }
@@ -151,7 +151,9 @@
   .modal-box > .edit-tab,.modal-box > div:not(:first-child):not(:last-child) { flex-shrink:0 }
   .modal-box .edit-tab { min-height:340px }
   .order-detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1rem}
-  @media (min-width: 1024px){.order-detail-grid{grid-template-columns:repeat(auto-fit,minmax(190px,220px))}}
+  @media (min-width: 1024px){.order-detail-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
+  .order-proof-layout{display:grid;grid-template-columns:1fr;gap:1rem;align-items:start}
+  @media (min-width: 768px){.order-proof-layout{grid-template-columns:220px minmax(0,1fr)}}
   .order-proof-last5{display:inline-flex;align-items:center;gap:.5rem;padding:8px 12px;border-radius:10px;background:#F8FAFC;border:1px solid #E2E8F0;color:#1A365D;font-weight:800;font-size:14px}
   .order-proof-last5 span{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;letter-spacing:.12em}
 

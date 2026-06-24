@@ -290,8 +290,8 @@ function renderPaymentProof(o) {
   const last5El = document.getElementById('e-proof-last5');
   if (!empty || !content) return;
   if (last5El) last5El.textContent = last5 || '—';
-  if (last5Row) last5Row.classList.toggle('hidden', !last5);
-  if (!proofUrl && !note && !last5) {
+  if (last5Row) last5Row.classList.remove('hidden');
+  if (!proofUrl && !note) {
     empty.classList.remove('hidden');
     content.classList.add('hidden');
     if (link) link.classList.add('hidden');
