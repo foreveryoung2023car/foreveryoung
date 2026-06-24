@@ -138,13 +138,259 @@
             }
         };
         Object.keys(compactTerms).forEach(lang => Object.assign(phraseMaps[lang], compactTerms[lang]));
+        const uiTranslations = {
+            ja: {
+                '元': '台湾ドル', '此時段': 'この時間枠の', '剩餘名額不足，請選擇其他時段或調整人數。': '空きが不足しています。別の時間を選ぶか人数を調整してください。',
+                '目前人數超過此時段剩餘名額：': '選択人数が空き枠を超えています：', '。請調整人數或改選其他時段。': '。人数を調整するか別の時間を選択してください。',
+                '驗證中...': '確認中...', '✓ 已套用': '✓ 適用済み', '無法使用': '利用できません', '無法驗證': '確認できません',
+                '還需輸入': 'あと', '位數字': '桁入力してください', '✓ 格式正確': '✓ 正しい形式です',
+                '❌ 檔案過大（超過 5MB）': '❌ ファイルが大きすぎます（5MB超）', '⏳ 上傳中...': '⏳ アップロード中...',
+                '❌ 上傳失敗，請重試': '❌ アップロードに失敗しました。再試行してください', '點擊放大': 'クリックして拡大',
+                '已複製！': 'コピーしました！', '請選擇預約時段': '予約時間を選択してください', '請選擇體驗門市': '店舗を選択してください',
+                '請在所選時段內選擇預約人數': '選択した時間枠の予約人数を指定してください', '鎖定編號中...': '予約番号を確保中...',
+                '提交過於頻繁，請於一分鐘後再試。': '送信が頻繁すぎます。1分後に再試行してください。',
+                '網路異常，請檢查連線後再試，或直接聯繫 LINE 客服。': '通信エラーです。接続を確認して再試行するか、LINEサポートへご連絡ください。',
+                '錯誤：': 'エラー：', '請輸入完整的預約編號': '予約番号をすべて入力してください', '查詢中...': '検索中...',
+                '找到訂單': '予約が見つかりました', '狀態：': '状態：', '待確認': '確認待ち', '預約日：': '予約日：',
+                '找不到此編號，請確認後重新輸入': '予約番号が見つかりません。確認して再入力してください',
+                '查詢失敗，請聯繫客服': '検索に失敗しました。サポートへご連絡ください', '關閉影片': '動画を閉じる',
+                '播放：': '再生：', '攝影開始': '撮影開始', '和服體驗流程': '着物体験の流れ', '方案價格一覽': 'プラン料金一覧',
+                '旅客真實好評': 'お客様の声', '職人髮型美學': 'プロのヘアセット', '旅拍攝影方案': 'ロケ撮影プラン',
+                '精選門市據點': '店舗一覧', '立即線上預約 ↗': 'オンライン予約 ↗',
+                '追求簡約大方的經典款式，適合初次體驗。': '上品でシンプルな定番スタイル。初めての方におすすめです。',
+                '花色繁多亮眼，是最受歡迎的首選款式。': '華やかな柄を豊富に揃えた人気プランです。',
+                '高品質面料與精細刺繡，凸顯典雅氣質。': '上質な生地と繊細な刺繍が気品を引き立てます。',
+                '夏季限定，輕便涼爽，最適合煙火祭典。': '夏季限定。軽く涼しく、花火大会に最適です。',
+                '最隆重的正式禮裝，成人式、婚禮首選。': '成人式や結婚式にふさわしい華やかな正礼装です。',
+                '款式沉穩帥氣，適合情侶、家庭同遊。': '落ち着いた凛々しい装いで、カップルやご家族におすすめです。',
+                '帥氣俐落的層次美感，紀念人生里程碑。': '凛々しい袴姿で人生の節目を記念できます。',
+                '適合全家同樂，3-12 歲均有尺寸。': '3〜12歳向けのサイズをご用意しています。',
+                '抵達後寄放行李，專人確認預約資訊。': '到着後に荷物を預け、スタッフが予約内容を確認します。',
+                '在數百款職人和服中尋找最契合的一席。': '数百種類の着物からお気に入りを選びます。',
+                '專業老師協助，打造端莊完美的身型。': '着付け師が美しく整った着姿に仕上げます。',
+                '由髮型師編織您的專屬優雅造型。': 'スタイリストが着物に合うヘアスタイルを仕上げます。',
+                '開始古都漫步，開啟影像紀錄旅程。': '古都の散策と撮影をお楽しみください。',
+                '於 17:00 前回到門市換裝領取行李。': '17:00までに店舗へ戻り、着替えて荷物を受け取ります。',
+                '雨天和服優雅漫步': '雨の日の着物散策', '柴又老街昭和散策': '柴又の昭和レトロ散策',
+                '金碧輝煌異域風情': '華やかな異国情緒', '春日和服攝影包套': '春の着物撮影プラン'
+                ,'每日 09:30 – 17:30': '毎日 09:30 – 17:30', '常見問題 Q&A': 'よくある質問 Q&A'
+            },
+            en: {
+                '元': 'TWD', '此時段': 'This time slot has insufficient ', '剩餘名額不足，請選擇其他時段或調整人數。': ' capacity. Choose another time or adjust the guest count.',
+                '目前人數超過此時段剩餘名額：': 'Guest count exceeds the remaining capacity: ', '。請調整人數或改選其他時段。': '. Adjust the guest count or choose another time.',
+                '驗證中...': 'Validating...', '✓ 已套用': '✓ Applied', '無法使用': 'Not available', '無法驗證': 'Unable to validate',
+                '還需輸入': 'Enter', '位數字': 'more digit(s)', '✓ 格式正確': '✓ Valid format',
+                '❌ 檔案過大（超過 5MB）': '❌ File is too large (over 5MB)', '⏳ 上傳中...': '⏳ Uploading...',
+                '❌ 上傳失敗，請重試': '❌ Upload failed. Please retry.', '點擊放大': 'Click to enlarge',
+                '已複製！': 'Copied!', '請選擇預約時段': 'Please select a booking time', '請選擇體驗門市': 'Please select a store',
+                '請在所選時段內選擇預約人數': 'Please select the number of guests for this time slot', '鎖定編號中...': 'Reserving your booking number...',
+                '提交過於頻繁，請於一分鐘後再試。': 'Too many submissions. Please try again in one minute.',
+                '網路異常，請檢查連線後再試，或直接聯繫 LINE 客服。': 'Network error. Check your connection and retry, or contact LINE support.',
+                '錯誤：': 'Error: ', '請輸入完整的預約編號': 'Enter the complete booking number', '查詢中...': 'Searching...',
+                '找到訂單': 'Booking found', '狀態：': 'Status: ', '待確認': 'Pending confirmation', '預約日：': 'Booking date: ',
+                '找不到此編號，請確認後重新輸入': 'Booking number not found. Check it and try again.',
+                '查詢失敗，請聯繫客服': 'Search failed. Please contact support.', '關閉影片': 'Close video',
+                '播放：': 'Play: ', '攝影開始': 'Start Shooting', '和服體驗流程': 'Kimono Experience', '方案價格一覽': 'Plan Prices',
+                '旅客真實好評': 'Guest Reviews', '職人髮型美學': 'Professional Hair Styling', '旅拍攝影方案': 'Photoshoot Plans',
+                '精選門市據點': 'Store Locations', '立即線上預約 ↗': 'Book Online ↗',
+                '追求簡約大方的經典款式，適合初次體驗。': 'A refined classic style, ideal for a first kimono experience.',
+                '花色繁多亮眼，是最受歡迎的首選款式。': 'Bright patterns and a wide selection make this our most popular choice.',
+                '高品質面料與精細刺繡，凸顯典雅氣質。': 'Premium fabric and delicate embroidery create an elegant look.',
+                '夏季限定，輕便涼爽，最適合煙火祭典。': 'A light, cool summer option, perfect for fireworks festivals.',
+                '最隆重的正式禮裝，成人式、婚禮首選。': 'Our most formal style, perfect for ceremonies and weddings.',
+                '款式沉穩帥氣，適合情侶、家庭同遊。': 'A smart, understated style for couples and families.',
+                '帥氣俐落的層次美感，紀念人生里程碑。': 'A crisp layered hakama look for celebrating milestones.',
+                '適合全家同樂，3-12 歲均有尺寸。': 'Sizes are available for children ages 3 to 12.',
+                '抵達後寄放行李，專人確認預約資訊。': 'Leave your luggage and confirm the booking with our staff.',
+                '在數百款職人和服中尋找最契合的一席。': 'Choose your favorite from hundreds of kimono styles.',
+                '專業老師協助，打造端莊完美的身型。': 'A professional dresser creates a polished silhouette.',
+                '由髮型師編織您的專屬優雅造型。': 'A stylist creates an elegant look tailored to you.',
+                '開始古都漫步，開啟影像紀錄旅程。': 'Explore the historic streets and begin your photo journey.',
+                '於 17:00 前回到門市換裝領取行李。': 'Return by 17:00, change, and collect your luggage.',
+                '雨天和服優雅漫步': 'Elegant Kimono Walk in the Rain', '柴又老街昭和散策': 'Retro Shibamata Street Walk',
+                '金碧輝煌異域風情': 'A Brilliant Cross-Cultural Scene', '春日和服攝影包套': 'Spring Kimono Photo Package'
+                ,'每日 09:30 – 17:30': 'Daily 09:30 – 17:30', '常見問題 Q&A': 'FAQ'
+            },
+            ko: {
+                '元': 'TWD', '此時段': '이 시간대의 ', '剩餘名額不足，請選擇其他時段或調整人數。': ' 잔여 인원이 부족합니다. 다른 시간을 선택하거나 인원을 조정해 주세요.',
+                '目前人數超過此時段剩餘名額：': '현재 인원이 잔여 정원을 초과했습니다: ', '。請調整人數或改選其他時段。': '. 인원을 조정하거나 다른 시간을 선택해 주세요.',
+                '驗證中...': '확인 중...', '✓ 已套用': '✓ 적용됨', '無法使用': '사용할 수 없음', '無法驗證': '확인할 수 없음',
+                '還需輸入': '숫자', '位數字': '자리를 더 입력하세요', '✓ 格式正確': '✓ 올바른 형식',
+                '❌ 檔案過大（超過 5MB）': '❌ 파일이 너무 큽니다(5MB 초과)', '⏳ 上傳中...': '⏳ 업로드 중...',
+                '❌ 上傳失敗，請重試': '❌ 업로드 실패. 다시 시도해 주세요.', '點擊放大': '클릭하여 확대',
+                '已複製！': '복사 완료!', '請選擇預約時段': '예약 시간을 선택해 주세요', '請選擇體驗門市': '매장을 선택해 주세요',
+                '請在所選時段內選擇預約人數': '선택한 시간의 예약 인원을 지정해 주세요', '鎖定編號中...': '예약 번호 발급 중...',
+                '提交過於頻繁，請於一分鐘後再試。': '요청이 너무 많습니다. 1분 후 다시 시도해 주세요.',
+                '網路異常，請檢查連線後再試，或直接聯繫 LINE 客服。': '네트워크 오류입니다. 연결을 확인하거나 LINE 고객센터에 문의해 주세요.',
+                '錯誤：': '오류: ', '請輸入完整的預約編號': '전체 예약 번호를 입력해 주세요', '查詢中...': '조회 중...',
+                '找到訂單': '예약을 찾았습니다', '狀態：': '상태: ', '待確認': '확인 대기', '預約日：': '예약일: ',
+                '找不到此編號，請確認後重新輸入': '예약 번호를 찾을 수 없습니다. 확인 후 다시 입력해 주세요.',
+                '查詢失敗，請聯繫客服': '조회에 실패했습니다. 고객센터에 문의해 주세요.', '關閉影片': '영상 닫기',
+                '播放：': '재생: ', '攝影開始': '촬영 시작', '和服體驗流程': '기모노 체험 순서', '方案價格一覽': '플랜 가격',
+                '旅客真實好評': '고객 후기', '職人髮型美學': '전문 헤어 스타일링', '旅拍攝影方案': '스냅 촬영 플랜',
+                '精選門市據點': '추천 매장', '立即線上預約 ↗': '온라인 예약 ↗',
+                '追求簡約大方的經典款式，適合初次體驗。': '단정한 클래식 스타일로 첫 체험에 적합합니다.',
+                '花色繁多亮眼，是最受歡迎的首選款式。': '화사한 무늬가 다양해 가장 인기 있는 플랜입니다.',
+                '高品質面料與精細刺繡，凸顯典雅氣質。': '고급 원단과 섬세한 자수가 우아함을 더합니다.',
+                '夏季限定，輕便涼爽，最適合煙火祭典。': '가볍고 시원한 여름 한정 유카타로 불꽃축제에 좋습니다.',
+                '最隆重的正式禮裝，成人式、婚禮首選。': '성인식과 결혼식에 어울리는 가장 격식 있는 예복입니다.',
+                '款式沉穩帥氣，適合情侶、家庭同遊。': '차분하고 멋스러운 스타일로 커플과 가족에게 좋습니다.',
+                '帥氣俐落的層次美感，紀念人生里程碑。': '깔끔한 하카마 스타일로 특별한 순간을 기념하세요.',
+                '適合全家同樂，3-12 歲均有尺寸。': '3~12세 어린이용 사이즈가 준비되어 있습니다.',
+                '抵達後寄放行李，專人確認預約資訊。': '도착 후 짐을 맡기고 직원과 예약 내용을 확인합니다.',
+                '在數百款職人和服中尋找最契合的一席。': '수백 가지 기모노 중 마음에 드는 스타일을 선택합니다.',
+                '專業老師協助，打造端莊完美的身型。': '전문 착장사가 단정하고 아름답게 입혀 드립니다.',
+                '由髮型師編織您的專屬優雅造型。': '헤어 스타일리스트가 맞춤 스타일을 완성합니다.',
+                '開始古都漫步，開啟影像紀錄旅程。': '옛 거리를 산책하며 특별한 순간을 기록합니다.',
+                '於 17:00 前回到門市換裝領取行李。': '17:00까지 매장으로 돌아와 환복하고 짐을 찾습니다.',
+                '雨天和服優雅漫步': '비 오는 날의 기모노 산책', '柴又老街昭和散策': '시바마타 레트로 거리 산책',
+                '金碧輝煌異域風情': '화려한 이국적 풍경', '春日和服攝影包套': '봄날 기모노 촬영 패키지'
+                ,'每日 09:30 – 17:30': '매일 09:30 – 17:30', '常見問題 Q&A': 'FAQ'
+            },
+            id: {
+                '元': 'TWD', '此時段': 'Kapasitas ', '剩餘名額不足，請選擇其他時段或調整人數。': ' tidak mencukupi. Pilih waktu lain atau sesuaikan jumlah tamu.',
+                '目前人數超過此時段剩餘名額：': 'Jumlah tamu melebihi sisa kapasitas: ', '。請調整人數或改選其他時段。': '. Sesuaikan jumlah tamu atau pilih waktu lain.',
+                '驗證中...': 'Memvalidasi...', '✓ 已套用': '✓ Diterapkan', '無法使用': 'Tidak dapat digunakan', '無法驗證': 'Tidak dapat divalidasi',
+                '還需輸入': 'Masukkan', '位數字': 'digit lagi', '✓ 格式正確': '✓ Format benar',
+                '❌ 檔案過大（超過 5MB）': '❌ File terlalu besar (lebih dari 5MB)', '⏳ 上傳中...': '⏳ Mengunggah...',
+                '❌ 上傳失敗，請重試': '❌ Unggah gagal. Silakan coba lagi.', '點擊放大': 'Klik untuk memperbesar',
+                '已複製！': 'Disalin!', '請選擇預約時段': 'Pilih waktu reservasi', '請選擇體驗門市': 'Pilih toko',
+                '請在所選時段內選擇預約人數': 'Pilih jumlah tamu untuk waktu ini', '鎖定編號中...': 'Menyiapkan nomor reservasi...',
+                '提交過於頻繁，請於一分鐘後再試。': 'Terlalu banyak pengiriman. Coba lagi dalam satu menit.',
+                '網路異常，請檢查連線後再試，或直接聯繫 LINE 客服。': 'Kesalahan jaringan. Periksa koneksi atau hubungi layanan LINE.',
+                '錯誤：': 'Kesalahan: ', '請輸入完整的預約編號': 'Masukkan nomor reservasi lengkap', '查詢中...': 'Mencari...',
+                '找到訂單': 'Reservasi ditemukan', '狀態：': 'Status: ', '待確認': 'Menunggu konfirmasi', '預約日：': 'Tanggal reservasi: ',
+                '找不到此編號，請確認後重新輸入': 'Nomor tidak ditemukan. Periksa dan masukkan kembali.',
+                '查詢失敗，請聯繫客服': 'Pencarian gagal. Hubungi layanan pelanggan.', '關閉影片': 'Tutup video',
+                '播放：': 'Putar: ', '攝影開始': 'Mulai Foto', '和服體驗流程': 'Alur Pengalaman Kimono', '方案價格一覽': 'Daftar Harga',
+                '旅客真實好評': 'Ulasan Tamu', '職人髮型美學': 'Tata Rambut Profesional', '旅拍攝影方案': 'Paket Foto',
+                '精選門市據點': 'Lokasi Toko', '立即線上預約 ↗': 'Pesan Online ↗',
+                '追求簡約大方的經典款式，適合初次體驗。': 'Gaya klasik yang sederhana dan elegan, cocok untuk pengalaman pertama.',
+                '花色繁多亮眼，是最受歡迎的首選款式。': 'Pilihan motif cerah yang beragam dan paling populer.',
+                '高品質面料與精細刺繡，凸顯典雅氣質。': 'Kain premium dan bordir halus menampilkan kesan anggun.',
+                '夏季限定，輕便涼爽，最適合煙火祭典。': 'Ringan dan sejuk untuk musim panas, cocok untuk festival kembang api.',
+                '最隆重的正式禮裝，成人式、婚禮首選。': 'Busana formal paling mewah untuk upacara dan pernikahan.',
+                '款式沉穩帥氣，適合情侶、家庭同遊。': 'Gaya tenang dan berwibawa untuk pasangan dan keluarga.',
+                '帥氣俐落的層次美感，紀念人生里程碑。': 'Tampilan hakama yang tegas untuk merayakan momen penting.',
+                '適合全家同樂，3-12 歲均有尺寸。': 'Tersedia ukuran untuk anak usia 3 hingga 12 tahun.',
+                '抵達後寄放行李，專人確認預約資訊。': 'Titipkan bagasi dan konfirmasikan reservasi dengan staf.',
+                '在數百款職人和服中尋找最契合的一席。': 'Pilih favorit Anda dari ratusan gaya kimono.',
+                '專業老師協助，打造端莊完美的身型。': 'Staf profesional membantu menciptakan tampilan yang rapi.',
+                '由髮型師編織您的專屬優雅造型。': 'Penata rambut membuat gaya elegan khusus untuk Anda.',
+                '開始古都漫步，開啟影像紀錄旅程。': 'Jelajahi kota tua dan abadikan perjalanan Anda.',
+                '於 17:00 前回到門市換裝領取行李。': 'Kembali sebelum 17:00, berganti pakaian, lalu ambil bagasi.',
+                '雨天和服優雅漫步': 'Jalan Kimono Elegan Saat Hujan', '柴又老街昭和散策': 'Jalan Retro di Shibamata',
+                '金碧輝煌異域風情': 'Suasana Eksotis yang Gemerlap', '春日和服攝影包套': 'Paket Foto Kimono Musim Semi'
+                ,'每日 09:30 – 17:30': 'Setiap hari 09:30 – 17:30', '常見問題 Q&A': 'FAQ'
+            }
+        };
+        Object.keys(uiTranslations).forEach(lang => Object.assign(phraseMaps[lang], uiTranslations[lang]));
+        Object.assign(phraseMaps.en, {
+            '填單預約': 'Online Booking', '請先選擇門市與日期，下方會顯示各時段剩餘名額': 'Select a store and date to view remaining capacity by time.',
+            '* 訂金於體驗當日全額折抵現場結帳消費。': '* The deposit is fully credited toward your payment on the experience date.',
+            '京都清水寺店 (京都東山區五條橋東4-432-13)': 'Kyoto Kiyomizu Store (4-432-13 Gojobashi-higashi, Higashiyama)',
+            '京都祇園店 (京都東山區常盤町169)': 'Kyoto Gion Store (169 Tokiwacho, Higashiyama)',
+            '大阪日本橋店 (大阪中央區日本橋1-18-14)': 'Osaka Nippombashi Store (1-18-14 Nippombashi, Chuo)',
+            '東京淺草寺店 (東京都台東區淺草1-33-8)': 'Tokyo Asakusa Store (1-33-8 Asakusa, Taito)',
+            '京都東山區五條橋東4-432-13 對嵐坊大廈1樓': '1F Tairanbo Building, 4-432-13 Gojobashi-higashi, Higashiyama, Kyoto',
+            '大阪中央區日本橋1-18-14 芝大廈7樓': '7F Shiba Building, 1-18-14 Nippombashi, Chuo, Osaka',
+            '京都東山區常盤町169 常盤大廈': 'Tokiwa Building, 169 Tokiwacho, Higashiyama, Kyoto',
+            '東京都台東區淺草1-33-8 A-one大廈9樓': '9F A-one Building, 1-33-8 Asakusa, Taito, Tokyo',
+            '專業髮型師現場依您的臉型、和服款式與個人氣質，打造最適合的專屬造型。': 'Our stylist creates a personalized look based on your face shape, kimono, and personal style.',
+            '門市備有豐富造型參考冊，您可以直接指定喜歡的風格，讓師傅為您重現。': 'Browse the styling catalog in store and ask our stylist to recreate your preferred look.',
+            '髮型設計約 20 分鐘，含和風髮飾點綴，讓您快速出發開始漫步體驗。': 'Hair styling takes about 20 minutes and includes Japanese-style accessories.',
+            '和服髮型展示': 'Kimono hairstyle example', '和服體驗 × 旅遊包車': 'Kimono Experience × Private Car',
+            '日本深度文化體驗專家。專業和服租借、私人包車、旅拍攝影，讓每段旅程都成為難忘回憶。': 'Japanese cultural experiences, kimono rental, private transport, and destination photography for an unforgettable journey.',
+            '要怎麼預約方案？可以現場過去嗎？': 'How do I book? Are walk-ins accepted?',
+            '本服務需全面提前預約。請填單提交憑證後，主動聯繫客服核對編號，未聯繫者預約不生效。訂金可現場折抵消費。': 'Advance booking is required. Submit the form and payment proof, then contact support to verify your booking number. The deposit is credited on site.',
+            '店鋪資訊在哪裡？我該去哪裡開始行程？': 'Where are the stores, and where does the experience begin?',
+            '我們在淺草、清水寺、祇園、日本橋均有分店。預約成功後客服會發送詳細地圖指引。': 'Stores are available in Asakusa, Kiyomizu, Gion, and Nippombashi. Detailed map directions are sent after confirmation.',
+            '哪個時段預約最好？營業時間是？': 'What is the best booking time and what are the opening hours?',
+            '各店營業時間：京都清水寺店 9:30-17:00、京都祇園店 9:30-17:00、東京淺草寺店 9:30-17:00、大阪日本橋店 10:00-17:00。每個時段每小時最多接待 10 位客人，旺季易額滿請提早預約。建議盡量選擇較早時段，著裝挑款本身就需 45-80 分鐘，加上外拍漫步才完整，16:00 之後不建議預約。': 'Kiyomizu, Gion, and Asakusa open 9:30-17:00; Nippombashi opens 10:00-17:00. Book early during peak seasons. Dressing takes 45-80 minutes, so morning slots are recommended and bookings after 16:00 are discouraged.',
+            '旺季（櫻花/楓葉/花火大會）預約要注意什麼？': 'What should I know about peak-season bookings?',
+            '旺季（3-4 月櫻花季、11 月楓葉季、夏季花火大會）熱門門市常常滿單，務必提早 2-3 週與客服確認庫存，並儘早完成訂金支付鎖位，避免到日本才發現訂不到。': 'For cherry blossoms, autumn leaves, and fireworks festivals, confirm availability 2-3 weeks ahead and pay the deposit early.',
+            '如果當天我因為交通遲到了怎麼辦？': 'What happens if I arrive late?',
+            '採嚴格預約制。遲到逾 30 分鐘預約可能自動取消，訂金恕不退還，工作人員會視當天狀況重新安排體驗時間。若遇突發狀況請第一時間與客服聯絡，我們將盡力協助。': 'Arrivals over 30 minutes late may be canceled without a deposit refund. Contact support immediately and staff will help where possible.',
+            '不會日文可以溝通嗎？': 'Can I communicate without speaking Japanese?',
+            '沒問題！店內有精通中文的工作人員，溝通完全無礙。': 'Yes. Chinese-speaking staff are available in store.',
+            '可以指定特定門市嗎？': 'Can I choose a specific store?',
+            '可以在表單中指定門市。各門市和服款式略有不同，建議提前告知特別想要的款式，客服會協助確認庫存。': 'Yes. Select a store in the form. Stock varies by location, so tell support early if you want a specific style.',
+            '預約當天要帶什麼去門市？': 'What should I bring on the booking date?',
+            '憑預約編號至門市報到即可，無需攜帶紙本資料。建議穿著易穿脫的衣物，並事先完妝（如需妝髮加購請提前告知）。': 'Bring your booking number. Paper documents are not required. Wear easy-to-remove clothes and arrive with makeup done unless you booked styling.',
+            '貴重物品要怎麼處理？': 'How should I handle valuables?',
+            '手機、錢包、護照等貴重物品請務必自行保管，門市僅提供一般行李寄放空間，貴重物品建議隨身攜帶或交給同行親友。': 'Keep phones, wallets, passports, and other valuables with you. Stores provide general luggage storage only.',
+            '我該穿和服還是浴衣？': 'Should I choose a kimono or yukata?',
+            '夏季（6-9月）提供浴衣，其餘季節提供正式和服。冬天冷天會貼心準備羽織（外套）或暖暖包，請放心。': 'Yukata are offered from June through September; formal kimono are available in other seasons. Haori coats or warmers are provided in cold weather.',
+            '從到店到完成著裝大約要多久？': 'How long does dressing take?',
+            '到店後自行挑選和服，含完整穿衣造型過程大約 45-80 分鐘，實際時間視當天現場人數而定。建議預留充足時間，避免影響後續行程。': 'Choosing and dressing usually takes 45-80 minutes, depending on store traffic. Leave enough time before your next activity.',
+            '方案包含妝髮嗎？費用怎麼算？': 'Are makeup and hair styling included?',
+            '方案包含基本著裝整理。精緻髮型設計為加購項目：+¥1,500/人。彩妝分三檔定價：¥3,000 / ¥5,000 / ¥8,000（依妝容複雜度與用品等級而定，現場可參考樣式選擇）。如不加購妝服，強烈建議到店前自行完妝，避免和服著裝後難以補妝。': 'Basic dressing is included. Hair styling is ¥1,500 per person. Makeup options are ¥3,000, ¥5,000, or ¥8,000. Arrive with makeup done if you do not add makeup service.',
+            '男生和小孩也可以體驗嗎？孕婦可以嗎？': 'Can men and children participate? What about pregnant guests?',
+            '提供完整的男士（袴、和服）與兒童方案（3-12歲）。出於安全考量，孕婦及行動不便者不建議體驗，請見諒。': 'Men and children ages 3-12 are welcome. For safety, the experience is not recommended for pregnant guests or people with limited mobility.',
+            '可以現場改款式嗎？升等要加錢嗎？': 'Can I change or upgrade the style in store?',
+            '可以。現場依現貨狀況調整或升等方案，預付訂金全額折抵，差額現場補足即可。': 'Yes, subject to stock. Your deposit is credited and any price difference is paid in store.',
+            '和服尺寸怎麼選？有大尺碼嗎？': 'How do kimono sizes work? Are larger sizes available?',
+            '和服以腰帶（帶）調整，適合多數體型。身高約 150-175cm 均有對應款式，特殊尺寸建議提前告知客服確認。': 'Obi belts allow adjustment for many body types. Styles generally fit heights of 150-175 cm; ask support early about special sizing.',
+            '可以自帶配件或髮飾嗎？': 'Can I bring my own accessories?',
+            '歡迎攜帶個人喜歡的配件！師傅會幫您搭配融入整體造型，但需注意配件風格與和服的協調性。': 'Yes. The stylist can incorporate your accessories when they coordinate with the kimono.',
+            '訂金是什麼？為什麼要先匯款？': 'What is the deposit and why is advance payment required?',
+            '訂金 NT$220（依即時匯率含手續費換算）為保留預約名額的費用。訂金於體驗當日100% 全額折抵消費，等同於免費預約。': 'The NT$220 deposit reserves your place and is fully credited toward your payment on the experience date.',
+            '預約後想取消，退款政策是什麼？': 'What is the cancellation policy?',
+            '預約日 7 天前取消：全額退款。2-6 天前：退 50%。前一日或當日：恕不退費。建議確定行程後再預約。': 'Cancel 7 or more days ahead for a full refund, 2-6 days ahead for 50%, and one day ahead or the same day for no refund.',
+            '下雨天可以取消或改期嗎？': 'Can I cancel or reschedule because of rain?',
+            '雨天仍可體驗，店內提供和服專用傘，雨中漫步別有風味！不可因天氣退費，但可於體驗日 2 天前申請改期一次。': 'The experience continues in rain and umbrellas are available. Weather is not refundable, but one reschedule may be requested at least 2 days ahead.',
+            '想隔日歸還和服要怎麼辦？費用如何計算？': 'Can I return the kimono the next day?',
+            '隔日歸還需現場申請並支付押金 ¥10,000/人 + 隔日租用費 ¥1,000/人。次日須於 15:00 前歸還，工作人員確認衣物配件無損後退還押金。出發前建議先告知客服安排，現場申請以當天庫存為準。': 'Apply in store and pay a ¥10,000 deposit plus ¥1,000 per person. Return by 15:00 the next day; the deposit is refunded after inspection.',
+            '弄髒或損壞和服要賠償嗎？': 'Will I be charged for stains or damage?',
+            '一般使用產生的輕微污漬（灰塵、輕微沾染）不收費。衣物或配件損壞、遺失將依實際維修或採購費用收取賠償；特殊污損則按清潔費用實報實銷。建議現場加購「安心保險」方案，可大幅降低意外風險。': 'Minor normal-use marks are free. Damage, loss, or serious stains are charged at actual repair, replacement, or cleaning cost. Optional insurance is available.',
+            '可以刷卡或電子支付嗎？': 'Can I pay by card or electronic payment?',
+            '各門市接受現金（日圓）付款。部分門市支援信用卡，建議事先備妥日圓現金，詳情請在預約時向客服確認。': 'All stores accept Japanese yen cash. Some accept cards; prepare cash and confirm payment options with support.',
+            '旅乘包車和和服體驗可以一起預約嗎？': 'Can I combine private transport with the kimono experience?',
+            '可以！旅乘包車可搭配和服體驗，由專屬司機接送您往返門市與景點，行李全程代管，非常推薦！': 'Yes. A private driver can take you between the store and attractions and keep your luggage in the vehicle.',
+            '攝影方案包含門票嗎？': 'Are attraction tickets included in photography plans?',
+            '攝影費用不含景點門票。若進入收費景區，攝影師的門票費需由客人一同支付。': 'No. Guests also pay the photographer admission when entering a paid attraction.',
+            '攝影方案費用與交付內容是？': 'What do photography plans cost and include?',
+            '三種方案皆限 1-2 人，超出依加人費計算：【30 分鐘】平日 ¥10,000／旺季 ¥12,800，底片 30-50 張，精修 6 張。【1 小時】¥21,000，底片 60-100 張，精修 9 張。【2 小時】¥42,000，底片 160-180 張，精修 18 張。【加人費】成人 +¥4,500/人，兒童 +¥2,000/人。計時規則：從拍攝第一張照片開始計算時長。所有檔案於體驗後 7 個工作天內透過雲端連結交付。': 'Plans cover 1-2 guests: 30 minutes ¥10,000 weekdays or ¥12,800 peak season with 6 edits; 1 hour ¥21,000 with 9 edits; 2 hours ¥42,000 with 18 edits. Extra adults are ¥4,500 and children ¥2,000. Delivery is within 7 business days.',
+            '行李可以寄放在門市嗎？': 'Can I store luggage at the store?',
+            '可以在體驗期間將行李寄放於門市，歸還和服後即可取回。若搭配旅乘包車服務，行李可直接放在車上全程代管。': 'Yes. Store luggage during the experience and collect it after returning the kimono. Private-car guests may leave luggage in the vehicle.',
+            '最晚幾點要歸還和服？可以隔日還嗎？': 'When is the latest return time? Is next-day return available?',
+            '最晚當日 17:00 前歸還。店鋪 17:00 準時關門，之後無工作人員值班，逾時 30 分鐘內歸還需現場支付 ¥1,000/人附加費。如需隔日歸還請參考「費用與退款」分類中的隔日歸還說明（押金 ¥10,000 + 租用費 ¥1,000）。': 'Return by 17:00. Returns up to 30 minutes late cost ¥1,000 per person. Next-day return requires a ¥10,000 deposit plus ¥1,000 rental fee.',
+            '閨蜜旅遊': 'Friends Trip', '情侶紀念': 'Couple Memory', '親子同樂': 'Family Fun', '生日紀念': 'Birthday', '好友同遊': 'Friends Together', '蜜月旅行': 'Honeymoon',
+            '台灣 · 京都清水寺店': 'Taiwan · Kyoto Kiyomizu Store', '香港 · 京都祇園店': 'Hong Kong · Kyoto Gion Store',
+            '台灣 · 東京淺草寺店': 'Taiwan · Tokyo Asakusa Store', '馬來西亞 · 大阪日本橋店': 'Malaysia · Osaka Nippombashi Store',
+            '台灣 · 京都祇園店': 'Taiwan · Kyoto Gion Store', '新加坡 · 京都祇園店': 'Singapore · Kyoto Gion Store',
+            '三個人一起去穿振袖，店員超級有耐心幫我們搭配！髮型也做得非常漂亮，走在清水寺一直被拍照哈哈。訂金也有折抵，完全值得！': 'The three of us tried furisode together. The staff patiently helped us coordinate everything, and the hairstyles were beautiful. The deposit was credited too. Absolutely worth it!',
+            '男女款式都很好看，老公穿起來完全是武士風格，我穿精緻和服，搭配一起拍照超有fu！工作人員中文說得很好，完全不用擔心語言問題。': 'Both the men’s and women’s styles looked great. My husband had a samurai look, and our photos together were wonderful. The staff spoke Chinese, so communication was easy.',
+            '帶小朋友一起穿，兒童款好可愛！全程大概一個半小時就完成了，孩子很興奮。LINE客服回覆很快，預約流程清楚，推薦給要帶小孩去日本的家庭！': 'The children’s kimono was adorable and the whole process took about 90 minutes. LINE support replied quickly and booking was clear. Recommended for families.',
+            '生日紀念日特地訂這個體驗，旅拍攝影師超厲害，每張都很有質感！和服款式真的很多，花了快半小時才選好 XD 下次去京都還會再訂！': 'I booked this for my birthday. The photographer was excellent and every photo felt polished. There were so many kimono styles to choose from. I would book again in Kyoto!',
+            '朋友推薦來的，沒想到體驗這麼好！髮型師幫我設計了傳統編髮，整個人變了一個樣。價格合理，服務很貼心，下午茶和服漫步根本是夢幻行程。': 'A friend recommended this experience and it exceeded expectations. The traditional braided hairstyle transformed the whole look. Fair prices and thoughtful service.',
+            '蜜月旅行選擇來這裡穿和服，真的是超棒的決定！浴衣夏季款清涼好看，穿著逛祇園一整個下午完全不累。工作人員拍照技巧也很好，每個景點都幫我們找到最美角度。': 'Wearing kimono on our honeymoon was a wonderful decision. The summer yukata was cool and comfortable for an afternoon in Gion, and staff helped us find great photo angles.'
+        });
+        Object.keys(phraseMaps).forEach(lang => {
+            Object.entries(phraseMaps[lang]).forEach(([source, translated]) => {
+                const trimmedSource = source.trim();
+                if (trimmedSource && !phraseMaps[lang][trimmedSource]) phraseMaps[lang][trimmedSource] = translated.trim();
+            });
+        });
+        const traditionalToSimplified = {
+            '體':'体','驗':'验','門':'门','預':'预','約':'约','資':'资','訊':'讯','髮':'发','攝':'摄','影':'影','選':'选','擇':'择','專':'专','業':'业','師':'师','歸':'归','還':'还','費':'费','務':'务','與':'与','為':'为','來':'来','時':'时','間':'间','數':'数','碼':'码','輸':'输','個':'个','點':'点','擊':'击','圖':'图','檔':'档','傳':'传','過':'过','錯':'错','聯':'联','繫':'系','網':'网','異':'异','常':'常','請':'请','確':'确','認':'认','狀':'状','態':'态','單':'单','戶':'户','帳':'账','號':'号','現':'现','場':'场','兒':'儿','麗':'丽','緻':'致','華':'华','輕':'轻','鬆':'松','簡':'简','經':'经','典':'典','適':'适','初':'初','種':'种','樣':'样','顧':'顾','並':'并','後':'后','將':'将','則':'则','實':'实','際':'际','員':'员','帶':'带','萬':'万','張':'张','雲':'云','連':'连','結':'结','發':'发','寫':'写','線':'线','開':'开','關':'关','讀':'读','舊':'旧','備':'备','證':'证','憑':'凭','價':'价','會':'会','區':'区','樓':'楼','氣':'气','遊':'游','記':'记','錄':'录','觀':'观','聽':'听','應':'应','總':'总','餘':'余','額':'额','無':'无','達':'达','較':'较','從':'从','這':'这','讓':'让','該':'该','妝':'妆','團':'团','飯':'饭','灣':'湾','嵐':'岚','橋':'桥','東':'东','淺':'浅','園':'园','問':'问','題':'题','戀':'恋','歡':'欢','慶':'庆','節':'节','滿':'满','櫻':'樱','葉':'叶','煙':'烟','維':'维','護':'护','購':'购','賠':'赔','償':'偿','髒':'脏','損':'损','壞':'坏','遺':'遗','曆':'历','盡':'尽','歲':'岁','妳':'你','麼':'么','嗎':'吗','動':'动','對':'对','編':'编','詳':'详','裡':'里','們':'们','鋪':'铺','營':'营','議':'议','鐘':'钟','熱':'热','週':'周','儘':'尽','鎖':'锁','當':'当','採':'采','嚴':'严','遲':'迟','辦':'办','庫':'库','視':'视','況':'况','處':'处','貴':'贵'
+        };
+        function toSimplified(source) {
+            return Array.from(source).map(char => traditionalToSimplified[char] || char).join('');
+        }
         let currentLanguage = (() => {
             try { return localStorage.getItem('kimono_lang') || 'zh-Hant'; } catch(err) { return 'zh-Hant'; }
         })();
         const textNodeSources = new WeakMap();
         const attrSources = new WeakMap();
         function t(source) {
-            return currentLanguage === 'zh-Hant' ? source : ((phraseMaps[currentLanguage] || {})[source] || source);
+            if (currentLanguage === 'zh-Hant') return source;
+            const translated = (phraseMaps[currentLanguage] || {})[source];
+            if (translated) return translated;
+            if (currentLanguage === 'zh-Hans') return toSimplified(source);
+            const prefixed = source.match(/^([→·＊*]\s*)(.+)$/);
+            if (prefixed) return prefixed[1] + t(prefixed[2]);
+            return phraseMaps.en[source] || source;
         }
         function setLanguage(lang) {
             currentLanguage = phraseMaps[lang] || lang === 'zh-Hant' ? lang : 'zh-Hant';
@@ -156,6 +402,7 @@
                 const el = document.getElementById(id);
                 if (el) el.value = currentLanguage;
             });
+            if (typeof initContent === 'function' && document.getElementById('process-grid')) initContent();
             translatePage();
             updateDepositDisplay();
             renderPersonKimonoSelects();
@@ -1119,15 +1366,15 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                             ${item.time}
                         </div>
                     </div>
-                    <h4 class="text-xl font-bold text-[#1A365D] mb-3 font-sans">${item.title}</h4>
-                    <p class="text-slate-500 text-sm leading-relaxed font-sans">${item.desc}</p>
+                    <h4 class="text-xl font-bold text-[#1A365D] mb-3 font-sans">${t(item.title)}</h4>
+                    <p class="text-slate-500 text-sm leading-relaxed font-sans">${t(item.desc)}</p>
                 </div>
             `).join('');
 
             const planHTML = plans.map(p => `
                 <div class="group bg-white border border-slate-100 rounded-sm overflow-hidden flex flex-col shadow-sm hover:shadow-xl transition-all duration-700 flex-none w-[240px] md:w-auto snap-center">
-                    <div class="aspect-[4/5] relative overflow-hidden"><img src="${p.img}" class="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition-transform duration-1000 group-hover:scale-105" loading="lazy" decoding="async" alt="${p.name}"></div>
-                    <div class="p-6 flex flex-col flex-grow text-left"><h4 class="text-lg font-bold text-[#1A365D] mb-1 uppercase italic font-sans">${p.name}</h4><p class="text-[10px] text-pink-400 font-bold uppercase mb-3 tracking-widest font-sans">${p.sub}</p><p class="text-slate-500 text-sm leading-relaxed mb-4 flex-grow font-sans">${p.desc}</p><p class="mt-auto text-2xl font-bold font-sans">¥${p.price}<span class="text-xs ml-1 opacity-50 uppercase font-sans">起</span></p></div>
+                    <div class="aspect-[4/5] relative overflow-hidden"><img src="${p.img}" class="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition-transform duration-1000 group-hover:scale-105" loading="lazy" decoding="async" alt="${t(p.name)}"></div>
+                    <div class="p-6 flex flex-col flex-grow text-left"><h4 class="text-lg font-bold text-[#1A365D] mb-1 uppercase italic font-sans">${t(p.name)}</h4><p class="text-[10px] text-pink-400 font-bold uppercase mb-3 tracking-widest font-sans">${p.sub}</p><p class="text-slate-500 text-sm leading-relaxed mb-4 flex-grow font-sans">${t(p.desc)}</p><p class="mt-auto text-2xl font-bold font-sans">¥${p.price}<span class="text-xs ml-1 opacity-50 uppercase font-sans">${t('起')}</span></p></div>
                 </div>
             `).join('');
             const planMobile = document.getElementById('plan-container-mobile');
@@ -1140,8 +1387,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 ? 'flex md:flex-wrap md:justify-center gap-6 overflow-x-auto md:overflow-x-visible px-6 md:px-10 pb-10 scrollbar-hide snap-x md:snap-none'
                 : 'flex gap-6 overflow-x-auto px-6 md:px-10 pb-10 scrollbar-hide snap-x';
             videoContainer.innerHTML = reels.map((v, i) => `
-                <div class="flex-none w-[240px] md:w-[280px] aspect-[9/16] bg-slate-900 rounded-2xl overflow-hidden relative group snap-center shadow-xl cursor-pointer select-none" onclick="openLightbox(${i})" role="button" aria-label="播放：${v.title}">
-                    <img src="${v.img}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:brightness-75" loading="lazy" decoding="async" alt="${v.title}" />
+                <div class="flex-none w-[240px] md:w-[280px] aspect-[9/16] bg-slate-900 rounded-2xl overflow-hidden relative group snap-center shadow-xl cursor-pointer select-none" onclick="openLightbox(${i})" role="button" aria-label="${t('播放：')}${t(v.title)}">
+                    <img src="${v.img}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:brightness-75" loading="lazy" decoding="async" alt="${t(v.title)}" />
                     <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
                     <div class="absolute inset-0 flex items-center justify-center">
                         <div class="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/60 flex items-center justify-center group-hover:scale-110 group-hover:bg-white/30 transition-all duration-300 shadow-2xl">
@@ -1149,8 +1396,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                         </div>
                     </div>
                     <div class="absolute bottom-0 left-0 right-0 p-6 text-left">
-                        <span class="text-[10px] text-pink-300 font-bold tracking-widest uppercase font-sans block mb-1">${v.label}</span>
-                        <h4 class="text-white font-bold text-base font-sans leading-tight">${v.title}</h4>
+                        <span class="text-[10px] text-pink-300 font-bold tracking-widest uppercase font-sans block mb-1">${t(v.label)}</span>
+                        <h4 class="text-white font-bold text-base font-sans leading-tight">${t(v.title)}</h4>
                     </div>
                 </div>
             `).join('');
@@ -1162,14 +1409,14 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                     <div class="aspect-[3/4] overflow-hidden relative">
                         <img src="${r.img}" class="w-full h-full object-cover" loading="lazy" decoding="async" alt="${r.name}">
                         <div class="absolute inset-0 bg-gradient-to-t from-[#1A365D]/70 via-transparent to-transparent"></div>
-                        <span class="absolute bottom-3 left-4 text-[10px] font-bold text-white/90 bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full font-sans uppercase tracking-widest">${r.tag}</span>
+                        <span class="absolute bottom-3 left-4 text-[10px] font-bold text-white/90 bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full font-sans uppercase tracking-widest">${t(r.tag)}</span>
                     </div>
                     <div class="p-6 flex flex-col flex-grow">
                         ${starsHTML}
-                        <p class="text-slate-600 text-sm leading-relaxed font-sans flex-grow italic">&ldquo;${r.text}&rdquo;</p>
+                        <p class="text-slate-600 text-sm leading-relaxed font-sans flex-grow italic">&ldquo;${t(r.text)}&rdquo;</p>
                         <div class="mt-5 pt-5 border-t border-slate-50 flex items-center gap-3">
                             <div class="w-9 h-9 rounded-full bg-[#1A365D] text-white flex items-center justify-center text-xs font-bold font-sans shrink-0">${r.avatar.slice(0,2)}</div>
-                            <div><p class="text-[#1A365D] font-bold text-sm font-sans">${r.name}</p><p class="text-slate-400 text-[10px] font-sans">${r.location}</p></div>
+                            <div><p class="text-[#1A365D] font-bold text-sm font-sans">${r.name}</p><p class="text-slate-400 text-[10px] font-sans">${t(r.location)}</p></div>
                         </div>
                     </div>
                 </div>
@@ -1189,18 +1436,19 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             // ★ FAQ tabs：手機田字型（grid-cols-2 已在 HTML 設定）
             document.getElementById('faq-tabs').innerHTML = faqData.map((cat, idx) => `
                 <button onclick="switchFaq(${idx})" id="faq-tab-${idx}" class="faq-tab-btn flex items-center justify-center gap-1 px-3 py-3 rounded-sm text-xs font-bold border-2 transition-all cursor-pointer font-sans ${idx === 0 ? 'bg-[#1A365D] border-[#1A365D] text-white shadow-lg' : 'bg-[#FDFCF8] border-slate-100 text-slate-400 hover:border-pink-200'}">
-                    <i data-lucide="${cat.icon}" class="w-3 h-3 shrink-0"></i> <span>${cat.category}</span>
+                    <i data-lucide="${cat.icon}" class="w-3 h-3 shrink-0"></i> <span>${t(cat.category)}</span>
                 </button>
             `).join('');
             switchFaq(0);
 
             // ★ 門市 tabs：手機田字型（grid-cols-2 已在 HTML 設定）
             document.getElementById('store-tabs').innerHTML = stores.map((s, i) => `
-                <button onclick="switchStore(${i})" id="store-tab-${i}" class="store-tab-btn px-4 md:px-10 py-3 md:py-4 text-xs md:text-sm font-bold border-2 transition-all uppercase rounded-sm cursor-pointer font-sans ${i === 0 ? 'bg-[#1A365D] border-[#1A365D] text-white shadow-xl' : 'bg-white text-slate-400 border-slate-100 hover:border-pink-200'}">${s.name}</button>
+                <button onclick="switchStore(${i})" id="store-tab-${i}" class="store-tab-btn px-4 md:px-10 py-3 md:py-4 text-xs md:text-sm font-bold border-2 transition-all uppercase rounded-sm cursor-pointer font-sans ${i === 0 ? 'bg-[#1A365D] border-[#1A365D] text-white shadow-xl' : 'bg-white text-slate-400 border-slate-100 hover:border-pink-200'}">${t(s.name)}</button>
             `).join('');
             switchStore(0);
 
-            document.getElementById('input-plan').innerHTML = plans.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+            const planInput = document.getElementById('input-plan');
+            if (planInput) planInput.innerHTML = plans.map(p => `<option value="${p.name}">${t(p.name)}</option>`).join('');
             if (typeof lucide !== 'undefined') lucide.createIcons();
 
             // ★ 手機版攝影方案：自動捲到推薦卡（中間）
@@ -1333,7 +1581,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             const twd = Math.round(total * 1000 * 0.22);
             const el = document.getElementById('deposit-display');
             const detail = document.getElementById('deposit-detail');
-            if (el) el.textContent = `NT$ ${twd.toLocaleString()} 元`;
+            if (el) el.textContent = `NT$ ${twd.toLocaleString()} ${t('元')}`;
             if (detail) detail.textContent = t('每人') + ` 1,000 JPY × ${total} ` + t('人') + ` ≈ NT$ ${twd.toLocaleString()}` + t('（依即時匯率）');
             const amtEl = document.getElementById('bank-info-amount');
             if (amtEl) amtEl.textContent = t('需付金額：') + `NT$ ${twd.toLocaleString()}`;
@@ -1354,7 +1602,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             }
             const selectedCapacity = currentSelectedSlotRemaining();
             if (delta > 0 && selectedCapacity && guestData[type] >= Number(selectedCapacity[type] || 0)) {
-                alert('此時段' + guestTypeLabel(type) + '剩餘名額不足，請選擇其他時段或調整人數。');
+                alert(t('此時段') + guestTypeLabel(type) + t('剩餘名額不足，請選擇其他時段或調整人數。'));
                 return;
             }
             guestData[type] = Math.max(0, guestData[type] + delta);
@@ -1366,7 +1614,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
         async function validateCoupon(code) {
             const statusEl = document.getElementById('coupon-status');
             if (!code || code.length < 2) { statusEl.textContent = ''; return; }
-            statusEl.textContent = '驗證中...';
+            statusEl.textContent = t('驗證中...');
             statusEl.style.color = '#94a3b8';
             fetch(APPS_SCRIPT_URL, {
                 method : 'POST',
@@ -1380,22 +1628,22 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             .then(res => res.json())
             .then(data => {
                 if (data.valid === true) {
-                    statusEl.textContent = '✓ 已套用';
+                    statusEl.textContent = t('✓ 已套用');
                     statusEl.style.color = '#22c55e';
                 } else {
-                    statusEl.textContent = '無法使用';
+                    statusEl.textContent = t('無法使用');
                     statusEl.style.color = '#ef4444';
                 }
             })
             .catch(() => {
-                statusEl.textContent = '無法驗證';
+                statusEl.textContent = t('無法驗證');
                 statusEl.style.color = '#94a3b8';
             });
         }
         function validateLast5(input) {
             const hint = document.getElementById('last5-hint');
-            if (input.value.length > 0 && input.value.length < 5) { hint.textContent = `還需輸入 ${5 - input.value.length} 位數字`; hint.style.color = '#f59e0b'; }
-            else if (input.value.length === 5) { hint.textContent = '✓ 格式正確'; hint.style.color = '#22c55e'; }
+            if (input.value.length > 0 && input.value.length < 5) { hint.textContent = `${t('還需輸入')} ${5 - input.value.length} ${t('位數字')}`; hint.style.color = '#f59e0b'; }
+            else if (input.value.length === 5) { hint.textContent = t('✓ 格式正確'); hint.style.color = '#22c55e'; }
             else { hint.textContent = ''; }
         }
 
@@ -1444,13 +1692,13 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 
             // 檔案大小限制：5 MB（imgbb free 上限 32 MB，這裡保守設 5 MB）
             if (file.size > 5 * 1024 * 1024) {
-                label.textContent = '❌ 檔案過大（超過 5MB）';
+                label.textContent = t('❌ 檔案過大（超過 5MB）');
                 label.style.color = '#ef4444';
                 proofImageUrl = '';
                 return;
             }
 
-            label.textContent = '⏳ 上傳中...'; label.style.color = '#f59e0b';
+            label.textContent = t('⏳ 上傳中...'); label.style.color = '#f59e0b';
             try {
                 const base64 = await new Promise((resolve, reject) => {
                     const reader = new FileReader();
@@ -1461,19 +1709,19 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 proofImageUrl = KIMONO_CONFIG.USE_NEW_API
                     ? await uploadProofToNewApi(file, base64)
                     : await uploadProofToGas(file, base64);
-                label.innerHTML = '<img src="' + proofImageUrl + '" style="max-height:40px;border-radius:4px;cursor:pointer" onclick="openProofLightbox(\'' + proofImageUrl + '\')" title="點擊放大">';
+                label.innerHTML = '<img src="' + proofImageUrl + '" style="max-height:40px;border-radius:4px;cursor:pointer" onclick="openProofLightbox(\'' + proofImageUrl + '\')" title="' + t('點擊放大') + '">';
                 label.style.color = '#22c55e';
-            } catch(err) { label.textContent = '❌ 上傳失敗，請重試'; label.style.color = '#ef4444'; proofImageUrl = ''; }
+            } catch(err) { label.textContent = t('❌ 上傳失敗，請重試'); label.style.color = '#ef4444'; proofImageUrl = ''; }
         }
 
         function copyOrderId() {
             const id = document.getElementById('finalOrderId').innerText;
             const btn = document.getElementById('copyBtn');
             navigator.clipboard.writeText(id).then(() => {
-                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 已複製！`;
+                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> ${t('已複製！')}`;
                 btn.style.background = 'rgba(34,197,94,0.3)';
-                setTimeout(() => { btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> 複製編號`; btn.style.background = ''; }, 2500);
-            }).catch(() => { btn.innerHTML = '✓ 已複製！'; setTimeout(() => { btn.innerHTML = '複製編號'; }, 2500); });
+                setTimeout(() => { btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> ${t('複製編號')}`; btn.style.background = ''; }, 2500);
+            }).catch(() => { btn.innerHTML = '✓ ' + t('已複製！'); setTimeout(() => { btn.innerHTML = t('複製編號'); }, 2500); });
         }
 
         function setStep(step) {
@@ -1502,9 +1750,9 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 
         function remainingLabel(remaining) {
             if (!remaining) return '';
-            return '男 ' + Number(remaining.maleAdults || 0) +
-                ' / 女 ' + Number(remaining.femaleAdults || 0) +
-                ' / 小孩 ' + Number(remaining.children || 0);
+            return t('男性') + ' ' + Number(remaining.maleAdults || 0) +
+                ' / ' + t('女性') + ' ' + Number(remaining.femaleAdults || 0) +
+                ' / ' + t('小孩') + ' ' + Number(remaining.children || 0);
         }
 
         function currentSelectedSlotRemaining() {
@@ -1518,7 +1766,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             const over = ['maleAdults', 'femaleAdults', 'children'].filter(type => guestData[type] > Number(remaining[type] || 0));
             if (!over.length) return true;
             if (showAlert) {
-                alert('目前人數超過此時段剩餘名額：' + over.map(guestTypeLabel).join('、') + '。請調整人數或改選其他時段。');
+                alert(t('目前人數超過此時段剩餘名額：') + over.map(guestTypeLabel).join('、') + t('。請調整人數或改選其他時段。'));
             }
             return false;
         }
@@ -1708,24 +1956,24 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 
         document.getElementById('booking-form-1').onsubmit = (e) => {
             e.preventDefault();
-            if (!document.getElementById('input-time').value) { alert('請選擇預約時段'); return; }
-            if (!document.getElementById('input-store').value) { alert('請選擇體驗門市'); return; }
-            if (adultCount() + guestData.children <= 0) { alert('請在所選時段內選擇預約人數'); return; }
+            if (!document.getElementById('input-time').value) { alert(t('請選擇預約時段')); return; }
+            if (!document.getElementById('input-store').value) { alert(t('請選擇體驗門市')); return; }
+            if (adultCount() + guestData.children <= 0) { alert(t('請在所選時段內選擇預約人數')); return; }
             if (!enforceGuestCapacity(true)) return;
             setStep(2); scrollToId('booking');
         };
 
         document.getElementById('booking-form-2').onsubmit = async (e) => {
             e.preventDefault();
-            if (adultCount() + guestData.children <= 0) { alert('請在所選時段內選擇預約人數'); return; }
+            if (adultCount() + guestData.children <= 0) { alert(t('請在所選時段內選擇預約人數')); return; }
             if (!enforceGuestCapacity(true)) return;
             const btn = document.getElementById('finalSubmitBtn');
-            btn.innerHTML = '鎖定編號中...'; btn.disabled = true;
+            btn.innerHTML = t('鎖定編號中...'); btn.disabled = true;
             let lastTime = null;
             try { lastTime = localStorage.getItem('last_booking'); } catch(err) {}
             if (lastTime && Date.now() - Number(lastTime) < 60000) {
-                alert('提交過於頻繁，請於一分鐘後再試。');
-                btn.disabled = false; btn.innerHTML = '確認提交並取得編號'; return;
+                alert(t('提交過於頻繁，請於一分鐘後再試。'));
+                btn.disabled = false; btn.innerHTML = t('確認提交並取得編號'); return;
             }
             const nowJST = new Date(Date.now() + 9 * 60 * 60 * 1000);
             const yy = String(nowJST.getUTCFullYear()).slice(2);
@@ -1792,8 +2040,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 setStep(3); scrollToId('booking');
             } catch (err) {
                 console.error('送出失敗:', err);
-                btn.disabled = false; btn.innerHTML = '確認提交並取得編號';
-                alert('網路異常，請檢查連線後再試，或直接聯繫 LINE 客服。\n錯誤：' + err.message);
+                btn.disabled = false; btn.innerHTML = t('確認提交並取得編號');
+                alert(t('網路異常，請檢查連線後再試，或直接聯繫 LINE 客服。') + '\n' + t('錯誤：') + err.message);
             }
         };
 
@@ -1871,8 +2119,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             if (v.type === 'youtube') { iframe.src = `https://www.youtube.com/embed/${v.youtubeId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`; }
             else if (v.type === 'facebook') { iframe.src = v.url; }
             else if (v.type === 'link') { closeLightbox(); window.open(v.url, '_blank', 'noopener'); return; }
-            document.getElementById('lb-title').textContent = v.title;
-            document.getElementById('lb-label').textContent = v.label;
+            document.getElementById('lb-title').textContent = t(v.title);
+            document.getElementById('lb-label').textContent = t(v.label);
             document.getElementById('lb-count').textContent = `${idx + 1} / ${reels.length}`;
         }
         function closeLightbox() {
@@ -2002,10 +2250,10 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             const resultEl = document.getElementById('query-result');
             const code = input ? input.value.trim().toUpperCase() : '';
             if (!code || code.length < 5) {
-                if (resultEl) { resultEl.textContent = '請輸入完整的預約編號'; resultEl.className = 'mt-2 text-xs font-sans text-red-400'; resultEl.classList.remove('hidden'); }
+                if (resultEl) { resultEl.textContent = t('請輸入完整的預約編號'); resultEl.className = 'mt-2 text-xs font-sans text-red-400'; resultEl.classList.remove('hidden'); }
                 return;
             }
-            if (resultEl) { resultEl.textContent = '查詢中...'; resultEl.className = 'mt-2 text-xs font-sans text-slate-400'; resultEl.classList.remove('hidden'); }
+            if (resultEl) { resultEl.textContent = t('查詢中...'); resultEl.className = 'mt-2 text-xs font-sans text-slate-400'; resultEl.classList.remove('hidden'); }
             try {
                 const res = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
@@ -2014,14 +2262,14 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 });
                 const data = await res.json();
                 if (data.found) {
-                    resultEl.innerHTML = '✓ 找到訂單 <b>' + code + '</b>｜狀態：<span style="color:#22c55e;font-weight:bold">' + (data.status || '待確認') + '</span>｜預約日：' + (data.date || '-');
+                    resultEl.innerHTML = '✓ ' + t('找到訂單') + ' <b>' + code + '</b> | ' + t('狀態：') + '<span style="color:#22c55e;font-weight:bold">' + (data.status || t('待確認')) + '</span> | ' + t('預約日：') + (data.date || '-');
                     resultEl.className = 'mt-2 text-xs font-sans text-slate-600';
                 } else {
-                    resultEl.textContent = '找不到此編號，請確認後重新輸入';
+                    resultEl.textContent = t('找不到此編號，請確認後重新輸入');
                     resultEl.className = 'mt-2 text-xs font-sans text-red-400';
                 }
             } catch(e) {
-                resultEl.textContent = '查詢失敗，請聯繫客服';
+                resultEl.textContent = t('查詢失敗，請聯繫客服');
                 resultEl.className = 'mt-2 text-xs font-sans text-slate-400';
             }
         }
