@@ -11,7 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./admin-assets/admin.css?v=20260612-5">
+<link rel="stylesheet" href="./admin-assets/admin.css?v=20260624-1">
 </head>
 <body class="min-h-screen" style="overflow-x:hidden">
 
@@ -819,7 +819,7 @@
           </div>
         </div>
         <div id="store-order-detail-form">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="order-detail-grid">
           <div data-store-hidden="1"><div class="section-label">姓名</div><input id="e-name" class="input-field"></div>
           <div data-store-hidden="1"><div class="section-label">電話</div><input id="e-phone" class="input-field"></div>
           <div data-store-hidden="1"><div class="section-label">Email</div><input id="e-email" class="input-field" type="email"></div>
@@ -840,7 +840,7 @@
           <textarea id="e-remark" class="input-field" rows="3" placeholder="例如：客人特殊需求、要提醒客人的事項、後續追蹤內容…"></textarea>
         </div>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-slate-200">
+        <div class="order-detail-grid pt-4 border-t border-slate-200">
           <div data-store-hidden="1"><div class="section-label">已付定金 JPY</div><input id="e-deposit" class="input-field" type="number" placeholder="0" oninput="updateCalc()"></div>
           <div><div class="section-label">和服原價 JPY</div><input id="e-price" class="input-field" type="number" placeholder="0" oninput="updateCalc()"></div>
           <div><div class="section-label">妝髮費 JPY</div><input id="e-hair-fee" class="input-field" type="number" placeholder="0" oninput="updateCalc()"></div>
@@ -874,6 +874,9 @@
           <div class="flex items-center justify-between gap-3 mb-3">
             <div class="section-label !mb-0">付款憑證</div>
             <a id="e-proof-link" href="#" target="_blank" rel="noopener" class="hidden text-sm font-bold text-blue-700 hover:underline">打開原圖</a>
+          </div>
+          <div id="e-proof-last5-row" class="hidden mb-3">
+            <div class="order-proof-last5">匯款帳號末 5 碼 <span id="e-proof-last5">—</span></div>
           </div>
           <div id="e-proof-empty" class="text-sm text-slate-500 font-semibold">尚未上傳付款憑證</div>
           <div id="e-proof-content" class="hidden grid grid-cols-1 md:grid-cols-[220px_minmax(0,1fr)] gap-4 items-start">
@@ -1000,7 +1003,7 @@
 
 <script src="./admin-assets/00-gas-guard.js?v=20260605-14"></script>
 <script src="./admin-assets/01-state.js?v=20260605-14"></script>
-<script src="./admin-assets/02-firebase-api.js?v=20260611-4"></script>
+<script src="./admin-assets/02-firebase-api.js?v=20260624-1"></script>
 <script src="./admin-assets/03-ui-utils.js?v=20260611-5"></script>
 <script src="./admin-assets/04-refunds.js?v=20260611-1"></script>
 <script src="./admin-assets/05-orders.js?v=20260621-1"></script>
@@ -1008,7 +1011,7 @@
 <script src="./admin-assets/07-calendar.js?v=20260612-2"></script>
 <script src="./admin-assets/08-finance.js?v=20260612-2"></script>
 <script src="./admin-assets/09-reconcile.js?v=20260612-5"></script>
-<script src="./admin-assets/10-orders-edit.js?v=20260621-1"></script>
+<script src="./admin-assets/10-orders-edit.js?v=20260624-1"></script>
 <script src="./admin-assets/11-refunds-edit.js?v=20260605-14"></script>
 <script src="./admin-assets/12-ui-admin-tools.js?v=20260612-5"></script>
 <script src="./admin-assets/13-weather.js?v=20260605-14"></script>

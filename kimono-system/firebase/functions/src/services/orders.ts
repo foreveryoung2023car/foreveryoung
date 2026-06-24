@@ -326,6 +326,7 @@ function toAdminOrderResponse(orderId: string, order: FirebaseFirestore.Document
     refundBankAccountName: order.refundBankAccountName || "",
     proofImageUrl: order.proofUrl || "",
     proofNote: order.proofNote || "",
+    last5: order.last5 || "",
     remark: order.note || "",
     status
   };

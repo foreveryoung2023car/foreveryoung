@@ -278,6 +278,7 @@ function syncEditPax() {
 function renderPaymentProof(o) {
   const proofUrl = (o && o.proofImageUrl) || '';
   const note = (o && (o.proofNote || o.proofText || o.paymentNote || o.remark)) || '';
+  const last5 = String(o && (o.last5 || o.accountLast5 || o.paymentLast5 || '') || '').replace(/\D/g, '').slice(-5);
   const empty = document.getElementById('e-proof-empty');
   const content = document.getElementById('e-proof-content');
   const img = document.getElementById('e-proof-image');
@@ -285,8 +286,12 @@ function renderPaymentProof(o) {
   const imgLink = document.getElementById('e-proof-image-link');
   const noImage = document.getElementById('e-proof-no-image');
   const noteEl = document.getElementById('e-proof-note');
+  const last5Row = document.getElementById('e-proof-last5-row');
+  const last5El = document.getElementById('e-proof-last5');
   if (!empty || !content) return;
-  if (!proofUrl && !note) {
+  if (last5El) last5El.textContent = last5 || '—';
+  if (last5Row) last5Row.classList.toggle('hidden', !last5);
+  if (!proofUrl && !note && !last5) {
     empty.classList.remove('hidden');
     content.classList.add('hidden');
     if (link) link.classList.add('hidden');
