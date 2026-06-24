@@ -156,6 +156,23 @@
   @media (min-width: 768px){.order-proof-layout{grid-template-columns:220px minmax(0,1fr)}}
   .order-proof-last5{display:inline-flex;align-items:center;gap:.5rem;padding:8px 12px;border-radius:10px;background:#F8FAFC;border:1px solid #E2E8F0;color:#1A365D;font-weight:800;font-size:14px}
   .order-proof-last5 span{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;letter-spacing:.12em}
+  @media (min-width: 768px){
+    #edit-modal{padding-top:10px;padding-bottom:10px}
+    #edit-modal .modal-frame{height:96vh;max-height:calc(100vh - 20px)}
+    #edit-modal .modal-box{height:100%;max-height:100%;padding:18px 20px}
+    #edit-modal .order-modal-header{margin-bottom:10px}
+    #edit-modal .order-modal-tabs{margin-bottom:10px;padding-bottom:8px}
+    #edit-modal .edit-panel{padding:14px}
+    #edit-modal .edit-panel.space-y-5 > :not([hidden]) ~ :not([hidden]){margin-top:12px}
+    #edit-modal .order-detail-grid{column-gap:12px;row-gap:10px}
+    #edit-modal .order-section{padding-top:10px}
+    #edit-modal .order-payment-summary{gap:10px}
+    #edit-modal .order-payment-summary > div{padding:12px}
+    #edit-modal .order-payment-summary .grid{gap:10px}
+    #edit-modal .order-proof-layout{gap:12px}
+    #edit-modal .order-modal-actions{gap:8px;margin-top:10px;padding-top:10px}
+    #edit-modal .order-modal-actions button{padding-top:9px;padding-bottom:9px}
+  }
 
   .tag { display:inline-block;background:#DBEAFE;color:#1E40AF;border-radius:6px;padding:3px 9px;font-size:12px;margin:2px;border:1px solid #93C5FD;font-weight:600 }
   .pill{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:600}
