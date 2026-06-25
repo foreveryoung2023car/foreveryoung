@@ -90,6 +90,7 @@ export const updateOrderByStaffSchema = z.object({
   refundBankName: z.string().optional(),
   refundBankAccount: z.string().optional(),
   refundBankAccountName: z.string().optional(),
+  storeNote: z.string().optional(),
   note: z.string().optional()
 });
 
@@ -347,6 +348,7 @@ function toAdminOrderResponse(orderId: string, order: FirebaseFirestore.Document
     proofImageUrl: order.proofUrl || "",
     proofNote: order.proofNote || "",
     last5: order.last5 || "",
+    storeNote: order.storeNote || "",
     remark: order.note || "",
     status
   };
@@ -627,7 +629,40 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
     const before = orderSnap.data()!;
     assertOrderAccess(before, actor);
     const beforeStatus = resolveOrderStatus(before);
-    if (isStoreOrderActor(actor) && ["completed", "balance_due"].includes(beforeStatus)) {
+    const isStoreNoteOnlyUpdate = isStoreOrderActor(actor) && input.storeNote !== undefined && [
+      input.name,
+      input.phone,
+      input.email,
+      input.bookingAt,
+      input.adults,
+      input.maleAdults,
+      input.femaleAdults,
+      input.children,
+      input.plan,
+      input.platform,
+      input.brandPlatform,
+      input.hair,
+      input.photo,
+      input.depositJpy,
+      input.kimonoPriceJpy,
+      input.hairFeeJpy,
+      input.photoFeeJpy,
+      input.couponCode,
+      input.discountRate,
+      input.discountRefundAmountJpy,
+      input.overtimeDamageDeductionJpy,
+      input.storeActualReceivedJpy,
+      input.checkout,
+      input.refundAmountJpy,
+      input.refundTime,
+      input.refundReason,
+      input.refundBankCode,
+      input.refundBankName,
+      input.refundBankAccount,
+      input.refundBankAccountName,
+      input.note
+    ].every((value) => value === undefined);
+    if (isStoreOrderActor(actor) && ["completed", "balance_due"].includes(beforeStatus) && !isStoreNoteOnlyUpdate) {
       throw new HttpError(403, "Completed or balance-due orders are read-only for store users");
     }
     if (isStoreOrderActor(actor) && input.checkout && !["confirmed", "checked_in"].includes(beforeStatus)) {
@@ -669,6 +704,7 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
     if (input.discountRefundAmountJpy !== undefined) patch.discountRefundAmountJpy = input.discountRefundAmountJpy;
     if (input.overtimeDamageDeductionJpy !== undefined) patch.overtimeDamageDeductionJpy = input.overtimeDamageDeductionJpy;
     if (input.storeActualReceivedJpy !== undefined) patch.storeActualReceivedJpy = input.storeActualReceivedJpy;
+    if (input.storeNote !== undefined) patch.storeNote = input.storeNote;
     if (input.note !== undefined) patch.note = input.note;
 
     const effectiveStoreId = String(before.storeId || "");

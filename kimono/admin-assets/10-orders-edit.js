@@ -111,6 +111,7 @@ function openEdit(orderId) {
     }
   }
   document.getElementById('e-remark').value = o.remark || '';
+  document.getElementById('e-store-note').value = o.storeNote || '';
   renderStoreOrderDetailView(o);
   resetStoreOrderDetailMode();
   applyStoreOrderReadOnlyMode(o);
@@ -215,10 +216,14 @@ function applyStoreOrderReadOnlyMode(o) {
   modal.querySelectorAll('input, select, textarea').forEach(el => {
     el.disabled = readOnly;
   });
+  const storeNoteInput = document.getElementById('e-store-note');
+  if (storeNoteInput && currentRole === 'store') storeNoteInput.disabled = false;
   const saveBtn = document.getElementById('save-btn');
   if (saveBtn) {
-    saveBtn.style.display = readOnly ? 'none' : '';
-    saveBtn.textContent = currentRole === 'store' && modal.dataset.storeReservationEdit === 'true'
+    saveBtn.style.display = '';
+    saveBtn.textContent = currentRole === 'store' && readOnly
+      ? '💾 儲存店鋪備註'
+      : currentRole === 'store' && modal.dataset.storeReservationEdit === 'true'
       ? '💾 儲存預約資訊'
       : currentRole === 'store' && ['confirmed', 'checked_in'].includes(orderStatusOf(o))
       ? '💰 儲存並完成結帳'

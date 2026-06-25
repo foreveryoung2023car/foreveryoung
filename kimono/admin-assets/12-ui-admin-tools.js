@@ -549,16 +549,16 @@ async function saveOrder() {
   const btn = document.getElementById('save-btn');
   const msg = document.getElementById('save-msg');
   if (!editingOrder) return;
-  if (typeof isStoreOrderReadOnly === 'function' && isStoreOrderReadOnly(editingOrder)) {
-    toast('此訂單已結帳，店鋪端僅可查看', 'warning');
-    return;
-  }
+  const isStoreReadOnlyOrder = currentRole === 'store'
+    && typeof isStoreOrderReadOnly === 'function'
+    && isStoreOrderReadOnly(editingOrder);
   const isStoreReservationEdit = currentRole === 'store'
     && document.getElementById('edit-modal')?.dataset.storeReservationEdit === 'true';
-  if (isStoreReservationEdit && typeof syncStoreInlineEditors === 'function') {
+  if (!isStoreReadOnlyOrder && isStoreReservationEdit && typeof syncStoreInlineEditors === 'function') {
     syncStoreInlineEditors();
   }
   const isStoreCheckout = currentRole === 'store'
+    && !isStoreReadOnlyOrder
     && !isStoreReservationEdit
     && ['confirmed', 'checked_in'].includes(orderStatusOf(editingOrder));
   if (isStoreCheckout) {
@@ -597,6 +597,7 @@ async function saveOrder() {
     storeActualReceived: document.getElementById('e-store-actual-received').value,
     refundAmt: document.getElementById('e-refund-amt').value, refundDate: document.getElementById('e-refund-date').value,
     refundReason: composeRefundReason(), note: document.getElementById('e-remark').value,
+    storeNote: document.getElementById('e-store-note').value,
   };
   if (currentRole === 'store') {
     delete payload.name;
@@ -614,8 +615,12 @@ async function saveOrder() {
       const apiBaseUrl = (KIMONO_CONFIG.API_BASE_URL || '').replace(/\/$/, '');
       const bookingValue = document.getElementById('e-booking-date').value;
       const refundDateValue = document.getElementById('e-refund-date').value;
-      const firebasePayload = {
+      const firebasePayload = isStoreReadOnlyOrder ? {
         orderId: editingOrder.firebaseDocId || editingOrder.orderId,
+        storeNote: payload.storeNote
+      } : {
+        orderId: editingOrder.firebaseDocId || editingOrder.orderId,
+        storeNote: payload.storeNote,
         ...(currentRole === 'store' ? {} : {
           name: payload.name,
           phone: payload.phone,
@@ -632,7 +637,8 @@ async function saveOrder() {
           discountRefundAmountJpy: Number(payload.discountRefundAmount || 0),
           overtimeDamageDeductionJpy: Number(payload.overtimeDamageDeduction || 0),
           storeActualReceivedJpy: Number(payload.storeActualReceived || 0),
-          note: payload.note
+          note: payload.note,
+          storeNote: payload.storeNote
         }),
         adults: guests.adults,
         ...(guests.maleAdults !== null ? { maleAdults: guests.maleAdults, femaleAdults: guests.femaleAdults } : {}),
@@ -673,6 +679,7 @@ async function saveOrder() {
         editingOrder.storeActualReceivedJpy = savedActual;
         editingOrder.balanceDue = savedBalance;
         editingOrder.balanceDueJpy = savedBalance;
+        editingOrder.storeNote = data.order.storeNote ?? firebasePayload.storeNote ?? editingOrder.storeNote;
         editingOrder.status = data.order.status || editingOrder.status;
       }
       let proofNotice = '';
@@ -700,7 +707,7 @@ async function saveOrder() {
         loadOrders();
       }, 200);
     } catch (e) {
-      btn.textContent = '💾 儲存變更'; btn.disabled = false;
+      btn.textContent = isStoreReadOnlyOrder ? '💾 儲存店鋪備註' : '💾 儲存變更'; btn.disabled = false;
       msg.textContent = '❌ ' + (e.message || '儲存失敗');
       msg.className = 'text-center text-sm mt-3 text-red-600 font-bold';
       msg.classList.remove('hidden');

@@ -240,6 +240,7 @@ function firestoreOrderToAdminOrder(doc) {
     proofImageUrl: data.proofUrl || '',
     proofNote: data.proofNote || '',
     last5: data.last5 || '',
+    storeNote: data.storeNote || '',
     note: data.note || '',
     remark: data.remark || data.note || '',
     status
