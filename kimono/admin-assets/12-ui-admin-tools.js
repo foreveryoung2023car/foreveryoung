@@ -343,7 +343,7 @@ async function quickPreCheckClose(){
     if (d.canClose) {
       if (confirm(summary)) {
         switchSection('reconcile', document.querySelector('[data-sec=reconcile]'));
-        setTimeout(() => { document.getElementById('recon-month').value = month; openCloseMonthDialog(); }, 500);
+        setTimeout(() => { if (typeof setReconcileMonthFilter === 'function') setReconcileMonthFilter(month); else document.getElementById('recon-month').value = month; openCloseMonthDialog(); }, 500);
       }
     } else {
       alert(summary);
@@ -413,7 +413,7 @@ function openReconHelp(){
 async function openCloseMonthDialog() {
   if (useFirebaseAdmin()) { toast('Firebase 模式下月度關帳尚未遷移；請先用 Firestore 備份策略保留資料', 'warning'); return; }
   if (currentAgent !== 'Jun') { toast('只有 Jun 可以執行關帳', 'error'); return; }
-  const month = document.getElementById('recon-month').value;
+  const month = typeof getReconcileMonthFilter === 'function' ? getReconcileMonthFilter() : document.getElementById('recon-month').value;
   if (!month || month === 'all') { toast('請先選擇一個月份', 'warning'); return; }
   // v2.4.20: 防呆（理論上下拉已 disable，這裡僅 safety net）
   const now = new Date();

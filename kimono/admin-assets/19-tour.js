@@ -1440,7 +1440,7 @@ const TOUR_STEPS = [
   { tab: 'reconcile', selector: '[data-sec="reconcile"]', position: 'bottom',
     title: '🧾 對帳作業',
     body: '對帳是檢查每筆訂單收款狀況。月底結帳前要清完所有狀態。' },
-  { tab: 'reconcile', selector: '#recon-month',
+  { tab: 'reconcile', selector: '#recon-year, #recon-month-part',
     title: '月份切換',
     body: '預設顯示本月，可以下拉切到上個月看歷史對帳記錄。' },
   { tab: 'reconcile', selector: '#recon-status',

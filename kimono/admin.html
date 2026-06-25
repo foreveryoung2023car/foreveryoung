@@ -553,7 +553,9 @@
         <p class="text-sm text-slate-600 mt-1 font-semibold">逐筆核對訂金匯款，標記異常並追蹤入帳狀態</p>
       </div>
       <div class="flex gap-2 items-center flex-wrap">
-        <select id="recon-month" class="input-field !w-auto" onchange="renderReconcile()" title="體驗月份"></select>
+        <input id="recon-month" type="hidden" value="">
+        <select id="recon-year" class="input-field !w-auto" onchange="handleReconYearChange()" title="體驗年份"></select>
+        <select id="recon-month-part" class="input-field !w-auto" onchange="handleReconMonthChange()" title="體驗月份"></select>
         <select id="recon-sort" class="input-field !w-auto" onchange="renderReconcile()" title="排序"><option value="status-asc">按狀態 + 日期 ↑</option><option value="status-desc">按狀態 + 日期 ↓</option><option value="date-asc">日期 ↑</option><option value="date-desc">日期 ↓</option></select>
         <select id="recon-status" class="input-field !w-auto" onchange="renderReconcile()">
           <option value="all">全部訂單</option>
@@ -1019,16 +1021,16 @@
 <script src="./admin-assets/06-checkin-actions.js?v=20260610-1"></script>
 <script src="./admin-assets/07-calendar.js?v=20260624-5"></script>
 <script src="./admin-assets/08-finance.js?v=20260612-2"></script>
-<script src="./admin-assets/09-reconcile.js?v=20260624-5"></script>
+<script src="./admin-assets/09-reconcile.js?v=20260626-3"></script>
 <script src="./admin-assets/10-orders-edit.js?v=20260625-1"></script>
 <script src="./admin-assets/11-refunds-edit.js?v=20260605-14"></script>
-<script src="./admin-assets/12-ui-admin-tools.js?v=20260625-1"></script>
+<script src="./admin-assets/12-ui-admin-tools.js?v=20260626-2"></script>
 <script src="./admin-assets/13-weather.js?v=20260605-14"></script>
 <script src="./admin-assets/15-walkin-reconcile.js?v=20260605-14"></script>
 <script src="./admin-assets/16-audit-email.js?v=20260605-14"></script>
 <script src="./admin-assets/17-walkin-orders.js?v=20260605-14"></script>
 <script src="./admin-assets/18-employees.js?v=20260622-2"></script>
-<script src="./admin-assets/19-tour.js?v=20260611-1"></script>
+<script src="./admin-assets/19-tour.js?v=20260626-2"></script>
 <script src="./admin-assets/21-payment-settings.js?v=20260622-1"></script>
 <script src="./admin-assets/20-stores.js?v=20260624-2"></script>
 
