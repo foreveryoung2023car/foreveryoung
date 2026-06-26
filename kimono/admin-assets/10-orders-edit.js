@@ -25,6 +25,18 @@ function orderHasMakeup(o) {
   ));
 }
 
+function makeupFeeForPlan(plan) {
+  return ({ Basic: 3000, Standard: 5000, Premium: 8000 })[plan] || 0;
+}
+
+function makeupLabelForPlan(plan) {
+  return ({
+    Basic: '基礎化妝 (+3000 JPY)',
+    Standard: '精緻化妝 (+5000 JPY)',
+    Premium: '高級化妝 (+8000 JPY)'
+  })[plan] || '無';
+}
+
 function orderMakeupText(o) {
   return String(o && [
     o.makeupPlan,
@@ -39,6 +51,8 @@ function orderMakeupText(o) {
 function orderMakeupFee(o) {
   const direct = Number(o && (o.makeupFee !== undefined ? o.makeupFee : o.makeupFeeJpy) || 0);
   if (direct > 0) return direct;
+  const planFee = makeupFeeForPlan(String(o && o.makeupPlan || '').trim());
+  if (planFee > 0) return planFee;
   const text = orderMakeupText(o);
   const explicit = text.match(/化妝費[：:\s]*([0-9,]+)\s*JPY/i);
   if (explicit) return Number(explicit[1].replace(/,/g, '')) || 0;
@@ -46,6 +60,28 @@ function orderMakeupFee(o) {
   if (/Standard|精緻化妝/.test(text)) return 5000;
   if (/Basic|基礎化妝/.test(text)) return 3000;
   return 0;
+}
+
+function normalizeMakeupPlan(o) {
+  const raw = typeof o === 'string' ? o : String(o && o.makeupPlan || '').trim();
+  if (/Premium|高級化妝/.test(raw)) return 'Premium';
+  if (/Standard|精緻化妝/.test(raw)) return 'Standard';
+  if (/Basic|基礎化妝/.test(raw)) return 'Basic';
+  if (raw === 'true' || raw === '是') return 'Basic';
+  if (raw === 'No' || raw === 'false' || raw === '否') return 'No';
+  const text = typeof o === 'string' ? raw : orderMakeupText(o);
+  const fee = Number(o && (o.makeupFee !== undefined ? o.makeupFee : o.makeupFeeJpy) || 0);
+  if (/Premium|高級化妝/.test(text) || fee >= 8000) return 'Premium';
+  if (/Standard|精緻化妝/.test(text) || fee >= 5000) return 'Standard';
+  if (/Basic|基礎化妝/.test(text) || fee >= 3000 || (o && (o.makeup === true || o.makeup === 'true' || o.makeup === '是'))) return 'Basic';
+  return 'No';
+}
+
+function syncMakeupFeeFromPlan() {
+  const plan = document.getElementById('e-makeup')?.value || 'No';
+  const feeInput = document.getElementById('e-makeup-fee');
+  if (feeInput) feeInput.value = makeupFeeForPlan(plan) || '';
+  if (typeof updateCalc === 'function') updateCalc();
 }
 
 function openEdit(orderId) {
@@ -76,7 +112,7 @@ function openEdit(orderId) {
   document.getElementById('e-plan').value = o.plan || '';
   document.getElementById('e-platform').value = o.platform || '';
   document.getElementById('e-hair').value = (o.hair === true || o.hair === 'true') ? 'true' : 'false';
-  document.getElementById('e-makeup').value = orderHasMakeup(o) ? 'true' : 'false';
+  document.getElementById('e-makeup').value = normalizeMakeupPlan(o);
   document.getElementById('e-photo').value = (o.photo === true || o.photo === 'true') ? 'true' : 'false';
   document.getElementById('e-confirmed').value = o.confirmed ? 'true' : 'false';
   const paidDeposit = typeof orderPaidDeposit === 'function'
@@ -173,13 +209,13 @@ function renderStoreOrderDetailView(o) {
   document.getElementById('store-view-female').textContent = guests.femaleAdults === null ? guests.adults : guests.femaleAdults;
   document.getElementById('store-view-children').textContent = guests.children;
   document.getElementById('store-view-hair').textContent = (o.hair === true || o.hair === 'true') ? '有' : '無';
-  document.getElementById('store-view-makeup').textContent = orderHasMakeup(o) ? '有' : '無';
+  document.getElementById('store-view-makeup').textContent = makeupLabelForPlan(normalizeMakeupPlan(o));
   document.getElementById('store-view-photo').textContent = (o.photo === true || o.photo === 'true') ? '有' : '無';
   setStoreInlineEditorValue('store-inline-male', guests.maleAdults === null ? 0 : guests.maleAdults);
   setStoreInlineEditorValue('store-inline-female', guests.femaleAdults === null ? guests.adults : guests.femaleAdults);
   setStoreInlineEditorValue('store-inline-children', guests.children);
   setStoreInlineEditorValue('store-inline-hair', (o.hair === true || o.hair === 'true') ? 'true' : 'false');
-  setStoreInlineEditorValue('store-inline-makeup', orderHasMakeup(o) ? 'true' : 'false');
+  setStoreInlineEditorValue('store-inline-makeup', normalizeMakeupPlan(o));
   setStoreInlineEditorValue('store-inline-photo', (o.photo === true || o.photo === 'true') ? 'true' : 'false');
   document.getElementById('store-view-remark').textContent = o.remark || '—';
   document.getElementById('store-view-actual-received').textContent = fmtY0(orderFinancialValue(o, 'storeActualReceived', 'storeActualReceivedJpy'));
@@ -197,19 +233,20 @@ function syncStoreInlineEditors() {
   const female = Math.max(0, Number(document.getElementById('store-inline-female')?.value || 0));
   const children = Math.max(0, Number(document.getElementById('store-inline-children')?.value || 0));
   const hair = document.getElementById('store-inline-hair')?.value || 'false';
-  const makeup = document.getElementById('store-inline-makeup')?.value || 'false';
+  const makeup = document.getElementById('store-inline-makeup')?.value || 'No';
   const photo = document.getElementById('store-inline-photo')?.value || 'false';
   setStoreInlineEditorValue('e-male-adults', male);
   setStoreInlineEditorValue('e-female-adults', female);
   setStoreInlineEditorValue('e-children', children);
   setStoreInlineEditorValue('e-hair', hair);
   setStoreInlineEditorValue('e-makeup', makeup);
+  setStoreInlineEditorValue('e-makeup-fee', makeupFeeForPlan(makeup) || '');
   setStoreInlineEditorValue('e-photo', photo);
   document.getElementById('store-view-male').textContent = male;
   document.getElementById('store-view-female').textContent = female;
   document.getElementById('store-view-children').textContent = children;
   document.getElementById('store-view-hair').textContent = hair === 'true' ? '有' : '無';
-  document.getElementById('store-view-makeup').textContent = makeup === 'true' ? '有' : '無';
+  document.getElementById('store-view-makeup').textContent = makeupLabelForPlan(makeup);
   document.getElementById('store-view-photo').textContent = photo === 'true' ? '有' : '無';
   return typeof syncEditPax === 'function' ? syncEditPax() : null;
 }

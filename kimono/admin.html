@@ -799,7 +799,7 @@
                 <div>
                   <span class="store-summary-label">化妝造型</span>
                   <span id="store-view-makeup" class="store-summary-inline-value store-view-display">—</span>
-                  <select id="store-inline-makeup" class="store-inline-editor store-inline-select" onchange="syncStoreInlineEditors()"><option value="true">有</option><option value="false">無</option></select>
+                  <select id="store-inline-makeup" class="store-inline-editor store-inline-select" onchange="syncStoreInlineEditors()"><option value="No">無</option><option value="Basic">基礎化妝</option><option value="Standard">精緻化妝</option><option value="Premium">高級化妝</option></select>
                 </div>
               </div>
               <div class="store-summary-cell">
@@ -844,7 +844,7 @@
           <div style="display:none"><div class="section-label">和服款式 / 方案</div><input id="e-plan" class="input-field" placeholder="例：精緻和服、素雅和服"></div>
           <input id="e-platform" type="hidden">
           <div><div class="section-label">髮型設計</div><select id="e-hair" class="input-field"><option value="true">✅ 有髮型</option><option value="false">❌ 無髮型</option></select></div>
-          <div><div class="section-label">化妝造型</div><select id="e-makeup" class="input-field"><option value="true">✅ 有化妝</option><option value="false">❌ 無化妝</option></select></div>
+          <div><div class="section-label">化妝造型</div><select id="e-makeup" class="input-field" onchange="syncMakeupFeeFromPlan()"><option value="No">❌ 不需要化妝</option><option value="Basic">基礎化妝 (+3000 JPY)</option><option value="Standard">精緻化妝 (+5000 JPY)</option><option value="Premium">高級化妝 (+8000 JPY)</option></select></div>
           <div><div class="section-label">攝影服務</div><select id="e-photo" class="input-field"><option value="true">✅ 有攝影</option><option value="false">❌ 無攝影</option></select></div>
           <input id="e-confirmed" type="hidden">
         </div>
@@ -1033,9 +1033,9 @@
 <script src="./admin-assets/07-calendar.js?v=20260626-6"></script>
 <script src="./admin-assets/08-finance.js?v=20260612-2"></script>
 <script src="./admin-assets/09-reconcile.js?v=20260626-6"></script>
-<script src="./admin-assets/10-orders-edit.js?v=20260626-6"></script>
+<script src="./admin-assets/10-orders-edit.js?v=20260626-8"></script>
 <script src="./admin-assets/11-refunds-edit.js?v=20260605-14"></script>
-<script src="./admin-assets/12-ui-admin-tools.js?v=20260626-5"></script>
+<script src="./admin-assets/12-ui-admin-tools.js?v=20260626-8"></script>
 <script src="./admin-assets/13-weather.js?v=20260605-14"></script>
 <script src="./admin-assets/15-walkin-reconcile.js?v=20260605-14"></script>
 <script src="./admin-assets/16-audit-email.js?v=20260605-14"></script>
