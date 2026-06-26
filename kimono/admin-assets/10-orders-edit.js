@@ -16,7 +16,36 @@ function maskStorePhone(phone) {
 }
 
 function orderHasMakeup(o) {
-  return !!(o && (o.makeup === true || o.makeup === 'true' || o.makeup === '是' || Number(o.makeupFee || o.makeupFeeJpy || 0) > 0));
+  return !!(o && (
+    o.makeup === true ||
+    o.makeup === 'true' ||
+    o.makeup === '是' ||
+    orderMakeupFee(o) > 0 ||
+    /化妝造型|化妝費|makeup/i.test(orderMakeupText(o))
+  ));
+}
+
+function orderMakeupText(o) {
+  return String(o && [
+    o.makeupPlan,
+    o.proofNote,
+    o.proofText,
+    o.paymentNote,
+    o.remark,
+    o.note
+  ].filter(Boolean).join(' ') || '');
+}
+
+function orderMakeupFee(o) {
+  const direct = Number(o && (o.makeupFee !== undefined ? o.makeupFee : o.makeupFeeJpy) || 0);
+  if (direct > 0) return direct;
+  const text = orderMakeupText(o);
+  const explicit = text.match(/化妝費[：:\s]*([0-9,]+)\s*JPY/i);
+  if (explicit) return Number(explicit[1].replace(/,/g, '')) || 0;
+  if (/Premium|高級化妝/.test(text)) return 8000;
+  if (/Standard|精緻化妝/.test(text)) return 5000;
+  if (/Basic|基礎化妝/.test(text)) return 3000;
+  return 0;
 }
 
 function openEdit(orderId) {
@@ -59,7 +88,7 @@ function openEdit(orderId) {
   document.getElementById('e-deposit-display').textContent = '¥' + paidDeposit.toLocaleString();
   document.getElementById('e-price').value = o.price || o.kimonoPrice || '';
   document.getElementById('e-hair-fee').value = o.hairFee || '';
-  document.getElementById('e-makeup-fee').value = o.makeupFee || '';
+  document.getElementById('e-makeup-fee').value = orderMakeupFee(o) || '';
   document.getElementById('e-photo-fee').value = o.photoFee || '';
   document.getElementById('e-coupon').value = o.coupon || '';
   document.getElementById('e-discount-refund-amount').value = Number(o.discountRefundAmount || 0) || '';
@@ -72,7 +101,7 @@ function openEdit(orderId) {
   const defaultActualReceived = Math.max(0,
     Number(o.price || o.kimonoPrice || 0)
     + Number(o.hairFee || 0)
-    + Number(o.makeupFee || 0)
+    + orderMakeupFee(o)
     + Number(o.photoFee || 0)
     + overtimeDamageDeduction
     - Number(o.discountRefundAmount || 0)
@@ -85,7 +114,7 @@ function openEdit(orderId) {
   document.getElementById('calc-store-balance').dataset.savedSignature = [
     Number(o.price || o.kimonoPrice || 0),
     Number(o.hairFee || 0),
-    Number(o.makeupFee || 0),
+    orderMakeupFee(o),
     Number(o.photoFee || 0),
     paidDeposit,
     Number(o.refundAmount || 0),

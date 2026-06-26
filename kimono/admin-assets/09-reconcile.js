@@ -136,7 +136,7 @@ function orderMatchesReconcileMonth(o, filter) {
 function reconcileAmounts(o) {
   const kimonoPrice = Number(o.price || o.kimonoPrice || 0);
   const hairFee = Number(o.hairFee || 0);
-  const makeupFee = Number(o.makeupFee || 0);
+  const makeupFee = typeof orderMakeupFee === 'function' ? orderMakeupFee(o) : Number(o.makeupFee || 0);
   const photoFee = Number(o.photoFee || 0);
   const discountRefund = Number(o.discountRefundAmount || 0);
   const overtimeDamageDeduction = Number(o.overtimeDamageDeduction || o.overtimeDamageDeductionJpy || 0);

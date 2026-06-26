@@ -2171,6 +2171,10 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 ? payload.proofImageUrl.replace('[TEXT] ', '')
                 : '';
             const proofUrl = proofText ? '' : (payload.proofImageUrl || '');
+            const makeupNote = payload.makeup === '是'
+                ? `化妝造型：${payload.makeupPlan || 'Yes'}，化妝費：${Number(payload.makeupFeeJpy || 0)} JPY`
+                : '';
+            const proofNote = [proofText, makeupNote].filter(Boolean).join('; ');
             const dateValue = document.getElementById('input-date').value;
             const timeValue = document.getElementById('input-time').value;
             const requestBody = {
@@ -2196,7 +2200,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 couponCode: payload.couponCode || '',
                 depositJpy: (Number(payload.adults || 0) + Number(payload.children || 0)) * 1000,
                 proofUrl,
-                proofNote: proofText,
+                proofNote,
                 last5: payload.last5 || ''
             };
             const res = await fetch(`${API_BASE_URL}/createPublicOrder`, {

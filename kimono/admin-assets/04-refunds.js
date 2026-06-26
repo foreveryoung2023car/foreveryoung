@@ -27,7 +27,8 @@ const STORE_ADDRESSES = {
 const MSG_TEMPLATES = {
   confirm: function(o){
     const addr = STORE_ADDRESSES[o.storeKey] || '請洽詢店家';
-    const total = (Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.makeupFee)||0)+(Number(o.photoFee)||0);
+    const makeupFee = typeof orderMakeupFee === 'function' ? orderMakeupFee(o) : Number(o.makeupFee || 0);
+    const total = (Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+makeupFee+(Number(o.photoFee)||0);
     return '您好 '+(o.name||'')+'，您的和服體驗預約已確認 ✅\n\n📋 訂單編號：'+(o.orderId||'')+'\n📅 體驗日期：'+(o.bookingDate||'')+'\n👥 人數：'+formatGuestCount(o)+'\n💰 應付總額：¥'+total.toLocaleString()+'（訂金 ¥'+(Number(o.deposit)||0).toLocaleString()+' 已收）\n📍 體驗地點：'+addr+'\n\n如需任何協助請隨時聯繫我們，期待您的蒞臨！\n— 旅乘 × 和服';
   },
   reminder: function(o){
@@ -38,7 +39,8 @@ const MSG_TEMPLATES = {
     return '您好 '+(o.name||'')+'，您今天的和服已準備好了，請問現在方便到店嗎？\n📍 '+addr+'\n\n如有預計到店時間請告知，我們會先準備您的和服 👘';
   },
   paid: function(o){
-    const total = (Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.makeupFee)||0)+(Number(o.photoFee)||0);
+    const makeupFee = typeof orderMakeupFee === 'function' ? orderMakeupFee(o) : Number(o.makeupFee || 0);
+    const total = (Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+makeupFee+(Number(o.photoFee)||0);
     return '您好 '+(o.name||'')+'，感謝您今日的光臨 🙏\n\n本次消費已完成結帳 ✓\n📋 訂單號：'+(o.orderId||'')+'\n💰 消費總額：¥'+total.toLocaleString()+'\n\n歡迎您下次再來體驗！如有任何問題請隨時聯繫。';
   },
   winback: function(o){
@@ -111,7 +113,7 @@ async function unmarkPaidFull(orderId, name){
 
 function isStoreRole(){ return currentRole === 'store'; }
 function isAnomaly(o){ return !o.name || (!isStoreRole() && !o.phone) || !o.bookingDate; }
-function totalAmount(o){ return (Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.makeupFee)||0)+(Number(o.photoFee)||0); }
+function totalAmount(o){ return (Number(o.deposit)||0)+(Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(typeof orderMakeupFee === 'function' ? orderMakeupFee(o) : Number(o.makeupFee || 0))+(Number(o.photoFee)||0); }
 // v2.4.20: 客人本次體驗應付總額（不含訂金重複計入）
 // v2.4.20: 顯示 boolean 為「是/否」
 function fmtYesNo(v) {
@@ -120,7 +122,7 @@ function fmtYesNo(v) {
   return String(v);
 }
 
-function totalCharge(o){ return (Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(Number(o.makeupFee)||0)+(Number(o.photoFee)||0); }
+function totalCharge(o){ return (Number(o.price||o.kimonoPrice)||0)+(Number(o.hairFee)||0)+(typeof orderMakeupFee === 'function' ? orderMakeupFee(o) : Number(o.makeupFee || 0))+(Number(o.photoFee)||0); }
 // v2.4.20: bookingDate → JST 月份字串 (跟 GAS 後端 archMonthOf_ 一致)
 // v2.4.20: 月份字串顯示成「YYYY年M月」(處理 Sheets 自動轉成 Date 的 ISO 字串)
 // v2.4.20: 把任何月份輸入正規化成 YYYY-MM

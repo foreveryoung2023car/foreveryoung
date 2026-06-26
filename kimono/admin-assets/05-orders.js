@@ -466,7 +466,36 @@ function orderHasHair(o) {
 }
 
 function orderHasMakeup(o) {
-  return o && (o.makeup === true || o.makeup === 'true' || o.makeup === '是' || Number(o.makeupFee || o.makeupFeeJpy || 0) > 0);
+  return !!(o && (
+    o.makeup === true ||
+    o.makeup === 'true' ||
+    o.makeup === '是' ||
+    orderMakeupFee(o) > 0 ||
+    /化妝造型|化妝費|makeup/i.test(orderMakeupText(o))
+  ));
+}
+
+function orderMakeupText(o) {
+  return String(o && [
+    o.makeupPlan,
+    o.proofNote,
+    o.proofText,
+    o.paymentNote,
+    o.remark,
+    o.note
+  ].filter(Boolean).join(' ') || '');
+}
+
+function orderMakeupFee(o) {
+  const direct = Number(o && (o.makeupFee !== undefined ? o.makeupFee : o.makeupFeeJpy) || 0);
+  if (direct > 0) return direct;
+  const text = orderMakeupText(o);
+  const explicit = text.match(/化妝費[：:\s]*([0-9,]+)\s*JPY/i);
+  if (explicit) return Number(explicit[1].replace(/,/g, '')) || 0;
+  if (/Premium|高級化妝/.test(text)) return 8000;
+  if (/Standard|精緻化妝/.test(text)) return 5000;
+  if (/Basic|基礎化妝/.test(text)) return 3000;
+  return 0;
 }
 
 function orderHasPhoto(o) {
@@ -592,6 +621,7 @@ function orderDisplayTotal(o) {
     o.kimonoPrice !== undefined ||
     o.hairFee !== undefined ||
     o.makeupFee !== undefined ||
+    orderMakeupFee(o) > 0 ||
     o.photoFee !== undefined ||
     o.discountRefundAmount !== undefined ||
     o.overtimeDamageDeduction !== undefined ||
@@ -601,7 +631,7 @@ function orderDisplayTotal(o) {
     return Math.max(0,
       Number(o.price || o.kimonoPrice || 0)
       + Number(o.hairFee || 0)
-      + Number(o.makeupFee || 0)
+      + orderMakeupFee(o)
       + Number(o.photoFee || 0)
       + Number(o.overtimeDamageDeduction || o.overtimeDamageDeductionJpy || 0)
       - Number(o.discountRefundAmount || 0)
@@ -886,7 +916,7 @@ function renderOrders(orders){
             ((Number(o.refundAmount)||0) > 0 && o.refundTime ? '<span class="tag" style="background:#D1FAE5;color:#065F46;border-color:#A7F3D0">✓ 退款 '+fmtY(o.refundAmount)+' 已匯</span>':'')+
             hairTag+makeupTag+photoTag+
             (o.hairFee && Number(o.hairFee) ? '<span class="tag">髮型 '+fmtY(o.hairFee)+'</span>' : '')+
-            (o.makeupFee && Number(o.makeupFee) ? '<span class="tag">化妝 '+fmtY(o.makeupFee)+'</span>' : '')+
+            (orderMakeupFee(o) ? '<span class="tag">化妝 '+fmtY(orderMakeupFee(o))+'</span>' : '')+
             (o.photoFee && Number(o.photoFee) ? '<span class="tag">攝影 '+fmtY(o.photoFee)+'</span>' : '')+
             (o.remark ? '<span class="tag" style="background:#FEF3C7;color:#78350F;border-color:#FCD34D" title="'+(o.remark||'').replace(/"/g,"&quot;")+'">📝 備註</span>' : '')+
             (o.agent? '<span class="tag" style="background:#E0E7FF;color:#3730A3;border-color:#A5B4FC">👤 '+o.agent+'</span>':'')+
