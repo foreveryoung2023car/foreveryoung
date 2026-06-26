@@ -89,7 +89,7 @@ function storeSlotUsageValue(usage, key) {
 
 function renderCapacityField(slot, type, label, capacity, usage) {
   return '<label>' +
-    '<span class="flex items-center justify-between gap-1">' +
+    '<span class="flex items-center gap-2">' +
       '<span>' + label + '</span>' +
       '<span class="text-[10px] text-slate-400">已約 ' + storeSlotUsageValue(usage, type) + '</span>' +
     '</span>' +
