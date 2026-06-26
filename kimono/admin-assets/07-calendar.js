@@ -115,11 +115,12 @@ function closeCalDayModal(){ const x = document.getElementById('cal-day-modal');
 function customerOrderAmounts(o) {
   const kimonoPrice = Number(o.price || o.kimonoPrice || 0);
   const hairFee = Number(o.hairFee || 0);
+  const makeupFee = Number(o.makeupFee || 0);
   const photoFee = Number(o.photoFee || 0);
   const discountRefund = Number(o.discountRefundAmount || 0);
   const total = typeof orderDisplayTotal === 'function'
     ? orderDisplayTotal(o)
-    : Math.max(0, kimonoPrice + hairFee + photoFee - discountRefund);
+    : Math.max(0, kimonoPrice + hairFee + makeupFee + photoFee - discountRefund);
   const balance = typeof orderDisplayBalance === 'function'
     ? orderDisplayBalance(o)
     : Math.max(0, total - (typeof orderPaidDeposit === 'function' ? orderPaidDeposit(o) : Math.max(0, Number(o.deposit || 0) - Number(o.refundAmount || 0))) - Number(o.storeActualReceived || o.storeActualReceivedJpy || 0));
@@ -127,6 +128,7 @@ function customerOrderAmounts(o) {
   return {
     kimonoPrice,
     hairFee,
+    makeupFee,
     photoFee,
     balance,
     platformFee,
@@ -158,12 +160,13 @@ function buildCustomers(){
       const amount = customerOrderAmounts(o);
       sum.kimonoPrice += amount.kimonoPrice;
       sum.hairFee += amount.hairFee;
+      sum.makeupFee += amount.makeupFee;
       sum.photoFee += amount.photoFee;
       sum.balance += amount.balance;
       sum.platformFee += amount.platformFee;
       sum.storeProfit += amount.storeProfit;
       return sum;
-    }, {kimonoPrice:0, hairFee:0, photoFee:0, balance:0, platformFee:0, storeProfit:0});
+    }, {kimonoPrice:0, hairFee:0, makeupFee:0, photoFee:0, balance:0, platformFee:0, storeProfit:0});
     const dates = orders.map(o=>new Date(o.bookingDate)).filter(d=>!isNaN(d)).sort((a,b)=>b-a);
     const lastDate = dates[0] || null;
     const firstDate = dates[dates.length-1] || null;
@@ -234,7 +237,7 @@ function renderCustomers(){
   if(!arr.length){ el.innerHTML='<div class="text-center text-slate-600 py-8 font-semibold">無客戶資料</div>'; return; }
   const contactHeaders = storeRole ? '' : '<th>電話</th><th>Email</th>';
   const moneyHeaders = storeRole
-    ? '<th class="num">和服原價</th><th class="num">妝髮費</th><th class="num">攝影費</th><th class="num">店鋪利潤</th>'
+    ? '<th class="num">和服原價</th><th class="num">髮型費</th><th class="num">化妝費</th><th class="num">攝影費</th><th class="num">店鋪利潤</th>'
     : '<th class="num">已收訂金</th><th class="num">平台費</th><th class="num">尾款</th>';
   el.innerHTML = '<table class="data-table customer-data-table"><thead><tr>'+
     '<th>客戶</th>'+contactHeaders+
@@ -249,6 +252,7 @@ function renderCustomers(){
       const moneyCells = storeRole
         ? '<td class="num">'+fmtY0(c.kimonoPrice)+'</td>'+
           '<td class="num">'+fmtY0(c.hairFee)+'</td>'+
+          '<td class="num">'+fmtY0(c.makeupFee)+'</td>'+
           '<td class="num">'+fmtY0(c.photoFee)+'</td>'+
           '<td class="num font-bold text-emerald-700">'+fmtY0(c.storeProfit)+'</td>'
         : '<td class="num">'+fmtY0(c.totalDeposit)+'</td>'+
@@ -279,7 +283,8 @@ function openCustomerDetail(key){
         '<div class="stat-card blue"><div class="section-label">訂單數</div><div class="stat-num">'+c.count+'</div></div>'+
         '<div class="stat-card green"><div class="section-label">累積消費</div><div class="stat-num green" style="font-size:20px">'+fmtY0(c.totalSpent)+'</div></div>'+
         '<div class="stat-card"><div class="section-label">和服原價</div><div class="stat-num" style="font-size:20px">'+fmtY0(c.kimonoPrice)+'</div></div>'+
-        '<div class="stat-card"><div class="section-label">妝髮費</div><div class="stat-num" style="font-size:20px">'+fmtY0(c.hairFee)+'</div></div>'+
+        '<div class="stat-card"><div class="section-label">髮型費</div><div class="stat-num" style="font-size:20px">'+fmtY0(c.hairFee)+'</div></div>'+
+        '<div class="stat-card"><div class="section-label">化妝費</div><div class="stat-num" style="font-size:20px">'+fmtY0(c.makeupFee)+'</div></div>'+
         '<div class="stat-card"><div class="section-label">攝影費</div><div class="stat-num" style="font-size:20px">'+fmtY0(c.photoFee)+'</div></div>'+
         '<div class="stat-card green"><div class="section-label">店鋪利潤</div><div class="stat-num green" style="font-size:20px">'+fmtY0(c.storeProfit)+'</div></div>'+
       '</div>'
@@ -292,7 +297,7 @@ function openCustomerDetail(key){
         '<div class="stat-card red"><div class="section-label">退款次數</div><div class="stat-num red">'+c.refundCount+'</div></div>'+
       '</div>';
   const detailMoneyHeaders = storeRole
-    ? '<th class="num">和服原價</th><th class="num">妝髮費</th><th class="num">攝影費</th><th class="num">店鋪利潤</th>'
+    ? '<th class="num">和服原價</th><th class="num">髮型費</th><th class="num">化妝費</th><th class="num">攝影費</th><th class="num">店鋪利潤</th>'
     : '<th class="num">訂金</th><th class="num">總價</th><th class="num">平台費</th><th class="num">尾款</th>';
   body.innerHTML =
     summaryCards+
@@ -306,6 +311,7 @@ function openCustomerDetail(key){
         const detailMoneyCells = storeRole
           ? '<td class="num">'+fmtY0(amount.kimonoPrice)+'</td>'+
             '<td class="num">'+fmtY0(amount.hairFee)+'</td>'+
+            '<td class="num">'+fmtY0(amount.makeupFee)+'</td>'+
             '<td class="num">'+fmtY0(amount.photoFee)+'</td>'+
             '<td class="num font-bold text-emerald-700">'+fmtY0(amount.storeProfit)+'</td>'
           : '<td class="num">'+fmtY(typeof orderPaidDeposit === 'function' ? orderPaidDeposit(o) : Math.max(0, Number(o.deposit || 0) - Number(o.refundAmount || 0)))+'</td>'+

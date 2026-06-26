@@ -33,6 +33,8 @@ export const createPublicOrderSchema = z.object({
   children: z.number().int().min(0).default(0),
   plan: z.string().optional(),
   hair: z.boolean().optional(),
+  makeup: z.boolean().optional(),
+  makeupPlan: z.string().optional(),
   photo: z.boolean().optional(),
   source: z.string().optional(),
   platform: z.string().optional(),
@@ -42,6 +44,7 @@ export const createPublicOrderSchema = z.object({
   depositJpy: z.number().int().optional(),
   kimonoPriceJpy: z.number().int().optional(),
   hairFeeJpy: z.number().int().optional(),
+  makeupFeeJpy: z.number().int().min(0).optional(),
   photoFeeJpy: z.number().int().optional(),
   proofUrl: z.string().optional(),
   proofNote: z.string().optional(),
@@ -72,10 +75,13 @@ export const updateOrderByStaffSchema = z.object({
   platform: z.string().optional(),
   brandPlatform: z.enum(brandPlatforms).optional(),
   hair: z.boolean().optional(),
+  makeup: z.boolean().optional(),
+  makeupPlan: z.string().optional(),
   photo: z.boolean().optional(),
   depositJpy: z.number().int().min(0).optional(),
   kimonoPriceJpy: z.number().int().min(0).optional(),
   hairFeeJpy: z.number().int().min(0).optional(),
+  makeupFeeJpy: z.number().int().min(0).optional(),
   photoFeeJpy: z.number().int().min(0).optional(),
   couponCode: z.string().optional(),
   discountRate: z.number().optional(),
@@ -107,11 +113,14 @@ export const createWalkInOrderSchema = z.object({
   children: z.number().int().min(0).default(0),
   plan: z.string().optional(),
   hair: z.boolean().optional(),
+  makeup: z.boolean().optional(),
+  makeupPlan: z.string().optional(),
   photo: z.boolean().optional(),
   brandPlatform: z.enum(brandPlatforms).optional(),
   discountRate: z.number().optional(),
   kimonoPriceJpy: z.number().int().min(0).default(0),
   hairFeeJpy: z.number().int().min(0).default(0),
+  makeupFeeJpy: z.number().int().min(0).default(0),
   photoFeeJpy: z.number().int().min(0).default(0),
   note: z.string().optional()
 });
@@ -274,10 +283,13 @@ function toPublicOrderResponse(orderId: string, order: FirebaseFirestore.Documen
     children,
     plan: order.plan || "和服體驗",
     hair: order.hair ? "是" : "否",
+    makeup: order.makeup ? "是" : "否",
+    makeupPlan: order.makeupPlan || "",
     photo: order.photo ? "是" : "否",
     planPrice,
     planActual,
     hairFee: Number(order.hairFeeJpy || 0),
+    makeupFee: Number(order.makeupFeeJpy || 0),
     photoFee: Number(order.photoFeeJpy || 0),
     depositJPY: Number(order.depositJpy || 0),
     twdDeposit: "",
@@ -316,6 +328,8 @@ function toAdminOrderResponse(orderId: string, order: FirebaseFirestore.Document
     pax: adults + Number(order.children || 0),
     plan: order.plan || "",
     hair: order.hair ? "true" : "false",
+    makeup: order.makeup ? "true" : "false",
+    makeupPlan: order.makeupPlan || "",
     photo: order.photo ? "true" : "false",
     confirmed,
     checkedInAt,
@@ -325,6 +339,7 @@ function toAdminOrderResponse(orderId: string, order: FirebaseFirestore.Document
     kimonoPrice: Number(order.kimonoPriceJpy || 0),
     price: Number(order.kimonoPriceJpy || 0),
     hairFee: Number(order.hairFeeJpy || 0),
+    makeupFee: Number(order.makeupFeeJpy || 0),
     photoFee: Number(order.photoFeeJpy || 0),
     totalJpy: Number(order.totalJpy || 0),
     onsiteDueJpy: Number(order.onsiteDueJpy || 0),
@@ -442,6 +457,7 @@ export async function createPublicOrder(raw: unknown) {
       depositJpy,
       kimonoPriceJpy: input.kimonoPriceJpy || 0,
       hairFeeJpy: input.hairFeeJpy || 0,
+      makeupFeeJpy: input.makeupFeeJpy || 0,
       photoFeeJpy: input.photoFeeJpy || 0,
       discountRate: input.discountRate || 10
     });
@@ -467,6 +483,8 @@ export async function createPublicOrder(raw: unknown) {
       children: input.children,
       plan: input.plan || "",
       hair: input.hair || false,
+      makeup: input.makeup || false,
+      makeupPlan: input.makeupPlan || "",
       photo: input.photo || false,
       source: input.source || "web",
       platform: input.platform || "LINE",
@@ -476,6 +494,7 @@ export async function createPublicOrder(raw: unknown) {
       depositJpy,
       kimonoPriceJpy: input.kimonoPriceJpy || 0,
       hairFeeJpy: input.hairFeeJpy || 0,
+      makeupFeeJpy: input.makeupFeeJpy || 0,
       photoFeeJpy: input.photoFeeJpy || 0,
       totalJpy: total.totalJpy,
       onsiteDueJpy: total.onsiteDueJpy,
@@ -520,6 +539,7 @@ export async function createWalkInOrder(raw: unknown, actor: AuthContext) {
       depositJpy: 0,
       kimonoPriceJpy: input.kimonoPriceJpy,
       hairFeeJpy: input.hairFeeJpy,
+      makeupFeeJpy: input.makeupFeeJpy,
       photoFeeJpy: input.photoFeeJpy,
       discountRate: input.discountRate || 10
     });
@@ -549,6 +569,8 @@ export async function createWalkInOrder(raw: unknown, actor: AuthContext) {
       children: input.children,
       plan: input.plan || "walk-in",
       hair: input.hair || false,
+      makeup: input.makeup || false,
+      makeupPlan: input.makeupPlan || "",
       photo: input.photo || false,
       source: "walk-in",
       platform: storeId ? `walk-in:${storeId}` : "walk-in",
@@ -558,6 +580,7 @@ export async function createWalkInOrder(raw: unknown, actor: AuthContext) {
       depositJpy: 0,
       kimonoPriceJpy: input.kimonoPriceJpy,
       hairFeeJpy: input.hairFeeJpy,
+      makeupFeeJpy: input.makeupFeeJpy,
       photoFeeJpy: input.photoFeeJpy,
       totalJpy: total.totalJpy,
       onsiteDueJpy: total.totalJpy,
@@ -608,11 +631,12 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
       input.note
     ].some((value) => value !== undefined);
     if (hasRestrictedStoreField) {
-      throw new HttpError(403, "Store users can only change guest count, hair, photo, and checkout payment data");
+      throw new HttpError(403, "Store users can only change guest count, hair, makeup, photo, and checkout payment data");
     }
     const hasCheckoutOnlyPaymentField = [
       input.kimonoPriceJpy,
       input.hairFeeJpy,
+      input.makeupFeeJpy,
       input.photoFeeJpy,
       input.discountRefundAmountJpy,
       input.overtimeDamageDeductionJpy,
@@ -642,10 +666,13 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
       input.platform,
       input.brandPlatform,
       input.hair,
+      input.makeup,
+      input.makeupPlan,
       input.photo,
       input.depositJpy,
       input.kimonoPriceJpy,
       input.hairFeeJpy,
+      input.makeupFeeJpy,
       input.photoFeeJpy,
       input.couponCode,
       input.discountRate,
@@ -694,10 +721,13 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
       patch.brandPlatform = input.brandPlatform;
     }
     if (input.hair !== undefined) patch.hair = input.hair;
+    if (input.makeup !== undefined) patch.makeup = input.makeup;
+    if (input.makeupPlan !== undefined) patch.makeupPlan = input.makeupPlan;
     if (input.photo !== undefined) patch.photo = input.photo;
     if (input.depositJpy !== undefined) patch.depositJpy = input.depositJpy;
     if (input.kimonoPriceJpy !== undefined) patch.kimonoPriceJpy = input.kimonoPriceJpy;
     if (input.hairFeeJpy !== undefined) patch.hairFeeJpy = input.hairFeeJpy;
+    if (input.makeupFeeJpy !== undefined) patch.makeupFeeJpy = input.makeupFeeJpy;
     if (input.photoFeeJpy !== undefined) patch.photoFeeJpy = input.photoFeeJpy;
     if (input.couponCode !== undefined) patch.couponCode = input.couponCode;
     if (input.discountRate !== undefined) patch.discountRate = input.discountRate;
@@ -749,6 +779,7 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
       input.depositJpy,
       input.kimonoPriceJpy,
       input.hairFeeJpy,
+      input.makeupFeeJpy,
       input.photoFeeJpy,
       input.discountRefundAmountJpy,
       input.overtimeDamageDeductionJpy,
@@ -761,6 +792,7 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
         0,
         (input.kimonoPriceJpy ?? Number(before.kimonoPriceJpy || 0))
           + (input.hairFeeJpy ?? Number(before.hairFeeJpy || 0))
+          + (input.makeupFeeJpy ?? Number(before.makeupFeeJpy || 0))
           + (input.photoFeeJpy ?? Number(before.photoFeeJpy || 0))
           + (input.overtimeDamageDeductionJpy ?? Number(before.overtimeDamageDeductionJpy || 0))
           - (input.discountRefundAmountJpy ?? Number(before.discountRefundAmountJpy || 0))

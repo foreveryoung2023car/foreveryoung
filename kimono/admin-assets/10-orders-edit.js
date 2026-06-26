@@ -15,6 +15,10 @@ function maskStorePhone(phone) {
   return '*'.repeat(digits.length - 3) + digits.slice(-3);
 }
 
+function orderHasMakeup(o) {
+  return !!(o && (o.makeup === true || o.makeup === 'true' || o.makeup === '是' || Number(o.makeupFee || o.makeupFeeJpy || 0) > 0));
+}
+
 function openEdit(orderId) {
   const o = allOrders.find(x => x.orderId === orderId);
   if (!o) return;
@@ -43,6 +47,7 @@ function openEdit(orderId) {
   document.getElementById('e-plan').value = o.plan || '';
   document.getElementById('e-platform').value = o.platform || '';
   document.getElementById('e-hair').value = (o.hair === true || o.hair === 'true') ? 'true' : 'false';
+  document.getElementById('e-makeup').value = orderHasMakeup(o) ? 'true' : 'false';
   document.getElementById('e-photo').value = (o.photo === true || o.photo === 'true') ? 'true' : 'false';
   document.getElementById('e-confirmed').value = o.confirmed ? 'true' : 'false';
   const paidDeposit = typeof orderPaidDeposit === 'function'
@@ -54,6 +59,7 @@ function openEdit(orderId) {
   document.getElementById('e-deposit-display').textContent = '¥' + paidDeposit.toLocaleString();
   document.getElementById('e-price').value = o.price || o.kimonoPrice || '';
   document.getElementById('e-hair-fee').value = o.hairFee || '';
+  document.getElementById('e-makeup-fee').value = o.makeupFee || '';
   document.getElementById('e-photo-fee').value = o.photoFee || '';
   document.getElementById('e-coupon').value = o.coupon || '';
   document.getElementById('e-discount-refund-amount').value = Number(o.discountRefundAmount || 0) || '';
@@ -66,6 +72,7 @@ function openEdit(orderId) {
   const defaultActualReceived = Math.max(0,
     Number(o.price || o.kimonoPrice || 0)
     + Number(o.hairFee || 0)
+    + Number(o.makeupFee || 0)
     + Number(o.photoFee || 0)
     + overtimeDamageDeduction
     - Number(o.discountRefundAmount || 0)
@@ -78,6 +85,7 @@ function openEdit(orderId) {
   document.getElementById('calc-store-balance').dataset.savedSignature = [
     Number(o.price || o.kimonoPrice || 0),
     Number(o.hairFee || 0),
+    Number(o.makeupFee || 0),
     Number(o.photoFee || 0),
     paidDeposit,
     Number(o.refundAmount || 0),
@@ -136,11 +144,13 @@ function renderStoreOrderDetailView(o) {
   document.getElementById('store-view-female').textContent = guests.femaleAdults === null ? guests.adults : guests.femaleAdults;
   document.getElementById('store-view-children').textContent = guests.children;
   document.getElementById('store-view-hair').textContent = (o.hair === true || o.hair === 'true') ? '有' : '無';
+  document.getElementById('store-view-makeup').textContent = orderHasMakeup(o) ? '有' : '無';
   document.getElementById('store-view-photo').textContent = (o.photo === true || o.photo === 'true') ? '有' : '無';
   setStoreInlineEditorValue('store-inline-male', guests.maleAdults === null ? 0 : guests.maleAdults);
   setStoreInlineEditorValue('store-inline-female', guests.femaleAdults === null ? guests.adults : guests.femaleAdults);
   setStoreInlineEditorValue('store-inline-children', guests.children);
   setStoreInlineEditorValue('store-inline-hair', (o.hair === true || o.hair === 'true') ? 'true' : 'false');
+  setStoreInlineEditorValue('store-inline-makeup', orderHasMakeup(o) ? 'true' : 'false');
   setStoreInlineEditorValue('store-inline-photo', (o.photo === true || o.photo === 'true') ? 'true' : 'false');
   document.getElementById('store-view-remark').textContent = o.remark || '—';
   document.getElementById('store-view-actual-received').textContent = fmtY0(orderFinancialValue(o, 'storeActualReceived', 'storeActualReceivedJpy'));
@@ -158,16 +168,19 @@ function syncStoreInlineEditors() {
   const female = Math.max(0, Number(document.getElementById('store-inline-female')?.value || 0));
   const children = Math.max(0, Number(document.getElementById('store-inline-children')?.value || 0));
   const hair = document.getElementById('store-inline-hair')?.value || 'false';
+  const makeup = document.getElementById('store-inline-makeup')?.value || 'false';
   const photo = document.getElementById('store-inline-photo')?.value || 'false';
   setStoreInlineEditorValue('e-male-adults', male);
   setStoreInlineEditorValue('e-female-adults', female);
   setStoreInlineEditorValue('e-children', children);
   setStoreInlineEditorValue('e-hair', hair);
+  setStoreInlineEditorValue('e-makeup', makeup);
   setStoreInlineEditorValue('e-photo', photo);
   document.getElementById('store-view-male').textContent = male;
   document.getElementById('store-view-female').textContent = female;
   document.getElementById('store-view-children').textContent = children;
   document.getElementById('store-view-hair').textContent = hair === 'true' ? '有' : '無';
+  document.getElementById('store-view-makeup').textContent = makeup === 'true' ? '有' : '無';
   document.getElementById('store-view-photo').textContent = photo === 'true' ? '有' : '無';
   return typeof syncEditPax === 'function' ? syncEditPax() : null;
 }
@@ -398,13 +411,14 @@ function switchTab(name, btn) {
 function updateCalc() {
   const price = Number(document.getElementById('e-price').value) || 0;
   const hair = Number(document.getElementById('e-hair-fee').value) || 0;
+  const makeup = Number(document.getElementById('e-makeup-fee').value) || 0;
   const photo = Number(document.getElementById('e-photo-fee').value) || 0;
   const paidDeposit = Number(document.getElementById('e-deposit').value) || 0;
   const refundAmount = Number(document.getElementById('e-refund-amt').value) || 0;
   const discountRefund = Number(document.getElementById('e-discount-refund-amount').value) || 0;
   const overtimeDamageDeduction = Number(document.getElementById('e-overtime-damage-deduction').value) || 0;
   const storeActualInput = document.getElementById('e-store-actual-received');
-  const onsite = Math.max(0, price + hair + photo + overtimeDamageDeduction - discountRefund);
+  const onsite = Math.max(0, price + hair + makeup + photo + overtimeDamageDeduction - discountRefund);
   const afterDep = Math.max(0, onsite - paidDeposit);
   if (storeActualInput && storeActualInput.dataset.autoMode === 'true') {
     storeActualInput.value = String(afterDep);

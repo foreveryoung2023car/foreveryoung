@@ -503,7 +503,7 @@ async function showArchivedMonth(month) {
     let depositSum = 0, chargeSum = 0, lastArchivedAt = '';
     orders.forEach(o => {
       depositSum += Number(o.deposit) || 0;
-      chargeSum += (Number(o.price)||0) + (Number(o.hairFee)||0) + (Number(o.photoFee)||0);
+      chargeSum += (Number(o.price)||0) + (Number(o.hairFee)||0) + (Number(o.makeupFee)||0) + (Number(o.photoFee)||0);
       if (o.archivedAt && o.archivedAt > lastArchivedAt) lastArchivedAt = o.archivedAt;
     });
     document.getElementById('arch-stat-count').textContent = orders.length;
@@ -565,6 +565,7 @@ async function saveOrder() {
     const consumption = Math.max(0,
       Number(document.getElementById('e-price').value || 0)
       + Number(document.getElementById('e-hair-fee').value || 0)
+      + Number(document.getElementById('e-makeup-fee').value || 0)
       + Number(document.getElementById('e-photo-fee').value || 0)
       + Number(document.getElementById('e-overtime-damage-deduction').value || 0)
       - Number(document.getElementById('e-discount-refund-amount').value || 0)
@@ -588,9 +589,9 @@ async function saveOrder() {
     name: document.getElementById('e-name').value, phone: document.getElementById('e-phone').value, email: document.getElementById('e-email').value,
     bookingDate: (function(){ const v=document.getElementById('e-booking-date').value; if(!v) return ''; const m=v.match(/^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/); if(!m) return v; return m[1]+'/'+m[2]+'/'+m[3]+(m[4]?(' '+m[4]+':'+m[5]):''); })(), pax: guests.pax,
     plan: document.getElementById('e-plan').value, platform: document.getElementById('e-platform').value,
-    hair: document.getElementById('e-hair').value, photo: document.getElementById('e-photo').value, confirmed: (document.getElementById('e-confirmed').value === 'true' ? 'TRUE' : 'FALSE'),
+    hair: document.getElementById('e-hair').value, makeup: document.getElementById('e-makeup').value, photo: document.getElementById('e-photo').value, confirmed: (document.getElementById('e-confirmed').value === 'true' ? 'TRUE' : 'FALSE'),
     deposit: rawDepositValue, kimonoPrice: document.getElementById('e-price').value,
-    hairFee: document.getElementById('e-hair-fee').value, photoFee: document.getElementById('e-photo-fee').value,
+    hairFee: document.getElementById('e-hair-fee').value, makeupFee: document.getElementById('e-makeup-fee').value, photoFee: document.getElementById('e-photo-fee').value,
     coupon: document.getElementById('e-coupon').value, rate: document.getElementById('e-rate')?.value || '',
     discountRefundAmount: document.getElementById('e-discount-refund-amount').value,
     overtimeDamageDeduction: document.getElementById('e-overtime-damage-deduction').value,
@@ -631,6 +632,7 @@ async function saveOrder() {
           depositJpy: Number(payload.deposit || 0),
           kimonoPriceJpy: Number(payload.kimonoPrice || 0),
           hairFeeJpy: Number(payload.hairFee || 0),
+          makeupFeeJpy: Number(payload.makeupFee || 0),
           photoFeeJpy: Number(payload.photoFee || 0),
           couponCode: payload.coupon,
           discountRate: Number(payload.rate || 0),
@@ -644,11 +646,13 @@ async function saveOrder() {
         ...(guests.maleAdults !== null ? { maleAdults: guests.maleAdults, femaleAdults: guests.femaleAdults } : {}),
         children: guests.children,
         hair: payload.hair === 'true',
+        makeup: payload.makeup === 'true',
         photo: payload.photo === 'true',
         ...(isStoreCheckout ? {
           checkout: true,
           kimonoPriceJpy: Number(payload.kimonoPrice || 0),
           hairFeeJpy: Number(payload.hairFee || 0),
+          makeupFeeJpy: Number(payload.makeupFee || 0),
           photoFeeJpy: Number(payload.photoFee || 0),
           discountRefundAmountJpy: Number(payload.discountRefundAmount || 0),
           overtimeDamageDeductionJpy: Number(payload.overtimeDamageDeduction || 0),

@@ -37,11 +37,14 @@ Each key can contain:
 - `{{guests}}`
 - `{{plan}}`
 - `{{hair}}`
+- `{{makeup}}`
+- `{{makeupPlan}}`
 - `{{photo}}`
 - `{{total}}`
 - `{{deposit}}`
 - `{{kimonoPrice}}`
 - `{{hairFee}}`
+- `{{makeupFee}}`
 - `{{photoFee}}`
 - `{{discountRefundAmount}}`
 - `{{onsiteDue}}`

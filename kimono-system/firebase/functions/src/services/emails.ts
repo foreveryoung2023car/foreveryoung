@@ -84,7 +84,8 @@ function makeDefaultTemplates(profile: BrandEmailProfile): Record<EmailKind, Ema
         "店鋪地址：{{storeAddress}}",
         "店鋪電話：{{storePhone}}",
         "方案：{{plan}}",
-        "妝髮：{{hair}}",
+        "髮型設計：{{hair}}",
+        "化妝造型：{{makeup}}",
         "攝影：{{photo}}",
         "總額：{{total}}",
         "已收訂金：{{deposit}}",
@@ -129,7 +130,8 @@ function makeDefaultTemplates(profile: BrandEmailProfile): Record<EmailKind, Ema
         "店鋪地址：{{storeAddress}}",
         "店鋪電話：{{storePhone}}",
         "方案：{{plan}}",
-        "妝髮：{{hair}}",
+        "髮型設計：{{hair}}",
+        "化妝造型：{{makeup}}",
         "攝影：{{photo}}",
         "現場應收：{{onsiteDue}}",
         "",
@@ -153,7 +155,8 @@ function makeDefaultTemplates(profile: BrandEmailProfile): Record<EmailKind, Ema
         "店鋪電話：{{storePhone}}",
         "已收訂金：{{deposit}}",
         "和服價格：{{kimonoPrice}}",
-        "妝髮費：{{hairFee}}",
+        "髮型費：{{hairFee}}",
+        "化妝費：{{makeupFee}}",
         "攝影費：{{photoFee}}",
         "折扣與退款：{{discountRefundAmount}}",
         "總價：{{total}}",
@@ -290,11 +293,18 @@ function ensureRequiredTemplateLines(kind: EmailKind, template: EmailTemplate): 
       "<p><b>店鋪電話：</b>{{storePhone}}</p>"
     ].join("");
   }
+  if ((kind === "confirm" || kind === "booking_reminder") && !text.includes("{{makeup}}")) {
+    text += "\n化妝造型：{{makeup}}";
+  }
+  if ((kind === "confirm" || kind === "booking_reminder") && html && !html.includes("{{makeup}}")) {
+    html += "<p><b>化妝造型：</b>{{makeup}}</p>";
+  }
   if (kind === "proof_received") {
     const financeLines = [];
     if (!text.includes("{{deposit}}")) financeLines.push("已收訂金：{{deposit}}");
     if (!text.includes("{{kimonoPrice}}")) financeLines.push("和服價格：{{kimonoPrice}}");
-    if (!text.includes("{{hairFee}}")) financeLines.push("妝髮費：{{hairFee}}");
+    if (!text.includes("{{hairFee}}")) financeLines.push("髮型費：{{hairFee}}");
+    if (!text.includes("{{makeupFee}}")) financeLines.push("化妝費：{{makeupFee}}");
     if (!text.includes("{{photoFee}}")) financeLines.push("攝影費：{{photoFee}}");
     if (!text.includes("{{discountRefundAmount}}")) financeLines.push("折扣與退款：{{discountRefundAmount}}");
     if (!text.includes("{{total}}")) financeLines.push("總價：{{total}}");
@@ -305,7 +315,8 @@ function ensureRequiredTemplateLines(kind: EmailKind, template: EmailTemplate): 
       const htmlFinanceLines = [];
       if (!html.includes("{{deposit}}")) htmlFinanceLines.push("<p><b>已收訂金：</b>{{deposit}}</p>");
       if (!html.includes("{{kimonoPrice}}")) htmlFinanceLines.push("<p><b>和服價格：</b>{{kimonoPrice}}</p>");
-      if (!html.includes("{{hairFee}}")) htmlFinanceLines.push("<p><b>妝髮費：</b>{{hairFee}}</p>");
+      if (!html.includes("{{hairFee}}")) htmlFinanceLines.push("<p><b>髮型費：</b>{{hairFee}}</p>");
+      if (!html.includes("{{makeupFee}}")) htmlFinanceLines.push("<p><b>化妝費：</b>{{makeupFee}}</p>");
       if (!html.includes("{{photoFee}}")) htmlFinanceLines.push("<p><b>攝影費：</b>{{photoFee}}</p>");
       if (!html.includes("{{discountRefundAmount}}")) htmlFinanceLines.push("<p><b>折扣與退款：</b>{{discountRefundAmount}}</p>");
       if (!html.includes("{{total}}")) htmlFinanceLines.push("<p><b>總價：</b>{{total}}</p>");
@@ -347,11 +358,14 @@ async function templateVariables(orderId: string, order: FirebaseFirestore.Docum
     storePhone: store.phone,
     plan: order.plan || "和服體驗",
     hair: order.hair ? "需要" : "不需要",
+    makeup: order.makeup ? "需要" : "不需要",
+    makeupPlan: order.makeupPlan || "",
     photo: order.photo ? "需要" : "不需要",
     total: money(order.totalJpy),
     deposit: money(order.depositJpy),
     kimonoPrice: money(order.kimonoPriceJpy),
     hairFee: money(order.hairFeeJpy),
+    makeupFee: money(order.makeupFeeJpy),
     photoFee: money(order.photoFeeJpy),
     discountLabel: discountLabel(order),
     discountRefundAmount: money(order.discountRefundAmountJpy),

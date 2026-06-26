@@ -136,6 +136,7 @@ function orderMatchesReconcileMonth(o, filter) {
 function reconcileAmounts(o) {
   const kimonoPrice = Number(o.price || o.kimonoPrice || 0);
   const hairFee = Number(o.hairFee || 0);
+  const makeupFee = Number(o.makeupFee || 0);
   const photoFee = Number(o.photoFee || 0);
   const discountRefund = Number(o.discountRefundAmount || 0);
   const overtimeDamageDeduction = Number(o.overtimeDamageDeduction || o.overtimeDamageDeductionJpy || 0);
@@ -145,7 +146,7 @@ function reconcileAmounts(o) {
   ) || 0;
   const total = typeof orderDisplayTotal === 'function'
     ? orderDisplayTotal(o)
-    : Math.max(0, kimonoPrice + hairFee + photoFee + overtimeDamageDeduction - discountRefund);
+    : Math.max(0, kimonoPrice + hairFee + makeupFee + photoFee + overtimeDamageDeduction - discountRefund);
   const balance = Math.max(0, total - deposit - actualReceived);
   const platformFee = kimonoPrice * 0.5;
   const storeBalance = total - platformFee;
@@ -154,6 +155,7 @@ function reconcileAmounts(o) {
     deposit,
     kimonoPrice,
     hairFee,
+    makeupFee,
     photoFee,
     discountRefund,
     overtimeDamageDeduction,
@@ -372,7 +374,7 @@ function renderReconcile(){
     (currentRole === 'store'
       ? '<th>狀態</th>' + (showStoreColumn ? '<th>門市</th>' : '') + '<th>訂單號</th>' + brandHeader + '<th>客戶</th><th>體驗日期</th>'+
         '<th class="num">已收訂金</th><th class="num">和服原價</th>'+
-        '<th class="num">妝髮費</th><th class="num">攝影費</th>'+
+        '<th class="num">髮型費</th><th class="num">化妝費</th><th class="num">攝影費</th>'+
         '<th class="num">折扣與退款</th><th class="num">超時污損費</th><th class="num">總價</th>'+
         '<th class="num">實際收款</th><th class="num">平台費</th>'+
         '<th class="num">店鋪利潤</th><th class="num">需付平台</th>'
@@ -397,6 +399,7 @@ function renderReconcile(){
         ? '<td class="num">'+fmtY0(amount.deposit)+'</td>'+
           '<td class="num">'+fmtY0(amount.kimonoPrice)+'</td>'+
           '<td class="num">'+fmtY0(amount.hairFee)+'</td>'+
+          '<td class="num">'+fmtY0(amount.makeupFee)+'</td>'+
           '<td class="num">'+fmtY0(amount.photoFee)+'</td>'+
           '<td class="num">'+fmtY0(amount.discountRefund)+'</td>'+
           '<td class="num">'+fmtY0(amount.overtimeDamageDeduction)+'</td>'+
@@ -431,13 +434,13 @@ function exportReconCSV(){
   if(month && month!=='all') list = list.filter(o=>orderMatchesReconcileMonth(o, month));
   if(brand && brand!=='all') list = list.filter(o=>orderBrandPlatform(o)===brand);
   const headers = currentRole === 'store'
-    ? ['平台','狀態','訂單號','客戶','體驗日期','已收訂金','和服原價','妝髮費','攝影費','折扣與退款','超時污損費','總價','實際收款','平台費','店鋪利潤','需付平台']
+    ? ['平台','狀態','訂單號','客戶','體驗日期','已收訂金','和服原價','髮型費','化妝費','攝影費','折扣與退款','超時污損費','總價','實際收款','平台費','店鋪利潤','需付平台']
     : ['平台','狀態','訂單號','客戶','體驗日期','已收訂金','和服原價','折扣與退款','超時污損費','總價','店鋪實收','尾款','平台費','需收店鋪'];
   const rows = list.map(o=>{
     const st = reconcileOrderStatusLabel(o);
     const amount = reconcileAmounts(o);
     return currentRole === 'store'
-      ? [platformLabel(orderBrandPlatform(o)), st, o.orderId, o.name, fmtDate(o.bookingDate), amount.deposit, amount.kimonoPrice, amount.hairFee, amount.photoFee, amount.discountRefund, amount.overtimeDamageDeduction, amount.total, amount.actualReceived, amount.platformFee, amount.storeBalance, amount.platformPayable]
+      ? [platformLabel(orderBrandPlatform(o)), st, o.orderId, o.name, fmtDate(o.bookingDate), amount.deposit, amount.kimonoPrice, amount.hairFee, amount.makeupFee, amount.photoFee, amount.discountRefund, amount.overtimeDamageDeduction, amount.total, amount.actualReceived, amount.platformFee, amount.storeBalance, amount.platformPayable]
       : [platformLabel(orderBrandPlatform(o)), st, o.orderId, o.name, fmtDate(o.bookingDate), amount.deposit, amount.kimonoPrice, amount.discountRefund, amount.overtimeDamageDeduction, amount.total, amount.actualReceived, amount.balance, amount.platformFee, shouldShowStoreReceivable(o) ? amount.storeReceivable : ''];
   });
   const csv = [headers, ...rows].map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\n');
@@ -573,8 +576,8 @@ async function confirmAutoReconcile(btn){
 
 // ── CSV EXPORT ──
 function ordersToCSV(list){
-  const headers = ['訂單號','姓名','電話','Email','體驗日期','人數','款式','來源','訂金','和服','妝髮費','攝影費','總計','確認','退款金額','備註'];
-  const rows = list.map(o=>[o.orderId, o.name, o.phone, o.email, o.bookingDate? fmtDate(o.bookingDate):'', formatGuestCount(o), o.plan||'', o.platform||'', reconcileDeposit(o), o.price||o.kimonoPrice||0, o.hairFee||0, o.photoFee||0, totalAmount(o), o.confirmed?'已確認':'待確認', o.refundAmount||0, (o.remark||'').replace(/[\r\n]+/g,' ')]);
+  const headers = ['訂單號','姓名','電話','Email','體驗日期','人數','款式','來源','訂金','和服','髮型費','化妝費','攝影費','總計','確認','退款金額','備註'];
+  const rows = list.map(o=>[o.orderId, o.name, o.phone, o.email, o.bookingDate? fmtDate(o.bookingDate):'', formatGuestCount(o), o.plan||'', o.platform||'', reconcileDeposit(o), o.price||o.kimonoPrice||0, o.hairFee||0, o.makeupFee||0, o.photoFee||0, totalAmount(o), o.confirmed?'已確認':'待確認', o.refundAmount||0, (o.remark||'').replace(/[\r\n]+/g,' ')]);
   const csv = [headers, ...rows].map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\n');
   const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
   const url = URL.createObjectURL(blob);

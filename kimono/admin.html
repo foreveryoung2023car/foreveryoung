@@ -215,7 +215,8 @@
           <div><div class="section-label">門市</div><select id="f-store" class="input-field" onchange="filterOrders()"><option value="">全部門市</option><option value="kyoto1">京都清水寺店 (kyoto1)</option><option value="kyoto2">京都嵐山店 (kyoto2)</option><option value="osaka1">大阪心齋橋店 (osaka1)</option><option value="tokyo1">東京淺草店 (tokyo1)</option></select></div>
           <div><div class="section-label">和服款式</div><select id="f-plan" class="input-field" onchange="filterOrders()"><option value="">全部款式</option></select></div>
           <div><div class="section-label">聯繫來源</div><select id="f-platform" class="input-field" onchange="filterOrders()"><option value="">全部來源</option></select></div>
-          <div><div class="section-label">妝髮</div><select id="f-hair" class="input-field" onchange="filterOrders()"><option value="">全部</option><option value="true">有妝髮</option><option value="false">無妝髮</option></select></div>
+          <div><div class="section-label">髮型設計</div><select id="f-hair" class="input-field" onchange="filterOrders()"><option value="">全部</option><option value="true">有髮型</option><option value="false">無髮型</option></select></div>
+          <div><div class="section-label">化妝造型</div><select id="f-makeup" class="input-field" onchange="filterOrders()"><option value="">全部</option><option value="true">有化妝</option><option value="false">無化妝</option></select></div>
           <div><div class="section-label">攝影</div><select id="f-photo" class="input-field" onchange="filterOrders()"><option value="">全部</option><option value="true">有攝影</option><option value="false">無攝影</option></select></div>
           <div><div class="section-label">排序</div><select id="f-sort" class="input-field" onchange="filterOrders()"><option value="booking-asc">體驗日期 ↑</option><option value="booking-desc" selected>體驗日期 ↓</option><option value="amount-desc">金額 ↓</option>
                 <option value="due-desc">💰 待收尾款 ↓</option>
@@ -788,11 +789,21 @@
               <div class="store-summary-cell">
                 <span class="store-summary-icon" data-icon="scissors"></span>
                 <div>
-                  <span class="store-summary-label">妝髮造型</span>
+                  <span class="store-summary-label">髮型設計</span>
                   <span id="store-view-hair" class="store-summary-inline-value store-view-display">—</span>
                   <select id="store-inline-hair" class="store-inline-editor store-inline-select" onchange="syncStoreInlineEditors()"><option value="true">有</option><option value="false">無</option></select>
                 </div>
               </div>
+              <div class="store-summary-cell">
+                <span class="store-summary-icon" data-icon="user"></span>
+                <div>
+                  <span class="store-summary-label">化妝造型</span>
+                  <span id="store-view-makeup" class="store-summary-inline-value store-view-display">—</span>
+                  <select id="store-inline-makeup" class="store-inline-editor store-inline-select" onchange="syncStoreInlineEditors()"><option value="true">有</option><option value="false">無</option></select>
+                </div>
+              </div>
+            </div>
+            <div class="store-summary-row store-summary-two">
               <div class="store-summary-cell">
                 <span class="store-summary-icon" data-icon="camera"></span>
                 <div>
@@ -834,7 +845,8 @@
           <input id="e-pax" type="hidden">
           <div style="display:none"><div class="section-label">和服款式 / 方案</div><input id="e-plan" class="input-field" placeholder="例：精緻和服、素雅和服"></div>
           <input id="e-platform" type="hidden">
-          <div><div class="section-label">妝髮造型</div><select id="e-hair" class="input-field"><option value="true">✅ 有妝髮</option><option value="false">❌ 無妝髮</option></select></div>
+          <div><div class="section-label">髮型設計</div><select id="e-hair" class="input-field"><option value="true">✅ 有髮型</option><option value="false">❌ 無髮型</option></select></div>
+          <div><div class="section-label">化妝造型</div><select id="e-makeup" class="input-field"><option value="true">✅ 有化妝</option><option value="false">❌ 無化妝</option></select></div>
           <div><div class="section-label">攝影服務</div><select id="e-photo" class="input-field"><option value="true">✅ 有攝影</option><option value="false">❌ 無攝影</option></select></div>
           <input id="e-confirmed" type="hidden">
         </div>
@@ -846,7 +858,8 @@
         <div class="order-detail-grid order-section pt-4 border-t border-slate-200">
           <div data-store-hidden="1"><div class="section-label">已付定金 JPY</div><input id="e-deposit" class="input-field" type="number" placeholder="0" oninput="updateCalc()"></div>
           <div><div class="section-label">和服原價 JPY</div><input id="e-price" class="input-field" type="number" placeholder="0" oninput="updateCalc()"></div>
-          <div><div class="section-label">妝髮費 JPY</div><input id="e-hair-fee" class="input-field" type="number" placeholder="0" oninput="updateCalc()"></div>
+          <div><div class="section-label">髮型費 JPY</div><input id="e-hair-fee" class="input-field" type="number" placeholder="0" oninput="updateCalc()"></div>
+          <div><div class="section-label">化妝費 JPY</div><input id="e-makeup-fee" class="input-field" type="number" placeholder="0" oninput="updateCalc()"></div>
           <div><div class="section-label">攝影費 JPY</div><input id="e-photo-fee" class="input-field" type="number" placeholder="0" oninput="updateCalc()"></div>
           <div><div class="section-label">折扣碼</div><input id="e-coupon" class="input-field" placeholder="留空=無折扣"></div>
           <div><div class="section-label">折扣與退款金額 JPY</div><input id="e-discount-refund-amount" class="input-field" type="number" min="0" step="1" placeholder="0" oninput="updateCalc()"></div>
@@ -1014,17 +1027,17 @@
 
 <script src="./admin-assets/00-gas-guard.js?v=20260605-14"></script>
 <script src="./admin-assets/01-state.js?v=20260605-14"></script>
-<script src="./admin-assets/02-firebase-api.js?v=20260625-1"></script>
+<script src="./admin-assets/02-firebase-api.js?v=20260626-5"></script>
 <script src="./admin-assets/03-ui-utils.js?v=20260611-5"></script>
-<script src="./admin-assets/04-refunds.js?v=20260611-1"></script>
-<script src="./admin-assets/05-orders.js?v=20260624-1"></script>
+<script src="./admin-assets/04-refunds.js?v=20260626-5"></script>
+<script src="./admin-assets/05-orders.js?v=20260626-5"></script>
 <script src="./admin-assets/06-checkin-actions.js?v=20260610-1"></script>
-<script src="./admin-assets/07-calendar.js?v=20260624-5"></script>
+<script src="./admin-assets/07-calendar.js?v=20260626-5"></script>
 <script src="./admin-assets/08-finance.js?v=20260612-2"></script>
-<script src="./admin-assets/09-reconcile.js?v=20260626-4"></script>
-<script src="./admin-assets/10-orders-edit.js?v=20260625-1"></script>
+<script src="./admin-assets/09-reconcile.js?v=20260626-5"></script>
+<script src="./admin-assets/10-orders-edit.js?v=20260626-5"></script>
 <script src="./admin-assets/11-refunds-edit.js?v=20260605-14"></script>
-<script src="./admin-assets/12-ui-admin-tools.js?v=20260626-2"></script>
+<script src="./admin-assets/12-ui-admin-tools.js?v=20260626-5"></script>
 <script src="./admin-assets/13-weather.js?v=20260605-14"></script>
 <script src="./admin-assets/15-walkin-reconcile.js?v=20260605-14"></script>
 <script src="./admin-assets/16-audit-email.js?v=20260605-14"></script>

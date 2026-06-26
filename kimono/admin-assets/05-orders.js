@@ -436,7 +436,7 @@ function setFilter(f, btn){
 
 // v2.6: 一鍵清除所有篩選條件，回到「全部」
 function resetAllFilters(){
-  ['f-search','f-date-from','f-date-to','f-plan','f-platform','f-hair','f-photo'].forEach(id=>{
+  ['f-search','f-date-from','f-date-to','f-plan','f-platform','f-hair','f-makeup','f-photo'].forEach(id=>{
     const el = document.getElementById(id); if(el) el.value = '';
   });
   const fSort = document.getElementById('f-sort'); if(fSort) fSort.value = 'booking-desc';
@@ -463,6 +463,10 @@ function orderDayKey(o) {
 
 function orderHasHair(o) {
   return o && (o.hair === true || o.hair === 'true' || o.hair === '是');
+}
+
+function orderHasMakeup(o) {
+  return o && (o.makeup === true || o.makeup === 'true' || o.makeup === '是' || Number(o.makeupFee || o.makeupFeeJpy || 0) > 0);
 }
 
 function orderHasPhoto(o) {
@@ -506,6 +510,7 @@ function filterOrders(){
   const fStore = (document.getElementById('f-store') || {}).value || '';
   const fPlatform = document.getElementById('f-platform').value;
   const fHair = document.getElementById('f-hair').value;
+  const fMakeup = (document.getElementById('f-makeup') || {}).value || '';
   const fPhoto = document.getElementById('f-photo').value;
   const fSort = document.getElementById('f-sort').value;
 
@@ -544,7 +549,8 @@ function filterOrders(){
   if(fPlan) list = list.filter(o=>(o.plan||'').includes(fPlan));
   if(fStore) list = list.filter(o=>orderBelongsToStore(o, fStore));
   if(fPlatform) list = list.filter(o=>(o.platform||'')===fPlatform);
-  if(fHair!=='') list = list.filter(o=>String(o.hair===true||o.hair==='true')===fHair);
+  if(fHair!=='') list = list.filter(o=>String(orderHasHair(o))===fHair);
+  if(fMakeup!=='') list = list.filter(o=>String(orderHasMakeup(o))===fMakeup);
   if(fPhoto!=='') list = list.filter(o=>String(o.photo===true||o.photo==='true')===fPhoto);
 
   // Default sort: most recently submitted first (so today's new orders surface)
@@ -585,6 +591,7 @@ function orderDisplayTotal(o) {
     o.price !== undefined ||
     o.kimonoPrice !== undefined ||
     o.hairFee !== undefined ||
+    o.makeupFee !== undefined ||
     o.photoFee !== undefined ||
     o.discountRefundAmount !== undefined ||
     o.overtimeDamageDeduction !== undefined ||
@@ -594,6 +601,7 @@ function orderDisplayTotal(o) {
     return Math.max(0,
       Number(o.price || o.kimonoPrice || 0)
       + Number(o.hairFee || 0)
+      + Number(o.makeupFee || 0)
       + Number(o.photoFee || 0)
       + Number(o.overtimeDamageDeduction || o.overtimeDamageDeductionJpy || 0)
       - Number(o.discountRefundAmount || 0)
@@ -770,14 +778,15 @@ function renderOrders(orders){
     el.innerHTML = '<div class="overflow-x-auto bg-white rounded-lg border border-slate-200"><table class="w-full text-sm"><thead class="bg-slate-50 text-xs"><tr><th class="p-2 text-left">編號</th><th class="p-2 text-left">姓名</th>' + brandHeader + '<th class="p-2 text-left">門市</th><th class="p-2 text-left">體驗日</th><th class="p-2 text-center">人</th><th class="p-2 text-center">加值</th><th class="p-2 text-right">總價</th><th class="p-2 text-right">尾款</th>' + statusHeader + '<th class="p-2 text-right">動作</th></tr></thead><tbody>' + orders.map(o => {
       const bd = parseBookingDate(o.bookingDate) || new Date(o.bookingDate);
       const bdStr = bd && !isNaN(bd) ? ((bd.getMonth()+1) + '/' + bd.getDate() + ' ' + String(bd.getHours()).padStart(2,'0') + ':' + String(bd.getMinutes()).padStart(2,'0')) : '—';
-      const hair = (o.hair===true||o.hair==='true'||o.hair==='是') ? '💆' : '';
+      const hair = orderHasHair(o) ? '💇' : '';
+      const makeup = orderHasMakeup(o) ? '💄' : '';
       const photo = (o.photo===true||o.photo==='true'||o.photo==='是') ? '📷' : '';
       const total = orderDisplayTotal(o);
       const due = orderDisplayBalance(o);
       const statusCell = '<td class="p-2 text-center">' + renderOrderStatusControl(o, 'card') + '</td>';
       const visits = visitCountBadge(o, visitCounts, true);
       const brandCell = canSeeMultipleBrandPlatforms() ? '<td class="p-2">' + platformBadge(o) + '</td>' : '';
-      return '<tr class="border-t hover:bg-slate-50"><td class="p-2 font-mono text-xs">' + (o.orderId||'') + '</td><td class="p-2 font-bold">' + (o.name||'—') + (visits ? ' ' + visits : '') + '</td>' + brandCell + '<td class="p-2">' + (o.storeKey||'—') + '</td><td class="p-2 whitespace-nowrap">' + bdStr + '</td><td class="p-2 text-center">' + formatGuestCount(o) + '</td><td class="p-2 text-center">' + (hair+photo||'—') + '</td><td class="p-2 text-right font-bold">¥' + total.toLocaleString() + '</td><td class="p-2 text-right ' + (due>0?'text-amber-700 font-bold':'text-slate-400') + '">' + (due>0?'¥'+due.toLocaleString():'—') + '</td>' + statusCell + '<td class="p-2 text-right whitespace-nowrap"><button onclick="openEdit(\'' + o.orderId + '\')" class="px-2 py-1 bg-[#1A365D] text-white text-xs rounded">✏️</button></td></tr>';
+      return '<tr class="border-t hover:bg-slate-50"><td class="p-2 font-mono text-xs">' + (o.orderId||'') + '</td><td class="p-2 font-bold">' + (o.name||'—') + (visits ? ' ' + visits : '') + '</td>' + brandCell + '<td class="p-2">' + (o.storeKey||'—') + '</td><td class="p-2 whitespace-nowrap">' + bdStr + '</td><td class="p-2 text-center">' + formatGuestCount(o) + '</td><td class="p-2 text-center">' + (hair+makeup+photo||'—') + '</td><td class="p-2 text-right font-bold">¥' + total.toLocaleString() + '</td><td class="p-2 text-right ' + (due>0?'text-amber-700 font-bold':'text-slate-400') + '">' + (due>0?'¥'+due.toLocaleString():'—') + '</td>' + statusCell + '<td class="p-2 text-right whitespace-nowrap"><button onclick="openEdit(\'' + o.orderId + '\')" class="px-2 py-1 bg-[#1A365D] text-white text-xs rounded">✏️</button></td></tr>';
     }).join('') + '</tbody></table></div>';
     document.getElementById('showing-count').textContent = orders.length;
     return;
@@ -798,7 +807,8 @@ function renderOrders(orders){
     const fdt = document.getElementById('f-date-to'); if(fdt && fdt.value) reasons.push('迄日：' + fdt.value);
     const fp = document.getElementById('f-plan'); if(fp && fp.value) reasons.push('款式：' + fp.value);
     const fpl = document.getElementById('f-platform'); if(fpl && fpl.value) reasons.push('來源：' + fpl.value);
-    const fh = document.getElementById('f-hair'); if(fh && fh.value!=='') reasons.push('妝髮：' + (fh.value==='true'?'有':'無'));
+    const fh = document.getElementById('f-hair'); if(fh && fh.value!=='') reasons.push('髮型：' + (fh.value==='true'?'有':'無'));
+    const fm = document.getElementById('f-makeup'); if(fm && fm.value!=='') reasons.push('化妝：' + (fm.value==='true'?'有':'無'));
     const fph = document.getElementById('f-photo'); if(fph && fph.value!=='') reasons.push('攝影：' + (fph.value==='true'?'有':'無'));
     if(reasons.length) {
       empty.innerHTML = '<div class="text-center py-10">'+
@@ -826,7 +836,8 @@ function renderOrders(orders){
     const cls = anomaly ? 'urgent' : (overdueClass || '');
     const sel = selectedIds.has(o.orderId) ? 'selected' : '';
 
-    const hairTag = (o.hair === true || o.hair === 'true') ? '<span class="tag">💆 妝髮</span>' : '';
+    const hairTag = orderHasHair(o) ? '<span class="tag">💇 髮型</span>' : '';
+    const makeupTag = orderHasMakeup(o) ? '<span class="tag">💄 化妝</span>' : '';
     const photoTag = (o.photo === true || o.photo === 'true') ? '<span class="tag">📷 攝影</span>' : '';
 
     const total = orderDisplayTotal(o);
@@ -873,8 +884,9 @@ function renderOrders(orders){
             (o.coupon? '<span class="tag" style="background:#FCE7F3;color:#9F1239;border-color:#F9A8D4">🎟 '+o.coupon+'</span>':'')+
             ((Number(o.refundAmount)||0) > 0 && !o.refundTime ? '<button onclick="event.stopPropagation();markRefundPaid(\''+(o.orderId||'')+'\',\''+(o.name||'').replace(/\'/g,"\\'")+'\')" class="tag" style="background:#FEE2E2;color:#991B1B;border-color:#FECACA;cursor:pointer" title="按一下標記退款已匯出">↩ 退款 '+fmtY(o.refundAmount)+' (待匯)</button>':'')+
             ((Number(o.refundAmount)||0) > 0 && o.refundTime ? '<span class="tag" style="background:#D1FAE5;color:#065F46;border-color:#A7F3D0">✓ 退款 '+fmtY(o.refundAmount)+' 已匯</span>':'')+
-            hairTag+photoTag+
-            (o.hairFee && Number(o.hairFee) ? '<span class="tag">妝髮 '+fmtY(o.hairFee)+'</span>' : '')+
+            hairTag+makeupTag+photoTag+
+            (o.hairFee && Number(o.hairFee) ? '<span class="tag">髮型 '+fmtY(o.hairFee)+'</span>' : '')+
+            (o.makeupFee && Number(o.makeupFee) ? '<span class="tag">化妝 '+fmtY(o.makeupFee)+'</span>' : '')+
             (o.photoFee && Number(o.photoFee) ? '<span class="tag">攝影 '+fmtY(o.photoFee)+'</span>' : '')+
             (o.remark ? '<span class="tag" style="background:#FEF3C7;color:#78350F;border-color:#FCD34D" title="'+(o.remark||'').replace(/"/g,"&quot;")+'">📝 備註</span>' : '')+
             (o.agent? '<span class="tag" style="background:#E0E7FF;color:#3730A3;border-color:#A5B4FC">👤 '+o.agent+'</span>':'')+
