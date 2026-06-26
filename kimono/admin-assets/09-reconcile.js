@@ -149,6 +149,7 @@ function reconcileAmounts(o) {
   const balance = Math.max(0, total - deposit - actualReceived);
   const platformFee = kimonoPrice * 0.5;
   const storeBalance = total - platformFee;
+  const settlementAmount = platformFee - deposit - balance;
   return {
     deposit,
     kimonoPrice,
@@ -161,8 +162,8 @@ function reconcileAmounts(o) {
     balance,
     platformFee,
     storeBalance,
-    platformPayable: actualReceived - storeBalance,
-    storeReceivable: platformFee - deposit - balance
+    platformPayable: settlementAmount,
+    storeReceivable: settlementAmount
   };
 }
 
