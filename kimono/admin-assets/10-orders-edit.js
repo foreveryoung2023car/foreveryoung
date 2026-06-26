@@ -202,6 +202,7 @@ function renderEditModalStatus(o) {
 }
 
 function renderStoreOrderDetailView(o) {
+  const hideMoney = typeof shouldHideOrderMoney === 'function' && shouldHideOrderMoney(o);
   const booking = parseBookingDate(o.bookingDate);
   document.getElementById('store-view-booking').textContent = booking ? fmtBookingDateTime(o.bookingDate) : '—';
   const guests = parseEditGuestCount(o);
@@ -219,7 +220,7 @@ function renderStoreOrderDetailView(o) {
   setStoreInlineEditorValue('store-inline-photo', (o.photo === true || o.photo === 'true') ? 'true' : 'false');
   document.getElementById('store-view-remark').textContent = o.remark || '—';
   document.getElementById('store-view-actual-received').textContent = fmtY0(orderFinancialValue(o, 'storeActualReceived', 'storeActualReceivedJpy'));
-  document.getElementById('store-view-balance').textContent = fmtY0(orderDisplayBalance(o));
+  document.getElementById('store-view-balance').textContent = hideMoney ? '—' : fmtY0(orderDisplayBalance(o));
 }
 
 function setStoreInlineEditorValue(id, value) {
@@ -491,10 +492,11 @@ function updateCalc() {
   }
   const storeActualReceived = Number(storeActualInput && storeActualInput.value) || 0;
   const storeBalance = Math.max(0, afterDep - storeActualReceived);
+  const hideMoney = typeof shouldHideOrderMoney === 'function' && shouldHideOrderMoney(editingOrder);
   document.getElementById('e-deposit-display').textContent = '¥' + paidDeposit.toLocaleString();
-  document.getElementById('calc-due').textContent = onsite ? fmtY0(onsite) : '—';
+  document.getElementById('calc-due').textContent = hideMoney ? '—' : (onsite ? fmtY0(onsite) : '—');
   document.getElementById('calc-net').textContent = onsite ? fmtY0(afterDep) : '—';
-  document.getElementById('calc-store-balance').textContent = fmtY0(storeBalance);
+  document.getElementById('calc-store-balance').textContent = hideMoney ? '—' : fmtY0(storeBalance);
 }
 
 function markStoreActualReceivedManual() {
