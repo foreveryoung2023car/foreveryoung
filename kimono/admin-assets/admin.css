@@ -78,6 +78,7 @@
   .store-summary-row:last-child{border-bottom:0;padding-bottom:0}
   .store-summary-row-top{grid-template-columns:1.1fr 1.35fr;align-items:center}
   .store-summary-two{grid-template-columns:1fr 1fr}
+  .store-summary-three{grid-template-columns:repeat(3,minmax(0,1fr))}
   .store-summary-cell,.store-summary-person{display:flex;align-items:center;gap:16px;min-width:0}
   .store-summary-people{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;border-left:1px solid #E2E8F0;padding-left:22px}
   .store-summary-icon{width:52px;height:52px;border-radius:999px;background:#EFF6FF;color:#3B82F6;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;background-repeat:no-repeat;background-position:center;background-size:28px}
@@ -107,7 +108,7 @@
   .store-inline-input{width:52px}
   .store-inline-select{width:64px;font-size:16px;appearance:auto}
   .store-detail-view.is-editing .store-summary-card{border-color:#BFDBFE;box-shadow:0 10px 24px rgba(59,130,246,.12)}
-  @media (max-width:900px){.store-summary-row-top,.store-summary-two{grid-template-columns:1fr}.store-summary-people{border-left:0;border-top:1px solid #E2E8F0;padding-left:0;padding-top:20px}.store-summary-booking-value{font-size:30px;white-space:normal}}
+  @media (max-width:900px){.store-summary-row-top,.store-summary-two,.store-summary-three{grid-template-columns:1fr}.store-summary-people{border-left:0;border-top:1px solid #E2E8F0;padding-left:0;padding-top:20px}.store-summary-booking-value{font-size:30px;white-space:normal}}
   @media (max-width:640px){.store-summary-card{padding:18px}.store-summary-people{grid-template-columns:1fr}.store-summary-value,.store-summary-money{font-size:28px}.store-summary-inline-value{font-size:24px}.store-customer-pill{width:100%;justify-content:flex-start}}
   .store-detail-edit-btn{position:absolute;right:0;top:0;opacity:0;transform:translateY(-4px);pointer-events:none;padding:6px 12px;border:1px solid #CBD5E1;border-radius:8px;background:white;color:#1A365D;font-size:12px;font-weight:700;transition:.15s}
   .store-detail-view:hover .store-detail-edit-btn,.store-detail-view:focus-within .store-detail-edit-btn{opacity:1;transform:translateY(0);pointer-events:auto}
