@@ -68,8 +68,12 @@ function renderSelectedStoreSchedule() {
     : '此日期目前沿用店鋪預設';
   const selected = new Set(row.slots || []);
   const capacities = row.slotCapacities || row.defaultSlotCapacities || {};
+  const usageBySlot = {};
+  (row.slotAvailability || []).forEach(item => {
+    if (item && item.slot) usageBySlot[item.slot] = item.used || {};
+  });
   document.getElementById('store-slot-grid').innerHTML = STORE_TIME_OPTIONS.map(slot =>
-    renderStoreSlotEditor(slot, selected.has(slot), capacities[slot])
+    renderStoreSlotEditor(slot, selected.has(slot), capacities[slot], usageBySlot[slot])
   ).join('');
 }
 
@@ -78,16 +82,31 @@ function storeSlotCapacityValue(capacity, key) {
   return Number.isFinite(val) && val >= 0 ? val : DEFAULT_STORE_SLOT_CAPACITY;
 }
 
-function renderStoreSlotEditor(slot, checked, capacity) {
+function storeSlotUsageValue(usage, key) {
+  const val = Number(usage && usage[key]);
+  return Number.isFinite(val) && val >= 0 ? val : 0;
+}
+
+function renderCapacityField(slot, type, label, capacity, usage) {
+  return '<label>' +
+    '<span class="flex items-center justify-between gap-1">' +
+      '<span>' + label + '</span>' +
+      '<span class="text-[10px] text-slate-400">已約 ' + storeSlotUsageValue(usage, type) + '</span>' +
+    '</span>' +
+    '<input name="store-slot-capacity" data-slot="' + slot + '" data-type="' + type + '" type="number" min="0" step="1" value="' + storeSlotCapacityValue(capacity, type) + '" class="w-full mt-1 px-1 py-1 border border-slate-200 rounded font-mono text-xs">' +
+  '</label>';
+}
+
+function renderStoreSlotEditor(slot, checked, capacity, usage) {
   return '<div class="p-3 border rounded-lg ' + (checked ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200') + '" data-store-slot-row="' + slot + '">' +
     '<label class="flex items-center gap-2 cursor-pointer mb-2">' +
       '<input type="checkbox" name="store-slot" value="' + slot + '" ' + (checked ? 'checked' : '') + ' onchange="toggleStoreSlotRow(this)">' +
       '<span class="font-mono text-sm font-bold">' + slot + '</span>' +
     '</label>' +
     '<div class="grid grid-cols-3 gap-1 text-[10px] text-slate-500 font-bold">' +
-      '<label>男<input name="store-slot-capacity" data-slot="' + slot + '" data-type="maleAdults" type="number" min="0" step="1" value="' + storeSlotCapacityValue(capacity, 'maleAdults') + '" class="w-full mt-1 px-1 py-1 border border-slate-200 rounded font-mono text-xs"></label>' +
-      '<label>女<input name="store-slot-capacity" data-slot="' + slot + '" data-type="femaleAdults" type="number" min="0" step="1" value="' + storeSlotCapacityValue(capacity, 'femaleAdults') + '" class="w-full mt-1 px-1 py-1 border border-slate-200 rounded font-mono text-xs"></label>' +
-      '<label>小<input name="store-slot-capacity" data-slot="' + slot + '" data-type="children" type="number" min="0" step="1" value="' + storeSlotCapacityValue(capacity, 'children') + '" class="w-full mt-1 px-1 py-1 border border-slate-200 rounded font-mono text-xs"></label>' +
+      renderCapacityField(slot, 'maleAdults', '男', capacity, usage) +
+      renderCapacityField(slot, 'femaleAdults', '女', capacity, usage) +
+      renderCapacityField(slot, 'children', '小', capacity, usage) +
     '</div>' +
   '</div>';
 }
