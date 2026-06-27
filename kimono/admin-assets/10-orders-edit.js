@@ -374,28 +374,23 @@ function syncEditPax() {
 
 function renderPaymentProof(o) {
   const proofUrl = (o && o.proofImageUrl) || '';
-  const note = (o && (o.proofNote || o.proofText || o.paymentNote || o.remark)) || '';
   const last5 = String(o && (o.last5 || o.accountLast5 || o.paymentLast5 || '') || '').replace(/\D/g, '').slice(-5);
   const empty = document.getElementById('e-proof-empty');
   const content = document.getElementById('e-proof-content');
   const img = document.getElementById('e-proof-image');
   const link = document.getElementById('e-proof-link');
   const imgLink = document.getElementById('e-proof-image-link');
-  const noImage = document.getElementById('e-proof-no-image');
-  const noteEl = document.getElementById('e-proof-note');
   const last5Row = document.getElementById('e-proof-last5-row');
   const last5El = document.getElementById('e-proof-last5');
   if (!empty || !content) return;
   if (last5El) last5El.textContent = last5 || '—';
   if (last5Row) last5Row.classList.remove('hidden');
-  if (!proofUrl && !note) {
+  if (!proofUrl) {
     empty.classList.remove('hidden');
     content.classList.add('hidden');
     if (link) link.classList.add('hidden');
     if (imgLink) imgLink.classList.add('hidden');
-    if (noImage) noImage.classList.add('hidden');
     if (img) img.removeAttribute('src');
-    if (noteEl) noteEl.textContent = note || '—';
     return;
   }
   empty.classList.add('hidden');
@@ -413,11 +408,9 @@ function renderPaymentProof(o) {
     }
   }
   if (imgLink) {
-    imgLink.href = proofUrl || '#';
-    imgLink.classList.toggle('hidden', !proofUrl);
+    imgLink.href = proofUrl;
+    imgLink.classList.remove('hidden');
   }
-  if (noImage) noImage.classList.toggle('hidden', !!proofUrl);
-  if (noteEl) noteEl.textContent = note || '—';
 }
 
 // v2.6: 在編輯 modal 上方注入「為什麼這筆是異常」說明橫幅
