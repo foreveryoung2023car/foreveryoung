@@ -10,4 +10,19 @@ let currentFilter = 'pending';  // v2.4.33: default to 待確認 for faster exec
 let editingOrder = null;
 let selectedIds = new Set();
 let currentSection = 'dashboard';
-let calCursor = new Date();
+let calCursor = (function(){
+  try {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Tokyo',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).formatToParts(new Date()).reduce((acc, part) => {
+      acc[part.type] = part.value;
+      return acc;
+    }, {});
+    return new Date(Number(parts.year), Number(parts.month) - 1, Number(parts.day));
+  } catch(e) {
+    return new Date();
+  }
+})();

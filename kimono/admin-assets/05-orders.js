@@ -4,7 +4,7 @@ function renderDashboard(){
   const visible = filterOrdersForRole(allOrders);
   const range = document.getElementById('dash-range').value;
   const filtered = visible.filter(o => isInRange(o, range));
-  const now = new Date();
+  const now = nowAsJstLocalDate();
   document.getElementById('dash-date').textContent = now.toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'long'}) + ' · ' + (currentAgent||'');
 
   const total = filtered.length;
@@ -37,12 +37,12 @@ function renderDashboard(){
 
   // v2.4.20 D ── 今日入帳計算（今天 JST 收的訂金）
   // v2.4.29: 用 visible (filterOrdersForRole) 取代 allOrders 讓 store 只看自家入帳
-  const today0 = new Date(); today0.setHours(0,0,0,0);
+  const today0 = jstTodayStart();
   const tomorrow0 = new Date(today0); tomorrow0.setDate(today0.getDate()+1);
   let todayDepSum = 0, todayCount = 0;
   visible.forEach(o => {
     // 用 submitDate 或 paidAt 都行；簡單用 submitDate
-    const sd = new Date(o.submitDate || 0);
+    const sd = parseBookingDate(o.submitDate || 0);
     const paidDeposit = orderPaidDeposit(o);
     if (!isNaN(sd) && sd >= today0 && sd < tomorrow0 && paidDeposit > 0) {
       todayDepSum += paidDeposit;
@@ -236,7 +236,7 @@ function renderHeat(){
   // v2.4.29: store 角色只看自家熱度
   const visible = filterOrdersForRole(allOrders);
   const list = document.getElementById('heat-list');
-  const today = new Date(); today.setHours(0,0,0,0);
+  const today = jstTodayStart();
   const countsByDay = new Map();
   visible.forEach(o => {
     const key = orderDayKey(o);
@@ -259,7 +259,7 @@ function renderHeat(){
     return '#7C2D12'; // 5+
   };
   const cells = days.map(x=>{
-    const isToday = x.d.toDateString()===new Date().toDateString();
+    const isToday = x.d.toDateString()===today.toDateString();
     const bg = colorOf(x.cnt);
     const textColor = x.cnt>=2 ? '#fff' : '#1A365D';
     const title = (x.d.getMonth()+1)+'/'+x.d.getDate()+' '+wd[x.d.getDay()]+' · '+x.cnt+' 組';
@@ -311,8 +311,8 @@ function renderTodayTimeline(){
   const el = document.getElementById('timeline-today');
   if(!el) return;
   const visible = filterOrdersForRole(allOrders);
-  const t0 = new Date(); t0.setHours(0,0,0,0);
-  const t1 = new Date(); t1.setHours(23,59,59,999);
+  const t0 = jstTodayStart();
+  const t1 = new Date(t0); t1.setHours(23,59,59,999);
   const todays = visible.map(o => ({ order:o, date:orderBookingDate(o) }))
     .filter(x => x.date && !isNaN(x.date) && x.date>=t0 && x.date<=t1)
     .sort((a,b)=>a.date-b.date);
@@ -382,7 +382,7 @@ function renderUpcoming(){
   const visible = filterOrdersForRole(allOrders);
   const list = document.getElementById('upcoming-list');
   const range = (document.getElementById('upcoming-range')||{}).value || '3days';
-  const today0 = new Date(); today0.setHours(0,0,0,0);
+  const today0 = jstTodayStart();
   let start = new Date(today0), endDate = new Date(today0);
   if(range==='today') endDate.setDate(today0.getDate()+1);
   else if(range==='tomorrow') { start.setDate(today0.getDate()+1); endDate.setDate(today0.getDate()+2); }
@@ -449,7 +449,7 @@ function normalizedOrderPhone(o) {
 }
 
 function orderBookingDate(o) {
-  return parseBookingDate(o && o.bookingDate) || new Date(o && o.bookingDate);
+  return parseBookingDate(o && o.bookingDate);
 }
 
 function orderDayKeyFromDate(d) {
@@ -459,6 +459,15 @@ function orderDayKeyFromDate(d) {
 
 function orderDayKey(o) {
   return orderDayKeyFromDate(orderBookingDate(o));
+}
+
+function orderRecentSortMillis(o) {
+  const primary = o && (o.submitDate || o.createdAt);
+  if (primary) {
+    const d = new Date(primary);
+    if (!isNaN(d)) return d.getTime();
+  }
+  return jstMillis(o && o.bookingDate);
 }
 
 function orderHasHair(o) {
@@ -554,17 +563,17 @@ function filterOrders(){
   (function(){const el=document.getElementById('cnt-duebalance');if(!el)return;el.textContent=list.filter(o=>orderStatusOf(o)==='balance_due').length;})();
   // Today count
   (function(){
-    const today0=new Date(); today0.setHours(0,0,0,0);
-    const today1=new Date(); today1.setHours(23,59,59,999);
-    const todayCnt = list.filter(o=>{const d=new Date(o.bookingDate); return !isNaN(d) && d>=today0 && d<=today1;}).length;
+    const today0=jstTodayStart();
+    const today1=new Date(today0); today1.setHours(23,59,59,999);
+    const todayCnt = list.filter(o=>{const d=orderBookingDate(o); return d && !isNaN(d) && d>=today0 && d<=today1;}).length;
     const cntEl = document.getElementById('cnt-today'); if(cntEl) cntEl.textContent = todayCnt;
   })();
 
   // Today filter — orders whose bookingDate is today (JST)
   if(currentFilter==='today') {
-    const today0 = new Date(); today0.setHours(0,0,0,0);
-    const today1 = new Date(); today1.setHours(23,59,59,999);
-    list = list.filter(o=>{ const d=new Date(o.bookingDate); return !isNaN(d) && d>=today0 && d<=today1; });
+    const today0 = jstTodayStart();
+    const today1 = new Date(today0); today1.setHours(23,59,59,999);
+    list = list.filter(o=>{ const d=orderBookingDate(o); return d && !isNaN(d) && d>=today0 && d<=today1; });
   }
   if(currentFilter==='pending') list = list.filter(o=>['pending_payment','pending_review'].includes(orderStatusOf(o)));
   if(currentFilter==='confirmed') list = list.filter(o=>orderStatusOf(o)==='confirmed');
@@ -573,8 +582,8 @@ function filterOrders(){
   if(currentFilter==='duebalance') list = list.filter(o=>orderStatusOf(o)==='balance_due');
 
   if(q) list = list.filter(o=>(o.name||'').toLowerCase().includes(q)||(o.phone||'').includes(q)||(o.orderId||'').toLowerCase().includes(q)||(o.email||'').toLowerCase().includes(q));
-  if(dFrom) list = list.filter(o=>{const d=new Date(o.bookingDate); return !isNaN(d) && d>=new Date(dFrom);});
-  if(dTo) list = list.filter(o=>{const d=new Date(o.bookingDate); const dt=new Date(dTo); dt.setHours(23,59,59); return !isNaN(d) && d<=dt;});
+  if(dFrom) list = list.filter(o=>{const d=orderBookingDate(o); return d && !isNaN(d) && d>=new Date(dFrom + 'T00:00');});
+  if(dTo) list = list.filter(o=>{const d=orderBookingDate(o); const dt=new Date(dTo + 'T00:00'); dt.setHours(23,59,59,999); return d && !isNaN(d) && d<=dt;});
   if(fPlan) list = list.filter(o=>(o.plan||'').includes(fPlan));
   if(fStore) list = list.filter(o=>orderBelongsToStore(o, fStore));
   if(fPlatform) list = list.filter(o=>(o.platform||'')===fPlatform);
@@ -583,9 +592,9 @@ function filterOrders(){
   if(fPhoto!=='') list = list.filter(o=>String(o.photo===true||o.photo==='true')===fPhoto);
 
   // Default sort: most recently submitted first (so today's new orders surface)
-  if(!fSort) list.sort((a,b)=> new Date(b.submitDate||b.createdAt||b.bookingDate||0) - new Date(a.submitDate||a.createdAt||a.bookingDate||0));
-  if(fSort==='booking-asc') list.sort((a,b)=>new Date(a.bookingDate||0)-new Date(b.bookingDate||0));
-  if(fSort==='booking-desc') list.sort((a,b)=>new Date(b.bookingDate||0)-new Date(a.bookingDate||0));
+  if(!fSort) list.sort((a,b)=> orderRecentSortMillis(b) - orderRecentSortMillis(a));
+  if(fSort==='booking-asc') list.sort((a,b)=>jstMillis(a.bookingDate)-jstMillis(b.bookingDate));
+  if(fSort==='booking-desc') list.sort((a,b)=>jstMillis(b.bookingDate)-jstMillis(a.bookingDate));
   if(fSort==='amount-desc') list.sort((a,b)=>totalAmount(b)-totalAmount(a));
   if(fSort==='due-desc') list.sort((a,b)=>orderDisplayBalance(b)-orderDisplayBalance(a));
   if(fSort==='recent-submit') list.sort((a,b)=>new Date(b.submitDate||b.createdAt||0)-new Date(a.submitDate||a.createdAt||0));
@@ -810,7 +819,7 @@ function renderOrders(orders){
     const statusHeader = '<th class="p-2 text-center">狀態</th>';
     const brandHeader = canSeeMultipleBrandPlatforms() ? '<th class="p-2 text-left">平台</th>' : '';
     el.innerHTML = '<div class="overflow-x-auto bg-white rounded-lg border border-slate-200"><table class="w-full text-sm"><thead class="bg-slate-50 text-xs"><tr><th class="p-2 text-left">編號</th><th class="p-2 text-left">姓名</th>' + brandHeader + '<th class="p-2 text-left">門市</th><th class="p-2 text-left">體驗日</th><th class="p-2 text-center">人</th><th class="p-2 text-center">加值</th><th class="p-2 text-right">總價</th><th class="p-2 text-right">尾款</th>' + statusHeader + '<th class="p-2 text-right">動作</th></tr></thead><tbody>' + orders.map(o => {
-      const bd = parseBookingDate(o.bookingDate) || new Date(o.bookingDate);
+      const bd = parseBookingDate(o.bookingDate);
       const bdStr = bd && !isNaN(bd) ? ((bd.getMonth()+1) + '/' + bd.getDate() + ' ' + String(bd.getHours()).padStart(2,'0') + ':' + String(bd.getMinutes()).padStart(2,'0')) : '—';
       const hair = orderHasHair(o) ? '💇' : '';
       const makeup = orderHasMakeup(o) ? '💄' : '';
@@ -881,7 +890,7 @@ function renderOrders(orders){
     const due = orderDisplayBalance(o);
     const hideMoney = shouldHideOrderMoney(o);
     const paidFull = isPaidFull(o) && due <= 0;
-    const days = (function(){if(!o.bookingDate)return null;const d=parseBookingDate(o.bookingDate);if(!d)return null;const t=new Date();t.setHours(0,0,0,0);const dd=new Date(d.getFullYear(),d.getMonth(),d.getDate());return Math.round((dd-t)/86400000);})();
+    const days = (function(){if(!o.bookingDate)return null;const d=parseBookingDate(o.bookingDate);if(!d)return null;const t=jstTodayStart();const dd=new Date(d.getFullYear(),d.getMonth(),d.getDate());return Math.round((dd-t)/86400000);})();
     const daysTag = days!==null && !isNaN(days) ? (days<0? '<span class="pill bg-slate-200 text-slate-700">已過 '+Math.abs(days)+' 天</span>' : days===0? '<span class="pill bg-amber-100 text-amber-800">📍 今天到店</span>' : days<=3? '<span class="pill bg-amber-100 text-amber-800">⏰ 剩 '+days+' 天</span>' : '<span class="pill bg-blue-100 text-blue-800">剩 '+days+' 天</span>') : '';
 
     return '<div class="order-card '+cls+' '+sel+' p-3 md:p-4" style="margin-bottom:0">'+

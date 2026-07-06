@@ -732,7 +732,7 @@ const STORE_TIME_ZONES = {
 };
 
 function resolveTimeZone(d = {}) {
-  return d.storeTimeZone || STORE_TIME_ZONES[d.storeId] || Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Tokyo';
+  return d.storeTimeZone || STORE_TIME_ZONES[d.storeId] || 'Asia/Tokyo';
 }
 
 function hasExplicitTimeZone(str) {
@@ -1066,7 +1066,7 @@ document.getElementById('refundForm').onsubmit = async (e) => {
   btn.textContent=t('送出中...'); btn.disabled=true;
   errBox.classList.add('hidden');
 
-  const submitDate = new Date(Date.now()+8*60*60*1000).toISOString().slice(0,10);
+  const submitDate = new Date(Date.now()+9*60*60*1000).toISOString().slice(0,10);
 
   try {
     if (KIMONO_CONFIG.USE_NEW_API) {
@@ -1117,12 +1117,9 @@ document.getElementById('refundForm').onsubmit = async (e) => {
 function isBookingToday(bookingDateStr) {
   if (!bookingDateStr) return false;
   try {
-    const bd = new Date(bookingDateStr);
-    if (isNaN(bd)) return false;
-    const now = new Date();
-    const jstNow = new Date(now.getTime() + (now.getTimezoneOffset() + 540) * 60000);
-    const jstToday = jstNow.getFullYear() + '-' + String(jstNow.getMonth()+1).padStart(2,'0') + '-' + String(jstNow.getDate()).padStart(2,'0');
-    const bookDay = bd.getUTCFullYear() + '-' + String(bd.getUTCMonth()+1).padStart(2,'0') + '-' + String(bd.getUTCDate()).padStart(2,'0');
+    const bookDay = fmtDate(bookingDateStr, 'Asia/Tokyo');
+    const nowParts = dateTimePartsInZone(new Date().toISOString(), 'Asia/Tokyo');
+    const jstToday = nowParts ? `${nowParts.year}-${nowParts.month}-${nowParts.day}` : '';
     return bookDay === jstToday;
   } catch(e) { return false; }
 }
@@ -1159,10 +1156,9 @@ function showCheckInSuccess() {
   document.getElementById('ci-name').textContent = currentOrder.name || '—';
   document.getElementById('ci-bookingDate').textContent = fmtDate(currentOrder.bookingDate);
   document.getElementById('ci-plan').textContent = t(currentOrder.plan || '—');
-  const now = new Date();
-  const jstNow = new Date(now.getTime() + (now.getTimezoneOffset() + 540) * 60000);
-  const hh = String(jstNow.getHours()).padStart(2,'0');
-  const mm = String(jstNow.getMinutes()).padStart(2,'0');
+  const nowParts = dateTimePartsInZone(new Date().toISOString(), 'Asia/Tokyo');
+  const hh = nowParts ? nowParts.hour : '00';
+  const mm = nowParts ? nowParts.minute : '00';
   document.getElementById('ci-checkInAt').textContent = hh + ':' + mm + ' (JST)';
   ['formCard','resultCard','refundSuccessCard','loadingCard'].forEach(id => document.getElementById(id).classList.add('hidden'));
   document.getElementById('checkInSuccessCard').classList.remove('hidden');
@@ -1200,6 +1196,11 @@ window.addEventListener('scroll', () => {
   btn.style.pointerEvents=window.scrollY>300?'auto':'none';
 });
 window.addEventListener('load', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const requestedLang = urlParams.get('lang');
+  if (requestedLang && (phraseMaps[requestedLang] || requestedLang === 'zh-Hant')) {
+    currentLanguage = requestedLang;
+  }
   setLanguage(currentLanguage);
   const c=document.getElementById('sakura-container');
   for(let i=0;i<6;i++){
@@ -1213,10 +1214,14 @@ window.addEventListener('load', () => {
   try {
     const savedQuery = sessionStorage.getItem('kimono_quick_query');
     const savedResult = sessionStorage.getItem('kimono_quick_query_result');
-    if (savedQuery) {
+    const urlQuery = {
+      orderId: String(urlParams.get('orderId') || '').trim().toUpperCase(),
+      contact: String(urlParams.get('contact') || '').trim()
+    };
+    if (savedQuery || urlQuery.orderId || urlQuery.contact) {
       sessionStorage.removeItem('kimono_quick_query');
       sessionStorage.removeItem('kimono_quick_query_result');
-      const { orderId, contact } = JSON.parse(savedQuery);
+      const { orderId, contact } = savedQuery ? JSON.parse(savedQuery) : urlQuery;
       if (orderId || contact) {
         if (orderId) document.getElementById('orderId').value = String(orderId).trim().toUpperCase();
         if (contact) {

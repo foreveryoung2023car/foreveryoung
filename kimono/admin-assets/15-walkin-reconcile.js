@@ -28,8 +28,6 @@ function renderWalkinMonth() {
   const sel = document.getElementById('walkin-month');
   if (!sel || !sel.value) return;
   const [y, m] = sel.value.split('-').map(Number);
-  const start = new Date(y, m - 1, 1, 0, 0, 0);
-  const end = new Date(y, m, 1, 0, 0, 0);
   let monthOrders = (allOrders || []).filter(o => {
     // v2.5: detect walk-in by platform OR source field (handles legacy column variants)
     const isWalkIn = (o.platform === 'WALK_IN') ||
@@ -37,8 +35,7 @@ function renderWalkinMonth() {
                      (String(o.source || '').toLowerCase().indexOf('walk-in@') === 0) ||
                      (String(o.introducer || '').toLowerCase().indexOf('walk-in@') === 0);
     if (!isWalkIn) return false;
-    const d = new Date(o.bookingDate || o.submitDate);
-    return !isNaN(d) && d >= start && d < end;
+    return bookingMonth(o) === sel.value;
   });
   // v2.5: store role only sees own walk-in
   if (currentRole === 'store') {
@@ -133,9 +130,9 @@ function renderWalkinMonth() {
   // Detail table
   document.getElementById('walkin-table').innerHTML = monthOrders.length === 0 ? '<div class="text-center text-slate-500 py-6">本月無 walk-in 訂單</div>' :
     '<table class="w-full text-sm"><thead><tr class="bg-slate-100 text-slate-600"><th class="p-2 text-left">日期</th><th class="p-2 text-left">編號</th><th class="p-2 text-left">姓名</th><th class="p-2 text-left">門市</th><th class="p-2 text-center">折扣</th><th class="p-2 text-right">和服</th><th class="p-2 text-right">妝髮</th><th class="p-2 text-right">攝影</th><th class="p-2 text-right">客付</th><th class="p-2 text-right text-pink-600">旅乘</th></tr></thead><tbody>' +
-    monthOrders.sort((a,b)=>new Date(b.bookingDate||0)-new Date(a.bookingDate||0)).map(o => {
+    monthOrders.sort((a,b)=>jstMillis(b.bookingDate)-jstMillis(a.bookingDate)).map(o => {
       const c = orderCalc(o);
-      const dt = new Date(o.bookingDate);
+      const dt = parseBookingDate(o.bookingDate);
       const discTag = c.d === 10 ? '<span class="text-slate-400">無折</span>' : '<span class="text-pink-600 font-bold">' + c.d + '折</span>';
       return '<tr class="border-b border-slate-100 hover:bg-slate-50"><td class="p-2">' + (dt.getMonth()+1) + '/' + dt.getDate() + '</td>' +
              '<td class="p-2 font-mono text-xs">' + (o.orderId||'') + '</td>' +
@@ -180,8 +177,7 @@ function generateInvoice(storeName, monthYM) {
       else s = '未分類';
     }
     if (s !== storeName) return false;
-    const d = new Date(o.bookingDate || o.submitDate);
-    return !isNaN(d) && d.getFullYear() === y && d.getMonth() === m - 1;
+    return bookingMonth(o) === monthYM;
   });
 
   // Use same per-order calc as monthly aggregator
@@ -193,7 +189,7 @@ function generateInvoice(storeName, monthYM) {
   const totalPP = monthOrders.reduce((s, o) => s + orderCalcInv(o).pp, 0);
   const totalOurs = monthOrders.reduce((s, o) => s + orderCalcInv(o).ours, 0);
 
-  const today = new Date();
+  const today = nowAsJstLocalDate();
   const invHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>請款單 ${storeName} ${y}年${m}月</title>
     <style>
       body{font-family:'Noto Serif TC',serif;padding:40px;color:#1A365D;max-width:800px;margin:0 auto;background:white}
@@ -226,7 +222,7 @@ function generateInvoice(storeName, monthYM) {
       <thead><tr><th>日期</th><th>訂單編號</th><th>姓名</th><th>折扣</th><th class="num">和服原價</th><th class="num">應付旅乘<br><span style="font-size:10px;font-weight:normal;color:#94a3b8">(僅和服抽成)</span></th></tr></thead>
       <tbody>
       ${monthOrders.map(o => {
-        const dt = new Date(o.bookingDate);
+        const dt = parseBookingDate(o.bookingDate);
         const c = orderCalcInv(o);
         const discTag = c.d === 10 ? '無折' : c.d + '折';
         return '<tr><td>' + (dt.getMonth()+1) + '/' + dt.getDate() + '</td><td>' + (o.orderId||'') + '</td><td>' + (o.name||'') + '</td><td>' + discTag + '</td><td class="num">¥' + c.pp.toLocaleString() + '</td><td class="num">¥' + c.ours.toLocaleString() + '</td></tr>';

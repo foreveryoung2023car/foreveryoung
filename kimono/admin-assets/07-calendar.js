@@ -1,6 +1,6 @@
 // ── CALENDAR ──
 function changeMonth(d){ calCursor.setMonth(calCursor.getMonth()+d); renderCalendar(); }
-function goToday(){ calCursor = new Date(); renderCalendar(); }
+function goToday(){ calCursor = nowAsJstLocalDate(); renderCalendar(); }
 function renderCalendar(){
   // v2.4.29: store 角色行事曆只看自家
   const visible = filterOrdersForRole(allOrders);
@@ -18,7 +18,7 @@ function renderCalendar(){
   const daysInMonth = new Date(y,m+1,0).getDate();
   const prevDays = new Date(y,m,0).getDate();
   const grid = document.getElementById('calendar-grid');
-  const today = new Date(); today.setHours(0,0,0,0);
+  const today = jstTodayStart();
   let html = '';
   for(let i=startDay-1;i>=0;i--){ html += '<div class="calendar-day other-month"><div>'+(prevDays-i)+'</div></div>'; }
   for(let d=1; d<=daysInMonth; d++){
@@ -167,7 +167,7 @@ function buildCustomers(){
       sum.storeProfit += amount.storeProfit;
       return sum;
     }, {kimonoPrice:0, hairFee:0, makeupFee:0, photoFee:0, balance:0, platformFee:0, storeProfit:0});
-    const dates = orders.map(o=>new Date(o.bookingDate)).filter(d=>!isNaN(d)).sort((a,b)=>b-a);
+    const dates = orders.map(o=>orderBookingDate(o)).filter(d=>d && !isNaN(d)).sort((a,b)=>b-a);
     const lastDate = dates[0] || null;
     const firstDate = dates[dates.length-1] || null;
     const refundCount = orders.filter(o=>Number(o.refundAmount)>0).length;
@@ -265,8 +265,8 @@ function renderCustomers(){
       '<td class="num">'+fmtY0(c.totalSpent)+'</td>'+
       moneyCells+
       '<td>'+(c.firstDate? fmtDate(c.firstDate):'—')+'</td>'+
-      '<td>'+(c.lastDate? (fmtDate(c.lastDate)+(function(){const d=new Date(c.lastDate);const n=new Date();const diff=Math.floor((n-d)/(86400000));return diff>=0?'<span class="text-[10px] text-slate-500 ml-1">('+diff+' 天前)</span>':'<span class="text-[10px] text-emerald-600 ml-1">('+Math.abs(diff)+' 天後)</span>';})()):'—')+'</td>'+
-      '<td><button onclick="event.stopPropagation();const latestOrder=c.orders.sort((a,b)=>new Date(b.bookingDate||0)-new Date(a.bookingDate||0))[0]; if(latestOrder) openMsgTemplate(latestOrder.orderId)" class="px-2 py-0.5 mr-1 text-purple-700 border border-purple-300 hover:bg-purple-50 rounded text-xs font-bold">📨</button><button onclick="event.stopPropagation();openCustomerDetail(\''+safeKey+'\')" class="btn-navy px-3 py-1 rounded text-xs">詳情</button></td>'+
+      '<td>'+(c.lastDate? (fmtDate(c.lastDate)+(function(){const d=c.lastDate;const n=jstTodayStart();const diff=Math.floor((n-new Date(d.getFullYear(),d.getMonth(),d.getDate()))/(86400000));return diff>=0?'<span class="text-[10px] text-slate-500 ml-1">('+diff+' 天前)</span>':'<span class="text-[10px] text-emerald-600 ml-1">('+Math.abs(diff)+' 天後)</span>';})()):'—')+'</td>'+
+      '<td><button onclick="event.stopPropagation();const latestOrder=c.orders.sort((a,b)=>jstMillis(b.bookingDate)-jstMillis(a.bookingDate))[0]; if(latestOrder) openMsgTemplate(latestOrder.orderId)" class="px-2 py-0.5 mr-1 text-purple-700 border border-purple-300 hover:bg-purple-50 rounded text-xs font-bold">📨</button><button onclick="event.stopPropagation();openCustomerDetail(\''+safeKey+'\')" class="btn-navy px-3 py-1 rounded text-xs">詳情</button></td>'+
     '</tr>';}).join('')+'</tbody></table>';
 }
 
@@ -304,7 +304,7 @@ function openCustomerDetail(key){
     '<h3 class="text-[#1A365D] mb-2 title-serif font-bold">📋 訂單記錄</h3>'+
     '<div class="overflow-x-auto"><table class="data-table customer-data-table">'+
       '<thead><tr><th>訂單號</th><th>體驗日期</th><th>款式</th><th>人數</th>'+detailMoneyHeaders+'<th>狀態</th></tr></thead>'+
-      '<tbody>'+c.orders.sort((a,b)=>new Date(b.bookingDate||0)-new Date(a.bookingDate||0)).map(o=>{
+      '<tbody>'+c.orders.sort((a,b)=>jstMillis(b.bookingDate)-jstMillis(a.bookingDate)).map(o=>{
         const statusMeta = orderStatusMeta(orderStatusOf(o));
         const status = '<span class="order-status-control '+statusMeta.css+'"><span class="order-status-icon">'+statusMeta.icon+'</span><span>'+statusMeta.label+'</span></span>';
         const amount = customerOrderAmounts(o);

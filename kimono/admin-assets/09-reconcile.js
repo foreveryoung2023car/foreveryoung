@@ -344,14 +344,14 @@ function renderReconcile(){
     const sortMode = (document.getElementById('recon-sort')||{}).value || 'status-asc';
     const orderA = reconcileOrderStatusRank(a);
     const orderB = reconcileOrderStatusRank(b);
-    const dateA = new Date(a.bookingDate||0).getTime() || 0;
-    const dateB = new Date(b.bookingDate||0).getTime() || 0;
+    const dateA = jstMillis(a.bookingDate);
+    const dateB = jstMillis(b.bookingDate);
     if (sortMode === 'date-asc') return dateA - dateB;
     if (sortMode === 'date-desc') return dateB - dateA;
     // status-asc / status-desc：先狀態，再日期
     if(orderA!==orderB) return sortMode === 'status-desc' ? orderB-orderA : orderA-orderB;
     return sortMode === 'status-desc' ? dateB - dateA : dateA - dateB;
-    return new Date(b.bookingDate||0)-new Date(a.bookingDate||0);
+    return jstMillis(b.bookingDate)-jstMillis(a.bookingDate);
   });
 
   // v2.4.20: list 為空時提供有用引導

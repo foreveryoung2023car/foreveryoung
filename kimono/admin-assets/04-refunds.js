@@ -147,29 +147,20 @@ function fmtMonth(m) {
 // v2.4.20: 如果輸入已是 'YYYY/MM/DD HH:MM' 字串就直接回，避免 timezone 轉換錯誤
 function fmtJSTDateTime(t) {
   if (!t) return '—';
-  // 優先：直接 match 已經是 YYYY/MM/DD HH:MM 格式的字串
-  if (typeof t === 'string') {
-    const m = t.match(/^(\d{4})[/\-](\d{2})[/\-](\d{2})[\sT](\d{2}):(\d{2})/);
-    if (m) return m[1]+'/'+m[2]+'/'+m[3]+' '+m[4]+':'+m[5];
-  }
-  // 否則用 Date 物件轉（Asia/Tokyo timezone）
-  const d = (t instanceof Date) ? t : new Date(t);
-  if (isNaN(d)) return String(t);
-  // 強制用 JST timezone (Asia/Tokyo, UTC+9)
-  const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
-  const jst = new Date(utc + 9 * 3600000);
-  const Y = jst.getFullYear();
-  const M = String(jst.getMonth()+1).padStart(2,'0');
-  const D = String(jst.getDate()).padStart(2,'0');
-  const h = String(jst.getHours()).padStart(2,'0');
-  const mn = String(jst.getMinutes()).padStart(2,'0');
+  const d = typeof parseBookingDate === 'function' ? parseBookingDate(t) : ((t instanceof Date) ? t : new Date(t));
+  if (!d || isNaN(d)) return String(t);
+  const Y = d.getFullYear();
+  const M = String(d.getMonth()+1).padStart(2,'0');
+  const D = String(d.getDate()).padStart(2,'0');
+  const h = String(d.getHours()).padStart(2,'0');
+  const mn = String(d.getMinutes()).padStart(2,'0');
   return Y+'/'+M+'/'+D+' '+h+':'+mn;
 }
 
 function bookingMonth(o){
   if(!o || !o.bookingDate) return '';
-  const d = (o.bookingDate instanceof Date) ? o.bookingDate : new Date(o.bookingDate);
-  if(isNaN(d)) return '';
+  const d = typeof parseBookingDate === 'function' ? parseBookingDate(o.bookingDate) : ((o.bookingDate instanceof Date) ? o.bookingDate : new Date(o.bookingDate));
+  if(!d || isNaN(d)) return '';
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
 }
 // 解析人數字串，例如「2大1小」「3」「2 adults 1 kid」
@@ -195,9 +186,9 @@ function expectedDeposit(o){
 
 function isInRange(o, range){
   if(range==='all') return true;
-  const d = o.bookingDate ? new Date(o.bookingDate) : null;
+  const d = o.bookingDate ? (typeof parseBookingDate === 'function' ? parseBookingDate(o.bookingDate) : new Date(o.bookingDate)) : null;
   if(!d || isNaN(d)) return false;
-  const now = new Date();
+  const now = typeof nowAsJstLocalDate === 'function' ? nowAsJstLocalDate() : new Date();
   if(range==='today'){ return d.toDateString()===now.toDateString(); }
   if(range==='week'){ const start=new Date(now); start.setDate(now.getDate()-now.getDay()); start.setHours(0,0,0,0); const end=new Date(start); end.setDate(start.getDate()+7); return d>=start&&d<end; }
   if(range==='month'){ return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth(); }

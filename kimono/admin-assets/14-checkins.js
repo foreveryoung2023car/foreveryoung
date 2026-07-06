@@ -19,8 +19,7 @@ function renderCheckIn() {
   const empty = document.getElementById('checkin-empty');
   if (!list) return;
   // 算今天 JST
-  const now = new Date();
-  const jstNow = new Date(now.getTime() + (now.getTimezoneOffset() + 540) * 60000);
+  const jstNow = nowAsJstLocalDate();
   const toJstYMD = (d) => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   const todayYMD = toJstYMD(jstNow);
   const ms = 24*3600*1000;
@@ -48,7 +47,7 @@ function renderCheckIn() {
     });
   }
   // 排序：先按體驗日 + 時間 (asc)
-  orders.sort((a, b) => new Date(a.bookingDate) - new Date(b.bookingDate));
+  orders.sort((a, b) => jstMillis(a.bookingDate) - jstMillis(b.bookingDate));
 
   // 統計
   let cntPending = 0, cntSelf = 0, cntAgent = 0;
@@ -73,7 +72,7 @@ function renderCheckIn() {
   if (getCheckinView() === 'list') {
     list.className = '';
     list.innerHTML = '<div class="overflow-x-auto bg-white rounded-lg border border-slate-200"><table class="w-full text-sm"><thead class="bg-slate-50"><tr><th class="p-2 text-left">時間</th><th class="p-2 text-left">姓名</th><th class="p-2 text-left">末3碼</th><th class="p-2 text-center">人</th><th class="p-2 text-center">加值</th><th class="p-2 text-center">狀態</th><th class="p-2 text-right">動作</th></tr></thead><tbody>' + orders.map(o => {
-      const bd = parseBookingDate(o.bookingDate) || new Date(o.bookingDate);
+      const bd = parseBookingDate(o.bookingDate);
       const md = (bd.getMonth()+1) + '/' + bd.getDate();
       const hm = String(bd.getHours()).padStart(2,'0') + ':' + String(bd.getMinutes()).padStart(2,'0');
       const tail = String(o.phone || '').replace(/\D/g, '').slice(-3);
@@ -94,7 +93,7 @@ function renderCheckIn() {
   }
   list.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3';
   list.innerHTML = orders.map(o => {
-    const bd = parseBookingDate(o.bookingDate) || new Date(o.bookingDate);  // v2.5
+    const bd = parseBookingDate(o.bookingDate);  // v2.5
     const hh = String(bd.getHours()).padStart(2,'0');
     const mm = String(bd.getMinutes()).padStart(2,'0');
     const md = (bd.getMonth()+1) + '/' + bd.getDate();

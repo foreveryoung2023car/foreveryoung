@@ -218,11 +218,31 @@ function timestampToIso(value: unknown) {
   return String(value);
 }
 
+function normalizeJstDateTimeString(value: unknown) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  if (/[zZ]$|[+-]\d{2}:?\d{2}$/.test(raw)) return raw;
+  const slash = raw.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})(?:\s+(\d{1,2}):(\d{2}))?/);
+  if (slash) {
+    const [, y, mo, d, h = "0", mi = "0"] = slash;
+    return `${y}-${mo.padStart(2, "0")}-${d.padStart(2, "0")}T${h.padStart(2, "0")}:${mi}:00+09:00`;
+  }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return `${raw}T00:00:00+09:00`;
+  if (/^\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?$/.test(raw)) {
+    return raw.replace(" ", "T") + "+09:00";
+  }
+  return raw;
+}
+
+function dateFromJstInput(value: unknown) {
+  return new Date(normalizeJstDateTimeString(value));
+}
+
 function timestampToMillis(value: unknown) {
   if (!value) return null;
   if (value instanceof Timestamp) return value.toDate().getTime();
   if (value instanceof Date) return value.getTime();
-  const date = new Date(String(value));
+  const date = dateFromJstInput(value);
   return Number.isNaN(date.getTime()) ? null : date.getTime();
 }
 
@@ -516,7 +536,7 @@ export async function createPublicOrder(raw: unknown) {
       customerPhone: input.phone,
       customerEmail: input.email || null,
       storeId: input.storeCode || null,
-      bookingAt: Timestamp.fromDate(new Date(input.bookingAt)),
+      bookingAt: Timestamp.fromDate(dateFromJstInput(input.bookingAt)),
       adults,
       ...(hasAdultBreakdown ? { maleAdults: input.maleAdults || 0, femaleAdults: input.femaleAdults || 0 } : {}),
       children: input.children,
@@ -742,7 +762,7 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
     if (input.name !== undefined) patch.customerName = input.name;
     if (input.phone !== undefined) patch.customerPhone = input.phone;
     if (input.email !== undefined) patch.customerEmail = input.email || null;
-    if (input.bookingAt) patch.bookingAt = Timestamp.fromDate(new Date(input.bookingAt));
+    if (input.bookingAt) patch.bookingAt = Timestamp.fromDate(dateFromJstInput(input.bookingAt));
     if (input.maleAdults !== undefined || input.femaleAdults !== undefined) {
       const maleAdults = input.maleAdults ?? Number(before.maleAdults || 0);
       const femaleAdults = input.femaleAdults ?? Number(before.femaleAdults || 0);

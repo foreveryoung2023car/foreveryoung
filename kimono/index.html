@@ -1693,8 +1693,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
     <script>
         const nowJST = new Date(Date.now() + 9 * 60 * 60 * 1000);
         const todayStr = nowJST.toISOString().split('T')[0];
-        const nowTWN = new Date(Date.now() + 8 * 60 * 60 * 1000);
-        const submitDateTWN = nowTWN.toISOString().slice(0, 10);
+        const submitDateTWN = todayStr;
 
         const plans = [
             { name: "素雅和服", sub: "Elegant Kimono", price: "3,000", desc: "追求簡約大方的經典款式，適合初次體驗。", img: "img/PremiumSelection-1.jpg" },
@@ -2744,7 +2743,28 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
         })();
 
         // === Order Query Function ===
-        async function queryOrder() {
+        function buildInquiryUrl(params = {}) {
+            const search = new URLSearchParams();
+            Object.entries(params).forEach(([key, value]) => {
+                const text = String(value || '').trim();
+                if (text) search.set(key, text);
+            });
+            const query = search.toString();
+            return './inquiry.html' + (query ? '?' + query : '');
+        }
+
+        function openOrderInquiry(code) {
+            const orderId = String(code || '').trim().toUpperCase();
+            try {
+                sessionStorage.setItem('kimono_quick_query', JSON.stringify({ orderId }));
+                sessionStorage.removeItem('kimono_quick_query_result');
+            } catch (error) {
+                console.warn('Unable to persist order inquiry details', error);
+            }
+            window.location.href = buildInquiryUrl({ source: 'success', orderId, lang: currentLanguage });
+        }
+
+        function queryOrder() {
             const input = document.getElementById('query-order-input');
             const resultEl = document.getElementById('query-result');
             const code = input ? input.value.trim().toUpperCase() : '';
@@ -2753,24 +2773,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 return;
             }
             if (resultEl) { resultEl.textContent = t('查詢中...'); resultEl.className = 'mt-2 text-xs font-sans text-slate-400'; resultEl.classList.remove('hidden'); }
-            try {
-                const res = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({ action: 'queryOrder', orderId: code })
-                });
-                const data = await res.json();
-                if (data.found) {
-                    resultEl.innerHTML = '✓ ' + t('找到訂單') + ' <b>' + code + '</b> | ' + t('狀態：') + '<span style="color:#22c55e;font-weight:bold">' + (data.status || t('待確認')) + '</span> | ' + t('預約日：') + (data.date || '-');
-                    resultEl.className = 'mt-2 text-xs font-sans text-slate-600';
-                } else {
-                    resultEl.textContent = t('找不到此編號，請確認後重新輸入');
-                    resultEl.className = 'mt-2 text-xs font-sans text-red-400';
-                }
-            } catch(e) {
-                resultEl.textContent = t('查詢失敗，請聯繫客服');
-                resultEl.className = 'mt-2 text-xs font-sans text-slate-400';
-            }
+            openOrderInquiry(code);
         }
 </script>
 

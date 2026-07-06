@@ -102,7 +102,7 @@ function openEdit(orderId) {
   if (nameDisplay) nameDisplay.textContent = o.name || '—';
   if (phoneDisplay) phoneDisplay.textContent = maskStorePhone(o.phone);
   if (emailDisplay) emailDisplay.textContent = o.email || '—';
-  document.getElementById('e-booking-date').value = (function(bd){ if(!bd) return ''; const d=parseBookingDate(bd); if(!d||isNaN(d)) return String(bd).slice(0,10); const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes()); })(o.bookingDate);
+  document.getElementById('e-booking-date').value = dateTimeLocalValueJST(o.bookingDate);
   const guestCount = parseEditGuestCount(o);
   document.getElementById('e-adults').value = guestCount.adults;
   document.getElementById('e-male-adults').value = guestCount.maleAdults === null ? '' : guestCount.maleAdults;

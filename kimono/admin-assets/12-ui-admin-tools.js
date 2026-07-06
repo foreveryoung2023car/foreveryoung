@@ -628,7 +628,7 @@ async function saveOrder() {
           name: payload.name,
           phone: payload.phone,
           email: payload.email,
-          bookingAt: bookingValue ? bookingValue + ':00+09:00' : undefined,
+          bookingAt: bookingAtFromDateTimeLocalJST(bookingValue),
           plan: payload.plan,
           platform: payload.platform,
           depositJpy: Number(payload.deposit || 0),

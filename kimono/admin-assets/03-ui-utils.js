@@ -515,10 +515,105 @@ function showErr(msg) {
   document.getElementById('orders-list').innerHTML = '<div class="text-center py-10 text-red-600 font-semibold"><div class="text-2xl mb-2">⚠️</div>' + msg + '</div>';
 }
 
+const KIMONO_TIME_ZONE = 'Asia/Tokyo';
+
+function adminPad2(n) {
+  return String(n).padStart(2, '0');
+}
+
+function hasExplicitTimeZone(str) {
+  return /(?:Z|[+-]\d{2}:?\d{2})$/i.test(String(str || '').trim());
+}
+
+function jstPartsFromDate(date) {
+  if (!(date instanceof Date) || isNaN(date)) return null;
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: KIMONO_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    hourCycle: 'h23'
+  }).formatToParts(date).reduce((acc, part) => {
+    acc[part.type] = part.value;
+    return acc;
+  }, {});
+  return {
+    year: Number(parts.year),
+    month: Number(parts.month),
+    day: Number(parts.day),
+    hour: Number(parts.hour === '24' ? '0' : parts.hour || 0),
+    minute: Number(parts.minute || 0),
+    second: Number(parts.second || 0)
+  };
+}
+
+function localDateFromParts(parts) {
+  if (!parts) return null;
+  return new Date(parts.year, parts.month - 1, parts.day, parts.hour || 0, parts.minute || 0, parts.second || 0);
+}
+
+function dateWithJstClock(date) {
+  return localDateFromParts(jstPartsFromDate(date));
+}
+
+function nowAsJstLocalDate() {
+  return dateWithJstClock(new Date()) || new Date();
+}
+
+function jstDateOnly(value) {
+  const d = value instanceof Date ? value : parseBookingDate(value);
+  if (!d || isNaN(d)) return null;
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function jstTodayStart() {
+  const now = nowAsJstLocalDate();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
+function dateTimeLocalValueJST(value) {
+  const d = parseBookingDate(value);
+  if (!d || isNaN(d)) return '';
+  return d.getFullYear() + '-' + adminPad2(d.getMonth() + 1) + '-' + adminPad2(d.getDate()) +
+    'T' + adminPad2(d.getHours()) + ':' + adminPad2(d.getMinutes());
+}
+
+function bookingAtFromDateTimeLocalJST(value) {
+  if (!value) return undefined;
+  const m = String(value).match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  return m ? (m[1] + '-' + m[2] + '-' + m[3] + 'T' + m[4] + ':' + m[5] + ':00+09:00') : value;
+}
+
+function jstMillis(value) {
+  const d = parseBookingDate(value);
+  return d && !isNaN(d) ? d.getTime() : 0;
+}
+
+function jstDateKey(value) {
+  const d = value instanceof Date ? value : parseBookingDate(value);
+  if (!d || isNaN(d)) return '';
+  return d.getFullYear() + '-' + adminPad2(d.getMonth() + 1) + '-' + adminPad2(d.getDate());
+}
+
 // v2.4.42g: robust bookingDate parser - handles 上午/下午 + ISO + slash formats
+// v2.6: ISO/Timestamp values are converted to Japan wall-clock time before UI code reads getHours().
 function parseBookingDate(s){
   if(!s) return null;
+  if (s instanceof Date) return new Date(s.getFullYear(), s.getMonth(), s.getDate(), s.getHours(), s.getMinutes(), s.getSeconds());
+  if (typeof s === 'object') {
+    if (typeof s.toDate === 'function') return dateWithJstClock(s.toDate());
+    if (typeof s._seconds === 'number') return dateWithJstClock(new Date(s._seconds * 1000));
+    if (typeof s.seconds === 'number') return dateWithJstClock(new Date(s.seconds * 1000));
+  }
   const str = String(s);
+  if (str.indexOf('T') >= 0 && hasExplicitTimeZone(str)) {
+    const z = new Date(str);
+    return isNaN(z) ? null : dateWithJstClock(z);
+  }
   // Chinese 12h: 2026/06/30 上午 10:00 or 2026-05-15 下午1:30
   const m = str.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})\s*(上午|下午|中午)?\s*(\d{1,2}):(\d{2})/);
   if(m){
@@ -539,21 +634,8 @@ function fmtBookingDateTime(s){
   // Customer chose date+time at submit; bookingDate may be 'YYYY/M/D 上午H:MM' or ISO
   if(!s) return '—';
   const str = String(s);
-  // Try the chinese 12h format first: 2026/05/10 上午10:00
-  let m = str.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})\s*(上午|下午|中午)?\s*(\d{1,2}):(\d{2})/);
-  if(m){
-    let h = parseInt(m[5]);
-    if(m[4]==='下午' && h<12) h+=12;
-    if(m[4]==='上午' && h===12) h=0;
-    const dt = new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3]), h, parseInt(m[6]));
-    if(!isNaN(dt)){
-      const wk = ['日','一','二','三','四','五','六'][dt.getDay()];
-      return (dt.getMonth()+1)+'/'+dt.getDate()+' ('+wk+') '+String(h).padStart(2,'0')+':'+m[6];
-    }
-  }
-  // Fallback to date-only
-  const d = new Date(str);
-  if(!isNaN(d)){
+  const d = parseBookingDate(str);
+  if(d && !isNaN(d)){
     const wk = ['日','一','二','三','四','五','六'][d.getDay()];
     const time = (d.getHours()||d.getMinutes()) ? ' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0') : '';
     return (d.getMonth()+1)+'/'+d.getDate()+' ('+wk+')'+time;
@@ -564,29 +646,20 @@ function fmtBookingDateTime(s){
 // v2.5: 格式化日期成 JST 顯示（Asia/Tokyo, GMT+9）
 function fmtJST(s) {
   if (!s) return '';
-  const d = new Date(s);
-  if (isNaN(d)) return String(s).slice(0, 16);
-  // Convert to JST: UTC + 9 hours
-  const jstMs = d.getTime() + (9 * 60 + d.getTimezoneOffset()) * 60 * 1000;
-  const jst = new Date(jstMs);
-  const m = String(jst.getMonth() + 1).padStart(2, '0');
-  const dd = String(jst.getDate()).padStart(2, '0');
-  const hh = String(jst.getHours()).padStart(2, '0');
-  const mm = String(jst.getMinutes()).padStart(2, '0');
-  return jst.getFullYear() + '/' + m + '/' + dd + ' ' + hh + ':' + mm + ' (JST)';
+  const d = parseBookingDate(s);
+  if (!d || isNaN(d)) return String(s).slice(0, 16);
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return d.getFullYear() + '/' + m + '/' + dd + ' ' + hh + ':' + mm + ' (JST)';
 }
 
 function fmtDateTime(s){
   if(!s) return '';
-  if(typeof s === 'string') {
-    const m = s.match(/^(\d{4})[/\-](\d{2})[/\-](\d{2})[\sT](\d{2}):(\d{2})/);
-    if(m) return m[2]+'/'+m[3]+' '+m[4]+':'+m[5];
-  }
-  const d=new Date(s);
-  if(isNaN(d)) return String(s).slice(0,16);
-  const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
-  const jst = new Date(utc + 9 * 3600000);
-  return String(jst.getMonth()+1).padStart(2,'0')+'/'+String(jst.getDate()).padStart(2,'0')+' '+String(jst.getHours()).padStart(2,'0')+':'+String(jst.getMinutes()).padStart(2,'0');
+  const d=parseBookingDate(s);
+  if(!d || isNaN(d)) return String(s).slice(0,16);
+  return String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
 }
 function fmtY(n){ n = Number(n)||0; return n ? '¥'+n.toLocaleString() : '—'; }
 function fmtY0(n){ n = Number(n)||0; return '¥'+n.toLocaleString(); }
@@ -618,15 +691,7 @@ function formatGuestCount(o) {
 }
 function fmtDate(s){
   if(!s) return '—';
-  // v2.4.20: 字串原樣判斷優先（避免 timezone bug）
-  if(typeof s === 'string') {
-    const m = s.match(/^(\d{4})[/\-](\d{2})[/\-](\d{2})/);
-    if(m) return m[1]+'/'+m[2]+'/'+m[3];
-  }
-  const d = new Date(s);
-  if(isNaN(d)) return String(s);
-  // 強制 JST
-  const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
-  const jst = new Date(utc + 9 * 3600000);
-  return jst.getFullYear()+'/'+String(jst.getMonth()+1).padStart(2,'0')+'/'+String(jst.getDate()).padStart(2,'0');
+  const d = parseBookingDate(s);
+  if(!d || isNaN(d)) return String(s);
+  return d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');
 }
