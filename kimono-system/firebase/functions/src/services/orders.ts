@@ -264,6 +264,14 @@ function toPublicOrderResponse(orderId: string, order: FirebaseFirestore.Documen
   const planPrice = Number(order.kimonoPriceJpy || 0);
   const discount = Number(order.discountRate || 10);
   const planActual = discount > 0 && discount < 10 ? Math.round(planPrice * discount / 10) : planPrice;
+  const storeMap: Record<string, { name: string; address: string }> = {
+    kyoto1: { name: "京都清水寺店", address: "京都東山區五條橋東4-432-13 對嵐坊大廈1樓" },
+    kyoto2: { name: "京都祇園店", address: "京都東山區常盤町169 常盤大廈" },
+    osaka1: { name: "大阪日本橋店", address: "大阪中央區日本橋1-18-14 芝大廈7樓" },
+    tokyo1: { name: "東京淺草寺店", address: "東京都台東區淺草1-33-8 A-one大廈9樓" }
+  };
+  const storeId = String(order.storeId || "");
+  const store = storeMap[storeId] || { name: storeId, address: "" };
 
   return {
     status: "success",
@@ -274,6 +282,11 @@ function toPublicOrderResponse(orderId: string, order: FirebaseFirestore.Documen
     phone: fullyVerified ? order.customerPhone || "" : "",
     statusCode,
     bookingDate: timestampToIso(order.bookingAt),
+    bookingAt: timestampToIso(order.bookingAt),
+    submitDate: timestampToIso(order.createdAt),
+    storeId,
+    storeName: store.name,
+    storeAddress: store.address,
     guests: hasBreakdown
       ? `${maleAdults} 位男性 / ${femaleAdults} 位女性${children ? ` / ${children} 位小孩` : ""}`
       : `${adults} 位大人${children ? ` / ${children} 位小孩` : ""}`,
@@ -293,9 +306,12 @@ function toPublicOrderResponse(orderId: string, order: FirebaseFirestore.Documen
     photoFee: Number(order.photoFeeJpy || 0),
     depositJPY: Number(order.depositJpy || 0),
     twdDeposit: "",
+    totalJpy: Number(order.totalJpy || 0),
     onsiteDue: Number(order.onsiteDueJpy || 0),
     couponCode: order.couponCode || "",
     discount,
+    paymentProofSubmitted: Boolean(order.proofUrl || order.proofNote || order.last5),
+    last5: fullyVerified ? order.last5 || "" : "",
     canRefund: fullyVerified && status === "confirmed",
     canCheckIn: fullyVerified && status === "confirmed"
   };

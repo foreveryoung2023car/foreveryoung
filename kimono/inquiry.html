@@ -136,10 +136,10 @@ input[type="text"], input[type="email"], input[type="tel"], select, textarea { f
   </div>
 </header>
 
-<main class="max-w-2xl mx-auto px-4 py-10 pb-24">
+<main class="max-w-5xl mx-auto px-4 py-10 pb-24">
 
   <!-- 查詢表單 -->
-  <div id="formCard" class="bg-white shadow-2xl rounded-sm border border-slate-50 p-8 md:p-10 fade-up">
+  <div id="formCard" class="max-w-2xl mx-auto bg-white shadow-2xl rounded-sm border border-slate-50 p-8 md:p-10 fade-up">
     <div class="mb-8 text-center">
       <h2 class="text-lg font-bold text-[#1A365D] uppercase tracking-[0.3em] font-sans">查詢我的訂單</h2>
       <p class="text-slate-400 text-xs mt-2 font-sans tracking-wider">訂單編號、Email 或手機號碼，任填一項即可</p>
@@ -195,7 +195,7 @@ input[type="text"], input[type="email"], input[type="tel"], select, textarea { f
   </div>
 
   <!-- 載入中 -->
-  <div id="loadingCard" class="hidden bg-white shadow-2xl rounded-sm border border-slate-50 p-16 text-center">
+  <div id="loadingCard" class="hidden max-w-2xl mx-auto bg-white shadow-2xl rounded-sm border border-slate-50 p-16 text-center">
     <div class="flex justify-center gap-2 mb-5">
       <span class="w-2.5 h-2.5 rounded-full bg-pink-200 animate-bounce" style="animation-delay:0ms"></span>
       <span class="w-2.5 h-2.5 rounded-full bg-pink-400 animate-bounce" style="animation-delay:150ms"></span>
@@ -226,11 +226,16 @@ input[type="text"], input[type="email"], input[type="tel"], select, textarea { f
         <div>
           <p class="text-[13px] font-bold text-pink-500 tracking-[0.3em] uppercase font-sans mb-5 flex items-center gap-3">預約內容 <span class="flex-1 h-px bg-pink-100"></span></p>
           <div class="grid grid-cols-2 gap-x-6 gap-y-5">
+            <div class="col-span-2"><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">體驗門市</p><p id="r-store" class="font-bold text-[#1A365D] font-sans text-base">—</p><p id="r-storeAddress" class="text-slate-400 text-xs font-sans mt-1 leading-relaxed"></p></div>
             <div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">體驗日期</p><p id="r-bookingDate" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
+            <div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">預約時段</p><p id="r-bookingTime" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
             <div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">人數</p><p id="r-guests" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
+            <div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">付款憑證</p><p id="r-paymentStatus" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
             <div class="col-span-2"><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">和服款式</p><p id="r-plan" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
-            <div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">妝髮造型</p><p id="r-hair" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
+            <div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">髮型設計</p><p id="r-hair" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
+            <div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">化妝造型</p><p id="r-makeup" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
             <div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">旅拍攝影</p><p id="r-photo" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
+            <div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">提交時間</p><p id="r-submitDate" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
           </div>
         </div>
 
@@ -528,7 +533,23 @@ function fmtDate(val) {
   if (/^\d{4}-\d{2}-\d{2}/.test(str)) return str.slice(0,10);
   return str;
 }
+function fmtTime(val) {
+  if (!val) return '—';
+  const str = String(val);
+  if (/T\d{2}:\d{2}/.test(str)) return (str.match(/T(\d{2}:\d{2})/) || [,'—'])[1];
+  if (/\d{2}:\d{2}/.test(str)) return (str.match(/(\d{2}:\d{2})/) || [,'—'])[1];
+  return '—';
+}
+function fmtDateTime(val) {
+  if (!val) return '—';
+  const date = fmtDate(val);
+  const time = fmtTime(val);
+  return time === '—' ? date : `${date} ${time}`;
+}
 function fmtJPY(n) { const num=Number(n); return isNaN(num)?'—':num.toLocaleString('ja-JP'); }
+function yesNoLabel(value, yesText = '需要') {
+  return value === true || value === '是' || value === 'true' ? `✅ ${yesText}` : '不需要';
+}
 
 let queryMode = 'byid';
 function switchQueryMode(mode){
@@ -602,11 +623,24 @@ function renderResult(d) {
   document.getElementById('r-statusBadge').innerHTML =
     `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold font-sans ${cls}">${txt}</span>`;
 
+  const makeupLabel = d.makeupPlan
+    ? `✅ ${d.makeupPlan}`
+    : yesNoLabel(d.makeup);
+  const proofLabel = d.paymentProofSubmitted
+    ? (d.last5 ? `已提交（末五碼 ${d.last5}）` : '已提交')
+    : '尚未提交 / 待補件';
+
+  document.getElementById('r-store').textContent       = d.storeName || d.storeId || '—';
+  document.getElementById('r-storeAddress').textContent = d.storeAddress || '';
   document.getElementById('r-bookingDate').textContent = fmtDate(d.bookingDate);
+  document.getElementById('r-bookingTime').textContent = fmtTime(d.bookingAt || d.bookingDate);
   document.getElementById('r-guests').textContent      = d.guests || '—';
+  document.getElementById('r-paymentStatus').textContent = proofLabel;
   document.getElementById('r-plan').textContent        = d.plan   || '—';
-  document.getElementById('r-hair').textContent        = d.hair  === '是' ? '✅ 需要' : '不需要';
-  document.getElementById('r-photo').textContent       = d.photo === '是' ? '✅ 需要' : '不需要';
+  document.getElementById('r-hair').textContent        = yesNoLabel(d.hair);
+  document.getElementById('r-makeup').textContent      = makeupLabel;
+  document.getElementById('r-photo').textContent       = yesNoLabel(d.photo);
+  document.getElementById('r-submitDate').textContent  = fmtDateTime(d.submitDate);
 
   const rows = [];
   const hasPlanPrice = Number(d.planPrice) > 0;
@@ -620,8 +654,10 @@ function renderResult(d) {
       rows.push({ key:'和服費用', val:`¥${fmtJPY(d.planActual||d.planPrice)}`, cls:'' });
     }
   }
-  if (Number(d.hairFee)    > 0) rows.push({ key:'妝髮造型費',  val:`¥${fmtJPY(d.hairFee)}`,    cls:'' });
+  if (Number(d.hairFee)    > 0) rows.push({ key:'髮型設計費',  val:`¥${fmtJPY(d.hairFee)}`,    cls:'' });
+  if (Number(d.makeupFee)  > 0) rows.push({ key:'化妝造型費',  val:`¥${fmtJPY(d.makeupFee)}`,  cls:'' });
   if (Number(d.photoFee)   > 0) rows.push({ key:'旅拍攝影費',  val:`¥${fmtJPY(d.photoFee)}`,   cls:'' });
+  if (Number(d.totalJpy)   > 0) rows.push({ key:'費用小計',    val:`¥${fmtJPY(d.totalJpy)}`,   cls:'text-[#1A365D]' });
   if (Number(d.depositJPY) > 0) rows.push({ key:'已付訂金折抵',val:`- ¥${fmtJPY(d.depositJPY)}`,cls:'text-slate-400' });
 
   const feeTable = document.getElementById('feeTable');
@@ -632,11 +668,15 @@ function renderResult(d) {
   const hasOnsite = hasPlanPrice && d.onsiteDue !== '' && d.onsiteDue !== null && d.onsiteDue !== undefined;
   if (hasOnsite) {
     document.getElementById('r-onsiteDue').textContent   = `¥${fmtJPY(d.onsiteDue)}`;
-    document.getElementById('r-depositNote').textContent = `台幣訂金 NT$${d.twdDeposit} 已折抵`;
+    document.getElementById('r-depositNote').textContent = d.twdDeposit
+      ? `台幣訂金 NT$${d.twdDeposit} 已折抵`
+      : (Number(d.depositJPY) > 0 ? `已付日幣訂金 ¥${fmtJPY(d.depositJPY)} 已折抵` : '');
     document.getElementById('pendingNotice').classList.add('hidden');
   } else {
     document.getElementById('r-onsiteDue').textContent   = '待確認';
-    document.getElementById('r-depositNote').textContent = `已付台幣訂金 NT$${d.twdDeposit||'—'}`;
+    document.getElementById('r-depositNote').textContent = d.twdDeposit
+      ? `已付台幣訂金 NT$${d.twdDeposit}`
+      : (Number(d.depositJPY) > 0 ? `已付日幣訂金 ¥${fmtJPY(d.depositJPY)}` : '');
     document.getElementById('pendingNotice').classList.remove('hidden');
   }
 
@@ -799,7 +839,10 @@ function showForm() {
   document.getElementById('formCard').classList.remove('hidden');
   ['loadingCard','resultCard','refundSuccessCard','checkInSuccessCard'].forEach(id=>document.getElementById(id).classList.add('hidden'));
 }
-function showResult() { document.getElementById('resultCard').classList.remove('hidden'); }
+function showResult() {
+  ['formCard','loadingCard','refundSuccessCard','checkInSuccessCard'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+  document.getElementById('resultCard').classList.remove('hidden');
+}
 function goBack() {
   showForm(); hideError();
   currentOrder=null; refundPanelOpen=false;
