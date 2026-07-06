@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>訂單查詢 — 旅乘 x 和服體驗</title>
 <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=20260609">
-<meta name="description" content="旅乘 x Foreveryoung 和服體驗訂單查詢，查看預約狀態、費用明細與申請退款。">
+<meta name="description" content="旅乘 x Foreveryoung 和服體驗訂單查詢，查看預約狀態與申請退款。">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="./config.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
@@ -32,12 +32,16 @@
   .refund-panel { max-height:0; overflow:hidden; transition:max-height 0.55s ease, opacity 0.4s ease; opacity:0; }
   .refund-panel.open { max-height:1400px; opacity:1; }
 
-  .badge-pending   { background:#fffbeb; color:#92400e; border:1px solid #fde68a; }
-  .badge-confirmed { background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; }
-  .badge-refunding { background:#fff1f2; color:#9f1239; border:1px solid #fecdd3; }
-  .badge-refunded  { background:#f8fafc; color:#64748b; border:1px solid #e2e8f0; }
-
-  .fee-row:nth-child(even) { background:#f8fafc; }
+  .badge-pending-payment { background:#FDE68A; color:#78350F; border:1px solid #FCD34D; }
+  .badge-pending-review { background:#FEF3C7; color:#92400E; border:1px solid #FDE68A; }
+  .badge-confirmed { background:#DBEAFE; color:#1E40AF; border:1px solid #BFDBFE; }
+  .badge-checked-in { background:#D1FAE5; color:#065F46; border:1px solid #A7F3D0; }
+  .badge-balance-due { background:#FFF7ED; color:#C2410C; border:1px solid #FED7AA; }
+  .badge-completed { background:#DCFCE7; color:#166534; border:1px solid #BBF7D0; }
+  .badge-refund-requested { background:#FEE2E2; color:#991B1B; border:1px solid #FECACA; }
+  .badge-refunding { background:#FCE7F3; color:#9D174D; border:1px solid #FBCFE8; }
+  .badge-refunded,
+  .badge-cancelled { background:#E2E8F0; color:#475569; border:1px solid #CBD5E1; }
   .error-hint { color:#ef4444; font-size:11px; margin-top:4px; display:none; font-family:'Noto Sans TC',sans-serif; }
   .error-hint.show { display:block; }
 
@@ -75,7 +79,6 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
   /* 退款按鈕全寬 */
   #refundTrigger button { width: 100%; padding: 0.75rem 1rem !important; }
   /* fee table 字體 */
-  #feeTable { font-size: 12px !important; }
 }
 /* 超窄手機 (≤360px iPhone SE)：再緊一點 */
 @media (max-width: 360px) {
@@ -131,7 +134,7 @@ input[type="text"], input[type="email"], input[type="tel"], select, textarea { f
   <div class="relative z-10 max-w-lg mx-auto px-5">
     <p class="text-pink-300 font-bold tracking-[0.8em] text-[10px] mb-4 uppercase italic font-sans">Order Inquiry</p>
     <h1 class="text-3xl md:text-4xl font-bold text-white tracking-[0.2em] uppercase mb-3">訂單查詢</h1>
-    <p class="text-white/70 text-sm tracking-[0.25em] uppercase font-sans">查看預約狀態、費用明細，或申請退款</p>
+    <p class="text-white/70 text-sm tracking-[0.25em] uppercase font-sans">查看預約狀態，或申請退款</p>
     <div class="mt-5 w-10 h-0.5 bg-pink-400/50 mx-auto"></div>
   </div>
 </header>
@@ -235,14 +238,8 @@ input[type="text"], input[type="email"], input[type="tel"], select, textarea { f
             <div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">髮型設計</p><p id="r-hair" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
             <div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">化妝造型</p><p id="r-makeup" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
             <div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">旅拍攝影</p><p id="r-photo" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
-            <div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">提交時間</p><p id="r-submitDate" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
+            <div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">下單時間</p><p id="r-submitDate" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
           </div>
-        </div>
-
-        <!-- 費用明細 -->
-        <div>
-          <p class="text-[13px] font-bold text-pink-500 tracking-[0.3em] uppercase font-sans mb-5 flex items-center gap-3">費用明細 <span class="flex-1 h-px bg-pink-100"></span></p>
-          <div id="feeTable" class="rounded-sm overflow-hidden border border-slate-100"></div>
         </div>
 
         <!-- v2.4.40: 客人自助報到按鈕（只在 confirmed + 體驗日今天 顯示） -->
@@ -523,32 +520,85 @@ async function callFirebaseApi(path, body) {
   return data;
 }
 
-function fmtDate(val) {
+const STORE_TIME_ZONES = {
+  kyoto1: 'Asia/Tokyo',
+  kyoto2: 'Asia/Tokyo',
+  osaka1: 'Asia/Tokyo',
+  tokyo1: 'Asia/Tokyo'
+};
+
+function resolveTimeZone(d = {}) {
+  return d.storeTimeZone || STORE_TIME_ZONES[d.storeId] || Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Tokyo';
+}
+
+function hasExplicitTimeZone(str) {
+  return /Z$/i.test(str) || /[+-]\d{2}:?\d{2}$/.test(str);
+}
+
+function dateTimePartsInZone(val, timeZone) {
+  if (!val) return null;
+  const str = String(val);
+  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2}))?/);
+  if (!str.includes('T') || !hasExplicitTimeZone(str)) {
+    if (!match) return null;
+    return { year: match[1], month: match[2], day: match[3], hour: match[4] || '', minute: match[5] || '' };
+  }
+  const date = new Date(str);
+  if (Number.isNaN(date.getTime())) return null;
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  }).formatToParts(date).reduce((acc, part) => {
+    acc[part.type] = part.value;
+    return acc;
+  }, {});
+  return {
+    year: parts.year,
+    month: parts.month,
+    day: parts.day,
+    hour: parts.hour === '24' ? '00' : parts.hour,
+    minute: parts.minute
+  };
+}
+
+function fmtDate(val, timeZone) {
   if (!val) return '—';
   const str = String(val);
-  if (str.includes('T')) {
-    const d = new Date(str);
-    return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
-  }
+  const parts = dateTimePartsInZone(str, timeZone || 'Asia/Tokyo');
+  if (parts) return `${parts.year}-${parts.month}-${parts.day}`;
   if (/^\d{4}-\d{2}-\d{2}/.test(str)) return str.slice(0,10);
   return str;
 }
-function fmtTime(val) {
+function fmtTime(val, timeZone) {
   if (!val) return '—';
   const str = String(val);
+  const parts = dateTimePartsInZone(str, timeZone || 'Asia/Tokyo');
+  if (parts && parts.hour && parts.minute) return `${parts.hour}:${parts.minute}`;
   if (/T\d{2}:\d{2}/.test(str)) return (str.match(/T(\d{2}:\d{2})/) || [,'—'])[1];
   if (/\d{2}:\d{2}/.test(str)) return (str.match(/(\d{2}:\d{2})/) || [,'—'])[1];
   return '—';
 }
-function fmtDateTime(val) {
+function fmtDateTime(val, timeZone) {
   if (!val) return '—';
-  const date = fmtDate(val);
-  const time = fmtTime(val);
+  const date = fmtDate(val, timeZone);
+  const time = fmtTime(val, timeZone);
   return time === '—' ? date : `${date} ${time}`;
 }
 function fmtJPY(n) { const num=Number(n); return isNaN(num)?'—':num.toLocaleString('ja-JP'); }
 function yesNoLabel(value, yesText = '需要') {
   return value === true || value === '是' || value === 'true' ? `✅ ${yesText}` : '不需要';
+}
+function makeupLabelFor(value, makeupFlag, fee) {
+  const raw = String(value || '').trim();
+  if (/Premium|高級|高级|8000/.test(raw) || Number(fee) >= 8000) return '高級化妝';
+  if (/Standard|精緻|精致|5000/.test(raw) || Number(fee) >= 5000) return '精緻化妝';
+  if (/Basic|基礎|基础|3000/.test(raw) || Number(fee) >= 3000 || makeupFlag === true || makeupFlag === '是' || makeupFlag === 'true') return '基礎化妝';
+  return '不需要化妝';
 }
 
 let queryMode = 'byid';
@@ -614,56 +664,42 @@ function renderResult(d) {
   document.getElementById('r-orderId').textContent = d.orderId || '—';
 
   const statusMap = {
-    pending  :['核對中',    'badge-pending'],
-    confirmed:['✓ 已確認','badge-confirmed'],
-    refunding:['退款處理中','badge-refunding'],
-    refunded :['已退款',   'badge-refunded'],
+    pending: ['⏳ 待確認', 'badge-pending-review'],
+    pending_payment: ['💳 待付款', 'badge-pending-payment'],
+    pending_review: ['⏳ 待確認', 'badge-pending-review'],
+    confirmed: ['📅 待到店', 'badge-confirmed'],
+    checked_in: ['💰 待結帳', 'badge-checked-in'],
+    balance_due: ['💰 待付尾款', 'badge-balance-due'],
+    completed: ['✓ 已完成', 'badge-completed'],
+    refund_requested: ['↩ 申請退款', 'badge-refund-requested'],
+    refunding: ['↩ 退款中', 'badge-refunding'],
+    refunded: ['✓ 已退款', 'badge-refunded'],
+    cancelled: ['× 已取消', 'badge-cancelled']
   };
-  const [txt, cls] = statusMap[d.statusCode] || ['核對中','badge-pending'];
+  const normalizedStatus = d.statusCode || (d.confirmed ? 'confirmed' : 'pending_review');
+  const [txt, cls] = statusMap[normalizedStatus] || statusMap.pending_review;
   document.getElementById('r-statusBadge').innerHTML =
     `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold font-sans ${cls}">${txt}</span>`;
 
-  const makeupLabel = d.makeupPlan
-    ? `✅ ${d.makeupPlan}`
-    : yesNoLabel(d.makeup);
+  const displayTimeZone = resolveTimeZone(d);
+  const makeupLabel = makeupLabelFor(d.makeupPlan, d.makeup, d.makeupFee);
   const proofLabel = d.paymentProofSubmitted
     ? (d.last5 ? `已提交（末五碼 ${d.last5}）` : '已提交')
     : '尚未提交 / 待補件';
 
   document.getElementById('r-store').textContent       = d.storeName || d.storeId || '—';
   document.getElementById('r-storeAddress').textContent = d.storeAddress || '';
-  document.getElementById('r-bookingDate').textContent = fmtDate(d.bookingDate);
-  document.getElementById('r-bookingTime').textContent = fmtTime(d.bookingAt || d.bookingDate);
+  document.getElementById('r-bookingDate').textContent = fmtDate(d.bookingAt || d.bookingDate, displayTimeZone);
+  document.getElementById('r-bookingTime').textContent = fmtTime(d.bookingAt || d.bookingDate, displayTimeZone);
   document.getElementById('r-guests').textContent      = d.guests || '—';
   document.getElementById('r-paymentStatus').textContent = proofLabel;
   document.getElementById('r-plan').textContent        = d.plan   || '—';
   document.getElementById('r-hair').textContent        = yesNoLabel(d.hair);
   document.getElementById('r-makeup').textContent      = makeupLabel;
   document.getElementById('r-photo').textContent       = yesNoLabel(d.photo);
-  document.getElementById('r-submitDate').textContent  = fmtDateTime(d.submitDate);
+  document.getElementById('r-submitDate').textContent  = fmtDateTime(d.orderCreatedAt || d.submitDate, displayTimeZone);
 
-  const rows = [];
   const hasPlanPrice = Number(d.planPrice) > 0;
-  const hasDiscount  = d.couponCode && Number(d.discount) > 0 && Number(d.discount) < 10;
-  if (hasPlanPrice) {
-    rows.push({ key:'和服方案原價', val:`¥${fmtJPY(d.planPrice)}`, cls:'' });
-    if (hasDiscount) {
-      rows.push({ key:`優惠折扣（${d.couponCode}・${d.discount}折）`, val:`- ¥${fmtJPY(Number(d.planPrice)-Number(d.planActual))}`, cls:'text-green-600' });
-      rows.push({ key:'實收和服費', val:`¥${fmtJPY(d.planActual)}`, cls:'' });
-    } else {
-      rows.push({ key:'和服費用', val:`¥${fmtJPY(d.planActual||d.planPrice)}`, cls:'' });
-    }
-  }
-  if (Number(d.hairFee)    > 0) rows.push({ key:'髮型設計費',  val:`¥${fmtJPY(d.hairFee)}`,    cls:'' });
-  if (Number(d.makeupFee)  > 0) rows.push({ key:'化妝造型費',  val:`¥${fmtJPY(d.makeupFee)}`,  cls:'' });
-  if (Number(d.photoFee)   > 0) rows.push({ key:'旅拍攝影費',  val:`¥${fmtJPY(d.photoFee)}`,   cls:'' });
-  if (Number(d.totalJpy)   > 0) rows.push({ key:'費用小計',    val:`¥${fmtJPY(d.totalJpy)}`,   cls:'text-[#1A365D]' });
-  if (Number(d.depositJPY) > 0) rows.push({ key:'已付訂金折抵',val:`- ¥${fmtJPY(d.depositJPY)}`,cls:'text-slate-400' });
-
-  const feeTable = document.getElementById('feeTable');
-  feeTable.innerHTML = rows.length > 0
-    ? rows.map(r=>`<div class="fee-row flex justify-between items-center px-4 py-3 text-sm border-b border-slate-100 last:border-0"><span class="text-slate-500 font-sans ${r.cls}">${r.key}</span><span class="font-bold font-sans ${r.cls}">${r.val}</span></div>`).join('')
-    : `<div class="px-4 py-6 text-center text-slate-300 text-xs font-sans tracking-widest">費用明細確認後顯示</div>`;
 
   const hasOnsite = hasPlanPrice && d.onsiteDue !== '' && d.onsiteDue !== null && d.onsiteDue !== undefined;
   if (hasOnsite) {
