@@ -145,11 +145,11 @@ input[type="text"], input[type="email"], input[type="tel"], select, textarea { f
   <div id="formCard" class="max-w-2xl mx-auto bg-white shadow-2xl rounded-sm border border-slate-50 p-8 md:p-10 fade-up">
     <div class="mb-8 text-center">
       <h2 class="text-lg font-bold text-[#1A365D] uppercase tracking-[0.3em] font-sans">查詢我的訂單</h2>
-      <p class="text-slate-400 text-xs mt-2 font-sans tracking-wider">訂單編號、Email 或手機號碼，任填一項即可</p>
+      <p class="text-slate-400 text-xs mt-2 font-sans tracking-wider">訂單編號、姓名、Email 或手機號碼，任填一項即可</p>
     </div>
     <!-- Tab switcher -->
     <div class="flex border border-slate-200 rounded-md mb-7 p-1 bg-slate-50 font-sans">
-      <button id="tab-byid" type="button" onclick="switchQueryMode('byid')" class="flex-1 py-2 text-sm font-bold tracking-wider rounded transition-all bg-[#1A365D] text-white">訂單編號查詢</button>
+      <button id="tab-byid" type="button" onclick="switchQueryMode('byid')" class="flex-1 py-2 text-sm font-bold tracking-wider rounded transition-all bg-[#1A365D] text-white">任填一項查詢</button>
       <button id="tab-bynamephone" type="button" onclick="switchQueryMode('bynamephone')" class="flex-1 py-2 text-sm font-bold tracking-wider rounded transition-all text-slate-500">姓名 + 電話</button>
     </div>
 
@@ -160,6 +160,11 @@ input[type="text"], input[type="email"], input[type="tel"], select, textarea { f
         <input type="text" id="orderId" placeholder="K260421001" autocomplete="off"
           oninput="this.value=this.value.toUpperCase()"
           class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-xl font-bold bg-transparent transition-colors font-sans tracking-[0.1em] placeholder:text-slate-200 placeholder:font-normal placeholder:text-base">
+      </div>
+      <div class="mb-5">
+        <label class="block text-[12px] font-bold text-slate-600 uppercase tracking-[0.2em] mb-2 font-sans">客戶姓名</label>
+        <input type="text" id="queryName" placeholder="例：王小明" autocomplete="off"
+          class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-base font-bold bg-transparent transition-colors font-sans placeholder:text-slate-200 placeholder:font-normal">
       </div>
       <div class="mb-5">
         <label class="block text-[12px] font-bold text-slate-600 uppercase tracking-[0.2em] mb-2 font-sans">Email</label>
@@ -175,7 +180,7 @@ input[type="text"], input[type="email"], input[type="tel"], select, textarea { f
         <label class="block text-[12px] font-bold text-slate-600 uppercase tracking-[0.2em] mb-2 font-sans">手機號碼</label>
         <input type="tel" id="phone" placeholder="0912345678" autocomplete="off"
           class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-base font-bold bg-transparent transition-colors font-sans placeholder:text-slate-200 placeholder:font-normal">
-        <p class="text-[10px] text-slate-300 mt-2 font-sans">※ 訂單編號、Email 或手機號碼，任填一項即可查詢</p>
+        <p class="text-[10px] text-slate-300 mt-2 font-sans">※ 訂單編號、姓名、Email 或手機號碼，任填一項即可查詢</p>
       </div>
     </div>
 
@@ -212,6 +217,7 @@ input[type="text"], input[type="email"], input[type="tel"], select, textarea { f
     <button onclick="goBack()" class="flex items-center gap-2 text-slate-400 hover:text-[#1A365D] text-xs font-sans font-bold uppercase tracking-[0.2em] mb-5 transition-colors">
       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>重新查詢
     </button>
+    <div id="resultSummary" class="hidden mb-4 bg-blue-50 border-l-4 border-[#1A365D] p-4 rounded-r-sm text-[#1A365D] text-sm font-sans font-bold"></div>
 
     <div class="bg-white shadow-2xl rounded-sm border border-slate-50 overflow-hidden fade-up">
       <!-- 頭部 -->
@@ -232,8 +238,7 @@ input[type="text"], input[type="email"], input[type="tel"], select, textarea { f
             <div class="col-span-2"><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">體驗門市</p><p id="r-store" class="font-bold text-[#1A365D] font-sans text-base">—</p><p id="r-storeAddress" class="text-slate-400 text-xs font-sans mt-1 leading-relaxed"></p></div>
             <div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">體驗日期</p><p id="r-bookingDate" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
             <div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">預約時段</p><p id="r-bookingTime" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
-            <div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">人數</p><p id="r-guests" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
-            <div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">付款憑證</p><p id="r-paymentStatus" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
+            <div id="r-guestsRow"><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">人數</p><p id="r-guests" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
             <div class="col-span-2"><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">和服款式</p><p id="r-plan" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
             <div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">髮型設計</p><p id="r-hair" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
             <div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">化妝造型</p><p id="r-makeup" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
@@ -367,6 +372,7 @@ input[type="text"], input[type="email"], input[type="tel"], select, textarea { f
 
       </div>
     </div>
+    <div id="additionalResults" class="mt-6 space-y-6"></div>
 
     <!-- 聯繫客服 -->
     <div class="mt-4 bg-white shadow-sm rounded-sm border border-slate-50 p-6 text-center">
@@ -593,12 +599,50 @@ function fmtJPY(n) { const num=Number(n); return isNaN(num)?'—':num.toLocaleSt
 function yesNoLabel(value, yesText = '需要') {
   return value === true || value === '是' || value === 'true' ? `✅ ${yesText}` : '不需要';
 }
+function totalGuestCount(d = {}) {
+  const maleAdults = Number(d.maleAdults || 0);
+  const femaleAdults = Number(d.femaleAdults || 0);
+  const adults = Number(d.adults || 0);
+  const children = Number(d.children || 0);
+  const total = maleAdults + femaleAdults + children;
+  return total > 0 ? total : adults + children;
+}
+function guestTextHasPositiveCount(text) {
+  return (String(text || '').match(/\d+/g) || []).some(n => Number(n) > 0);
+}
 function makeupLabelFor(value, makeupFlag, fee) {
   const raw = String(value || '').trim();
   if (/Premium|高級|高级|8000/.test(raw) || Number(fee) >= 8000) return '高級化妝';
   if (/Standard|精緻|精致|5000/.test(raw) || Number(fee) >= 5000) return '精緻化妝';
   if (/Basic|基礎|基础|3000/.test(raw) || Number(fee) >= 3000 || makeupFlag === true || makeupFlag === '是' || makeupFlag === 'true') return '基礎化妝';
   return '不需要化妝';
+}
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
+}
+function statusMetaFor(statusCode, confirmed) {
+  const statusMap = {
+    pending: ['⏳ 待確認', 'badge-pending-review'],
+    pending_payment: ['💳 待付款', 'badge-pending-payment'],
+    pending_review: ['⏳ 待確認', 'badge-pending-review'],
+    confirmed: ['📅 待到店', 'badge-confirmed'],
+    checked_in: ['💰 待結帳', 'badge-checked-in'],
+    balance_due: ['💰 待付尾款', 'badge-balance-due'],
+    completed: ['✓ 已完成', 'badge-completed'],
+    refund_requested: ['↩ 申請退款', 'badge-refund-requested'],
+    refunding: ['↩ 退款中', 'badge-refunding'],
+    refunded: ['✓ 已退款', 'badge-refunded'],
+    cancelled: ['× 已取消', 'badge-cancelled']
+  };
+  const normalizedStatus = statusCode || (confirmed ? 'confirmed' : 'pending_review');
+  return statusMap[normalizedStatus] || statusMap.pending_review;
+}
+function statusBadgeHtml(d) {
+  const [txt, cls] = statusMetaFor(d.statusCode, d.confirmed);
+  return `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold font-sans ${cls}">${escapeHtml(txt)}</span>`;
+}
+function queryOrdersFromResponse(data) {
+  return Array.isArray(data && data.orders) && data.orders.length ? data.orders : [data];
 }
 
 let queryMode = 'byid';
@@ -621,10 +665,11 @@ async function doQuery() {
     payload = { action:'queryByNamePhone', name: qName, phone: qPhone };
   } else {
     const orderId = document.getElementById('orderId').value.trim().toUpperCase();
+    const qName   = document.getElementById('queryName').value.trim();
     const email   = document.getElementById('email').value.trim();
     const phone   = document.getElementById('phone').value.trim();
-    if (!orderId && !email && !phone) return showError('訂單編號、Email 或手機號碼，請至少填寫一項');
-    payload = { action:'query', orderId, contact: email || phone };
+    if (!orderId && !qName && !email && !phone) return showError('訂單編號、姓名、Email 或手機號碼，請至少填寫一項');
+    payload = { action:'query', orderId, name: qName, contact: email || phone };
   }
   showLoading();
   try {
@@ -634,6 +679,7 @@ async function doQuery() {
         ? { name: payload.name, phone: payload.phone }
         : {
             ...(payload.orderId ? { orderId: payload.orderId } : {}),
+            ...(payload.name ? { name: payload.name } : {}),
             ...(payload.contact ? { contact: payload.contact } : {})
           };
       data = await callFirebaseApi('queryPublicOrder', firebasePayload);
@@ -647,10 +693,13 @@ async function doQuery() {
     }
     hideLoading();
     if (data.status !== 'success') { showForm(); return showError(data.message || '查無此訂單，請確認資料是否正確'); }
-    // v2.4.40: 也記下姓名（byNamePhone 模式從 form 拿；query 模式用 data.name 若 GAS 有回）
-    const formName = (queryMode === 'bynamephone') ? document.getElementById('qNamePhoneName').value.trim() : '';
-    currentOrder = { orderId: data.orderId, firestoreId: data.firestoreId || '', email: data.email||'', phone: data.phone||'', name: data.name || formName || '' };
-    renderResult(data);
+    const orders = queryOrdersFromResponse(data);
+    const first = orders[0] || data;
+    const formName = queryMode === 'bynamephone'
+      ? document.getElementById('qNamePhoneName').value.trim()
+      : document.getElementById('queryName').value.trim();
+    currentOrder = { orderId: first.orderId, firestoreId: first.firestoreId || '', email: first.email||'', phone: first.phone||'', name: first.name || formName || '' };
+    renderResults(data);
   } catch(err) {
     console.error(err); hideLoading(); showForm();
     const notFound = err.status === 404 || /order not found|查無/i.test(err.message || '');
@@ -660,39 +709,94 @@ async function doQuery() {
   }
 }
 
+function readonlyFieldHtml(label, value, extra = '') {
+  const safeValue = value && value !== '—' ? escapeHtml(value) : '—';
+  const extraHtml = extra ? `<p class="text-slate-400 text-xs font-sans mt-1 leading-relaxed">${escapeHtml(extra)}</p>` : '';
+  return `<div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">${escapeHtml(label)}</p><p class="font-bold text-[#1A365D] font-sans text-base">${safeValue}</p>${extraHtml}</div>`;
+}
+
+function renderReadonlyOrderCard(d) {
+  const displayTimeZone = resolveTimeZone(d);
+  const makeupLabel = makeupLabelFor(d.makeupPlan, d.makeup, d.makeupFee);
+  const guestText = String(d.guests || '').trim();
+  const shouldShowGuests = guestText && (totalGuestCount(d) > 0 || guestTextHasPositiveCount(guestText));
+  const hasPlanPrice = Number(d.planPrice) > 0;
+  const hasOnsite = hasPlanPrice && d.onsiteDue !== '' && d.onsiteDue !== null && d.onsiteDue !== undefined;
+  const depositNote = d.twdDeposit
+    ? (hasOnsite ? `台幣訂金 NT$${d.twdDeposit} 已折抵` : `已付台幣訂金 NT$${d.twdDeposit}`)
+    : (Number(d.depositJPY) > 0
+      ? (hasOnsite ? `已付日幣訂金 ¥${fmtJPY(d.depositJPY)} 已折抵` : `已付日幣訂金 ¥${fmtJPY(d.depositJPY)}`)
+      : '');
+  const fields = [
+    `<div class="col-span-2">${readonlyFieldHtml('體驗門市', d.storeName || d.storeId || '—', d.storeAddress || '')}</div>`,
+    readonlyFieldHtml('體驗日期', fmtDate(d.bookingAt || d.bookingDate, displayTimeZone)),
+    readonlyFieldHtml('預約時段', fmtTime(d.bookingAt || d.bookingDate, displayTimeZone)),
+    shouldShowGuests ? readonlyFieldHtml('人數', guestText) : '',
+    `<div class="col-span-2">${readonlyFieldHtml('和服款式', d.plan || '—')}</div>`,
+    readonlyFieldHtml('髮型設計', yesNoLabel(d.hair)),
+    readonlyFieldHtml('化妝造型', makeupLabel),
+    readonlyFieldHtml('旅拍攝影', yesNoLabel(d.photo)),
+    readonlyFieldHtml('下單時間', fmtDateTime(d.orderCreatedAt || d.submitDate, displayTimeZone))
+  ].filter(Boolean).join('');
+
+  return `
+    <div class="bg-white shadow-2xl rounded-sm border border-slate-50 overflow-hidden fade-up">
+      <div class="bg-[#1A365D] px-7 py-6 flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <p class="text-white/30 text-[9px] uppercase tracking-[0.4em] font-sans mb-1.5">BOOKING NO.</p>
+          <p class="text-white font-bold text-2xl tracking-[0.12em] font-sans">${escapeHtml(d.orderId || '—')}</p>
+        </div>
+        <div class="mt-1 shrink-0">${statusBadgeHtml(d)}</div>
+      </div>
+      <div class="p-7 md:p-9 space-y-8">
+        <div>
+          <p class="text-[13px] font-bold text-pink-500 tracking-[0.3em] uppercase font-sans mb-5 flex items-center gap-3">預約內容 <span class="flex-1 h-px bg-pink-100"></span></p>
+          <div class="grid grid-cols-2 gap-x-6 gap-y-5">${fields}</div>
+        </div>
+        <div class="bg-[#1A365D] rounded-sm p-6 text-center relative overflow-hidden">
+          <div class="absolute inset-0 opacity-[0.06]" style="background-image:radial-gradient(circle,#FFB7C5 1px,transparent 1px);background-size:24px 24px"></div>
+          <p class="text-white/40 text-[9px] uppercase tracking-[0.4em] font-sans mb-2 relative z-10">現場應付金額　AMOUNT DUE ON SITE</p>
+          <p class="text-white font-bold text-4xl font-sans tracking-wider relative z-10">${hasOnsite ? `¥${fmtJPY(d.onsiteDue)}` : '待確認'}</p>
+          <p class="text-pink-300 text-xs mt-2 font-sans relative z-10">${escapeHtml(depositNote)}</p>
+        </div>
+        ${hasOnsite ? '' : '<div class="bg-amber-50 border-l-4 border-amber-300 p-4 rounded-r-sm"><p class="text-amber-700 text-xs font-sans leading-relaxed">📋 和服方案費用將於訂單確認後顯示，如有疑問請聯繫客服。</p></div>'}
+      </div>
+    </div>`;
+}
+
+function renderResults(data) {
+  const orders = queryOrdersFromResponse(data);
+  const first = orders[0] || data;
+  renderResult(first);
+  const summary = document.getElementById('resultSummary');
+  const additional = document.getElementById('additionalResults');
+  if (orders.length > 1) {
+    summary.textContent = `共查到 ${orders.length} 筆訂單，以下依下單時間由新到舊排列。`;
+    summary.classList.remove('hidden');
+    additional.innerHTML = orders.slice(1).map(renderReadonlyOrderCard).join('');
+  } else {
+    summary.textContent = '';
+    summary.classList.add('hidden');
+    additional.innerHTML = '';
+  }
+}
+
 function renderResult(d) {
   document.getElementById('r-orderId').textContent = d.orderId || '—';
 
-  const statusMap = {
-    pending: ['⏳ 待確認', 'badge-pending-review'],
-    pending_payment: ['💳 待付款', 'badge-pending-payment'],
-    pending_review: ['⏳ 待確認', 'badge-pending-review'],
-    confirmed: ['📅 待到店', 'badge-confirmed'],
-    checked_in: ['💰 待結帳', 'badge-checked-in'],
-    balance_due: ['💰 待付尾款', 'badge-balance-due'],
-    completed: ['✓ 已完成', 'badge-completed'],
-    refund_requested: ['↩ 申請退款', 'badge-refund-requested'],
-    refunding: ['↩ 退款中', 'badge-refunding'],
-    refunded: ['✓ 已退款', 'badge-refunded'],
-    cancelled: ['× 已取消', 'badge-cancelled']
-  };
-  const normalizedStatus = d.statusCode || (d.confirmed ? 'confirmed' : 'pending_review');
-  const [txt, cls] = statusMap[normalizedStatus] || statusMap.pending_review;
-  document.getElementById('r-statusBadge').innerHTML =
-    `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold font-sans ${cls}">${txt}</span>`;
+  document.getElementById('r-statusBadge').innerHTML = statusBadgeHtml(d);
 
   const displayTimeZone = resolveTimeZone(d);
   const makeupLabel = makeupLabelFor(d.makeupPlan, d.makeup, d.makeupFee);
-  const proofLabel = d.paymentProofSubmitted
-    ? (d.last5 ? `已提交（末五碼 ${d.last5}）` : '已提交')
-    : '尚未提交 / 待補件';
+  const guestText = String(d.guests || '').trim();
+  const shouldShowGuests = guestText && (totalGuestCount(d) > 0 || guestTextHasPositiveCount(guestText));
 
   document.getElementById('r-store').textContent       = d.storeName || d.storeId || '—';
   document.getElementById('r-storeAddress').textContent = d.storeAddress || '';
   document.getElementById('r-bookingDate').textContent = fmtDate(d.bookingAt || d.bookingDate, displayTimeZone);
   document.getElementById('r-bookingTime').textContent = fmtTime(d.bookingAt || d.bookingDate, displayTimeZone);
-  document.getElementById('r-guests').textContent      = d.guests || '—';
-  document.getElementById('r-paymentStatus').textContent = proofLabel;
+  document.getElementById('r-guests').textContent      = guestText || '—';
+  document.getElementById('r-guestsRow').classList.toggle('hidden', !shouldShowGuests);
   document.getElementById('r-plan').textContent        = d.plan   || '—';
   document.getElementById('r-hair').textContent        = yesNoLabel(d.hair);
   document.getElementById('r-makeup').textContent      = makeupLabel;
@@ -928,7 +1032,7 @@ window.addEventListener('load', () => {
             phone: result.phone || '',
             name: result.name || ''
           };
-          renderResult(result);
+          renderResults(result);
         } else {
           doQuery();
         }

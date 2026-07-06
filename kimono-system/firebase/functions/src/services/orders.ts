@@ -58,9 +58,8 @@ export const queryPublicOrderSchema = z.object({
   name: z.string().optional(),
   phone: z.string().optional()
 }).refine((input) => {
-  if (input.orderId || input.contact) return true;
-  return Boolean(input.name && input.phone);
-}, "Order number, contact, or name with phone is required");
+  return Boolean(input.orderId || input.contact || input.name || input.phone);
+}, "Order number, contact, name, or phone is required");
 
 export const updateOrderByStaffSchema = z.object({
   orderId: z.string().min(1),
@@ -263,6 +262,16 @@ function toPublicOrderResponse(orderId: string, order: FirebaseFirestore.Documen
   const storeId = String(order.storeId || "");
   const store = storeMap[storeId] || { name: storeId, address: "", timeZone: "Asia/Tokyo" };
   const createdAt = timestampToIso(order.createdAt);
+  const guestParts = hasBreakdown
+    ? [
+        maleAdults > 0 ? `${maleAdults} 位男性` : "",
+        femaleAdults > 0 ? `${femaleAdults} 位女性` : "",
+        children > 0 ? `${children} 位小孩` : ""
+      ].filter(Boolean)
+    : [
+        adults > 0 ? `${adults} 位大人` : "",
+        children > 0 ? `${children} 位小孩` : ""
+      ].filter(Boolean);
 
   return {
     status: "success",
@@ -280,9 +289,7 @@ function toPublicOrderResponse(orderId: string, order: FirebaseFirestore.Documen
     storeName: store.name,
     storeAddress: store.address,
     storeTimeZone: store.timeZone,
-    guests: hasBreakdown
-      ? `${maleAdults} 位男性 / ${femaleAdults} 位女性${children ? ` / ${children} 位小孩` : ""}`
-      : `${adults} 位大人${children ? ` / ${children} 位小孩` : ""}`,
+    guests: guestParts.join(" / "),
     adults,
     maleAdults,
     femaleAdults,
@@ -414,6 +421,8 @@ export async function queryPublicOrder(raw: unknown) {
     const contact = input.contact.trim();
     const field = contact.includes("@") ? "customerEmail" : "customerPhone";
     snap = await db.collection("orders").where(field, "==", contact).limit(20).get();
+  } else if (input.phone) {
+    snap = await db.collection("orders").where("customerPhone", "==", input.phone.trim()).limit(20).get();
   } else {
     snap = await db.collection("orders").where("customerName", "==", input.name?.trim()).limit(20).get();
   }
@@ -423,37 +432,38 @@ export async function queryPublicOrder(raw: unknown) {
   const contact = normalizeText(input.contact);
   const phoneDigits = normalizeDigits(input.phone);
   const name = normalizeText(input.name);
-  const fullyVerified = Boolean(
-    (input.orderId && input.contact)
-    || (input.name && input.phone)
-  );
+  const fullyVerified = Boolean((input.orderId && input.contact) || (input.name && input.phone));
 
   const matches = snap.docs.filter((doc) => {
     const order = doc.data();
     if (input.orderId && input.contact) {
       const emailOk = normalizeText(order.customerEmail) === contact;
       const phoneOk = normalizeDigits(order.customerPhone).endsWith(normalizeDigits(contact));
-      return emailOk || phoneOk;
+      if (!emailOk && !phoneOk) return false;
     }
-    if (input.orderId) return true;
     if (input.contact) {
       const emailOk = contact.includes("@") && normalizeText(order.customerEmail) === contact;
       const phoneOk = !contact.includes("@") && normalizeDigits(order.customerPhone) === normalizeDigits(contact);
-      return emailOk || phoneOk;
+      if (!emailOk && !phoneOk) return false;
     }
-    const nameOk = normalizeText(order.customerName) === name;
-    const phoneOk = normalizeDigits(order.customerPhone).endsWith(phoneDigits.slice(-5));
-    return nameOk && phoneOk;
+    if (input.name && normalizeText(order.customerName) !== name) return false;
+    if (input.phone && normalizeDigits(order.customerPhone) !== phoneDigits) return false;
+    return true;
   });
 
-  const match = matches.sort((a, b) => {
+  const sortedMatches = matches.sort((a, b) => {
     const aTime = timestampToMillis(a.data().createdAt || a.data().bookingAt) || 0;
     const bTime = timestampToMillis(b.data().createdAt || b.data().bookingAt) || 0;
     return bTime - aTime;
-  })[0];
+  });
 
-  if (!match) throw new HttpError(404, "Order not found");
-  return toPublicOrderResponse(match.id, match.data(), fullyVerified);
+  if (!sortedMatches.length) throw new HttpError(404, "Order not found");
+  const orders = sortedMatches.map((doc) => toPublicOrderResponse(doc.id, doc.data(), fullyVerified));
+  return {
+    ...orders[0],
+    orders,
+    count: orders.length
+  };
 }
 
 export async function createPublicOrder(raw: unknown) {
