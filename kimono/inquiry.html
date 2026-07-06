@@ -820,6 +820,21 @@ window.addEventListener('load', () => {
     p.style.animationDelay=(Math.random()*15)+'s';
     c.appendChild(p);
   }
+  try {
+    const savedQuery = sessionStorage.getItem('kimono_quick_query');
+    if (savedQuery) {
+      sessionStorage.removeItem('kimono_quick_query');
+      const { orderId, contact } = JSON.parse(savedQuery);
+      if (orderId && contact) {
+        document.getElementById('orderId').value = String(orderId).trim().toUpperCase();
+        const contactValue = String(contact).trim();
+        document.getElementById(contactValue.includes('@') ? 'email' : 'phone').value = contactValue;
+        doQuery();
+      }
+    }
+  } catch (error) {
+    console.warn('Unable to restore quick inquiry details', error);
+  }
 });
 </script>
 </body>
