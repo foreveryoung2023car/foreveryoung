@@ -511,7 +511,9 @@ async function callFirebaseApi(path, body) {
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok || data.status === 'error') {
-    throw new Error(data.message || `Firebase API 錯誤 (${res.status})`);
+    const error = new Error(data.message || `Firebase API 錯誤 (${res.status})`);
+    error.status = res.status;
+    throw error;
   }
   return data;
 }
@@ -580,7 +582,10 @@ async function doQuery() {
     renderResult(data);
   } catch(err) {
     console.error(err); hideLoading(); showForm();
-    showError('網路連線錯誤，請稍後再試');
+    const notFound = err.status === 404 || /order not found|查無/i.test(err.message || '');
+    showError(notFound
+      ? '查無此訂單，請確認輸入資料是否正確'
+      : '查詢服務暫時無法使用，請稍後再試');
   }
 }
 
@@ -824,8 +829,10 @@ window.addEventListener('load', () => {
   }
   try {
     const savedQuery = sessionStorage.getItem('kimono_quick_query');
+    const savedResult = sessionStorage.getItem('kimono_quick_query_result');
     if (savedQuery) {
       sessionStorage.removeItem('kimono_quick_query');
+      sessionStorage.removeItem('kimono_quick_query_result');
       const { orderId, contact } = JSON.parse(savedQuery);
       if (orderId || contact) {
         if (orderId) document.getElementById('orderId').value = String(orderId).trim().toUpperCase();
@@ -833,7 +840,19 @@ window.addEventListener('load', () => {
           const contactValue = String(contact).trim();
           document.getElementById(contactValue.includes('@') ? 'email' : 'phone').value = contactValue;
         }
-        doQuery();
+        const result = savedResult ? JSON.parse(savedResult) : null;
+        if (result && result.status === 'success') {
+          currentOrder = {
+            orderId: result.orderId,
+            firestoreId: result.firestoreId || '',
+            email: result.email || '',
+            phone: result.phone || '',
+            name: result.name || ''
+          };
+          renderResult(result);
+        } else {
+          doQuery();
+        }
       }
     }
   } catch (error) {

@@ -295,6 +295,8 @@
                 '預約編號': '预约编号', 'Email 或手機號碼': 'Email 或手机号码', '查看預約': '查看预约',
                 '資料僅用於驗證預約身份，不會保留在此裝置。': '资料仅用于验证预约身份，不会保留在此设备。',
                 '請至少輸入一項查詢資料': '请至少输入一项查询资料',
+                '查詢中…': '查询中…', '查無此預約，請確認輸入資料是否正確': '查无此预约，请确认输入资料是否正确',
+                '查詢服務暫時無法使用，請稍後再試': '查询服务暂时无法使用，请稍后再试',
                 '＊ 攝影費用不含景點門票，進入收費景區時攝影師門票費由客人一同支付': '* 摄影费用不含景点门票，进入收费景区时摄影师门票费由客人一同支付',
                 '＊ 精選修圖後電子檔，於體驗後 7 個工作天內透過雲端連結交付': '* 精选修图后的电子档，将于体验后 7 个工作日内通过云端链接交付'
             },
@@ -306,6 +308,8 @@
                 '預約編號': '予約番号', 'Email 或手機號碼': 'メールまたは電話番号', '查看預約': '予約を表示',
                 '資料僅用於驗證預約身份，不會保留在此裝置。': '入力情報は本人確認のみに使用し、この端末には保存されません。',
                 '請至少輸入一項查詢資料': '検索情報を1つ以上入力してください',
+                '查詢中…': '検索中…', '查無此預約，請確認輸入資料是否正確': '予約が見つかりません。入力内容をご確認ください',
+                '查詢服務暫時無法使用，請稍後再試': '検索サービスを一時的に利用できません。しばらくしてからお試しください',
                 '請先選擇門市與日期，下方會顯示各時段剩餘名額': '店舗と日付を選択すると、各時間帯の残り枠が表示されます',
                 '年/月/日': '年/月/日',
                 '* 訂金於體驗當日全額折抵現場結帳消費。': '* 予約金は体験当日の店頭支払いに全額充当されます。',
@@ -321,6 +325,8 @@
                 '預約編號': 'Booking Number', 'Email 或手機號碼': 'Email or Phone Number', '查看預約': 'View Booking',
                 '資料僅用於驗證預約身份，不會保留在此裝置。': 'Your details are used only to verify your booking and are not stored on this device.',
                 '請至少輸入一項查詢資料': 'Enter at least one search detail',
+                '查詢中…': 'Searching…', '查無此預約，請確認輸入資料是否正確': 'No booking found. Please check the information entered.',
+                '查詢服務暫時無法使用，請稍後再試': 'Booking search is temporarily unavailable. Please try again later.',
                 '請先選擇門市與日期，下方會顯示各時段剩餘名額': 'Select a store and date to view the remaining capacity for each time slot.',
                 '年/月/日': 'YYYY/MM/DD',
                 '* 訂金於體驗當日全額折抵現場結帳消費。': '* The deposit is fully credited toward your in-store payment on the experience date.',
@@ -336,6 +342,8 @@
                 '預約編號': '예약 번호', 'Email 或手機號碼': '이메일 또는 전화번호', '查看預約': '예약 보기',
                 '資料僅用於驗證預約身份，不會保留在此裝置。': '입력 정보는 예약 확인에만 사용되며 이 기기에 저장되지 않습니다.',
                 '請至少輸入一項查詢資料': '검색 정보를 하나 이상 입력해 주세요',
+                '查詢中…': '조회 중…', '查無此預約，請確認輸入資料是否正確': '예약을 찾을 수 없습니다. 입력 정보를 확인해 주세요.',
+                '查詢服務暫時無法使用，請稍後再試': '예약 조회를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.',
                 '請先選擇門市與日期，下方會顯示各時段剩餘名額': '매장과 날짜를 선택하면 시간대별 잔여 인원이 표시됩니다',
                 '年/月/日': '연/월/일',
                 '* 訂金於體驗當日全額折抵現場結帳消費。': '* 예약금은 체험 당일 매장 결제 금액에서 전액 차감됩니다.',
@@ -351,6 +359,8 @@
                 '預約編號': 'Nomor Reservasi', 'Email 或手機號碼': 'Email atau Nomor Telepon', '查看預約': 'Lihat Reservasi',
                 '資料僅用於驗證預約身份，不會保留在此裝置。': 'Data hanya digunakan untuk verifikasi dan tidak disimpan di perangkat ini.',
                 '請至少輸入一項查詢資料': 'Masukkan setidaknya satu informasi pencarian',
+                '查詢中…': 'Mencari…', '查無此預約，請確認輸入資料是否正確': 'Reservasi tidak ditemukan. Periksa kembali data yang dimasukkan.',
+                '查詢服務暫時無法使用，請稍後再試': 'Pencarian reservasi sementara tidak tersedia. Coba lagi nanti.',
                 '請先選擇門市與日期，下方會顯示各時段剩餘名額': 'Pilih toko dan tanggal untuk melihat sisa kapasitas setiap slot waktu',
                 '年/月/日': 'TTTT/BB/HH',
                 '* 訂金於體驗當日全額折抵現場結帳消費。': '* Deposit sepenuhnya dipotong dari pembayaran di toko pada hari pengalaman.',
@@ -1836,22 +1846,59 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             error.classList.add('hidden');
         }
 
-        function submitQuickInquiry(event) {
+        async function submitQuickInquiry(event) {
             event.preventDefault();
             const orderId = document.getElementById('quick-order-id').value.trim().toUpperCase();
             const contact = document.getElementById('quick-contact').value.trim();
             const error = document.getElementById('quick-inquiry-error');
+            const submitButton = document.querySelector('#quick-inquiry-form button[type="submit"]');
             if (!orderId && !contact) {
                 error.textContent = t('請至少輸入一項查詢資料');
                 error.classList.remove('hidden');
                 return;
             }
+
+            const originalButtonHtml = submitButton.innerHTML;
+            submitButton.disabled = true;
+            submitButton.classList.add('opacity-60', 'cursor-wait');
+            submitButton.textContent = t('查詢中…');
+
             try {
+                let result = null;
+                if (KIMONO_CONFIG.USE_NEW_API) {
+                    const apiBaseUrl = String(KIMONO_CONFIG.API_BASE_URL || '').replace(/\/$/, '');
+                    if (!apiBaseUrl) throw new Error('API_BASE_URL is not configured');
+                    const response = await fetch(`${apiBaseUrl}/queryPublicOrder`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            ...(orderId ? { orderId } : {}),
+                            ...(contact ? { contact } : {})
+                        })
+                    });
+                    result = await response.json().catch(() => ({}));
+                    if (!response.ok || result.status === 'error') {
+                        const lookupError = new Error(result.message || `Lookup failed (${response.status})`);
+                        lookupError.status = response.status;
+                        throw lookupError;
+                    }
+                }
+
                 sessionStorage.setItem('kimono_quick_query', JSON.stringify({ orderId, contact }));
+                if (result) sessionStorage.setItem('kimono_quick_query_result', JSON.stringify(result));
+                window.location.href = './inquiry.html?source=home';
             } catch (storageError) {
-                console.warn('Unable to store quick inquiry details', storageError);
+                console.error('Quick inquiry failed', storageError);
+                const notFound = storageError.status === 404 || /order not found|查無/i.test(storageError.message || '');
+                error.textContent = t(notFound
+                    ? '查無此預約，請確認輸入資料是否正確'
+                    : '查詢服務暫時無法使用，請稍後再試');
+                error.classList.remove('hidden');
+            } finally {
+                submitButton.disabled = false;
+                submitButton.classList.remove('opacity-60', 'cursor-wait');
+                submitButton.innerHTML = originalButtonHtml;
             }
-            window.location.href = './inquiry.html?source=home';
         }
 
         function switchFaq(idx) {
