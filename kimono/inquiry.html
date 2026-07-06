@@ -125,7 +125,17 @@ input[type="text"], input[type="email"], input[type="tel"], select, textarea { f
         <div class="text-white/40 text-[9px] uppercase tracking-wider font-sans">Order Inquiry</div>
       </div>
     </a>
-    <a href="./index.html#booking" class="px-5 py-2 text-[10px] font-bold border border-white/30 text-white hover:bg-white hover:text-[#1A365D] transition-all rounded-sm uppercase font-sans tracking-widest">立即預約</a>
+    <div class="flex items-center gap-3">
+      <select id="language-select" class="bg-white/10 border border-white/25 text-white rounded-sm px-2 py-2 text-[10px] font-bold uppercase font-sans tracking-wider outline-none" aria-label="選擇語言" onchange="setLanguage(this.value)">
+        <option class="text-[#1A365D]" value="zh-Hant">繁中</option>
+        <option class="text-[#1A365D]" value="zh-Hans">简中</option>
+        <option class="text-[#1A365D]" value="ja">日本語</option>
+        <option class="text-[#1A365D]" value="en">English</option>
+        <option class="text-[#1A365D]" value="ko">한국어</option>
+        <option class="text-[#1A365D]" value="id">Indonesia</option>
+      </select>
+      <a href="./index.html#booking" class="px-5 py-2 text-[10px] font-bold border border-white/30 text-white hover:bg-white hover:text-[#1A365D] transition-all rounded-sm uppercase font-sans tracking-widest">立即預約</a>
+    </div>
   </div>
 </nav>
 
@@ -233,7 +243,7 @@ input[type="text"], input[type="email"], input[type="tel"], select, textarea { f
 
         <!-- 預約內容 -->
         <div>
-          <p class="text-[13px] font-bold text-pink-500 tracking-[0.3em] uppercase font-sans mb-5 flex items-center gap-3">預約內容 <span class="flex-1 h-px bg-pink-100"></span></p>
+          <p class="text-[13px] font-bold text-pink-500 tracking-[0.3em] uppercase font-sans mb-5 flex items-center gap-3">${escapeHtml(t('預約內容'))} <span class="flex-1 h-px bg-pink-100"></span></p>
           <div class="grid grid-cols-2 gap-x-6 gap-y-5">
             <div class="col-span-2"><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">體驗門市</p><p id="r-store" class="font-bold text-[#1A365D] font-sans text-base">—</p><p id="r-storeAddress" class="text-slate-400 text-xs font-sans mt-1 leading-relaxed"></p></div>
             <div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">體驗日期</p><p id="r-bookingDate" class="font-bold text-[#1A365D] font-sans text-base">—</p></div>
@@ -498,6 +508,194 @@ input[type="text"], input[type="email"], input[type="tel"], select, textarea { f
 </footer>
 
 <script>
+const phraseMaps = {
+  'zh-Hans': {
+    '選擇語言': '选择语言', '立即預約': '立即预约', '訂單查詢': '订单查询', '查看預約狀態，或申請退款': '查看预约状态，或申请退款',
+    '查詢我的訂單': '查询我的订单', '訂單編號、姓名、Email 或手機號碼，任填一項即可': '订单编号、姓名、Email 或手机号码，任填一项即可', '任填一項查詢': '任填一项查询', '姓名 + 電話': '姓名 + 电话',
+    '訂單編號': '订单编号', '客戶姓名': '客户姓名', '例：王小明': '例：王小明', '手機號碼': '手机号码', '或': '或', '※ 訂單編號、姓名、Email 或手機號碼，任填一項即可查詢': '※ 订单编号、姓名、Email 或手机号码，任填一项即可查询',
+    '姓名（全名）': '姓名（全名）', '手機號碼': '手机号码', '※ 姓名與手機需與下單時完全一致；找不到時請改用訂單編號查詢': '※ 姓名与手机需与下单时完全一致；找不到时请改用订单编号查询',
+    '查　詢　訂　單': '查 询 订 单', '查詢中，請稍候': '查询中，请稍候', '重新查詢': '重新查询', '預約內容': '预约内容', '體驗門市': '体验门店', '體驗日期': '体验日期', '預約時段': '预约时段', '人數': '人数', '和服款式': '和服款式', '髮型設計': '发型设计', '化妝造型': '化妆造型', '旅拍攝影': '旅拍摄影', '下單時間': '下单时间',
+    '現場應付金額　AMOUNT DUE ON SITE': '现场应付金额　AMOUNT DUE ON SITE', '待確認': '待确认', '和服方案費用將於訂單確認後顯示，如有疑問請聯繫客服。': '和服方案费用将于订单确认后显示，如有疑问请联系客服。',
+    '有疑問？聯繫我們': '有疑问？联系我们', 'LINE 客服': 'LINE 客服', '聯繫客服': '联系客服', 'Messenger': 'Messenger',
+    '如需取消預約，請申請退款': '如需取消预约，请申请退款', '申請退款 / 取消預約': '申请退款 / 取消预约', '退改政策提醒': '退改政策提醒', '全額退款': '全额退款', '7天前取消': '7天前取消', '退 50%': '退 50%', '2-6天前取消': '2-6天前取消', '不退費': '不退费', '前一日當日': '前一日当日',
+    '退款資料填寫': '退款资料填写', '退款原因': '退款原因', '請選擇退款原因': '请选择退款原因', '行程臨時變更': '行程临时变更', '簽證問題無法出發': '签证问题无法出发', '身體不適': '身体不适', '天災或不可抗力因素': '天灾或不可抗力因素', '其他（請在備註說明）': '其他（请在备注说明）',
+    '補充說明（選填）': '补充说明（选填）', '如有其他說明請填寫...': '如有其他说明请填写...', '收款帳戶（台灣）': '收款账户（台湾）', '銀行代碼': '银行代码', '銀行名稱': '银行名称', '銀行帳號': '银行账号', '戶名': '户名', '聯絡電話': '联系电话',
+    '請輸入完整帳號（純數字）': '请输入完整账号（纯数字）', '請輸入帳戶戶名（與存摺相同）': '请输入账户户名（与存折相同）', '帳號格式不正確（至少 8 碼）': '账号格式不正确（至少 8 码）',
+    '我確認以上帳號資訊正確無誤，並了解依退改政策退款金額可能有所不同。若帳號填寫錯誤導致退款失敗，責任由申請人自負。': '我确认以上账号信息正确无误，并了解依退改政策退款金额可能有所不同。若账号填写错误导致退款失败，责任由申请人自负。',
+    '取消': '取消', '送出退款申請': '送出退款申请', '退款申請已送出！': '退款申请已送出！', '您的退款申請已送出，客服將依政策審核並聯繫您確認退款金額。': '您的退款申请已送出，客服将依政策审核并联系您确认退款金额。',
+    '申請內容': '申请内容', '訂單': '订单', '退款原因': '退款原因', '申請日期': '申请日期', '接下來會發生什麼？': '接下来会发生什么？', '審核並確認退款金額': '审核并确认退款金额', '依退改政策核算，確認後寄送退款確認信': '依退改政策核算，确认后寄送退款确认信', '收到退款確認信': '收到退款确认信', '系統自動寄送至您的 Email，請注意查收': '系统自动寄送至您的 Email，请注意查收', '退款匯入帳號': '退款汇入账号', '確認後': '确认后', '3-5 個工作天': '3-5 个工作天', '內退款': '内退款', '返回首頁': '返回首页',
+    '查無此訂單，請確認輸入資料是否正確': '查无此订单，请确认输入资料是否正确', '查詢服務暫時無法使用，請稍後再試': '查询服务暂时无法使用，请稍后再试', '訂單編號、姓名、Email 或手機號碼，請至少填寫一項': '订单编号、姓名、Email 或手机号码，请至少填写一项', '請輸入姓名與手機號碼': '请输入姓名与手机号码',
+    '待付款': '待付款', '待到店': '待到店', '待結帳': '待结账', '待付尾款': '待付尾款', '已完成': '已完成', '申請退款': '申请退款', '退款中': '退款中', '已退款': '已退款', '已取消': '已取消', '不需要': '不需要', '需要': '需要', '不需要化妝': '不需要化妆', '基礎化妝': '基础化妆', '精緻化妝': '精致化妆', '高級化妝': '高级化妆', '位男性': '位男性', '位女性': '位女性', '位小孩': '位小孩', '位大人': '位大人',
+    '共查到 {count} 筆訂單，以下依下單時間由新到舊排列。': '共查到 {count} 笔订单，以下依下单时间由新到旧排列。', '已付日幣訂金 ¥{amount} 已折抵': '已付日币订金 ¥{amount} 已折抵', '已付日幣訂金 ¥{amount}': '已付日币订金 ¥{amount}', '台幣訂金 NT${amount} 已折抵': '台币订金 NT${amount} 已折抵', '已付台幣訂金 NT${amount}': '已付台币订金 NT${amount}'
+  },
+  en: {
+    '選擇語言': 'Select language', '立即預約': 'Book Now', '訂單查詢': 'Order Inquiry', '查看預約狀態，或申請退款': 'View booking status or request a refund',
+    '查詢我的訂單': 'Find My Booking', '訂單編號、姓名、Email 或手機號碼，任填一項即可': 'Enter booking number, name, email, or phone', '任填一項查詢': 'Search by one item', '姓名 + 電話': 'Name + Phone',
+    '訂單編號': 'Booking Number', '客戶姓名': 'Customer Name', '例：王小明': 'e.g. Jane Wang', '手機號碼': 'Phone Number', '或': 'or', '※ 訂單編號、姓名、Email 或手機號碼，任填一項即可查詢': '※ Enter any one: booking number, name, email, or phone',
+    '姓名（全名）': 'Full Name', '※ 姓名與手機需與下單時完全一致；找不到時請改用訂單編號查詢': '※ Name and phone must match the booking. If not found, try booking number.',
+    '查　詢　訂　單': 'Search Booking', '查詢中，請稍候': 'Searching...', '重新查詢': 'Search Again', '預約內容': 'Booking Details', '體驗門市': 'Store', '體驗日期': 'Date', '預約時段': 'Time', '人數': 'Guests', '和服款式': 'Kimono Plan', '髮型設計': 'Hair Styling', '化妝造型': 'Makeup', '旅拍攝影': 'Photoshoot', '下單時間': 'Order Time',
+    '現場應付金額　AMOUNT DUE ON SITE': 'Amount Due On Site', '待確認': 'To be confirmed', '和服方案費用將於訂單確認後顯示，如有疑問請聯繫客服。': 'Plan fees will appear after confirmation. Please contact support if you have questions.',
+    '有疑問？聯繫我們': 'Questions? Contact us', 'LINE 客服': 'LINE Support', '聯繫客服': 'Contact Support',
+    '如需取消預約，請申請退款': 'To cancel your booking, please request a refund', '申請退款 / 取消預約': 'Request Refund / Cancel', '退改政策提醒': 'Refund Policy', '全額退款': 'Full Refund', '7天前取消': 'Cancel 7+ days before', '退 50%': '50% Refund', '2-6天前取消': 'Cancel 2–6 days before', '不退費': 'No Refund', '前一日當日': 'Day before / same day',
+    '退款資料填寫': 'Refund Details', '退款原因': 'Refund Reason', '請選擇退款原因': 'Select a reason', '行程臨時變更': 'Travel plan changed', '簽證問題無法出發': 'Visa issue', '身體不適': 'Health issue', '天災或不可抗力因素': 'Force majeure', '其他（請在備註說明）': 'Other (please describe)',
+    '補充說明（選填）': 'Notes (optional)', '如有其他說明請填寫...': 'Add any notes...', '收款帳戶（台灣）': 'Receiving Account (Taiwan)', '銀行代碼': 'Bank Code', '銀行名稱': 'Bank Name', '銀行帳號': 'Account Number', '戶名': 'Account Name', '聯絡電話': 'Contact Phone',
+    '請輸入完整帳號（純數字）': 'Enter full account number (digits only)', '請輸入帳戶戶名（與存摺相同）': 'Enter account name', '帳號格式不正確（至少 8 碼）': 'Invalid account number (at least 8 digits)',
+    '我確認以上帳號資訊正確無誤，並了解依退改政策退款金額可能有所不同。若帳號填寫錯誤導致退款失敗，責任由申請人自負。': 'I confirm the account information is correct and understand the refund amount may vary by policy.',
+    '取消': 'Cancel', '送出退款申請': 'Submit Refund Request', '退款申請已送出！': 'Refund request submitted!', '您的退款申請已送出，客服將依政策審核並聯繫您確認退款金額。': 'Your refund request has been submitted. Support will review it and confirm the amount.',
+    '申請內容': 'Request Details', '訂單': 'Order', '申請日期': 'Request Date', '接下來會發生什麼？': 'What happens next?', '審核並確認退款金額': 'Review and confirm refund amount', '依退改政策核算，確認後寄送退款確認信': 'Calculated by policy; a confirmation email will be sent', '收到退款確認信': 'Receive refund confirmation email', '系統自動寄送至您的 Email，請注意查收': 'The email will be sent automatically', '退款匯入帳號': 'Refund transfer', '確認後': 'After confirmation', '3-5 個工作天': '3–5 business days', '內退款': 'to process', '返回首頁': 'Back Home',
+    '查無此訂單，請確認輸入資料是否正確': 'No booking found. Please check your information.', '查詢服務暫時無法使用，請稍後再試': 'Lookup service is temporarily unavailable. Please try again later.', '訂單編號、姓名、Email 或手機號碼，請至少填寫一項': 'Please enter at least one: booking number, name, email, or phone.', '請輸入姓名與手機號碼': 'Please enter name and phone number.',
+    '待付款': 'Pending Payment', '待確認': 'Pending Review', '待到店': 'Awaiting Arrival', '待結帳': 'Pending Checkout', '待付尾款': 'Balance Due', '已完成': 'Completed', '申請退款': 'Refund Requested', '退款中': 'Refunding', '已退款': 'Refunded', '已取消': 'Cancelled', '不需要': 'Not needed', '需要': 'Needed', '不需要化妝': 'No makeup', '基礎化妝': 'Basic makeup', '精緻化妝': 'Standard makeup', '高級化妝': 'Premium makeup',
+    '共查到 {count} 筆訂單，以下依下單時間由新到舊排列。': 'Found {count} bookings, sorted newest to oldest.', '已付日幣訂金 ¥{amount} 已折抵': 'JPY deposit ¥{amount} credited', '已付日幣訂金 ¥{amount}': 'JPY deposit paid: ¥{amount}', '台幣訂金 NT${amount} 已折抵': 'TWD deposit NT${amount} credited', '已付台幣訂金 NT${amount}': 'TWD deposit paid: NT${amount}',
+    '京都清水寺店': 'Kyoto Kiyomizu Store', '京都祇園店': 'Kyoto Gion Store', '大阪日本橋店': 'Osaka Nippombashi Store', '東京淺草寺店': 'Tokyo Asakusa Store', '和服體驗 × 旅遊包車': 'Kimono Experience × Private Tour'
+  },
+  ja: {
+    '選擇語言': '言語を選択', '立即預約': '今すぐ予約', '訂單查詢': '予約確認', '查看預約狀態，或申請退款': '予約状況の確認・返金申請',
+    '查詢我的訂單': '予約を検索', '訂單編號、姓名、Email 或手機號碼，任填一項即可': '予約番号・氏名・メール・電話番号のいずれかを入力', '任填一項查詢': '1項目で検索', '姓名 + 電話': '氏名 + 電話',
+    '訂單編號': '予約番号', '客戶姓名': 'お名前', '例：王小明': '例：山田太郎', '手機號碼': '電話番号', '或': 'または', '※ 訂單編號、姓名、Email 或手機號碼，任填一項即可查詢': '※ 予約番号・氏名・メール・電話番号のいずれかで検索できます',
+    '姓名（全名）': '氏名（フルネーム）', '※ 姓名與手機需與下單時完全一致；找不到時請改用訂單編號查詢': '※ 氏名と電話番号は予約時と一致する必要があります。見つからない場合は予約番号で検索してください。',
+    '查　詢　訂　單': '予約を検索', '查詢中，請稍候': '検索中...', '重新查詢': '再検索', '預約內容': '予約内容', '體驗門市': '店舗', '體驗日期': '体験日', '預約時段': '予約時間', '人數': '人数', '和服款式': '着物プラン', '髮型設計': 'ヘアセット', '化妝造型': 'メイク', '旅拍攝影': '撮影', '下單時間': '注文時間',
+    '現場應付金額　AMOUNT DUE ON SITE': '当日お支払い金額', '待確認': '確認中', '和服方案費用將於訂單確認後顯示，如有疑問請聯繫客服。': 'プラン料金は予約確認後に表示されます。ご不明点はサポートへお問い合わせください。',
+    '有疑問？聯繫我們': 'ご不明点はこちら', 'LINE 客服': 'LINE サポート', '聯繫客服': 'サポートへ連絡',
+    '取消': 'キャンセル', '送出退款申請': '返金申請を送信', '返回首頁': 'ホームへ戻る',
+    '查無此訂單，請確認輸入資料是否正確': '予約が見つかりません。入力内容をご確認ください。', '查詢服務暫時無法使用，請稍後再試': '検索サービスを一時的に利用できません。後ほどお試しください。', '訂單編號、姓名、Email 或手機號碼，請至少填寫一項': '予約番号・氏名・メール・電話番号のいずれかを入力してください。', '請輸入姓名與手機號碼': '氏名と電話番号を入力してください。',
+    '待付款': '支払い待ち', '待確認': '確認待ち', '待到店': '来店待ち', '待結帳': '会計待ち', '待付尾款': '残額支払い待ち', '已完成': '完了', '申請退款': '返金申請', '退款中': '返金処理中', '已退款': '返金済み', '已取消': 'キャンセル済み', '不需要': '不要', '需要': '必要', '不需要化妝': 'メイク不要', '基礎化妝': 'ベーシックメイク', '精緻化妝': 'スタンダードメイク', '高級化妝': 'プレミアムメイク',
+    '共查到 {count} 筆訂單，以下依下單時間由新到舊排列。': '{count}件の予約が見つかりました。新しい順に表示しています。', '已付日幣訂金 ¥{amount} 已折抵': '予約金 ¥{amount} は充当済み', '已付日幣訂金 ¥{amount}': '予約金 ¥{amount} 支払い済み',
+    '京都清水寺店': '京都清水寺店', '京都祇園店': '京都祇園店', '大阪日本橋店': '大阪日本橋店', '東京淺草寺店': '東京浅草寺店', '和服體驗 × 旅遊包車': '着物体験 × 観光チャーター'
+  },
+  ko: {
+    '選擇語言': '언어 선택', '立即預約': '예약하기', '訂單查詢': '예약 조회', '查看預約狀態，或申請退款': '예약 상태 확인 또는 환불 신청',
+    '查詢我的訂單': '내 예약 조회', '訂單編號、姓名、Email 或手機號碼，任填一項即可': '예약번호, 이름, 이메일, 전화번호 중 하나 입력', '任填一項查詢': '한 가지로 조회', '姓名 + 電話': '이름 + 전화',
+    '訂單編號': '예약번호', '客戶姓名': '고객명', '手機號碼': '전화번호', '或': '또는', '查　詢　訂　單': '예약 조회', '查詢中，請稍候': '조회 중...', '重新查詢': '다시 조회',
+    '預約內容': '예약 내용', '體驗門市': '매장', '體驗日期': '체험일', '預約時段': '예약 시간', '人數': '인원', '和服款式': '기모노 플랜', '髮型設計': '헤어 스타일링', '化妝造型': '메이크업', '旅拍攝影': '사진 촬영', '下單時間': '주문 시간',
+    '待確認': '확인 대기', '不需要': '불필요', '需要': '필요', '不需要化妝': '메이크업 불필요', '基礎化妝': '베이직 메이크업', '精緻化妝': '스탠다드 메이크업', '高級化妝': '프리미엄 메이크업',
+    '查無此訂單，請確認輸入資料是否正確': '예약을 찾을 수 없습니다. 입력 정보를 확인하세요.', '查詢服務暫時無法使用，請稍後再試': '조회 서비스를 사용할 수 없습니다. 잠시 후 다시 시도하세요.', '共查到 {count} 筆訂單，以下依下單時間由新到舊排列。': '{count}건의 예약을 찾았습니다. 최신순으로 표시합니다.'
+  },
+  id: {
+    '選擇語言': 'Pilih bahasa', '立即預約': 'Pesan', '訂單查詢': 'Cek Pesanan', '查看預約狀態，或申請退款': 'Lihat status reservasi atau ajukan refund',
+    '查詢我的訂單': 'Cari Reservasi Saya', '訂單編號、姓名、Email 或手機號碼，任填一項即可': 'Masukkan nomor, nama, email, atau telepon', '任填一項查詢': 'Cari dengan satu info', '姓名 + 電話': 'Nama + Telepon',
+    '訂單編號': 'Nomor Reservasi', '客戶姓名': 'Nama Pelanggan', '手機號碼': 'Telepon', '或': 'atau', '查　詢　訂　單': 'Cari Reservasi', '查詢中，請稍候': 'Mencari...', '重新查詢': 'Cari Lagi',
+    '預約內容': 'Detail Reservasi', '體驗門市': 'Toko', '體驗日期': 'Tanggal', '預約時段': 'Waktu', '人數': 'Tamu', '和服款式': 'Paket Kimono', '髮型設計': 'Tata Rambut', '化妝造型': 'Makeup', '旅拍攝影': 'Foto', '下單時間': 'Waktu Pesan',
+    '待確認': 'Menunggu Konfirmasi', '不需要': 'Tidak perlu', '需要': 'Perlu', '不需要化妝': 'Tanpa makeup', '基礎化妝': 'Makeup dasar', '精緻化妝': 'Makeup standar', '高級化妝': 'Makeup premium',
+    '查無此訂單，請確認輸入資料是否正確': 'Reservasi tidak ditemukan. Periksa data Anda.', '查詢服務暫時無法使用，請稍後再試': 'Layanan pencarian sementara tidak tersedia.', '共查到 {count} 筆訂單，以下依下單時間由新到舊排列。': 'Ditemukan {count} reservasi, diurutkan dari terbaru.'
+  }
+};
+
+Object.assign(phraseMaps['zh-Hans'], {
+  '訂單查詢 — 旅乘 x 和服體驗': '订单查询 — 旅乘 x 和服体验',
+  '旅乘 x Foreveryoung 和服體驗訂單查詢，查看預約狀態與申請退款。': '旅乘 x Foreveryoung 和服体验订单查询，查看预约状态与申请退款。',
+  '請填寫所有必填欄位並勾選確認聲明。': '请填写所有必填字段并勾选确认声明。',
+  '送出中...': '送出中...', '網路異常，請稍後再試或直接聯繫 LINE 客服。': '网络异常，请稍后再试或直接联系 LINE 客服。',
+  '預約編號': '预约编号', '收款銀行': '收款银行', '收款帳號': '收款账号', '姓名': '姓名', '客人': '客人',
+  '找不到訂單資訊，請重新查詢': '找不到订单信息，请重新查询', '確認辦理報到？': '确认办理报到？', '點下確定後系統會通知門市，到時請出示報到成功畫面給店員。': '点击确定后系统会通知门店，到时请出示报到成功画面给店员。',
+  '處理中...': '处理中...', '網路錯誤，請稍後再試或直接聯繫 LINE 客服。': '网络错误，请稍后再试或直接联系 LINE 客服。', '我已到店報到': '我已到店报到'
+  , '已成功報到': '已成功报到', '請出示這個畫面給店員': '请出示这个画面给店员', '門市人員確認後即可開始體驗': '门店人员确认后即可开始体验', '客人姓名': '客人姓名', '報到時間': '报到时间', '我們已收到您的申請，將盡快為您處理': '我们已收到您的申请，将尽快为您处理', '申請摘要': '申请摘要', '接下來的步驟': '接下来的步骤', '回到預約首頁': '回到预约首页'
+});
+Object.assign(phraseMaps.en, {
+  '訂單查詢 — 旅乘 x 和服體驗': 'Order Inquiry — Foreveryoung Kimono Experience',
+  '旅乘 x Foreveryoung 和服體驗訂單查詢，查看預約狀態與申請退款。': 'Foreveryoung kimono booking inquiry. View booking status or request a refund.',
+  '請填寫所有必填欄位並勾選確認聲明。': 'Please complete all required fields and confirm the statement.',
+  '送出中...': 'Submitting...', '網路異常，請稍後再試或直接聯繫 LINE 客服。': 'Network error. Please try again later or contact LINE support.',
+  '預約編號': 'Booking No.', '收款銀行': 'Receiving Bank', '收款帳號': 'Receiving Account', '姓名': 'Name', '客人': 'Guest',
+  '找不到訂單資訊，請重新查詢': 'Order information not found. Please search again.', '確認辦理報到？': 'Confirm check-in?', '點下確定後系統會通知門市，到時請出示報到成功畫面給店員。': 'After confirmation, the store will be notified. Please show the success screen to staff.',
+  '處理中...': 'Processing...', '網路錯誤，請稍後再試或直接聯繫 LINE 客服。': 'Network error. Please try again later or contact LINE support.', '我已到店報到': 'I have arrived'
+  , '已成功報到': 'Checked in successfully', '請出示這個畫面給店員': 'Please show this screen to staff', '門市人員確認後即可開始體驗': 'Staff will confirm and start your experience', '客人姓名': 'Guest Name', '報到時間': 'Check-in Time', '我們已收到您的申請，將盡快為您處理': 'We received your request and will process it soon', '申請摘要': 'Request Summary', '接下來的步驟': 'Next Steps', '回到預約首頁': 'Back to Booking Home'
+});
+Object.assign(phraseMaps.ja, {
+  '訂單查詢 — 旅乘 x 和服體驗': '予約確認 — Foreveryoung 着物体験',
+  '旅乘 x Foreveryoung 和服體驗訂單查詢，查看預約狀態與申請退款。': 'Foreveryoung 着物体験の予約確認・返金申請ページです。',
+  '請填寫所有必填欄位並勾選確認聲明。': '必須項目を入力し、確認事項にチェックしてください。',
+  '送出中...': '送信中...', '網路異常，請稍後再試或直接聯繫 LINE 客服。': '通信エラーです。後ほど再試行するかLINEサポートへご連絡ください。',
+  '預約編號': '予約番号', '收款銀行': '振込先銀行', '收款帳號': '口座番号', '姓名': '氏名', '客人': 'お客様',
+  '找不到訂單資訊，請重新查詢': '予約情報が見つかりません。再検索してください。', '確認辦理報到？': 'チェックインしますか？', '點下確定後系統會通知門市，到時請出示報到成功畫面給店員。': '確認後、店舗へ通知されます。成功画面をスタッフに提示してください。',
+  '處理中...': '処理中...', '網路錯誤，請稍後再試或直接聯繫 LINE 客服。': '通信エラーです。後ほど再試行するかLINEサポートへご連絡ください。', '我已到店報到': '来店しました'
+  , '已成功報到': 'チェックイン完了', '請出示這個畫面給店員': 'この画面をスタッフにご提示ください', '門市人員確認後即可開始體驗': 'スタッフ確認後、体験を開始できます', '客人姓名': 'お名前', '報到時間': 'チェックイン時間', '我們已收到您的申請，將盡快為您處理': '申請を受け付けました。順次対応いたします', '申請摘要': '申請内容', '接下來的步驟': '次のステップ', '回到預約首頁': '予約トップへ戻る'
+});
+Object.assign(phraseMaps.ko, {
+  '訂單查詢 — 旅乘 x 和服體驗': '예약 조회 — Foreveryoung 기모노 체험',
+  '請填寫所有必填欄位並勾選確認聲明。': '필수 항목을 모두 입력하고 확인에 체크해 주세요.',
+  '送出中...': '제출 중...', '預約編號': '예약번호', '姓名': '이름', '客人': '고객', '處理中...': '처리 중...', '我已到店報到': '도착했습니다', '已成功報到': '체크인 완료', '請出示這個畫面給店員': '이 화면을 직원에게 보여주세요', '客人姓名': '고객명', '報到時間': '체크인 시간', '回到預約首頁': '예약 홈으로'
+});
+Object.assign(phraseMaps.id, {
+  '訂單查詢 — 旅乘 x 和服體驗': 'Cek Pesanan — Foreveryoung Kimono',
+  '請填寫所有必填欄位並勾選確認聲明。': 'Lengkapi semua kolom wajib dan centang konfirmasi.',
+  '送出中...': 'Mengirim...', '預約編號': 'Nomor Reservasi', '姓名': 'Nama', '客人': 'Tamu', '處理中...': 'Memproses...', '我已到店報到': 'Saya sudah tiba', '已成功報到': 'Check-in berhasil', '請出示這個畫面給店員': 'Tunjukkan layar ini kepada staf', '客人姓名': 'Nama Tamu', '報到時間': 'Waktu Check-in', '回到預約首頁': 'Kembali ke Reservasi'
+});
+
+const fallbackEnglish = phraseMaps.en;
+let currentLanguage = (() => {
+  try { return localStorage.getItem('kimono_lang') || 'zh-Hant'; } catch(err) { return 'zh-Hant'; }
+})();
+let lastResultData = null;
+const textNodeSources = new WeakMap();
+const attrSources = new WeakMap();
+
+function toSimplified(source) {
+  return String(source || '').replace(/[預約訂單查詢狀態與請輸入資料聯絡門體驗時段碼號髮妝攝影費現場應付確認後顯示聯繫客服退款銀行帳號戶匯選擇內容筆舊從歸來]/g, ch => ({
+    '預':'预','約':'约','訂':'订','單':'单','查':'查','詢':'询','狀':'状','態':'态','與':'与','請':'请','輸':'输','入':'入','資':'资','料':'料','聯':'联','絡':'络','門':'门','體':'体','驗':'验','時':'时','段':'段','碼':'码','號':'号','髮':'发','妝':'妆','攝':'摄','費':'费','現':'现','場':'场','應':'应','付':'付','確':'确','認':'认','後':'后','顯':'显','示':'示','繫':'系','客':'客','服':'服','退':'退','款':'款','銀':'银','行':'行','帳':'账','戶':'户','匯':'汇','選':'选','擇':'择','內':'内','容':'容','筆':'笔','舊':'旧','從':'从','歸':'归','來':'来'
+  }[ch] || ch));
+}
+
+function t(source) {
+  if (source === null || source === undefined) return '';
+  const raw = String(source);
+  const sourceText = raw.trim();
+  if (!sourceText || currentLanguage === 'zh-Hant') return raw;
+  const translated = (phraseMaps[currentLanguage] || {})[sourceText];
+  if (translated) return raw.replace(sourceText, translated);
+  if (currentLanguage === 'zh-Hans') return raw.replace(sourceText, toSimplified(sourceText));
+  const prefixed = sourceText.match(/^([✓×↩⏳📅💰💳📋🎌]\s*)(.+)$/);
+  if (prefixed) return raw.replace(sourceText, prefixed[1] + t(prefixed[2]));
+  return raw.replace(sourceText, fallbackEnglish[sourceText] || sourceText);
+}
+
+function tf(source, values = {}) {
+  return Object.entries(values).reduce((text, [key, value]) => text.replaceAll(`{${key}}`, value), t(source));
+}
+
+function translatePage(root = document.body) {
+  if (!root) return;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      const parent = node.parentElement;
+      if (!parent || ['SCRIPT', 'STYLE', 'TEXTAREA', 'OPTION'].includes(parent.tagName)) return NodeFilter.FILTER_REJECT;
+      return node.nodeValue.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+    }
+  });
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(node => {
+    const original = textNodeSources.get(node) || node.nodeValue.trim();
+    textNodeSources.set(node, original);
+    node.nodeValue = node.nodeValue.replace(node.nodeValue.trim(), t(original));
+  });
+  root.querySelectorAll('input[placeholder], textarea[placeholder], [aria-label], [title]').forEach(el => {
+    ['placeholder', 'aria-label', 'title'].forEach(attr => {
+      if (!el.hasAttribute(attr)) return;
+      const store = attrSources.get(el) || {};
+      if (!store[attr]) store[attr] = el.getAttribute(attr);
+      attrSources.set(el, store);
+      el.setAttribute(attr, t(store[attr]));
+    });
+  });
+  root.querySelectorAll('option').forEach(option => {
+    if (!option.dataset.i18nSource) option.dataset.i18nSource = option.textContent.trim();
+    option.textContent = t(option.dataset.i18nSource);
+  });
+}
+
+function setLanguage(lang) {
+  currentLanguage = phraseMaps[lang] || lang === 'zh-Hant' ? lang : 'zh-Hant';
+  try { localStorage.setItem('kimono_lang', currentLanguage); } catch(err) {}
+  document.documentElement.lang = currentLanguage;
+  document.title = t('訂單查詢 — 旅乘 x 和服體驗');
+  const metaDesc = document.querySelector('meta[name="description"]');
+  if (metaDesc) metaDesc.setAttribute('content', t('旅乘 x Foreveryoung 和服體驗訂單查詢，查看預約狀態與申請退款。'));
+  const selector = document.getElementById('language-select');
+  if (selector) selector.value = currentLanguage;
+  translatePage();
+  if (lastResultData && !document.getElementById('resultCard').classList.contains('hidden')) renderResults(lastResultData);
+}
+
 const GAS_URL = KIMONO_CONFIG.APPS_SCRIPT_URL;
 const API_BASE_URL = (KIMONO_CONFIG.API_BASE_URL || '').replace(/\/$/, '');
 ['floatLine','lineLink','rsLine'].forEach(id => { const el=document.getElementById(id); if(el) el.href=KIMONO_CONFIG.LINE_URL||'#'; });
@@ -597,7 +795,7 @@ function fmtDateTime(val, timeZone) {
 }
 function fmtJPY(n) { const num=Number(n); return isNaN(num)?'—':num.toLocaleString('ja-JP'); }
 function yesNoLabel(value, yesText = '需要') {
-  return value === true || value === '是' || value === 'true' ? `✅ ${yesText}` : '不需要';
+  return value === true || value === '是' || value === 'true' ? `✅ ${t(yesText)}` : t('不需要');
 }
 function totalGuestCount(d = {}) {
   const maleAdults = Number(d.maleAdults || 0);
@@ -612,10 +810,10 @@ function guestTextHasPositiveCount(text) {
 }
 function makeupLabelFor(value, makeupFlag, fee) {
   const raw = String(value || '').trim();
-  if (/Premium|高級|高级|8000/.test(raw) || Number(fee) >= 8000) return '高級化妝';
-  if (/Standard|精緻|精致|5000/.test(raw) || Number(fee) >= 5000) return '精緻化妝';
-  if (/Basic|基礎|基础|3000/.test(raw) || Number(fee) >= 3000 || makeupFlag === true || makeupFlag === '是' || makeupFlag === 'true') return '基礎化妝';
-  return '不需要化妝';
+  if (/Premium|高級|高级|8000/.test(raw) || Number(fee) >= 8000) return t('高級化妝');
+  if (/Standard|精緻|精致|5000/.test(raw) || Number(fee) >= 5000) return t('精緻化妝');
+  if (/Basic|基礎|基础|3000/.test(raw) || Number(fee) >= 3000 || makeupFlag === true || makeupFlag === '是' || makeupFlag === 'true') return t('基礎化妝');
+  return t('不需要化妝');
 }
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
@@ -639,7 +837,7 @@ function statusMetaFor(statusCode, confirmed) {
 }
 function statusBadgeHtml(d) {
   const [txt, cls] = statusMetaFor(d.statusCode, d.confirmed);
-  return `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold font-sans ${cls}">${escapeHtml(txt)}</span>`;
+  return `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold font-sans ${cls}">${escapeHtml(t(txt))}</span>`;
 }
 function queryOrdersFromResponse(data) {
   return Array.isArray(data && data.orders) && data.orders.length ? data.orders : [data];
@@ -710,9 +908,9 @@ async function doQuery() {
 }
 
 function readonlyFieldHtml(label, value, extra = '') {
-  const safeValue = value && value !== '—' ? escapeHtml(value) : '—';
-  const extraHtml = extra ? `<p class="text-slate-400 text-xs font-sans mt-1 leading-relaxed">${escapeHtml(extra)}</p>` : '';
-  return `<div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">${escapeHtml(label)}</p><p class="font-bold text-[#1A365D] font-sans text-base">${safeValue}</p>${extraHtml}</div>`;
+  const safeValue = value && value !== '—' ? escapeHtml(t(value)) : '—';
+  const extraHtml = extra ? `<p class="text-slate-400 text-xs font-sans mt-1 leading-relaxed">${escapeHtml(t(extra))}</p>` : '';
+  return `<div><p class="text-[12px] text-slate-600 uppercase tracking-[0.2em] font-sans mb-1.5 font-bold">${escapeHtml(t(label))}</p><p class="font-bold text-[#1A365D] font-sans text-base">${safeValue}</p>${extraHtml}</div>`;
 }
 
 function renderReadonlyOrderCard(d) {
@@ -723,9 +921,9 @@ function renderReadonlyOrderCard(d) {
   const hasPlanPrice = Number(d.planPrice) > 0;
   const hasOnsite = hasPlanPrice && d.onsiteDue !== '' && d.onsiteDue !== null && d.onsiteDue !== undefined;
   const depositNote = d.twdDeposit
-    ? (hasOnsite ? `台幣訂金 NT$${d.twdDeposit} 已折抵` : `已付台幣訂金 NT$${d.twdDeposit}`)
+    ? (hasOnsite ? tf('台幣訂金 NT${amount} 已折抵', { amount: d.twdDeposit }) : tf('已付台幣訂金 NT${amount}', { amount: d.twdDeposit }))
     : (Number(d.depositJPY) > 0
-      ? (hasOnsite ? `已付日幣訂金 ¥${fmtJPY(d.depositJPY)} 已折抵` : `已付日幣訂金 ¥${fmtJPY(d.depositJPY)}`)
+      ? (hasOnsite ? tf('已付日幣訂金 ¥{amount} 已折抵', { amount: fmtJPY(d.depositJPY) }) : tf('已付日幣訂金 ¥{amount}', { amount: fmtJPY(d.depositJPY) }))
       : '');
   const fields = [
     `<div class="col-span-2">${readonlyFieldHtml('體驗門市', d.storeName || d.storeId || '—', d.storeAddress || '')}</div>`,
@@ -755,23 +953,24 @@ function renderReadonlyOrderCard(d) {
         </div>
         <div class="bg-[#1A365D] rounded-sm p-6 text-center relative overflow-hidden">
           <div class="absolute inset-0 opacity-[0.06]" style="background-image:radial-gradient(circle,#FFB7C5 1px,transparent 1px);background-size:24px 24px"></div>
-          <p class="text-white/40 text-[9px] uppercase tracking-[0.4em] font-sans mb-2 relative z-10">現場應付金額　AMOUNT DUE ON SITE</p>
-          <p class="text-white font-bold text-4xl font-sans tracking-wider relative z-10">${hasOnsite ? `¥${fmtJPY(d.onsiteDue)}` : '待確認'}</p>
+          <p class="text-white/40 text-[9px] uppercase tracking-[0.4em] font-sans mb-2 relative z-10">${escapeHtml(t('現場應付金額　AMOUNT DUE ON SITE'))}</p>
+          <p class="text-white font-bold text-4xl font-sans tracking-wider relative z-10">${hasOnsite ? `¥${fmtJPY(d.onsiteDue)}` : escapeHtml(t('待確認'))}</p>
           <p class="text-pink-300 text-xs mt-2 font-sans relative z-10">${escapeHtml(depositNote)}</p>
         </div>
-        ${hasOnsite ? '' : '<div class="bg-amber-50 border-l-4 border-amber-300 p-4 rounded-r-sm"><p class="text-amber-700 text-xs font-sans leading-relaxed">📋 和服方案費用將於訂單確認後顯示，如有疑問請聯繫客服。</p></div>'}
+        ${hasOnsite ? '' : `<div class="bg-amber-50 border-l-4 border-amber-300 p-4 rounded-r-sm"><p class="text-amber-700 text-xs font-sans leading-relaxed">📋 ${escapeHtml(t('和服方案費用將於訂單確認後顯示，如有疑問請聯繫客服。'))}</p></div>`}
       </div>
     </div>`;
 }
 
 function renderResults(data) {
+  lastResultData = data;
   const orders = queryOrdersFromResponse(data);
   const first = orders[0] || data;
   renderResult(first);
   const summary = document.getElementById('resultSummary');
   const additional = document.getElementById('additionalResults');
   if (orders.length > 1) {
-    summary.textContent = `共查到 ${orders.length} 筆訂單，以下依下單時間由新到舊排列。`;
+    summary.textContent = tf('共查到 {count} 筆訂單，以下依下單時間由新到舊排列。', { count: orders.length });
     summary.classList.remove('hidden');
     additional.innerHTML = orders.slice(1).map(renderReadonlyOrderCard).join('');
   } else {
@@ -791,13 +990,13 @@ function renderResult(d) {
   const guestText = String(d.guests || '').trim();
   const shouldShowGuests = guestText && (totalGuestCount(d) > 0 || guestTextHasPositiveCount(guestText));
 
-  document.getElementById('r-store').textContent       = d.storeName || d.storeId || '—';
-  document.getElementById('r-storeAddress').textContent = d.storeAddress || '';
+  document.getElementById('r-store').textContent       = t(d.storeName || d.storeId || '—');
+  document.getElementById('r-storeAddress').textContent = t(d.storeAddress || '');
   document.getElementById('r-bookingDate').textContent = fmtDate(d.bookingAt || d.bookingDate, displayTimeZone);
   document.getElementById('r-bookingTime').textContent = fmtTime(d.bookingAt || d.bookingDate, displayTimeZone);
-  document.getElementById('r-guests').textContent      = guestText || '—';
+  document.getElementById('r-guests').textContent      = t(guestText || '—');
   document.getElementById('r-guestsRow').classList.toggle('hidden', !shouldShowGuests);
-  document.getElementById('r-plan').textContent        = d.plan   || '—';
+  document.getElementById('r-plan').textContent        = t(d.plan || '—');
   document.getElementById('r-hair').textContent        = yesNoLabel(d.hair);
   document.getElementById('r-makeup').textContent      = makeupLabel;
   document.getElementById('r-photo').textContent       = yesNoLabel(d.photo);
@@ -809,14 +1008,14 @@ function renderResult(d) {
   if (hasOnsite) {
     document.getElementById('r-onsiteDue').textContent   = `¥${fmtJPY(d.onsiteDue)}`;
     document.getElementById('r-depositNote').textContent = d.twdDeposit
-      ? `台幣訂金 NT$${d.twdDeposit} 已折抵`
-      : (Number(d.depositJPY) > 0 ? `已付日幣訂金 ¥${fmtJPY(d.depositJPY)} 已折抵` : '');
+      ? tf('台幣訂金 NT${amount} 已折抵', { amount: d.twdDeposit })
+      : (Number(d.depositJPY) > 0 ? tf('已付日幣訂金 ¥{amount} 已折抵', { amount: fmtJPY(d.depositJPY) }) : '');
     document.getElementById('pendingNotice').classList.add('hidden');
   } else {
-    document.getElementById('r-onsiteDue').textContent   = '待確認';
+    document.getElementById('r-onsiteDue').textContent   = t('待確認');
     document.getElementById('r-depositNote').textContent = d.twdDeposit
-      ? `已付台幣訂金 NT$${d.twdDeposit}`
-      : (Number(d.depositJPY) > 0 ? `已付日幣訂金 ¥${fmtJPY(d.depositJPY)}` : '');
+      ? tf('已付台幣訂金 NT${amount}', { amount: d.twdDeposit })
+      : (Number(d.depositJPY) > 0 ? tf('已付日幣訂金 ¥{amount}', { amount: fmtJPY(d.depositJPY) }) : '');
     document.getElementById('pendingNotice').classList.remove('hidden');
   }
 
@@ -827,7 +1026,7 @@ function renderResult(d) {
   const ciSec = document.getElementById('selfCheckInSection');
   if (d.canCheckIn && isBookingToday(d.bookingDate)) {
     ciSec.classList.remove('hidden');
-    currentOrder.name = d.name || currentOrder.name || '客人';
+    currentOrder.name = d.name || currentOrder.name || t('客人');
     currentOrder.bookingDate = d.bookingDate || '';
     currentOrder.plan = d.plan || '';
   } else {
@@ -860,11 +1059,11 @@ document.getElementById('refundForm').onsubmit = async (e) => {
   const agreed      = document.getElementById('rf-agree').checked;
 
   if (!reason||!bankCode||!bankName||!account||!accountName||!phone||!agreed) {
-    errBox.textContent='請填寫所有必填欄位並勾選確認聲明。'; errBox.classList.remove('hidden'); return;
+    errBox.textContent=t('請填寫所有必填欄位並勾選確認聲明。'); errBox.classList.remove('hidden'); return;
   }
   if (account.length < 8) { document.getElementById('err-account').classList.add('show'); return; }
 
-  btn.textContent='送出中...'; btn.disabled=true;
+  btn.textContent=t('送出中...'); btn.disabled=true;
   errBox.classList.add('hidden');
 
   const submitDate = new Date(Date.now()+8*60*60*1000).toISOString().slice(0,10);
@@ -897,20 +1096,20 @@ document.getElementById('refundForm').onsubmit = async (e) => {
 
     document.getElementById('rs-orderId').textContent = currentOrder.orderId;
     document.getElementById('rs-summary').innerHTML = `
-      <div class="flex justify-between text-white/80"><span class="text-white/40">預約編號</span><span class="font-bold tracking-widest">${currentOrder.orderId}</span></div>
-      <div class="flex justify-between text-white/80"><span class="text-white/40">退款原因</span><span>${reason}</span></div>
-      <div class="flex justify-between text-white/80"><span class="text-white/40">收款銀行</span><span>${bankCode} ${bankName}</span></div>
-      <div class="flex justify-between text-white/80"><span class="text-white/40">收款帳號</span><span class="tracking-widest">${account}</span></div>
-      <div class="flex justify-between text-white/80"><span class="text-white/40">戶名</span><span>${accountName}</span></div>
-      <div class="flex justify-between text-white/80"><span class="text-white/40">申請日期</span><span>${submitDate}</span></div>`;
+      <div class="flex justify-between text-white/80"><span class="text-white/40">${escapeHtml(t('預約編號'))}</span><span class="font-bold tracking-widest">${escapeHtml(currentOrder.orderId)}</span></div>
+      <div class="flex justify-between text-white/80"><span class="text-white/40">${escapeHtml(t('退款原因'))}</span><span>${escapeHtml(t(reason))}</span></div>
+      <div class="flex justify-between text-white/80"><span class="text-white/40">${escapeHtml(t('收款銀行'))}</span><span>${escapeHtml(bankCode)} ${escapeHtml(bankName)}</span></div>
+      <div class="flex justify-between text-white/80"><span class="text-white/40">${escapeHtml(t('收款帳號'))}</span><span class="tracking-widest">${escapeHtml(account)}</span></div>
+      <div class="flex justify-between text-white/80"><span class="text-white/40">${escapeHtml(t('戶名'))}</span><span>${escapeHtml(accountName)}</span></div>
+      <div class="flex justify-between text-white/80"><span class="text-white/40">${escapeHtml(t('申請日期'))}</span><span>${escapeHtml(submitDate)}</span></div>`;
 
     document.getElementById('resultCard').classList.add('hidden');
     document.getElementById('refundSuccessCard').classList.remove('hidden');
     window.scrollTo({ top:0, behavior:'smooth' });
   } catch(err) {
-    errBox.textContent='網路異常，請稍後再試或直接聯繫 LINE 客服。'; errBox.classList.remove('hidden');
+    errBox.textContent=t('網路異常，請稍後再試或直接聯繫 LINE 客服。'); errBox.classList.remove('hidden');
   } finally {
-    btn.textContent='送出退款申請'; btn.disabled=false;
+    btn.textContent=t('送出退款申請'); btn.disabled=false;
   }
 };
 
@@ -929,13 +1128,13 @@ function isBookingToday(bookingDateStr) {
 }
 
 async function doSelfCheckIn() {
-  if (!currentOrder || !currentOrder.orderId) { alert('找不到訂單資訊，請重新查詢'); return; }
-  const ok = confirm('確認辦理報到？\n\n訂單：' + currentOrder.orderId +
-    '\n姓名：' + (currentOrder.name || '—') +
-    '\n\n點下確定後系統會通知門市，到時請出示報到成功畫面給店員。');
+  if (!currentOrder || !currentOrder.orderId) { alert(t('找不到訂單資訊，請重新查詢')); return; }
+  const ok = confirm(t('確認辦理報到？') + '\n\n' + t('訂單') + '：' + currentOrder.orderId +
+    '\n' + t('姓名') + '：' + (currentOrder.name || '—') +
+    '\n\n' + t('點下確定後系統會通知門市，到時請出示報到成功畫面給店員。'));
   if (!ok) return;
   const btn = document.getElementById('selfCheckInBtn');
-  btn.disabled = true; btn.textContent = '🎌 處理中...';
+  btn.disabled = true; btn.textContent = '🎌 ' + t('處理中...');
   try {
     const last5 = String(currentOrder.phone || '').replace(/\D/g, '').slice(-5);
     if (KIMONO_CONFIG.USE_NEW_API) {
@@ -950,8 +1149,8 @@ async function doSelfCheckIn() {
     }
     showCheckInSuccess();
   } catch(err) {
-    alert('網路錯誤，請稍後再試或直接聯繫 LINE 客服。');
-    btn.disabled = false; btn.textContent = '🎌 我已到店報到';
+    alert(t('網路錯誤，請稍後再試或直接聯繫 LINE 客服。'));
+    btn.disabled = false; btn.textContent = '🎌 ' + t('我已到店報到');
   }
 }
 
@@ -959,7 +1158,7 @@ function showCheckInSuccess() {
   document.getElementById('ci-orderId').textContent = currentOrder.orderId || '—';
   document.getElementById('ci-name').textContent = currentOrder.name || '—';
   document.getElementById('ci-bookingDate').textContent = fmtDate(currentOrder.bookingDate);
-  document.getElementById('ci-plan').textContent = currentOrder.plan || '—';
+  document.getElementById('ci-plan').textContent = t(currentOrder.plan || '—');
   const now = new Date();
   const jstNow = new Date(now.getTime() + (now.getTimezoneOffset() + 540) * 60000);
   const hh = String(jstNow.getHours()).padStart(2,'0');
@@ -985,11 +1184,11 @@ function showResult() {
 }
 function goBack() {
   showForm(); hideError();
-  currentOrder=null; refundPanelOpen=false;
+  currentOrder=null; lastResultData=null; refundPanelOpen=false;
   document.getElementById('refundPanel').classList.remove('open');
   document.getElementById('refundTrigger').style.display='block';
 }
-function showError(m) { const el=document.getElementById('errorMsg'); el.textContent=m; el.classList.remove('hidden'); }
+function showError(m) { const el=document.getElementById('errorMsg'); el.textContent=t(m); el.classList.remove('hidden'); }
 function hideError()  { document.getElementById('errorMsg').classList.add('hidden'); }
 
 document.addEventListener('keydown', e => {
@@ -1001,6 +1200,7 @@ window.addEventListener('scroll', () => {
   btn.style.pointerEvents=window.scrollY>300?'auto':'none';
 });
 window.addEventListener('load', () => {
+  setLanguage(currentLanguage);
   const c=document.getElementById('sakura-container');
   for(let i=0;i<6;i++){
     const p=document.createElement('div'); p.className='sakura';
