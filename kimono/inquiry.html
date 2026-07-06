@@ -142,7 +142,7 @@ input[type="text"], input[type="email"], input[type="tel"], select, textarea { f
   <div id="formCard" class="bg-white shadow-2xl rounded-sm border border-slate-50 p-8 md:p-10 fade-up">
     <div class="mb-8 text-center">
       <h2 class="text-lg font-bold text-[#1A365D] uppercase tracking-[0.3em] font-sans">查詢我的訂單</h2>
-      <p class="text-slate-400 text-xs mt-2 font-sans tracking-wider">請輸入預約時的聯絡資料</p>
+      <p class="text-slate-400 text-xs mt-2 font-sans tracking-wider">訂單編號、Email 或手機號碼，任填一項即可</p>
     </div>
     <!-- Tab switcher -->
     <div class="flex border border-slate-200 rounded-md mb-7 p-1 bg-slate-50 font-sans">
@@ -153,13 +153,13 @@ input[type="text"], input[type="email"], input[type="tel"], select, textarea { f
     <!-- Mode A: query by order ID + email/phone -->
     <div id="form-byid">
       <div class="mb-6">
-        <label class="block text-[12px] font-bold text-slate-600 uppercase tracking-[0.2em] mb-2 font-sans">訂單編號 <span class="text-pink-400">*</span></label>
+        <label class="block text-[12px] font-bold text-slate-600 uppercase tracking-[0.2em] mb-2 font-sans">訂單編號</label>
         <input type="text" id="orderId" placeholder="K260421001" autocomplete="off"
           oninput="this.value=this.value.toUpperCase()"
           class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-xl font-bold bg-transparent transition-colors font-sans tracking-[0.1em] placeholder:text-slate-200 placeholder:font-normal placeholder:text-base">
       </div>
       <div class="mb-5">
-        <label class="block text-[12px] font-bold text-slate-600 uppercase tracking-[0.2em] mb-2 font-sans">Email <span class="text-pink-400">*</span></label>
+        <label class="block text-[12px] font-bold text-slate-600 uppercase tracking-[0.2em] mb-2 font-sans">Email</label>
         <input type="email" id="email" placeholder="your@email.com" autocomplete="off"
           class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-base font-bold bg-transparent transition-colors font-sans placeholder:text-slate-200 placeholder:font-normal">
       </div>
@@ -172,7 +172,7 @@ input[type="text"], input[type="email"], input[type="tel"], select, textarea { f
         <label class="block text-[12px] font-bold text-slate-600 uppercase tracking-[0.2em] mb-2 font-sans">手機號碼</label>
         <input type="tel" id="phone" placeholder="0912345678" autocomplete="off"
           class="w-full border-b-2 border-slate-100 focus:border-[#1A365D] outline-none py-3 text-base font-bold bg-transparent transition-colors font-sans placeholder:text-slate-200 placeholder:font-normal">
-        <p class="text-[10px] text-slate-300 mt-2 font-sans">※ Email 或手機號碼填寫其中一項即可</p>
+        <p class="text-[10px] text-slate-300 mt-2 font-sans">※ 訂單編號、Email 或手機號碼，任填一項即可查詢</p>
       </div>
     </div>
 
@@ -550,8 +550,7 @@ async function doQuery() {
     const orderId = document.getElementById('orderId').value.trim().toUpperCase();
     const email   = document.getElementById('email').value.trim();
     const phone   = document.getElementById('phone').value.trim();
-    if (!orderId)         return showError('請輸入訂單編號');
-    if (!email && !phone) return showError('請填寫 Email 或手機號碼其中一項');
+    if (!orderId && !email && !phone) return showError('訂單編號、Email 或手機號碼，請至少填寫一項');
     payload = { action:'query', orderId, contact: email || phone };
   }
   showLoading();
@@ -560,7 +559,10 @@ async function doQuery() {
     if (KIMONO_CONFIG.USE_NEW_API) {
       const firebasePayload = queryMode === 'bynamephone'
         ? { name: payload.name, phone: payload.phone }
-        : { orderId: payload.orderId, contact: payload.contact };
+        : {
+            ...(payload.orderId ? { orderId: payload.orderId } : {}),
+            ...(payload.contact ? { contact: payload.contact } : {})
+          };
       data = await callFirebaseApi('queryPublicOrder', firebasePayload);
     } else {
       const res  = await fetch(GAS_URL, {
@@ -825,10 +827,12 @@ window.addEventListener('load', () => {
     if (savedQuery) {
       sessionStorage.removeItem('kimono_quick_query');
       const { orderId, contact } = JSON.parse(savedQuery);
-      if (orderId && contact) {
-        document.getElementById('orderId').value = String(orderId).trim().toUpperCase();
-        const contactValue = String(contact).trim();
-        document.getElementById(contactValue.includes('@') ? 'email' : 'phone').value = contactValue;
+      if (orderId || contact) {
+        if (orderId) document.getElementById('orderId').value = String(orderId).trim().toUpperCase();
+        if (contact) {
+          const contactValue = String(contact).trim();
+          document.getElementById(contactValue.includes('@') ? 'email' : 'phone').value = contactValue;
+        }
         doQuery();
       }
     }

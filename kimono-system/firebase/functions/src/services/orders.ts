@@ -57,9 +57,9 @@ export const queryPublicOrderSchema = z.object({
   name: z.string().optional(),
   phone: z.string().optional()
 }).refine((input) => {
-  if (input.orderId && input.contact) return true;
+  if (input.orderId || input.contact) return true;
   return Boolean(input.name && input.phone);
-}, "Order number with contact, or name with phone is required");
+}, "Order number, contact, or name with phone is required");
 
 export const updateOrderByStaffSchema = z.object({
   orderId: z.string().min(1),
@@ -256,7 +256,7 @@ function adultCounts(order: FirebaseFirestore.DocumentData) {
   };
 }
 
-function toPublicOrderResponse(orderId: string, order: FirebaseFirestore.DocumentData) {
+function toPublicOrderResponse(orderId: string, order: FirebaseFirestore.DocumentData, fullyVerified = true) {
   const status = resolveOrderStatus(order);
   const statusCode = publicStatusCode(status);
   const { adults, maleAdults, femaleAdults, hasBreakdown } = adultCounts(order);
@@ -269,9 +269,9 @@ function toPublicOrderResponse(orderId: string, order: FirebaseFirestore.Documen
     status: "success",
     firestoreId: orderId,
     orderId: order.orderNo || orderId,
-    name: order.customerName || "",
-    email: order.customerEmail || "",
-    phone: order.customerPhone || "",
+    name: fullyVerified ? order.customerName || "" : "",
+    email: fullyVerified ? order.customerEmail || "" : "",
+    phone: fullyVerified ? order.customerPhone || "" : "",
     statusCode,
     bookingDate: timestampToIso(order.bookingAt),
     guests: hasBreakdown
@@ -296,8 +296,8 @@ function toPublicOrderResponse(orderId: string, order: FirebaseFirestore.Documen
     onsiteDue: Number(order.onsiteDueJpy || 0),
     couponCode: order.couponCode || "",
     discount,
-    canRefund: status === "confirmed",
-    canCheckIn: status === "confirmed"
+    canRefund: fullyVerified && status === "confirmed",
+    canCheckIn: fullyVerified && status === "confirmed"
   };
 }
 
@@ -401,6 +401,10 @@ export async function queryPublicOrder(raw: unknown) {
 
   if (input.orderId) {
     snap = await db.collection("orders").where("orderNo", "==", input.orderId.trim().toUpperCase()).limit(1).get();
+  } else if (input.contact) {
+    const contact = input.contact.trim();
+    const field = contact.includes("@") ? "customerEmail" : "customerPhone";
+    snap = await db.collection("orders").where(field, "==", contact).limit(20).get();
   } else {
     snap = await db.collection("orders").where("customerName", "==", input.name?.trim()).limit(20).get();
   }
@@ -410,12 +414,22 @@ export async function queryPublicOrder(raw: unknown) {
   const contact = normalizeText(input.contact);
   const phoneDigits = normalizeDigits(input.phone);
   const name = normalizeText(input.name);
+  const fullyVerified = Boolean(
+    (input.orderId && input.contact)
+    || (input.name && input.phone)
+  );
 
-  const match = snap.docs.find((doc) => {
+  const matches = snap.docs.filter((doc) => {
     const order = doc.data();
-    if (input.orderId) {
+    if (input.orderId && input.contact) {
       const emailOk = normalizeText(order.customerEmail) === contact;
       const phoneOk = normalizeDigits(order.customerPhone).endsWith(normalizeDigits(contact));
+      return emailOk || phoneOk;
+    }
+    if (input.orderId) return true;
+    if (input.contact) {
+      const emailOk = contact.includes("@") && normalizeText(order.customerEmail) === contact;
+      const phoneOk = !contact.includes("@") && normalizeDigits(order.customerPhone) === normalizeDigits(contact);
       return emailOk || phoneOk;
     }
     const nameOk = normalizeText(order.customerName) === name;
@@ -423,8 +437,14 @@ export async function queryPublicOrder(raw: unknown) {
     return nameOk && phoneOk;
   });
 
+  const match = matches.sort((a, b) => {
+    const aTime = timestampToMillis(a.data().createdAt || a.data().bookingAt) || 0;
+    const bTime = timestampToMillis(b.data().createdAt || b.data().bookingAt) || 0;
+    return bTime - aTime;
+  })[0];
+
   if (!match) throw new HttpError(404, "Order not found");
-  return toPublicOrderResponse(match.id, match.data());
+  return toPublicOrderResponse(match.id, match.data(), fullyVerified);
 }
 
 export async function createPublicOrder(raw: unknown) {
