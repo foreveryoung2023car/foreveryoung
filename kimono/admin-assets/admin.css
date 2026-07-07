@@ -76,9 +76,10 @@
   .store-summary-row{display:grid;gap:20px;padding:22px 0;border-bottom:1px solid #E2E8F0}
   .store-summary-row:first-child{padding-top:0}
   .store-summary-row:last-child{border-bottom:0;padding-bottom:0}
-  .store-summary-row-top{grid-template-columns:1.1fr 1.35fr;align-items:center}
+  .store-summary-row.is-last-visible{border-bottom:0;padding-bottom:0}
+  .store-summary-row-top{grid-template-columns:max-content minmax(0,1fr);align-items:center;column-gap:36px}
   .store-summary-two{grid-template-columns:1fr 1fr}
-  .store-summary-three{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .store-summary-three{grid-template-columns:minmax(0,.9fr) minmax(320px,1.3fr) minmax(0,.8fr);column-gap:16px}
   .store-summary-cell,.store-summary-person{display:flex;align-items:center;gap:16px;min-width:0}
   .store-summary-people{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;border-left:1px solid #E2E8F0;padding-left:22px}
   .store-summary-icon{width:52px;height:52px;border-radius:999px;background:#EFF6FF;color:#3B82F6;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;background-repeat:no-repeat;background-position:center;background-size:28px}
@@ -96,7 +97,7 @@
   .store-summary-label{font-size:14px;font-weight:700;color:#64748B;letter-spacing:.02em;margin-right:12px}
   .store-summary-value{font-size:26px;font-weight:700;color:#334155;line-height:1.12}
   .store-summary-booking-value{font-size:36px;font-weight:500;white-space:nowrap;color:#3B82F6}
-  .store-summary-inline-value{font-size:24px;font-weight:700;color:#334155;margin-left:12px}
+  .store-summary-inline-value{font-size:24px;font-weight:700;color:#334155;margin-left:10px;white-space:nowrap}
   .store-summary-money{font-size:28px;font-weight:800;color:#334155;margin-left:16px}
   .store-summary-money.is-balance{color:#C2410C}
   .store-summary-note{grid-template-columns:max-content minmax(0,1fr);align-items:start}

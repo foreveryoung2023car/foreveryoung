@@ -218,9 +218,23 @@ function renderStoreOrderDetailView(o) {
   setStoreInlineEditorValue('store-inline-hair', (o.hair === true || o.hair === 'true') ? 'true' : 'false');
   setStoreInlineEditorValue('store-inline-makeup', normalizeMakeupPlan(o));
   setStoreInlineEditorValue('store-inline-photo', (o.photo === true || o.photo === 'true') ? 'true' : 'false');
-  document.getElementById('store-view-remark').textContent = o.remark || '—';
+  const moneyRow = document.getElementById('store-summary-money-row');
+  if (moneyRow) moneyRow.hidden = true;
+  const remark = String(o && o.remark || '').trim();
+  const hasRemark = !!remark && !/^[—–-]+$/.test(remark);
+  const noteRow = document.getElementById('store-summary-note-row');
+  if (noteRow) noteRow.hidden = !hasRemark;
+  document.getElementById('store-view-remark').textContent = hasRemark ? remark : '';
+  updateStoreSummaryLastVisibleRow();
   document.getElementById('store-view-actual-received').textContent = fmtY0(orderFinancialValue(o, 'storeActualReceived', 'storeActualReceivedJpy'));
   document.getElementById('store-view-balance').textContent = hideMoney ? '—' : fmtY0(orderDisplayBalance(o));
+}
+
+function updateStoreSummaryLastVisibleRow() {
+  const rows = Array.from(document.querySelectorAll('#store-order-detail-view .store-summary-row'));
+  rows.forEach(row => row.classList.remove('is-last-visible'));
+  const visibleRows = rows.filter(row => !row.hidden);
+  visibleRows[visibleRows.length - 1]?.classList.add('is-last-visible');
 }
 
 function setStoreInlineEditorValue(id, value) {

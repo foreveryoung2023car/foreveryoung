@@ -11,7 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./admin-assets/admin.css?v=20260626-7">
+<link rel="stylesheet" href="./admin-assets/admin.css?v=20260707-3">
 </head>
 <body class="min-h-screen" style="overflow-x:hidden">
 
@@ -811,7 +811,7 @@
                 </div>
               </div>
             </div>
-            <div class="store-summary-row store-summary-two">
+            <div id="store-summary-money-row" class="store-summary-row store-summary-two" hidden>
               <div class="store-summary-cell">
                 <span class="store-summary-icon" data-icon="store"></span>
                 <div><span class="store-summary-label">店鋪實收</span><span id="store-view-actual-received" class="store-summary-money">—</span></div>
@@ -821,7 +821,7 @@
                 <div><span class="store-summary-label">待付尾款</span><span id="store-view-balance" class="store-summary-money is-balance">—</span></div>
               </div>
             </div>
-            <div class="store-summary-row store-summary-note">
+            <div id="store-summary-note-row" class="store-summary-row store-summary-note" hidden>
               <span class="store-summary-icon" data-icon="note"></span>
               <div>
                 <div class="store-summary-label">客服給客人的備註</div>
@@ -1028,7 +1028,7 @@
 <script src="./admin-assets/07-calendar.js?v=20260626-6"></script>
 <script src="./admin-assets/08-finance.js?v=20260612-2"></script>
 <script src="./admin-assets/09-reconcile.js?v=20260626-6"></script>
-<script src="./admin-assets/10-orders-edit.js?v=20260628-1"></script>
+<script src="./admin-assets/10-orders-edit.js?v=20260707-1"></script>
 <script src="./admin-assets/11-refunds-edit.js?v=20260605-14"></script>
 <script src="./admin-assets/12-ui-admin-tools.js?v=20260626-8"></script>
 <script src="./admin-assets/13-weather.js?v=20260605-14"></script>
