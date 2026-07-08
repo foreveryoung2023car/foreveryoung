@@ -11,7 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./admin-assets/admin.css?v=20260707-3">
+<link rel="stylesheet" href="./admin-assets/admin.css?v=20260708-1">
 </head>
 <body class="min-h-screen" style="overflow-x:hidden">
 
@@ -203,6 +203,11 @@
     </div>
 
     <div class="panel mb-4">
+      <div class="orders-month-filter mb-4">
+        <select id="f-year" class="month-filter-select" onchange="handleOrderYearChange()" title="體驗年份"></select>
+        <select id="f-month" class="month-filter-select" onchange="filterOrders()" title="體驗月份"></select>
+        <button type="button" class="month-filter-clear" onclick="clearOrderMonthFilter()">全部</button>
+      </div>
       <details>
         <summary class="flex justify-between items-center cursor-pointer select-none">
           <span class="font-bold text-[#1A365D] text-base">🔍 進階搜尋與篩選</span>
@@ -218,7 +223,7 @@
           <div><div class="section-label">髮型設計</div><select id="f-hair" class="input-field" onchange="filterOrders()"><option value="">全部</option><option value="true">有髮型</option><option value="false">無髮型</option></select></div>
           <div><div class="section-label">化妝造型</div><select id="f-makeup" class="input-field" onchange="filterOrders()"><option value="">全部</option><option value="true">有化妝</option><option value="false">無化妝</option></select></div>
           <div><div class="section-label">攝影</div><select id="f-photo" class="input-field" onchange="filterOrders()"><option value="">全部</option><option value="true">有攝影</option><option value="false">無攝影</option></select></div>
-          <div><div class="section-label">排序</div><select id="f-sort" class="input-field" onchange="filterOrders()"><option value="booking-asc">體驗日期 ↑</option><option value="booking-desc" selected>體驗日期 ↓</option><option value="amount-desc">金額 ↓</option>
+          <div><div class="section-label">排序</div><select id="f-sort" class="input-field" onchange="filterOrders()"><option value="booking-asc">體驗日期 ↑</option><option value="booking-desc" selected>體驗日期 ↓（同日早到晚）</option><option value="amount-desc">金額 ↓</option>
                 <option value="due-desc">💰 待收尾款 ↓</option>
                 <option value="recent-submit">📅 最近下單</option>
                 <option value="visits-desc">⭐ 訪次 ↓</option></select></div>
@@ -1023,7 +1028,7 @@
 <script src="./admin-assets/02-firebase-api.js?v=20260626-5"></script>
 <script src="./admin-assets/03-ui-utils.js?v=20260611-5"></script>
 <script src="./admin-assets/04-refunds.js?v=20260626-6"></script>
-<script src="./admin-assets/05-orders.js?v=20260626-9"></script>
+<script src="./admin-assets/05-orders.js?v=20260708-1"></script>
 <script src="./admin-assets/06-checkin-actions.js?v=20260610-1"></script>
 <script src="./admin-assets/07-calendar.js?v=20260626-6"></script>
 <script src="./admin-assets/08-finance.js?v=20260612-2"></script>

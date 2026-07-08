@@ -418,6 +418,84 @@ function populateFilters(){
   const fp = document.getElementById('f-plan'); const fl = document.getElementById('f-platform');
   fp.innerHTML = '<option value="">全部款式</option>' + [...plans].map(p=>'<option>'+p+'</option>').join('');
   fl.innerHTML = '<option value="">全部來源</option>' + [...platforms].map(p=>'<option>'+p+'</option>').join('');
+  initOrderMonthFilters();
+}
+
+function initOrderMonthFilters(){
+  const yearSel = document.getElementById('f-year');
+  const monthSel = document.getElementById('f-month');
+  if (!yearSel || !monthSel) return;
+  const now = nowAsJstLocalDate();
+  const currentYear = String(now.getFullYear());
+  const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+  const prevYear = yearSel.value || currentYear;
+  const prevMonth = monthSel.value || currentMonth;
+  const years = new Set([currentYear, String(now.getFullYear() - 1), String(now.getFullYear() + 1)]);
+  allOrders.forEach(o => {
+    const d = orderBookingDate(o);
+    if (d && !isNaN(d)) years.add(String(d.getFullYear()));
+  });
+  const sortedYears = [...years].sort((a,b)=>Number(b)-Number(a));
+  const selectedYear = prevYear === 'all' || sortedYears.includes(prevYear) ? prevYear : currentYear;
+  const selectedMonth = prevMonth === 'all' || /^(0[1-9]|1[0-2])$/.test(prevMonth) ? prevMonth : currentMonth;
+  yearSel.innerHTML = '<option value="all"'+(selectedYear==='all'?' selected':'')+'>全部年份</option>' +
+    sortedYears.map(y => '<option value="'+y+'"'+(y===selectedYear?' selected':'')+'>'+y+'年</option>').join('');
+  updateOrderMonthOptions(selectedYear, selectedMonth);
+}
+
+function updateOrderMonthOptions(year, selectedMonth){
+  const monthSel = document.getElementById('f-month');
+  if (!monthSel) return;
+  if (!year || year === 'all') {
+    monthSel.innerHTML = '<option value="all" selected>全部月份</option>';
+    monthSel.disabled = true;
+    return;
+  }
+  monthSel.disabled = false;
+  const opts = ['<option value="all"'+(selectedMonth==='all'?' selected':'')+'>全年</option>'];
+  for (let i = 1; i <= 12; i++) {
+    const mm = String(i).padStart(2, '0');
+    opts.push('<option value="'+mm+'"'+(mm===selectedMonth?' selected':'')+'>'+i+'月</option>');
+  }
+  monthSel.innerHTML = opts.join('');
+}
+
+function handleOrderYearChange(){
+  const yearSel = document.getElementById('f-year');
+  const monthSel = document.getElementById('f-month');
+  if (!yearSel || !monthSel) return filterOrders();
+  const nextMonth = yearSel.value === 'all' ? 'all' : (monthSel.value || 'all');
+  updateOrderMonthOptions(yearSel.value, nextMonth);
+  filterOrders();
+}
+
+function clearOrderMonthFilter(){
+  const yearSel = document.getElementById('f-year');
+  const monthSel = document.getElementById('f-month');
+  if (yearSel) yearSel.value = 'all';
+  updateOrderMonthOptions('all', 'all');
+  if (monthSel) monthSel.value = 'all';
+  filterOrders();
+}
+
+function orderMatchesMonthFilter(o, year, month) {
+  if (!year || year === 'all') return true;
+  const d = orderBookingDate(o);
+  if (!d || isNaN(d) || String(d.getFullYear()) !== year) return false;
+  return !month || month === 'all' || String(d.getMonth() + 1).padStart(2, '0') === month;
+}
+
+function compareBookingDescSameDayAsc(a, b) {
+  const da = orderBookingDate(a);
+  const db = orderBookingDate(b);
+  const validA = da && !isNaN(da);
+  const validB = db && !isNaN(db);
+  if (!validA && !validB) return 0;
+  if (!validA) return 1;
+  if (!validB) return -1;
+  const dayA = new Date(da.getFullYear(), da.getMonth(), da.getDate()).getTime();
+  const dayB = new Date(db.getFullYear(), db.getMonth(), db.getDate()).getTime();
+  return (dayB - dayA) || (da.getTime() - db.getTime());
 }
 
 function setFilter(f, btn){
@@ -440,6 +518,7 @@ function resetAllFilters(){
     const el = document.getElementById(id); if(el) el.value = '';
   });
   const fSort = document.getElementById('f-sort'); if(fSort) fSort.value = 'booking-desc';
+  clearOrderMonthFilter();
   const allBtn = document.querySelectorAll('#sec-orders .tab-btn')[0];
   setFilter('all', allBtn);
 }
@@ -543,6 +622,8 @@ function filterOrders(){
   const q = (document.getElementById('f-search').value||'').toLowerCase();
   const dFrom = document.getElementById('f-date-from').value;
   const dTo = document.getElementById('f-date-to').value;
+  const fYear = (document.getElementById('f-year') || {}).value || 'all';
+  const fMonth = (document.getElementById('f-month') || {}).value || 'all';
   // v2.5: store role only sees their own orders
   const fPlan = document.getElementById('f-plan').value;
   const fStore = (document.getElementById('f-store') || {}).value || '';
@@ -582,6 +663,7 @@ function filterOrders(){
   if(currentFilter==='duebalance') list = list.filter(o=>orderStatusOf(o)==='balance_due');
 
   if(q) list = list.filter(o=>(o.name||'').toLowerCase().includes(q)||(o.phone||'').includes(q)||(o.orderId||'').toLowerCase().includes(q)||(o.email||'').toLowerCase().includes(q));
+  if(fYear && fYear !== 'all') list = list.filter(o=>orderMatchesMonthFilter(o, fYear, fMonth));
   if(dFrom) list = list.filter(o=>{const d=orderBookingDate(o); return d && !isNaN(d) && d>=new Date(dFrom + 'T00:00');});
   if(dTo) list = list.filter(o=>{const d=orderBookingDate(o); const dt=new Date(dTo + 'T00:00'); dt.setHours(23,59,59,999); return d && !isNaN(d) && d<=dt;});
   if(fPlan) list = list.filter(o=>(o.plan||'').includes(fPlan));
@@ -594,7 +676,7 @@ function filterOrders(){
   // Default sort: most recently submitted first (so today's new orders surface)
   if(!fSort) list.sort((a,b)=> orderRecentSortMillis(b) - orderRecentSortMillis(a));
   if(fSort==='booking-asc') list.sort((a,b)=>jstMillis(a.bookingDate)-jstMillis(b.bookingDate));
-  if(fSort==='booking-desc') list.sort((a,b)=>jstMillis(b.bookingDate)-jstMillis(a.bookingDate));
+  if(fSort==='booking-desc') list.sort(compareBookingDescSameDayAsc);
   if(fSort==='amount-desc') list.sort((a,b)=>totalAmount(b)-totalAmount(a));
   if(fSort==='due-desc') list.sort((a,b)=>orderDisplayBalance(b)-orderDisplayBalance(a));
   if(fSort==='recent-submit') list.sort((a,b)=>new Date(b.submitDate||b.createdAt||0)-new Date(a.submitDate||a.createdAt||0));
@@ -849,6 +931,9 @@ function renderOrders(orders){
       reasons.push('狀態：' + (labelMap[currentFilter] || currentFilter));
     }
     const fs = document.getElementById('f-search'); if(fs && fs.value) reasons.push('關鍵字：「' + fs.value + '」');
+    const fy = document.getElementById('f-year');
+    const fmo = document.getElementById('f-month');
+    if(fy && fy.value && fy.value !== 'all') reasons.push('年月：' + fy.value + '年' + (fmo && fmo.value && fmo.value !== 'all' ? Number(fmo.value) + '月' : '全年'));
     const fdf = document.getElementById('f-date-from'); if(fdf && fdf.value) reasons.push('起日：' + fdf.value);
     const fdt = document.getElementById('f-date-to'); if(fdt && fdt.value) reasons.push('迄日：' + fdt.value);
     const fp = document.getElementById('f-plan'); if(fp && fp.value) reasons.push('款式：' + fp.value);
