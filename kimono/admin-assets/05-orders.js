@@ -429,19 +429,8 @@ function initOrderMonthFilters(){
   const currentMonthKey = orderMonthKeyFromDate(now);
   const prevMonthKey = monthSel.value || currentMonthKey;
   const prevDay = daySel.value || 'all';
-  const months = new Set([currentMonthKey]);
-  for (let i = -6; i < 12; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    months.add(orderMonthKeyFromDate(d));
-  }
-  allOrders.forEach(o => {
-    const d = orderBookingDate(o);
-    if (d && !isNaN(d)) months.add(orderMonthKeyFromDate(d));
-  });
-  const sortedMonths = [...months].filter(Boolean).sort().reverse();
-  const selectedMonthKey = prevMonthKey === 'all' || sortedMonths.includes(prevMonthKey) ? prevMonthKey : currentMonthKey;
-  monthSel.innerHTML = '<option value="all"'+(selectedMonthKey==='all'?' selected':'')+'>全部月份</option>' +
-    sortedMonths.map(m => '<option value="'+m+'"'+(m===selectedMonthKey?' selected':'')+'>'+formatOrderMonthLabel(m)+'</option>').join('');
+  const selectedMonthKey = /^\d{4}-\d{2}$/.test(prevMonthKey) ? prevMonthKey : currentMonthKey;
+  monthSel.value = selectedMonthKey;
   updateOrderDayOptions(selectedMonthKey, prevDay);
 }
 
@@ -487,7 +476,7 @@ function handleOrderMonthChange(){
 function clearOrderMonthFilter(){
   const monthSel = document.getElementById('f-month-key');
   const daySel = document.getElementById('f-day');
-  if (monthSel) monthSel.value = 'all';
+  if (monthSel) monthSel.value = '';
   updateOrderDayOptions('all', 'all');
   if (daySel) daySel.value = 'all';
   filterOrders();
