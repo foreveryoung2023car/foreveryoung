@@ -11,7 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./admin-assets/admin.css?v=20260708-1">
+<link rel="stylesheet" href="./admin-assets/admin.css?v=20260708-2">
 </head>
 <body class="min-h-screen" style="overflow-x:hidden">
 
@@ -194,20 +194,19 @@
 
   <section id="sec-orders" class="section">
     <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
-      <h2 class="text-2xl font-bold text-[#1A365D] title-serif">訂單管理</h2>
-      <div class="inline-flex gap-1 ml-3"><button id="orders-view-card" onclick="setOrderView('card')" class="px-2 py-1 text-xs border border-slate-200 rounded bg-white text-slate-600">🎴 卡片</button><button id="orders-view-list" onclick="setOrderView('list')" class="px-2 py-1 text-xs border border-slate-200 rounded bg-[#1A365D] text-white">📋 列表</button></div>
-      <div class="flex gap-2 flex-wrap">
+      <div class="flex items-end gap-3 flex-wrap">
+        <h2 class="text-2xl font-bold text-[#1A365D] title-serif">訂單管理</h2>
+        <div class="inline-flex gap-1"><button id="orders-view-card" onclick="setOrderView('card')" class="px-2 py-1 text-xs border border-slate-200 rounded bg-white text-slate-600">🎴 卡片</button><button id="orders-view-list" onclick="setOrderView('list')" class="px-2 py-1 text-xs border border-slate-200 rounded bg-[#1A365D] text-white">📋 列表</button></div>
+      </div>
+      <div class="flex gap-2 items-center flex-wrap">
+        <select id="f-year" class="input-field !w-auto" onchange="handleOrderYearChange()" title="體驗年份"></select>
+        <select id="f-month" class="input-field !w-auto" onchange="filterOrders()" title="體驗月份"></select>
         <button onclick="exportCSV()" class="btn-outline px-4 py-2 rounded-xl text-sm">📥 匯出 CSV</button>
         <button onclick="loadOrders()" class="btn-navy px-4 py-2 rounded-xl text-sm">↻ 重新載入</button>
       </div>
     </div>
 
     <div class="panel mb-4">
-      <div class="orders-month-filter mb-4">
-        <select id="f-year" class="month-filter-select" onchange="handleOrderYearChange()" title="體驗年份"></select>
-        <select id="f-month" class="month-filter-select" onchange="filterOrders()" title="體驗月份"></select>
-        <button type="button" class="month-filter-clear" onclick="clearOrderMonthFilter()">全部</button>
-      </div>
       <details>
         <summary class="flex justify-between items-center cursor-pointer select-none">
           <span class="font-bold text-[#1A365D] text-base">🔍 進階搜尋與篩選</span>
