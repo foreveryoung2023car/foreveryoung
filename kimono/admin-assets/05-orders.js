@@ -691,6 +691,7 @@ function filterOrders(){
 
   document.getElementById('showing-count').textContent = list.length;
   document.getElementById('total-count').textContent = allOrders.length;
+  window.__ordersFilteredList = list.slice();
   renderOrders(list);
 }
 

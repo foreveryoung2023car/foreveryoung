@@ -589,11 +589,11 @@ function ordersToCSV(list){
 function exportCSV(){
   // v2.4.29: store 角色匯出只能匯自家
   const allowed = filterOrdersForRole(allOrders);
-  const visible = document.querySelectorAll('#orders-list .order-card');
-  if(!visible.length){ toast('無資料可匯出','warning'); return; }
-  const ids = Array.from(visible).map(c=>c.querySelector('.font-mono')?.textContent.trim()).filter(Boolean);
-  const list = allowed.filter(o=>ids.includes(o.orderId));
-  ordersToCSV(list.length? list : allowed);
+  const visibleList = Array.isArray(window.__ordersFilteredList) ? window.__ordersFilteredList : allowed;
+  const visibleIds = new Set(visibleList.map(o => o && o.orderId).filter(Boolean));
+  const list = allowed.filter(o => visibleIds.has(o.orderId));
+  if(!list.length){ toast('無資料可匯出','warning'); return; }
+  ordersToCSV(list);
   toast('已匯出 CSV');
 }
 function batchExportCSV(){
