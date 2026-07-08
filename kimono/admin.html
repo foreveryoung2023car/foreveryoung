@@ -11,7 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./admin-assets/admin.css?v=20260708-2">
+<link rel="stylesheet" href="./admin-assets/admin.css?v=20260708-3">
 </head>
 <body class="min-h-screen" style="overflow-x:hidden">
 
@@ -199,8 +199,14 @@
         <div class="inline-flex gap-1"><button id="orders-view-card" onclick="setOrderView('card')" class="px-2 py-1 text-xs border border-slate-200 rounded bg-white text-slate-600">🎴 卡片</button><button id="orders-view-list" onclick="setOrderView('list')" class="px-2 py-1 text-xs border border-slate-200 rounded bg-[#1A365D] text-white">📋 列表</button></div>
       </div>
       <div class="flex gap-2 items-center flex-wrap">
-        <select id="f-year" class="input-field !w-auto" onchange="handleOrderYearChange()" title="體驗年份"></select>
-        <select id="f-month" class="input-field !w-auto" onchange="filterOrders()" title="體驗月份"></select>
+        <div>
+          <div class="section-label">月份</div>
+          <select id="f-month-key" class="input-field !w-auto" onchange="handleOrderMonthChange()" title="體驗月份"></select>
+        </div>
+        <div>
+          <div class="section-label">日期</div>
+          <select id="f-day" class="input-field !w-auto" onchange="filterOrders()" title="體驗日期"></select>
+        </div>
         <button onclick="exportCSV()" class="btn-outline px-4 py-2 rounded-xl text-sm">📥 匯出 CSV</button>
         <button onclick="loadOrders()" class="btn-navy px-4 py-2 rounded-xl text-sm">↻ 重新載入</button>
       </div>
@@ -1027,7 +1033,7 @@
 <script src="./admin-assets/02-firebase-api.js?v=20260626-5"></script>
 <script src="./admin-assets/03-ui-utils.js?v=20260611-5"></script>
 <script src="./admin-assets/04-refunds.js?v=20260626-6"></script>
-<script src="./admin-assets/05-orders.js?v=20260708-1"></script>
+<script src="./admin-assets/05-orders.js?v=20260708-2"></script>
 <script src="./admin-assets/06-checkin-actions.js?v=20260610-1"></script>
 <script src="./admin-assets/07-calendar.js?v=20260626-6"></script>
 <script src="./admin-assets/08-finance.js?v=20260612-2"></script>

@@ -422,67 +422,82 @@ function populateFilters(){
 }
 
 function initOrderMonthFilters(){
-  const yearSel = document.getElementById('f-year');
-  const monthSel = document.getElementById('f-month');
-  if (!yearSel || !monthSel) return;
+  const monthSel = document.getElementById('f-month-key');
+  const daySel = document.getElementById('f-day');
+  if (!monthSel || !daySel) return;
   const now = nowAsJstLocalDate();
-  const currentYear = String(now.getFullYear());
-  const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
-  const prevYear = yearSel.value || currentYear;
-  const prevMonth = monthSel.value || currentMonth;
-  const years = new Set([currentYear, String(now.getFullYear() - 1), String(now.getFullYear() + 1)]);
+  const currentMonthKey = orderMonthKeyFromDate(now);
+  const prevMonthKey = monthSel.value || currentMonthKey;
+  const prevDay = daySel.value || 'all';
+  const months = new Set([currentMonthKey]);
+  for (let i = -6; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.add(orderMonthKeyFromDate(d));
+  }
   allOrders.forEach(o => {
     const d = orderBookingDate(o);
-    if (d && !isNaN(d)) years.add(String(d.getFullYear()));
+    if (d && !isNaN(d)) months.add(orderMonthKeyFromDate(d));
   });
-  const sortedYears = [...years].sort((a,b)=>Number(b)-Number(a));
-  const selectedYear = prevYear === 'all' || sortedYears.includes(prevYear) ? prevYear : currentYear;
-  const selectedMonth = prevMonth === 'all' || /^(0[1-9]|1[0-2])$/.test(prevMonth) ? prevMonth : currentMonth;
-  yearSel.innerHTML = '<option value="all"'+(selectedYear==='all'?' selected':'')+'>全部年份</option>' +
-    sortedYears.map(y => '<option value="'+y+'"'+(y===selectedYear?' selected':'')+'>'+y+'年</option>').join('');
-  updateOrderMonthOptions(selectedYear, selectedMonth);
+  const sortedMonths = [...months].filter(Boolean).sort().reverse();
+  const selectedMonthKey = prevMonthKey === 'all' || sortedMonths.includes(prevMonthKey) ? prevMonthKey : currentMonthKey;
+  monthSel.innerHTML = '<option value="all"'+(selectedMonthKey==='all'?' selected':'')+'>全部月份</option>' +
+    sortedMonths.map(m => '<option value="'+m+'"'+(m===selectedMonthKey?' selected':'')+'>'+formatOrderMonthLabel(m)+'</option>').join('');
+  updateOrderDayOptions(selectedMonthKey, prevDay);
 }
 
-function updateOrderMonthOptions(year, selectedMonth){
-  const monthSel = document.getElementById('f-month');
-  if (!monthSel) return;
-  if (!year || year === 'all') {
-    monthSel.innerHTML = '<option value="all" selected>全部月份</option>';
-    monthSel.disabled = true;
+function orderMonthKeyFromDate(d) {
+  if (!d || isNaN(d)) return '';
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+function formatOrderMonthLabel(monthKey) {
+  const m = String(monthKey || '').match(/^(\d{4})-(\d{2})$/);
+  return m ? m[1] + '年' + m[2] + '月' : '全部月份';
+}
+
+function updateOrderDayOptions(monthKey, selectedDay){
+  const daySel = document.getElementById('f-day');
+  if (!daySel) return;
+  if (!monthKey || monthKey === 'all') {
+    daySel.innerHTML = '<option value="all" selected>全部日期</option>';
+    daySel.disabled = true;
     return;
   }
-  monthSel.disabled = false;
-  const opts = ['<option value="all"'+(selectedMonth==='all'?' selected':'')+'>全年</option>'];
-  for (let i = 1; i <= 12; i++) {
-    const mm = String(i).padStart(2, '0');
-    opts.push('<option value="'+mm+'"'+(mm===selectedMonth?' selected':'')+'>'+i+'月</option>');
+  daySel.disabled = false;
+  const [y, m] = monthKey.split('-').map(Number);
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const normalizedDay = selectedDay === 'all' || (Number(selectedDay) >= 1 && Number(selectedDay) <= daysInMonth)
+    ? String(selectedDay)
+    : 'all';
+  const opts = ['<option value="all"'+(normalizedDay==='all'?' selected':'')+'>整月</option>'];
+  for (let i = 1; i <= daysInMonth; i++) {
+    opts.push('<option value="'+i+'"'+(String(i)===normalizedDay?' selected':'')+'>'+i+'</option>');
   }
-  monthSel.innerHTML = opts.join('');
+  daySel.innerHTML = opts.join('');
 }
 
-function handleOrderYearChange(){
-  const yearSel = document.getElementById('f-year');
-  const monthSel = document.getElementById('f-month');
-  if (!yearSel || !monthSel) return filterOrders();
-  const nextMonth = yearSel.value === 'all' ? 'all' : (monthSel.value || 'all');
-  updateOrderMonthOptions(yearSel.value, nextMonth);
+function handleOrderMonthChange(){
+  const monthSel = document.getElementById('f-month-key');
+  const daySel = document.getElementById('f-day');
+  if (!monthSel || !daySel) return filterOrders();
+  updateOrderDayOptions(monthSel.value, daySel.value || 'all');
   filterOrders();
 }
 
 function clearOrderMonthFilter(){
-  const yearSel = document.getElementById('f-year');
-  const monthSel = document.getElementById('f-month');
-  if (yearSel) yearSel.value = 'all';
-  updateOrderMonthOptions('all', 'all');
+  const monthSel = document.getElementById('f-month-key');
+  const daySel = document.getElementById('f-day');
   if (monthSel) monthSel.value = 'all';
+  updateOrderDayOptions('all', 'all');
+  if (daySel) daySel.value = 'all';
   filterOrders();
 }
 
-function orderMatchesMonthFilter(o, year, month) {
-  if (!year || year === 'all') return true;
+function orderMatchesMonthFilter(o, monthKey, day) {
+  if (!monthKey || monthKey === 'all') return true;
   const d = orderBookingDate(o);
-  if (!d || isNaN(d) || String(d.getFullYear()) !== year) return false;
-  return !month || month === 'all' || String(d.getMonth() + 1).padStart(2, '0') === month;
+  if (!d || isNaN(d) || orderMonthKeyFromDate(d) !== monthKey) return false;
+  return !day || day === 'all' || d.getDate() === Number(day);
 }
 
 function compareBookingDescSameDayAsc(a, b) {
@@ -622,8 +637,8 @@ function filterOrders(){
   const q = (document.getElementById('f-search').value||'').toLowerCase();
   const dFrom = document.getElementById('f-date-from').value;
   const dTo = document.getElementById('f-date-to').value;
-  const fYear = (document.getElementById('f-year') || {}).value || 'all';
-  const fMonth = (document.getElementById('f-month') || {}).value || 'all';
+  const fMonthKey = (document.getElementById('f-month-key') || {}).value || 'all';
+  const fDay = (document.getElementById('f-day') || {}).value || 'all';
   // v2.5: store role only sees their own orders
   const fPlan = document.getElementById('f-plan').value;
   const fStore = (document.getElementById('f-store') || {}).value || '';
@@ -663,7 +678,7 @@ function filterOrders(){
   if(currentFilter==='duebalance') list = list.filter(o=>orderStatusOf(o)==='balance_due');
 
   if(q) list = list.filter(o=>(o.name||'').toLowerCase().includes(q)||(o.phone||'').includes(q)||(o.orderId||'').toLowerCase().includes(q)||(o.email||'').toLowerCase().includes(q));
-  if(fYear && fYear !== 'all') list = list.filter(o=>orderMatchesMonthFilter(o, fYear, fMonth));
+  if(fMonthKey && fMonthKey !== 'all') list = list.filter(o=>orderMatchesMonthFilter(o, fMonthKey, fDay));
   if(dFrom) list = list.filter(o=>{const d=orderBookingDate(o); return d && !isNaN(d) && d>=new Date(dFrom + 'T00:00');});
   if(dTo) list = list.filter(o=>{const d=orderBookingDate(o); const dt=new Date(dTo + 'T00:00'); dt.setHours(23,59,59,999); return d && !isNaN(d) && d<=dt;});
   if(fPlan) list = list.filter(o=>(o.plan||'').includes(fPlan));
@@ -931,9 +946,9 @@ function renderOrders(orders){
       reasons.push('狀態：' + (labelMap[currentFilter] || currentFilter));
     }
     const fs = document.getElementById('f-search'); if(fs && fs.value) reasons.push('關鍵字：「' + fs.value + '」');
-    const fy = document.getElementById('f-year');
-    const fmo = document.getElementById('f-month');
-    if(fy && fy.value && fy.value !== 'all') reasons.push('年月：' + fy.value + '年' + (fmo && fmo.value && fmo.value !== 'all' ? Number(fmo.value) + '月' : '全年'));
+    const fmk = document.getElementById('f-month-key');
+    const fday = document.getElementById('f-day');
+    if(fmk && fmk.value && fmk.value !== 'all') reasons.push('日期：' + formatOrderMonthLabel(fmk.value) + (fday && fday.value && fday.value !== 'all' ? Number(fday.value) + '日' : '整月'));
     const fdf = document.getElementById('f-date-from'); if(fdf && fdf.value) reasons.push('起日：' + fdf.value);
     const fdt = document.getElementById('f-date-to'); if(fdt && fdt.value) reasons.push('迄日：' + fdt.value);
     const fp = document.getElementById('f-plan'); if(fp && fp.value) reasons.push('款式：' + fp.value);
