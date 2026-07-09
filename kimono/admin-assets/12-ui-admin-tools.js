@@ -680,40 +680,25 @@ async function saveOrder() {
       const data = await res.json().catch(()=>({}));
       btn.textContent = '💾 儲存變更'; btn.disabled = false;
       if (!res.ok || data.status !== 'success') throw new Error(data.message || '儲存失敗');
-      if (data.order) {
-        const savedActual = Number(data.order.storeActualReceivedJpy ?? data.order.storeActualReceived ?? firebasePayload.storeActualReceivedJpy ?? 0);
-        const savedBalance = Number(data.order.balanceDueJpy ?? data.order.balanceDue ?? 0);
-        editingOrder.storeActualReceived = savedActual;
-        editingOrder.storeActualReceivedJpy = savedActual;
-        editingOrder.balanceDue = savedBalance;
-        editingOrder.balanceDueJpy = savedBalance;
-        editingOrder.storeNote = data.order.storeNote ?? firebasePayload.storeNote ?? editingOrder.storeNote;
-        editingOrder.status = data.order.status || editingOrder.status;
-      }
-      let proofNotice = '';
+      const savedId = editingOrder.orderId;
+      const updatedOrder = typeof adminMutationOrderToLocal === 'function'
+        ? adminMutationOrderToLocal(data.order || {}, editingOrder)
+        : Object.assign({}, editingOrder, data.order || {});
+      if (typeof mergeOrderIntoLocalList === 'function') mergeOrderIntoLocalList(savedId, updatedOrder);
       if (isStoreCheckout) {
-        try {
-          await callFirebaseAdminFunction('/sendProofReceivedEmail', {
+        callFirebaseAdminFunction('/sendProofReceivedEmail', {
             orderId: editingOrder.firebaseDocId || editingOrder.orderId
-          });
-          proofNotice = '，付款憑證信已寄出';
-        } catch (emailErr) {
-          proofNotice = '，但付款憑證信寄送失敗：' + (emailErr.message || emailErr);
-        }
+          })
+          .then(() => toast('付款憑證信已寄出', 'success'))
+          .catch(emailErr => toast('付款憑證信寄送失敗：' + (emailErr.message || emailErr), 'warning'));
       }
       if (isStoreReservationEdit) {
         document.getElementById('edit-modal')?.removeAttribute('data-store-reservation-edit');
       }
-      const savedId = editingOrder.orderId;
-      msg.textContent = '正在重新載入…';
-      msg.className = 'text-center text-sm mt-3 text-slate-600';
-      msg.classList.remove('hidden');
-      setTimeout(() => {
-        closeModal();
-        toast('已儲存 ' + savedId + proofNotice + '，重新載入中…', proofNotice.indexOf('失敗') >= 0 ? 'warning' : 'success');
-        window.__highlightAfterLoad = savedId;
-        loadOrders();
-      }, 200);
+      closeModal();
+      toast('已儲存 ' + savedId, 'success');
+      if (typeof refreshCurrentSectionAfterLocalOrderChange === 'function') refreshCurrentSectionAfterLocalOrderChange();
+      if (typeof scheduleQuietOrdersRefresh === 'function') scheduleQuietOrdersRefresh(700);
     } catch (e) {
       btn.textContent = isStoreReadOnlyOrder ? '💾 儲存店鋪備註' : '💾 儲存變更'; btn.disabled = false;
       msg.textContent = '❌ ' + (e.message || '儲存失敗');
@@ -728,17 +713,13 @@ async function saveOrder() {
       if (data.status === 'ok' || data.status === 'success') {
         // v2.4.20: 統一只用 toast、不在 modal 顯示 ✅（避免雙重提示）
         const savedId = editingOrder.orderId;
-        msg.textContent = '正在重新載入…';
-        msg.className = 'text-center text-sm mt-3 text-slate-600';
-        msg.classList.remove('hidden');
-        setTimeout(() => {
-          closeModal();
-          toast('已儲存 ' + savedId + '，重新載入中…', 'success');
-          if (typeof loadOrders === 'function') {
-            window.__highlightAfterLoad = savedId;
-            loadOrders();
-          }
-        }, 200);
+        if (typeof adminOrderPatchFromFormPayload === 'function' && typeof mergeOrderIntoLocalList === 'function') {
+          mergeOrderIntoLocalList(savedId, adminOrderPatchFromFormPayload(payload));
+        }
+        closeModal();
+        toast('已儲存 ' + savedId, 'success');
+        if (typeof refreshCurrentSectionAfterLocalOrderChange === 'function') refreshCurrentSectionAfterLocalOrderChange();
+        if (typeof scheduleQuietOrdersRefresh === 'function') scheduleQuietOrdersRefresh(700);
       } else {
         msg.textContent = '❌ ' + (data.message || '儲存失敗'); msg.className = 'text-center text-sm mt-3 text-red-600 font-bold';
         msg.classList.remove('hidden');

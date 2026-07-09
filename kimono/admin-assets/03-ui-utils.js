@@ -396,6 +396,167 @@ function renderLoadedOrders(options) {
   }
 }
 
+function adminTimestampToIso(value) {
+  if (!value) return '';
+  if (typeof value === 'string') return value;
+  if (value instanceof Date) return value.toISOString();
+  const seconds = typeof value._seconds === 'number'
+    ? value._seconds
+    : (typeof value.seconds === 'number' ? value.seconds : null);
+  if (seconds !== null) return new Date(seconds * 1000).toISOString();
+  if (typeof value.toDate === 'function') return value.toDate().toISOString();
+  return '';
+}
+
+function adminMutationOrderToLocal(raw, fallback) {
+  fallback = fallback || {};
+  raw = raw || {};
+  const status = String(raw.status || fallback.status || (raw.confirmed || fallback.confirmed ? 'confirmed' : 'pending_review'));
+  const adults = raw.adults !== undefined ? Number(raw.adults || 0) : Number(fallback.adults || 0);
+  const maleAdults = raw.maleAdults !== undefined ? Number(raw.maleAdults || 0) : fallback.maleAdults;
+  const femaleAdults = raw.femaleAdults !== undefined ? Number(raw.femaleAdults || 0) : fallback.femaleAdults;
+  const children = raw.children !== undefined ? Number(raw.children || 0) : Number(fallback.children || 0);
+  return Object.assign({}, fallback, {
+    firebaseDocId: raw.id || raw.firebaseDocId || fallback.firebaseDocId,
+    orderId: raw.orderNo || raw.orderId || fallback.orderId || raw.id || '',
+    name: raw.customerName !== undefined ? raw.customerName : (raw.name !== undefined ? raw.name : fallback.name),
+    phone: raw.customerPhone !== undefined ? raw.customerPhone : (raw.phone !== undefined ? raw.phone : fallback.phone),
+    email: raw.customerEmail !== undefined ? raw.customerEmail : (raw.email !== undefined ? raw.email : fallback.email),
+    bookingDate: adminTimestampToIso(raw.bookingAt) || raw.bookingDate || fallback.bookingDate,
+    submitDate: adminTimestampToIso(raw.createdAt) || raw.submitDate || fallback.submitDate,
+    platform: raw.platform !== undefined ? raw.platform : fallback.platform,
+    brandPlatform: raw.brandPlatform || raw.platformBrand || fallback.brandPlatform,
+    source: raw.source !== undefined ? raw.source : fallback.source,
+    storeKey: raw.storeId !== undefined ? raw.storeId : (raw.storeKey !== undefined ? raw.storeKey : fallback.storeKey),
+    adults,
+    maleAdults,
+    femaleAdults,
+    children,
+    pax: adults + children,
+    plan: raw.plan !== undefined ? raw.plan : fallback.plan,
+    hair: raw.hair !== undefined ? (raw.hair ? 'true' : 'false') : fallback.hair,
+    makeup: raw.makeup !== undefined ? (raw.makeup ? 'true' : 'false') : fallback.makeup,
+    makeupPlan: raw.makeupPlan !== undefined ? raw.makeupPlan : fallback.makeupPlan,
+    photo: raw.photo !== undefined ? (raw.photo ? 'true' : 'false') : fallback.photo,
+    confirmed: ['confirmed', 'checked_in', 'completed', 'balance_due'].indexOf(status) >= 0,
+    checkedInAt: adminTimestampToIso(raw.checkedInAt) || fallback.checkedInAt,
+    checkedInBy: raw.checkedInBy !== undefined ? raw.checkedInBy : fallback.checkedInBy,
+    checkedInSource: raw.checkedInSource !== undefined ? raw.checkedInSource : fallback.checkedInSource,
+    deposit: raw.depositJpy !== undefined ? Number(raw.depositJpy || 0) : fallback.deposit,
+    kimonoPrice: raw.kimonoPriceJpy !== undefined ? Number(raw.kimonoPriceJpy || 0) : fallback.kimonoPrice,
+    price: raw.kimonoPriceJpy !== undefined ? Number(raw.kimonoPriceJpy || 0) : fallback.price,
+    hairFee: raw.hairFeeJpy !== undefined ? Number(raw.hairFeeJpy || 0) : fallback.hairFee,
+    makeupFee: raw.makeupFeeJpy !== undefined ? Number(raw.makeupFeeJpy || 0) : fallback.makeupFee,
+    photoFee: raw.photoFeeJpy !== undefined ? Number(raw.photoFeeJpy || 0) : fallback.photoFee,
+    totalJpy: raw.totalJpy !== undefined ? Number(raw.totalJpy || 0) : fallback.totalJpy,
+    onsiteDueJpy: raw.onsiteDueJpy !== undefined ? Number(raw.onsiteDueJpy || 0) : fallback.onsiteDueJpy,
+    coupon: raw.couponCode !== undefined ? raw.couponCode : fallback.coupon,
+    rate: raw.discountRate !== undefined ? raw.discountRate : fallback.rate,
+    discountRefundAmount: raw.discountRefundAmountJpy !== undefined ? Number(raw.discountRefundAmountJpy || 0) : fallback.discountRefundAmount,
+    overtimeDamageDeduction: raw.overtimeDamageDeductionJpy !== undefined ? Number(raw.overtimeDamageDeductionJpy || 0) : fallback.overtimeDamageDeduction,
+    overtimeDamageDeductionJpy: raw.overtimeDamageDeductionJpy !== undefined ? Number(raw.overtimeDamageDeductionJpy || 0) : fallback.overtimeDamageDeductionJpy,
+    storeActualReceived: raw.storeActualReceivedJpy !== undefined ? Number(raw.storeActualReceivedJpy || 0) : fallback.storeActualReceived,
+    storeActualReceivedJpy: raw.storeActualReceivedJpy !== undefined ? Number(raw.storeActualReceivedJpy || 0) : fallback.storeActualReceivedJpy,
+    balanceDue: raw.balanceDueJpy !== undefined ? Number(raw.balanceDueJpy || 0) : fallback.balanceDue,
+    balanceDueJpy: raw.balanceDueJpy !== undefined ? Number(raw.balanceDueJpy || 0) : fallback.balanceDueJpy,
+    checkoutAt: adminTimestampToIso(raw.checkoutAt) || fallback.checkoutAt,
+    refundAmount: raw.refundAmountJpy !== undefined ? Number(raw.refundAmountJpy || 0) : fallback.refundAmount,
+    refundTime: raw.refundTime !== undefined ? raw.refundTime : fallback.refundTime,
+    refundReason: raw.refundReason !== undefined ? raw.refundReason : fallback.refundReason,
+    refundBankCode: raw.refundBankCode !== undefined ? raw.refundBankCode : fallback.refundBankCode,
+    refundBankName: raw.refundBankName !== undefined ? raw.refundBankName : fallback.refundBankName,
+    refundBankAccount: raw.refundBankAccount !== undefined ? raw.refundBankAccount : fallback.refundBankAccount,
+    refundBankAccountName: raw.refundBankAccountName !== undefined ? raw.refundBankAccountName : fallback.refundBankAccountName,
+    proofImageUrl: raw.proofUrl !== undefined ? raw.proofUrl : fallback.proofImageUrl,
+    proofNote: raw.proofNote !== undefined ? raw.proofNote : fallback.proofNote,
+    last5: raw.last5 !== undefined ? raw.last5 : fallback.last5,
+    storeNote: raw.storeNote !== undefined ? raw.storeNote : fallback.storeNote,
+    note: raw.note !== undefined ? raw.note : fallback.note,
+    remark: raw.remark !== undefined ? raw.remark : (raw.note !== undefined ? raw.note : fallback.remark),
+    status
+  });
+}
+
+function adminOrderPatchFromFormPayload(payload) {
+  const patch = {};
+  if (!payload) return patch;
+  if (payload.name !== undefined) patch.name = payload.name;
+  if (payload.phone !== undefined) patch.phone = payload.phone;
+  if (payload.email !== undefined) patch.email = payload.email;
+  if (payload.bookingDate !== undefined) patch.bookingDate = payload.bookingDate;
+  if (payload.pax !== undefined) patch.pax = payload.pax;
+  if (payload.plan !== undefined) patch.plan = payload.plan;
+  if (payload.platform !== undefined) patch.platform = payload.platform;
+  if (payload.hair !== undefined) patch.hair = payload.hair;
+  if (payload.makeup !== undefined) {
+    patch.makeupPlan = payload.makeup;
+    patch.makeup = payload.makeup === 'No' ? 'false' : 'true';
+  }
+  if (payload.photo !== undefined) patch.photo = payload.photo;
+  if (payload.confirmed !== undefined) patch.confirmed = payload.confirmed === 'TRUE' || payload.confirmed === 'true';
+  if (payload.deposit !== undefined) patch.deposit = Number(payload.deposit || 0);
+  if (payload.kimonoPrice !== undefined) {
+    patch.kimonoPrice = Number(payload.kimonoPrice || 0);
+    patch.price = Number(payload.kimonoPrice || 0);
+  }
+  if (payload.hairFee !== undefined) patch.hairFee = Number(payload.hairFee || 0);
+  if (payload.makeupFee !== undefined) patch.makeupFee = Number(payload.makeupFee || 0);
+  if (payload.photoFee !== undefined) patch.photoFee = Number(payload.photoFee || 0);
+  if (payload.coupon !== undefined) patch.coupon = payload.coupon;
+  if (payload.rate !== undefined) patch.rate = payload.rate;
+  if (payload.discountRefundAmount !== undefined) patch.discountRefundAmount = Number(payload.discountRefundAmount || 0);
+  if (payload.overtimeDamageDeduction !== undefined) {
+    patch.overtimeDamageDeduction = Number(payload.overtimeDamageDeduction || 0);
+    patch.overtimeDamageDeductionJpy = Number(payload.overtimeDamageDeduction || 0);
+  }
+  if (payload.storeActualReceived !== undefined) {
+    patch.storeActualReceived = Number(payload.storeActualReceived || 0);
+    patch.storeActualReceivedJpy = Number(payload.storeActualReceived || 0);
+  }
+  if (payload.refundAmt !== undefined) patch.refundAmount = Number(payload.refundAmt || 0);
+  if (payload.refundDate !== undefined) patch.refundTime = payload.refundDate;
+  if (payload.refundReason !== undefined) patch.refundReason = payload.refundReason;
+  if (payload.note !== undefined) {
+    patch.note = payload.note;
+    patch.remark = payload.note;
+  }
+  if (payload.storeNote !== undefined) patch.storeNote = payload.storeNote;
+  return patch;
+}
+
+function mergeOrderIntoLocalList(orderId, nextOrder) {
+  if (!orderId || !nextOrder) return null;
+  const idx = allOrders.findIndex(o => o.orderId === orderId || o.firebaseDocId === orderId);
+  if (idx < 0) return null;
+  allOrders[idx] = Object.assign(allOrders[idx], nextOrder);
+  if (editingOrder && (editingOrder.orderId === orderId || editingOrder.firebaseDocId === orderId)) {
+    editingOrder = allOrders[idx];
+  }
+  return allOrders[idx];
+}
+
+function refreshCurrentSectionAfterLocalOrderChange() {
+  const run = () => {
+    if (currentSection === 'orders' && typeof filterOrders === 'function') filterOrders();
+    else if (currentSection === 'dashboard' && typeof renderDashboard === 'function') renderDashboard();
+    else if (currentSection === 'calendar' && typeof renderCalendar === 'function') renderCalendar();
+    else if (currentSection === 'customers' && typeof renderCustomers === 'function') renderCustomers();
+    else if (currentSection === 'finance' && typeof renderFinance === 'function') renderFinance();
+    else if (currentSection === 'reconcile' && typeof renderReconcile === 'function') renderReconcile();
+  };
+  if (typeof requestAnimationFrame === 'function') requestAnimationFrame(run);
+  else setTimeout(run, 0);
+}
+
+function scheduleQuietOrdersRefresh(delay) {
+  clearTimeout(window.__quietOrdersRefreshTimer);
+  window.__quietOrdersRefreshTimer = setTimeout(() => {
+    if (typeof loadOrders === 'function') {
+      loadOrders({ keepCurrentList: true, skipDashboard: true, skipOrdersRender: true, quiet: true });
+    }
+  }, delay || 500);
+}
+
 function loadOrders(options) {
   options = options || {};
   window.__loadStart = Date.now();
@@ -404,9 +565,12 @@ function loadOrders(options) {
     const ov = document.getElementById('loading-overlay');
     if (ov) ov.classList.remove('hidden');
   }
-  document.getElementById('orders-loading').classList.remove('hidden');
-  if (!options.keepCurrentList) document.getElementById('orders-list').innerHTML = '';
-  document.getElementById('orders-empty').classList.add('hidden');
+  const ordersLoading = document.getElementById('orders-loading');
+  const ordersList = document.getElementById('orders-list');
+  const ordersEmpty = document.getElementById('orders-empty');
+  if (ordersLoading && !options.quiet) ordersLoading.classList.remove('hidden');
+  if (ordersList && !options.keepCurrentList && !options.quiet) ordersList.innerHTML = '';
+  if (ordersEmpty && !options.quiet) ordersEmpty.classList.add('hidden');
   // v2.4.23: 保險絲 — 不論結果如何 12 秒後一定關閉 overlay
   setTimeout(() => {
     const ov = document.getElementById('loading-overlay');

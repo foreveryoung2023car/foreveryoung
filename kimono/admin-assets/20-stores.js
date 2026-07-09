@@ -308,9 +308,35 @@ async function saveStoreInfo() {
       serviceOptions,
       create: creatingStore
     });
+    const existingIndex = storeScheduleRows.findIndex(row => row.id === id);
+    const nextRow = Object.assign({}, existingIndex >= 0 ? storeScheduleRows[existingIndex] : {
+      id,
+      date: document.getElementById('store-manage-date')?.value || storeTodayJst(),
+      slots: [],
+      defaultSlots: [],
+      slotCapacities: {},
+      defaultSlotCapacities: {}
+    }, {
+      id,
+      name,
+      address: document.getElementById('store-edit-address').value.trim(),
+      phone: document.getElementById('store-edit-phone').value.trim(),
+      serviceOptions
+    });
+    if (existingIndex >= 0) storeScheduleRows[existingIndex] = nextRow;
+    else storeScheduleRows.push(nextRow);
     closeStoreEditor();
     toast(creatingStore ? '店鋪已新增' : '店鋪信息已更新');
-    await loadStoreSchedules(id);
+    const storeEl = document.getElementById('store-manage-store');
+    if (storeEl) {
+      const selected = storeEl.value;
+      storeEl.innerHTML = storeScheduleRows.map(row =>
+        '<option value="' + adminEsc(row.id) + '">' + adminEsc(row.name) + ' (' + adminEsc(row.id) + ')</option>'
+      ).join('');
+      storeEl.value = storeScheduleRows.some(row => row.id === id) ? id : selected;
+    }
+    renderSelectedStoreSchedule();
+    setTimeout(() => loadStoreSchedules(id), 500);
   } catch (err) {
     error.textContent = '儲存失敗：' + err.message;
     error.classList.remove('hidden');
@@ -370,7 +396,7 @@ async function saveStoreSlots(mode) {
       slotCapacities: selectedStoreSlotCapacities()
     });
     toast(mode === 'default' ? '店鋪預設時段已更新' : '指定日期時段已更新');
-    await loadStoreSchedules(storeId);
+    setTimeout(() => loadStoreSchedules(storeId), 500);
   } catch (err) {
     alert('儲存失敗：' + err.message);
   } finally {

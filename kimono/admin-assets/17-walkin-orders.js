@@ -198,8 +198,9 @@ async function wiSubmit() {
         note
       });
       closeWalkInModal();
-      await loadOrders();
-      alert('✅ 現場訂單已建立！\n編號：' + ((d.order && d.order.orderNo) || '已寫入'));
+      toast('現場訂單已建立：' + ((d.order && d.order.orderNo) || '已寫入'), 'success');
+      if (typeof scheduleQuietOrdersRefresh === 'function') scheduleQuietOrdersRefresh(300);
+      else if (typeof loadOrders === 'function') setTimeout(() => loadOrders({ keepCurrentList: true }), 300);
       return;
     }
     const res = await fetch(GAS_URL, {
@@ -225,8 +226,9 @@ async function wiSubmit() {
       return;
     }
     closeWalkInModal();
-    await loadOrders();
-    alert('✅ 現場訂單已建立！\n編號：' + (d.orderId || '已寫入'));
+    toast('現場訂單已建立：' + (d.orderId || '已寫入'), 'success');
+    if (typeof scheduleQuietOrdersRefresh === 'function') scheduleQuietOrdersRefresh(300);
+    else if (typeof loadOrders === 'function') setTimeout(() => loadOrders({ keepCurrentList: true }), 300);
   } catch (e) {
     err.textContent = '網路錯誤：' + e.message;
     err.classList.remove('hidden');
