@@ -474,6 +474,18 @@ function initOrderStoreFilter() {
     return;
   }
   wrap.classList.remove('hidden');
+  if (!window.__orderStoreFilterOutsideClickBound) {
+    window.__orderStoreFilterOutsideClickBound = true;
+    document.addEventListener('click', (e) => {
+      const wrap = document.getElementById('f-store-multi-wrap');
+      const menu = document.getElementById('f-store-menu');
+      const btn = document.getElementById('f-store-menu-btn');
+      if (!wrap || !menu || menu.classList.contains('hidden')) return;
+      if (wrap.contains(e.target)) return;
+      menu.classList.add('hidden');
+      if (btn) btn.setAttribute('aria-expanded', 'false');
+    });
+  }
   const previous = new Set(Array.isArray(window.__orderStoreFilterSelected) ? window.__orderStoreFilterSelected : stores);
   const selected = stores.filter(k => previous.has(k));
   window.__orderStoreFilterSelected = selected.length ? selected : stores.slice();
@@ -502,6 +514,7 @@ function toggleOrderStoreMenu(event) {
   const menu = document.getElementById('f-store-menu');
   if (!btn || !menu || btn.disabled) return;
   menu.classList.toggle('hidden');
+  btn.setAttribute('aria-expanded', menu.classList.contains('hidden') ? 'false' : 'true');
 }
 
 function selectAllOrderStores(event) {

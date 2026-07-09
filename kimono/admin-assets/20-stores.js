@@ -123,27 +123,57 @@ function storeServiceOptionsSummary(options) {
   return '髮型 ' + normalized.hair.length + ' 項 · 化妝 ' + normalized.makeup.length + ' 項 · 攝影 ' + normalized.photo.length + ' 項';
 }
 
-function serviceOptionsToText(options) {
-  return (options || []).map(item =>
-    [item.value, item.label, Number(item.feeJpy || 0)].join(' | ')
-  ).join('\n');
+function renderServiceOptionsEditor(kind, options) {
+  const container = document.getElementById('store-edit-' + kind + '-options');
+  if (!container) return;
+  container.innerHTML = (options || []).map(renderServiceOptionRow).join('');
 }
 
-function parseServiceOptionsTextarea(id, label) {
-  const text = document.getElementById(id).value.trim();
-  if (!text) throw new Error(label + '至少需要 1 個選項。');
+function renderServiceOptionRow(item) {
+  return '<div class="grid grid-cols-[86px_1fr_96px_34px] gap-2 items-center" data-store-service-option-row>' +
+    '<input data-service-field="value" class="input-field w-full px-2 py-1.5 text-sm font-mono" maxlength="60" placeholder="No" value="' + adminEsc(item.value || '') + '">' +
+    '<input data-service-field="label" class="input-field w-full px-2 py-1.5 text-sm" maxlength="120" placeholder="顯示文字" value="' + adminEsc(item.label || '') + '">' +
+    '<input data-service-field="feeJpy" class="input-field w-full px-2 py-1.5 text-sm font-mono text-right" type="number" min="0" step="1" placeholder="0" value="' + Number(item.feeJpy || 0) + '">' +
+    '<button type="button" onclick="removeStoreServiceOption(this)" class="h-9 rounded-lg border border-slate-200 text-slate-400 hover:text-red-600 hover:border-red-200" aria-label="刪除選項">×</button>' +
+  '</div>';
+}
+
+function addStoreServiceOption(kind) {
+  const container = document.getElementById('store-edit-' + kind + '-options');
+  if (!container) return;
+  container.insertAdjacentHTML('beforeend', renderServiceOptionRow({ value: '', label: '', feeJpy: 0 }));
+  const row = container.querySelector('[data-store-service-option-row]:last-child');
+  if (row) row.querySelector('[data-service-field="value"]').focus();
+}
+
+function removeStoreServiceOption(button) {
+  const row = button && button.closest('[data-store-service-option-row]');
+  const container = row && row.parentElement;
+  if (!row || !container) return;
+  if (container.querySelectorAll('[data-store-service-option-row]').length <= 1) {
+    row.querySelectorAll('input').forEach(input => { input.value = input.dataset.serviceField === 'feeJpy' ? '0' : ''; });
+    row.querySelector('[data-service-field="value"]').focus();
+    return;
+  }
+  row.remove();
+}
+
+function parseServiceOptionsRows(kind, label) {
+  const container = document.getElementById('store-edit-' + kind + '-options');
+  const rows = Array.from(container ? container.querySelectorAll('[data-store-service-option-row]') : []);
+  if (!rows.length) throw new Error(label + '至少需要 1 個選項。');
   const seen = new Set();
-  return text.split(/\n+/).map((line, index) => {
-    const parts = line.split('|').map(part => part.trim());
-    if (parts.length < 2) throw new Error(label + '第 ' + (index + 1) + ' 行格式需為 value | 顯示文字 | 金額。');
-    const value = parts[0];
-    const optionLabel = parts[1];
-    const feeJpy = Math.max(0, Math.round(Number(parts[2] || 0) || 0));
+  const options = rows.map((row, index) => {
+    const value = row.querySelector('[data-service-field="value"]').value.trim();
+    const optionLabel = row.querySelector('[data-service-field="label"]').value.trim();
+    const feeJpy = Math.max(0, Math.round(Number(row.querySelector('[data-service-field="feeJpy"]').value || 0) || 0));
     if (!value || !optionLabel) throw new Error(label + '第 ' + (index + 1) + ' 行缺少 value 或顯示文字。');
     if (seen.has(value)) throw new Error(label + '的 value「' + value + '」重複。');
     seen.add(value);
     return { value, label: optionLabel, feeJpy };
-  });
+  }).filter(item => item.value && item.label);
+  if (!options.length) throw new Error(label + '至少需要 1 個選項。');
+  return options;
 }
 
 function storeSlotCapacityValue(capacity, key) {
@@ -202,9 +232,9 @@ function openStoreEditor(create) {
   document.getElementById('store-edit-address').value = create ? '' : (row.address || '');
   document.getElementById('store-edit-phone').value = create ? '' : (row.phone || '');
   const options = normalizeStoreServiceOptions(create ? null : row.serviceOptions);
-  document.getElementById('store-edit-hair-options').value = serviceOptionsToText(options.hair);
-  document.getElementById('store-edit-makeup-options').value = serviceOptionsToText(options.makeup);
-  document.getElementById('store-edit-photo-options').value = serviceOptionsToText(options.photo);
+  renderServiceOptionsEditor('hair', options.hair);
+  renderServiceOptionsEditor('makeup', options.makeup);
+  renderServiceOptionsEditor('photo', options.photo);
   document.getElementById('store-editor-error').classList.add('hidden');
   document.getElementById('store-editor-modal').classList.remove('hidden');
   setTimeout(() => document.getElementById(create ? 'store-edit-id' : 'store-edit-name').focus(), 0);
@@ -231,9 +261,9 @@ async function saveStoreInfo() {
   let serviceOptions;
   try {
     serviceOptions = {
-      hair: parseServiceOptionsTextarea('store-edit-hair-options', '髮型設計'),
-      makeup: parseServiceOptionsTextarea('store-edit-makeup-options', '化妝造型'),
-      photo: parseServiceOptionsTextarea('store-edit-photo-options', '攝影方案')
+      hair: parseServiceOptionsRows('hair', '髮型設計'),
+      makeup: parseServiceOptionsRows('makeup', '化妝造型'),
+      photo: parseServiceOptionsRows('photo', '攝影方案')
     };
   } catch (err) {
     error.textContent = err.message;

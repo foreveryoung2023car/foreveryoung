@@ -19,6 +19,12 @@
   .input-field:focus { outline:none;border-color:#1A365D;box-shadow:0 0 0 3px rgba(26,54,93,.12) }
   .input-field::placeholder{color:#94A3B8}
   select.input-field { background:white }
+  .orders-filter-toolbar .order-filter-control{width:auto!important;max-width:100%;field-sizing:content;white-space:nowrap}
+  .orders-filter-toolbar #f-month-key{min-width:11.5em}
+  .orders-filter-toolbar #f-day{min-width:5.5em}
+  .orders-filter-toolbar #f-status{min-width:7em}
+  .order-store-filter-btn{position:relative;min-width:7.5em;max-width:18em;padding-right:34px!important;overflow:hidden;text-overflow:ellipsis}
+  .order-store-filter-btn::after{content:"⌄";position:absolute;right:13px;top:50%;transform:translateY(-52%);font-size:18px;line-height:1;color:#1A365D;pointer-events:none}
   .order-card { background:white;border-radius:14px;box-shadow:0 2px 10px rgba(26,54,93,.08);border:1px solid rgba(26,54,93,.1);margin-bottom:14px;transition:.2s }
   .order-card:hover { box-shadow:0 4px 18px rgba(26,54,93,.14) }
   .order-card.is-clickable,.order-list-row{cursor:pointer}

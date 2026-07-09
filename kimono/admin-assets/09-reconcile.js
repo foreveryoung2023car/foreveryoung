@@ -675,7 +675,7 @@ function ordersToA4Excel(list, title){
   const blob = new Blob(['\ufeff'+html], {type:'application/vnd.ms-excel;charset=utf-8'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'kimono-orders-a4-'+new Date().toISOString().slice(0,10)+'.xls';
+  a.href = url; a.download = 'kimono-orders-table-'+new Date().toISOString().slice(0,10)+'.xls';
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -690,7 +690,7 @@ function exportCSV(){
   const list = currentOrderExportList();
   if(!list.length){ toast('無資料可匯出','warning'); return; }
   ordersToA4Excel(list, '訂單列印表');
-  toast('已匯出 A4 Excel');
+  toast('已匯出表格');
 }
 function batchExportCSV(){
   if(!selectedIds.size){ toast('請先選取訂單','warning'); return; }
@@ -698,5 +698,5 @@ function batchExportCSV(){
   const allowed = filterOrdersForRole(allOrders);
   const list = allowed.filter(o=>selectedIds.has(o.orderId));
   ordersToA4Excel(list, '選取訂單列印表');
-  toast('已匯出 A4 Excel '+list.length+' 筆');
+  toast('已匯出表格 '+list.length+' 筆');
 }
