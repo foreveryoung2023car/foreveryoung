@@ -488,11 +488,13 @@ function adminOrderPatchFromFormPayload(payload) {
   if (payload.plan !== undefined) patch.plan = payload.plan;
   if (payload.platform !== undefined) patch.platform = payload.platform;
   if (payload.hair !== undefined) patch.hair = payload.hair;
+  if (payload.hairPlan !== undefined) patch.hairPlan = payload.hairPlan;
   if (payload.makeup !== undefined) {
     patch.makeupPlan = payload.makeup;
     patch.makeup = payload.makeup === 'No' ? 'false' : 'true';
   }
   if (payload.photo !== undefined) patch.photo = payload.photo;
+  if (payload.photoPlan !== undefined) patch.photoPlan = payload.photoPlan;
   if (payload.confirmed !== undefined) patch.confirmed = payload.confirmed === 'TRUE' || payload.confirmed === 'true';
   if (payload.deposit !== undefined) patch.deposit = Number(payload.deposit || 0);
   if (payload.kimonoPrice !== undefined) {

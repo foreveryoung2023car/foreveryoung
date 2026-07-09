@@ -586,12 +586,14 @@ async function saveOrder() {
   const rawDepositValue = Math.max(0, netDepositValue + refundAmountValue);
   const makeupPlanValue = document.getElementById('e-makeup').value || 'No';
   const makeupFeeValue = ({ Basic: 3000, Standard: 5000, Premium: 8000 })[makeupPlanValue] || Number(document.getElementById('e-makeup-fee').value || 0);
+  const hairPlanValue = typeof selectedServiceLabelFromSelect === 'function' ? selectedServiceLabelFromSelect('e-hair') : '';
+  const photoPlanValue = typeof selectedServiceLabelFromSelect === 'function' ? selectedServiceLabelFromSelect('e-photo') : '';
   const payload = {
     action: 'adminUpdate', agent: currentAgent, token: adminToken, orderId: editingOrder.orderId,
     name: document.getElementById('e-name').value, phone: document.getElementById('e-phone').value, email: document.getElementById('e-email').value,
     bookingDate: (function(){ const v=document.getElementById('e-booking-date').value; if(!v) return ''; const m=v.match(/^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/); if(!m) return v; return m[1]+'/'+m[2]+'/'+m[3]+(m[4]?(' '+m[4]+':'+m[5]):''); })(), pax: guests.pax,
     plan: document.getElementById('e-plan').value, platform: document.getElementById('e-platform').value,
-    hair: document.getElementById('e-hair').value, makeup: makeupPlanValue, photo: document.getElementById('e-photo').value, confirmed: (document.getElementById('e-confirmed').value === 'true' ? 'TRUE' : 'FALSE'),
+    hair: document.getElementById('e-hair').value, hairPlan: hairPlanValue, makeup: makeupPlanValue, photo: document.getElementById('e-photo').value, photoPlan: photoPlanValue, confirmed: (document.getElementById('e-confirmed').value === 'true' ? 'TRUE' : 'FALSE'),
     deposit: rawDepositValue, kimonoPrice: document.getElementById('e-price').value,
     hairFee: document.getElementById('e-hair-fee').value, makeupFee: makeupFeeValue, photoFee: document.getElementById('e-photo-fee').value,
     coupon: document.getElementById('e-coupon').value, rate: document.getElementById('e-rate')?.value || '',
@@ -633,9 +635,11 @@ async function saveOrder() {
           platform: payload.platform,
           depositJpy: Number(payload.deposit || 0),
           kimonoPriceJpy: Number(payload.kimonoPrice || 0),
+          hairPlan: payload.hairPlan,
           hairFeeJpy: Number(payload.hairFee || 0),
           makeupFeeJpy: Number(payload.makeupFee || 0),
           makeupPlan: payload.makeup,
+          photoPlan: payload.photoPlan,
           photoFeeJpy: Number(payload.photoFee || 0),
           couponCode: payload.coupon,
           discountRate: Number(payload.rate || 0),
@@ -649,9 +653,11 @@ async function saveOrder() {
         ...(guests.maleAdults !== null ? { maleAdults: guests.maleAdults, femaleAdults: guests.femaleAdults } : {}),
         children: guests.children,
         hair: payload.hair === 'true',
+        hairPlan: payload.hairPlan,
         makeup: payload.makeup !== 'No',
         makeupPlan: payload.makeup,
         photo: payload.photo === 'true',
+        photoPlan: payload.photoPlan,
         ...(isStoreCheckout ? {
           checkout: true,
           kimonoPriceJpy: Number(payload.kimonoPrice || 0),

@@ -1,4 +1,6 @@
 // ── EDIT MODAL ──
+const orderStoreServiceOptionsCache = {};
+
 function orderFinancialValue(order, displayKey, firestoreKey) {
   const value = order && order[displayKey] !== undefined
     ? order[displayKey]
@@ -42,6 +44,161 @@ function displayMakeupLabel(o) {
   const known = /^(No|false|否|Basic|Standard|Premium)$/i.test(raw) || /高級|高级|精緻|精致|基礎|基础/.test(raw);
   if (raw && !known && orderHasMakeup(o)) return raw;
   return makeupLabelForPlan(normalizeMakeupPlan(o));
+}
+
+function serviceLabelFromText(o, pattern) {
+  const text = orderMakeupText(o);
+  const match = text.match(pattern);
+  return match ? String(match[1] || '').trim() : '';
+}
+
+function displayHairLabel(o) {
+  if (!(o && (o.hair === true || o.hair === 'true' || o.hair === '是'))) return '無';
+  const raw = String(o.hairPlan || '').trim();
+  if (raw) return raw;
+  const noteLabel = serviceLabelFromText(o, /髮型設計[：:\s]*([^，,;；]+)/);
+  if (noteLabel && !/^(需要|有|是)$/i.test(noteLabel)) return noteLabel;
+  const fee = Number(o.hairFee || o.hairFeeJpy || 0);
+  return fee > 0 ? '有髮型 (+' + fee + ' JPY)' : '有';
+}
+
+function displayPhotoLabel(o) {
+  if (!(o && (o.photo === true || o.photo === 'true' || o.photo === '是'))) return '無';
+  const raw = String(o.photoPlan || '').trim();
+  if (raw) return raw;
+  const noteLabel = serviceLabelFromText(o, /(?:攝影方案|攝影服務|攝影)[：:\s]*([^，,;；]+)/);
+  if (noteLabel && !/^(需要|有|是)$/i.test(noteLabel)) return noteLabel;
+  const fee = Number(o.photoFee || o.photoFeeJpy || 0);
+  return fee > 0 ? '有攝影 (+' + fee + ' JPY)' : '有';
+}
+
+function updateBinaryServiceSelectLabels(o) {
+  const hairLabel = displayHairLabel(o);
+  const photoLabel = displayPhotoLabel(o);
+  [
+    ['e-hair', hairLabel],
+    ['store-inline-hair', hairLabel]
+  ].forEach(([id, label]) => {
+    const option = document.querySelector('#' + id + ' option[value="true"]');
+    if (option) option.textContent = label === '無' ? '有髮型' : label;
+  });
+  [
+    ['e-photo', photoLabel],
+    ['store-inline-photo', photoLabel]
+  ].forEach(([id, label]) => {
+    const option = document.querySelector('#' + id + ' option[value="true"]');
+    if (option) option.textContent = label === '無' ? '有攝影' : label;
+  });
+}
+
+function adminStoreDateForAvailability(order) {
+  const raw = dateTimeLocalValueJST(order && order.bookingDate || '');
+  const match = raw.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (match) return match[1];
+  return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+function adminServiceOptionIsNo(option) {
+  const value = String(option && option.value || '').trim();
+  const label = String(option && option.label || '').trim();
+  return /^no$/i.test(value) || /^(no|不需要|不要|不用|無|无|なし|不要)/i.test(label);
+}
+
+function normalizeAdminServiceOptionList(options, fallbackNoLabel, fallbackYesLabel) {
+  const list = (Array.isArray(options) ? options : []).map(item => ({
+    value: String(item && item.value || '').trim(),
+    label: String(item && item.label || '').trim(),
+    feeJpy: Math.max(0, Math.round(Number(item && item.feeJpy || 0) || 0))
+  })).filter(item => item.label);
+  if (list.length) return list;
+  return [
+    { value: 'No', label: fallbackNoLabel, feeJpy: 0 },
+    { value: 'Yes', label: fallbackYesLabel, feeJpy: 0 }
+  ];
+}
+
+function renderBinaryServiceSelect(selectId, options, currentLabel, enabled, fallbackNoLabel, fallbackYesLabel) {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+  const normalized = normalizeAdminServiceOptionList(options, fallbackNoLabel, fallbackYesLabel);
+  let positiveSelected = false;
+  const current = String(currentLabel || '').trim();
+  select.innerHTML = normalized.map((item) => {
+    const isNo = adminServiceOptionIsNo(item);
+    const selected = isNo
+      ? !enabled
+      : enabled && (!positiveSelected && (!current || current === item.label));
+    if (selected && !isNo) positiveSelected = true;
+    return '<option value="' + (isNo ? 'false' : 'true') + '" data-service-label="' + adminEsc(item.label) + '" data-fee-jpy="' + Number(item.feeJpy || 0) + '" ' + (selected ? 'selected' : '') + '>' +
+      adminEsc((isNo ? '❌ ' : '✅ ') + item.label) +
+    '</option>';
+  }).join('');
+  if (selectId === 'e-hair' || selectId === 'e-photo') {
+    select.onchange = () => syncServiceFeeFromSelect(selectId);
+  }
+}
+
+function renderOrderServiceSelects(order, serviceOptions) {
+  const hairEnabled = order && (order.hair === true || order.hair === 'true' || order.hair === '是');
+  const photoEnabled = order && (order.photo === true || order.photo === 'true' || order.photo === '是');
+  const hairLabel = displayHairLabel(order);
+  const photoLabel = displayPhotoLabel(order);
+  renderBinaryServiceSelect('e-hair', serviceOptions && serviceOptions.hair, hairLabel, hairEnabled, '無髮型', '有髮型');
+  renderBinaryServiceSelect('store-inline-hair', serviceOptions && serviceOptions.hair, hairLabel, hairEnabled, '無髮型', '有髮型');
+  renderBinaryServiceSelect('e-photo', serviceOptions && serviceOptions.photo, photoLabel, photoEnabled, '無攝影', '有攝影');
+  renderBinaryServiceSelect('store-inline-photo', serviceOptions && serviceOptions.photo, photoLabel, photoEnabled, '無攝影', '有攝影');
+}
+
+async function loadOrderStoreServiceOptions(order) {
+  const storeId = order && (order.storeKey || order.storeId);
+  if (!storeId || typeof callFirebaseAdminFunction !== 'function') return;
+  const cacheKey = storeId;
+  try {
+    if (!orderStoreServiceOptionsCache[cacheKey]) {
+      const date = adminStoreDateForAvailability(order);
+      orderStoreServiceOptionsCache[cacheKey] = callFirebaseAdminFunction('/getStoreAvailability?storeId=' + encodeURIComponent(storeId) + '&date=' + encodeURIComponent(date), null, { method: 'GET' })
+        .then(data => data.serviceOptions || null);
+    }
+    const serviceOptions = await orderStoreServiceOptionsCache[cacheKey];
+    if (editingOrder === order && serviceOptions) renderOrderServiceSelects(order, serviceOptions);
+  } catch (err) {
+    console.warn('服務選項載入失敗', err);
+  }
+}
+
+function selectedServiceLabelFromSelect(id) {
+  const select = document.getElementById(id);
+  const option = select && select.selectedOptions && select.selectedOptions[0];
+  if (!select || select.value !== 'true' || !option) return '';
+  return option.dataset.serviceLabel || option.textContent.replace(/^[✅❌]\s*/, '').trim();
+}
+
+function selectedServiceFeeFromSelect(id) {
+  const select = document.getElementById(id);
+  const option = select && select.selectedOptions && select.selectedOptions[0];
+  if (!select || select.value !== 'true' || !option) return 0;
+  return Math.max(0, Number(option.dataset.feeJpy || 0) || 0);
+}
+
+function syncServiceFeeFromSelect(id) {
+  const targetId = id === 'e-hair' ? 'e-hair-fee' : id === 'e-photo' ? 'e-photo-fee' : '';
+  if (!targetId) return;
+  const target = document.getElementById(targetId);
+  if (target) target.value = selectedServiceFeeFromSelect(id) || '';
+  if (typeof updateCalc === 'function') updateCalc();
+}
+
+function copyServiceSelectChoice(sourceId, targetId) {
+  const source = document.getElementById(sourceId);
+  const target = document.getElementById(targetId);
+  const sourceOption = source && source.selectedOptions && source.selectedOptions[0];
+  if (!source || !target || !sourceOption) return;
+  const label = sourceOption.dataset.serviceLabel || '';
+  const match = Array.from(target.options).find(option =>
+    option.value === source.value && (option.dataset.serviceLabel || '') === label
+  );
+  if (match) target.selectedIndex = match.index;
+  else target.value = source.value;
 }
 
 function orderMakeupText(o) {
@@ -110,6 +267,8 @@ function openEdit(orderId) {
   if (phoneDisplay) phoneDisplay.textContent = maskStorePhone(o.phone);
   if (emailDisplay) emailDisplay.textContent = o.email || '—';
   document.getElementById('e-booking-date').value = dateTimeLocalValueJST(o.bookingDate);
+  updateBinaryServiceSelectLabels(o);
+  loadOrderStoreServiceOptions(o);
   const guestCount = parseEditGuestCount(o);
   document.getElementById('e-adults').value = guestCount.adults;
   document.getElementById('e-male-adults').value = guestCount.maleAdults === null ? '' : guestCount.maleAdults;
@@ -216,9 +375,9 @@ function renderStoreOrderDetailView(o) {
   document.getElementById('store-view-male').textContent = guests.maleAdults === null ? '未區分' : guests.maleAdults;
   document.getElementById('store-view-female').textContent = guests.femaleAdults === null ? guests.adults : guests.femaleAdults;
   document.getElementById('store-view-children').textContent = guests.children;
-  document.getElementById('store-view-hair').textContent = (o.hair === true || o.hair === 'true') ? '有' : '無';
+  document.getElementById('store-view-hair').textContent = displayHairLabel(o);
   document.getElementById('store-view-makeup').textContent = displayMakeupLabel(o);
-  document.getElementById('store-view-photo').textContent = (o.photo === true || o.photo === 'true') ? '有' : '無';
+  document.getElementById('store-view-photo').textContent = displayPhotoLabel(o);
   setStoreInlineEditorValue('store-inline-male', guests.maleAdults === null ? 0 : guests.maleAdults);
   setStoreInlineEditorValue('store-inline-female', guests.femaleAdults === null ? guests.adults : guests.femaleAdults);
   setStoreInlineEditorValue('store-inline-children', guests.children);
@@ -264,12 +423,20 @@ function syncStoreInlineEditors() {
   setStoreInlineEditorValue('e-makeup', makeup);
   setStoreInlineEditorValue('e-makeup-fee', makeupFeeForPlan(makeup) || '');
   setStoreInlineEditorValue('e-photo', photo);
+  copyServiceSelectChoice('store-inline-hair', 'e-hair');
+  copyServiceSelectChoice('store-inline-photo', 'e-photo');
+  setStoreInlineEditorValue('e-hair-fee', hair === 'true' ? (selectedServiceFeeFromSelect('store-inline-hair') || '') : '');
+  setStoreInlineEditorValue('e-photo-fee', photo === 'true' ? (selectedServiceFeeFromSelect('store-inline-photo') || '') : '');
   document.getElementById('store-view-male').textContent = male;
   document.getElementById('store-view-female').textContent = female;
   document.getElementById('store-view-children').textContent = children;
-  document.getElementById('store-view-hair').textContent = hair === 'true' ? '有' : '無';
+  document.getElementById('store-view-hair').textContent = hair === 'true'
+    ? (document.querySelector('#store-inline-hair option[value="true"]')?.textContent || '有')
+    : '無';
   document.getElementById('store-view-makeup').textContent = makeupLabelForPlan(makeup);
-  document.getElementById('store-view-photo').textContent = photo === 'true' ? '有' : '無';
+  document.getElementById('store-view-photo').textContent = photo === 'true'
+    ? (document.querySelector('#store-inline-photo option[value="true"]')?.textContent || '有')
+    : '無';
   return typeof syncEditPax === 'function' ? syncEditPax() : null;
 }
 

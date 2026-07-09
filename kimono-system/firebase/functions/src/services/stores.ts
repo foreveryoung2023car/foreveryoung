@@ -349,9 +349,11 @@ export async function resolveStoreServiceSelection(storeId: string, input: {
   const makeup = selectedServiceOption(store, "makeup", input.makeup, input.makeupPlan);
   const photo = selectedServiceOption(store, "photo", input.photo, input.photoOption);
   return {
+    hairPlan: hair ? hair.label : "",
     hairFeeJpy: hair ? hair.feeJpy : 0,
     makeupPlan: makeup ? makeup.label : "",
     makeupFeeJpy: makeup ? makeup.feeJpy : 0,
+    photoPlan: photo ? photo.label : "",
     photoFeeJpy: photo ? photo.feeJpy : 0
   };
 }

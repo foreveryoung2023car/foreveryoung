@@ -28,7 +28,7 @@ type StoreContact = {
 };
 
 const storeBrandName = "樱花和服";
-const publicEmailAssetBaseUrl = "https://foreveryoung2023car.github.io/foreveryoung/kimono/img/email";
+const publicEmailAssetBaseUrl = "https://kimono.foreveryoungtrip.com/img/email";
 
 const storeFallbacks: Record<string, StoreContact> = {
   kyoto1: { name: "京都清水寺店", address: "京都東山區五條橋東4-432-13 對嵐坊大廈1樓", phone: "請洽客服" },
@@ -461,8 +461,65 @@ function removeMissingStoreFields(template: string, vars: Record<string, unknown
   return result;
 }
 
+function keyValueLine(line: string) {
+  const match = line.match(/^([^：:]{2,24})[：:]\s*(.+)$/);
+  if (!match) return null;
+  return { label: match[1].trim(), value: match[2].trim() };
+}
+
+function keyValueRowsToHtml(rows: Array<{ label: string; value: string }>) {
+  return `<table role="presentation" style="width:100%;border-collapse:collapse;margin:0 0 22px;background:#f8fafc;border-radius:10px;overflow:hidden">
+    ${rows.map((row) => `<tr>
+      <td style="width:28%;padding:8px 14px;color:#64748b;font-weight:700;white-space:nowrap;vertical-align:top">${escapeHtml(row.label)}</td>
+      <td style="padding:8px 14px;color:#111827;font-weight:700;vertical-align:top">${escapeHtml(row.value)}</td>
+    </tr>`).join("")}
+  </table>`;
+}
+
+function paragraphToHtml(lines: string[]) {
+  const content = lines.map((line) => escapeHtml(line)).join("<br>");
+  return `<p style="margin:0 0 22px;color:#1f2937;line-height:1.75">${content}</p>`;
+}
+
 function textToHtml(text: string) {
-  return `<div style="font-family:Arial,'Noto Sans TC',sans-serif;color:#1f2937;line-height:1.7;white-space:pre-line">${escapeHtml(text)}</div>`;
+  const blocks: string[] = [];
+  let rows: Array<{ label: string; value: string }> = [];
+  let paragraph: string[] = [];
+
+  const flushRows = () => {
+    if (!rows.length) return;
+    blocks.push(keyValueRowsToHtml(rows));
+    rows = [];
+  };
+  const flushParagraph = () => {
+    if (!paragraph.length) return;
+    blocks.push(paragraphToHtml(paragraph));
+    paragraph = [];
+  };
+
+  text.split(/\r?\n/).forEach((rawLine) => {
+    const line = rawLine.trim();
+    if (!line) {
+      flushRows();
+      flushParagraph();
+      return;
+    }
+
+    const entry = keyValueLine(line);
+    if (entry) {
+      flushParagraph();
+      rows.push(entry);
+      return;
+    }
+
+    flushRows();
+    paragraph.push(line);
+  });
+
+  flushRows();
+  flushParagraph();
+
+  return `<div style="font-family:Arial,'Noto Sans TC',sans-serif;color:#1f2937;line-height:1.7">${blocks.join("")}</div>`;
 }
 
 function ensureSubjectStoreBrand(subject: string) {
@@ -487,7 +544,7 @@ function appendEmailGuidanceText(text: string, vars: Record<string, unknown>) {
   return `${text.trimEnd()}\n${lines.join("\n")}`;
 }
 
-function decorateHtmlEmail(html: string, vars: Record<string, unknown>) {
+function decorateHtmlEmail(html: string, vars: Record<string, unknown>, includeStoreSummary: boolean) {
   const logoUrl = String(vars.storeLogoUrl || "");
   const routeGuideUrl = String(vars.storeRouteGuideUrl || "");
   const routeGuideLabel = String(vars.storeRouteGuideLabel || "店鋪引導路線圖");
@@ -508,7 +565,8 @@ function decorateHtmlEmail(html: string, vars: Record<string, unknown>) {
   const routeBlock = routeGuideUrl
     ? `<div style="margin-top:22px">
         <div style="font-size:16px;font-weight:700;color:#111827;margin-bottom:10px">${escapeHtml(routeGuideLabel)}</div>
-        <img src="${escapeHtml(routeGuideUrl)}" alt="${escapeHtml(routeGuideLabel)}" style="display:block;width:100%;max-width:680px;height:auto;border:1px solid #e5e7eb;border-radius:10px">
+        <a href="${escapeHtml(routeGuideUrl)}" style="display:block;color:#be185d;text-decoration:none;margin-bottom:10px">點此開啟原始路線圖</a>
+        <img src="${escapeHtml(routeGuideUrl)}" alt="${escapeHtml(routeGuideLabel)}" width="680" style="display:block;width:100%;max-width:680px;height:auto;line-height:0;border:1px solid #e5e7eb;border-radius:10px;outline:none;text-decoration:none">
       </div>`
     : "";
 
@@ -521,7 +579,7 @@ function decorateHtmlEmail(html: string, vars: Record<string, unknown>) {
       </div>
       <div style="padding:24px">${html}</div>
       <div style="padding:0 24px 24px">
-        ${storeRows ? `<table role="presentation" style="width:100%;border-collapse:collapse;margin-top:4px;background:#f8fafc;border-radius:10px;overflow:hidden">${storeRows}</table>` : ""}
+        ${includeStoreSummary && storeRows ? `<table role="presentation" style="width:100%;border-collapse:collapse;margin-top:4px;background:#f8fafc;border-radius:10px;overflow:hidden">${storeRows}</table>` : ""}
         ${routeBlock}
       </div>
     </div>
@@ -538,7 +596,7 @@ async function buildOrderEmail(kind: EmailKind, orderId: string, order: Firebase
   const bodyHtml = template.html
     ? renderString(removeMissingStoreFields(template.html, vars, true), vars)
     : textToHtml(bodyText);
-  const html = decorateHtmlEmail(bodyHtml, vars);
+  const html = decorateHtmlEmail(bodyHtml, vars, Boolean(template.html));
   return { to, subject, text, html, fromName: brandEmailProfiles[brandPlatform].fromName };
 }
 

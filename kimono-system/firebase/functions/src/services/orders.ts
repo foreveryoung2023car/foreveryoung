@@ -77,9 +77,11 @@ export const updateOrderByStaffSchema = z.object({
   platform: z.string().optional(),
   brandPlatform: z.enum(brandPlatforms).optional(),
   hair: z.boolean().optional(),
+  hairPlan: z.string().optional(),
   makeup: z.boolean().optional(),
   makeupPlan: z.string().optional(),
   photo: z.boolean().optional(),
+  photoPlan: z.string().optional(),
   depositJpy: z.number().int().min(0).optional(),
   kimonoPriceJpy: z.number().int().min(0).optional(),
   hairFeeJpy: z.number().int().min(0).optional(),
@@ -318,9 +320,11 @@ function toPublicOrderResponse(orderId: string, order: FirebaseFirestore.Documen
     children,
     plan: order.plan || "和服體驗",
     hair: order.hair ? "是" : "否",
+    hairPlan: order.hairPlan || "",
     makeup: order.makeup ? "是" : "否",
     makeupPlan: order.makeupPlan || "",
     photo: order.photo ? "是" : "否",
+    photoPlan: order.photoPlan || "",
     planPrice,
     planActual,
     hairFee: Number(order.hairFeeJpy || 0),
@@ -366,9 +370,11 @@ function toAdminOrderResponse(orderId: string, order: FirebaseFirestore.Document
     pax: adults + Number(order.children || 0),
     plan: order.plan || "",
     hair: order.hair ? "true" : "false",
+    hairPlan: order.hairPlan || "",
     makeup: order.makeup ? "true" : "false",
     makeupPlan: order.makeupPlan || "",
     photo: order.photo ? "true" : "false",
+    photoPlan: order.photoPlan || "",
     confirmed,
     checkedInAt,
     checkedInBy: order.checkedInBy || "",
@@ -512,9 +518,11 @@ export async function createPublicOrder(raw: unknown) {
         photoOption: input.photoOption
       })
     : {
+        hairPlan: "",
         hairFeeJpy: input.hairFeeJpy || 0,
         makeupPlan: input.makeupPlan || "",
         makeupFeeJpy: input.makeupFeeJpy || 0,
+        photoPlan: "",
         photoFeeJpy: input.photoFeeJpy || 0
       };
 
@@ -559,9 +567,11 @@ export async function createPublicOrder(raw: unknown) {
       children: input.children,
       plan: input.plan || "",
       hair: input.hair || false,
+      hairPlan: serviceSelection.hairPlan,
       makeup: input.makeup || false,
       makeupPlan: serviceSelection.makeupPlan,
       photo: input.photo || false,
+      photoPlan: serviceSelection.photoPlan,
       source: input.source || "web",
       platform: input.platform || "LINE",
       brandPlatform,
@@ -742,9 +752,11 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
       input.platform,
       input.brandPlatform,
       input.hair,
+      input.hairPlan,
       input.makeup,
       input.makeupPlan,
       input.photo,
+      input.photoPlan,
       input.depositJpy,
       input.kimonoPriceJpy,
       input.hairFeeJpy,
@@ -797,9 +809,11 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
       patch.brandPlatform = input.brandPlatform;
     }
     if (input.hair !== undefined) patch.hair = input.hair;
+    if (input.hairPlan !== undefined) patch.hairPlan = input.hairPlan;
     if (input.makeup !== undefined) patch.makeup = input.makeup;
     if (input.makeupPlan !== undefined) patch.makeupPlan = input.makeupPlan;
     if (input.photo !== undefined) patch.photo = input.photo;
+    if (input.photoPlan !== undefined) patch.photoPlan = input.photoPlan;
     if (input.depositJpy !== undefined) patch.depositJpy = input.depositJpy;
     if (input.kimonoPriceJpy !== undefined) patch.kimonoPriceJpy = input.kimonoPriceJpy;
     if (input.hairFeeJpy !== undefined) patch.hairFeeJpy = input.hairFeeJpy;
