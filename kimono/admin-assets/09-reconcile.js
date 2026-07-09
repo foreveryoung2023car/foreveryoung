@@ -575,9 +575,44 @@ async function confirmAutoReconcile(btn){
 }
 
 // ── CSV EXPORT ──
+function csvCleanText(value){
+  return String(value == null ? '' : value).replace(/[\r\n]+/g, ' ').trim();
+}
+function csvBookingDateTime(value){
+  if (!value) return '';
+  const d = typeof parseBookingDate === 'function' ? parseBookingDate(value) : new Date(value);
+  if (!d || isNaN(d)) return csvCleanText(value);
+  return d.getFullYear() + '/' +
+    String(d.getMonth() + 1).padStart(2, '0') + '/' +
+    String(d.getDate()).padStart(2, '0') + ' ' +
+    String(d.getHours()).padStart(2, '0') + ':' +
+    String(d.getMinutes()).padStart(2, '0');
+}
+function csvYesNo(value){
+  return value ? '有' : '無';
+}
+function csvPlatformNote(o){
+  const parts = [o && (o.platform || o.source), o && (o.platformNote || o.sourceNote || o.introducer)]
+    .map(csvCleanText)
+    .filter(Boolean);
+  return parts.filter((part, idx) => parts.indexOf(part) === idx).join(' ');
+}
 function ordersToCSV(list){
-  const headers = ['訂單號','姓名','電話','Email','體驗日期','人數','款式','來源','訂金','和服','髮型費','化妝費','攝影費','總計','確認','退款金額','備註'];
-  const rows = list.map(o=>[o.orderId, o.name, o.phone, o.email, o.bookingDate? fmtDate(o.bookingDate):'', formatGuestCount(o), o.plan||'', o.platform||'', reconcileDeposit(o), o.price||o.kimonoPrice||0, o.hairFee||0, o.makeupFee||0, o.photoFee||0, totalAmount(o), o.confirmed?'已確認':'待確認', o.refundAmount||0, (o.remark||'').replace(/[\r\n]+/g,' ')]);
+  const headers = ['訂單號','姓名','電話','預約時間','人數','髮型','化妝','攝影','平台備註','已付定金','和服價格','備註'];
+  const rows = list.map(o=>[
+    o.orderId,
+    o.name,
+    o.phone,
+    csvBookingDateTime(o.bookingDate),
+    formatGuestCount(o),
+    csvYesNo(typeof orderHasHair === 'function' ? orderHasHair(o) : (o.hair === true || o.hair === 'true' || o.hair === '是')),
+    csvYesNo(typeof orderHasMakeup === 'function' ? orderHasMakeup(o) : (o.makeup === true || o.makeup === 'true' || o.makeup === '是')),
+    csvYesNo(typeof orderHasPhoto === 'function' ? orderHasPhoto(o) : (o.photo === true || o.photo === 'true' || o.photo === '是')),
+    csvPlatformNote(o),
+    typeof orderPaidDeposit === 'function' ? orderPaidDeposit(o) : reconcileDeposit(o),
+    o.price || o.kimonoPrice || 0,
+    csvCleanText(o.remark || o.note || '')
+  ]);
   const csv = [headers, ...rows].map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\n');
   const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
   const url = URL.createObjectURL(blob);
