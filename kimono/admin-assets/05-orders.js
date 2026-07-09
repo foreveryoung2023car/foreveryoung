@@ -507,6 +507,8 @@ function setFilter(f, btn){
   currentFilter = f;
   document.querySelectorAll('#sec-orders .tab-btn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
+  const statusSel = document.getElementById('f-status');
+  if (statusSel) statusSel.value = '';
   // v2.3: clear leftover date range when switching status filter
   // (otherwise 行事曆 modal-set date keeps filtering things out)
   const dFrom = document.getElementById('f-date-from');
@@ -516,9 +518,17 @@ function setFilter(f, btn){
   filterOrders();
 }
 
+function handleOrderStatusFilterChange(){
+  currentFilter = 'all';
+  document.querySelectorAll('#sec-orders .tab-btn').forEach(b=>b.classList.remove('active'));
+  const allBtn = document.querySelector('#sec-orders .tab-btn[data-order-filter="all"]') || document.querySelectorAll('#sec-orders .tab-btn')[0];
+  if (allBtn) allBtn.classList.add('active');
+  filterOrders();
+}
+
 // v2.6: 一鍵清除所有篩選條件，回到「全部」
 function resetAllFilters(){
-  ['f-search','f-date-from','f-date-to','f-plan','f-platform','f-hair','f-makeup','f-photo'].forEach(id=>{
+  ['f-search','f-date-from','f-date-to','f-plan','f-platform','f-hair','f-makeup','f-photo','f-status'].forEach(id=>{
     const el = document.getElementById(id); if(el) el.value = '';
   });
   const fSort = document.getElementById('f-sort'); if(fSort) fSort.value = 'booking-desc';
@@ -635,6 +645,7 @@ function filterOrders(){
   const fHair = document.getElementById('f-hair').value;
   const fMakeup = (document.getElementById('f-makeup') || {}).value || '';
   const fPhoto = document.getElementById('f-photo').value;
+  const fStatus = (document.getElementById('f-status') || {}).value || '';
   const fSort = document.getElementById('f-sort').value;
 
   let list = filterOrdersForRole(allOrders.slice());
@@ -673,6 +684,7 @@ function filterOrders(){
   if(fPlan) list = list.filter(o=>(o.plan||'').includes(fPlan));
   if(fStore) list = list.filter(o=>orderBelongsToStore(o, fStore));
   if(fPlatform) list = list.filter(o=>(o.platform||'')===fPlatform);
+  if(fStatus) list = list.filter(o=>orderStatusOf(o)===fStatus);
   if(fHair!=='') list = list.filter(o=>String(orderHasHair(o))===fHair);
   if(fMakeup!=='') list = list.filter(o=>String(orderHasMakeup(o))===fMakeup);
   if(fPhoto!=='') list = list.filter(o=>String(o.photo===true||o.photo==='true')===fPhoto);
@@ -749,7 +761,7 @@ function orderDisplayBalance(o) {
 }
 
 function shouldHideOrderMoney(o) {
-  return ['pending_payment', 'pending_review', 'cancelled'].includes(orderStatusOf(o));
+  return ['pending_payment', 'pending_review', 'confirmed', 'cancelled'].includes(orderStatusOf(o));
 }
 
 function orderPaidDeposit(o) {
@@ -941,6 +953,7 @@ function renderOrders(orders){
     if(fmk && fmk.value && fmk.value !== 'all') reasons.push('日期：' + formatOrderMonthLabel(fmk.value) + (fday && fday.value && fday.value !== 'all' ? Number(fday.value) + '日' : '整月'));
     const fdf = document.getElementById('f-date-from'); if(fdf && fdf.value) reasons.push('起日：' + fdf.value);
     const fdt = document.getElementById('f-date-to'); if(fdt && fdt.value) reasons.push('迄日：' + fdt.value);
+    const fst = document.getElementById('f-status'); if(fst && fst.value) reasons.push('狀態：' + (orderStatusMeta(fst.value).label || fst.value));
     const fp = document.getElementById('f-plan'); if(fp && fp.value) reasons.push('款式：' + fp.value);
     const fpl = document.getElementById('f-platform'); if(fpl && fpl.value) reasons.push('來源：' + fpl.value);
     const fh = document.getElementById('f-hair'); if(fh && fh.value!=='') reasons.push('髮型：' + (fh.value==='true'?'有':'無'));

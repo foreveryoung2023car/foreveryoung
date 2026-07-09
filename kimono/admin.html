@@ -201,6 +201,19 @@
       <div class="flex gap-2 items-center flex-wrap">
         <input id="f-month-key" type="month" class="input-field !w-auto" onchange="handleOrderMonthChange()" title="體驗月份">
         <select id="f-day" class="input-field !w-auto" onchange="filterOrders()" title="體驗日期"></select>
+        <select id="f-status" class="input-field !w-auto" onchange="handleOrderStatusFilterChange()" title="訂單狀態">
+          <option value="">全部狀態</option>
+          <option value="pending_payment">待付款</option>
+          <option value="pending_review">待確認</option>
+          <option value="confirmed">待到店</option>
+          <option value="checked_in">待結帳</option>
+          <option value="balance_due">待付尾款</option>
+          <option value="completed">已完成</option>
+          <option value="refund_requested">申請退款</option>
+          <option value="refunding">退款中</option>
+          <option value="refunded">已退款</option>
+          <option value="cancelled">已取消</option>
+        </select>
         <button onclick="exportCSV()" class="btn-outline px-4 py-2 rounded-xl text-sm">📥 匯出 CSV</button>
         <button onclick="loadOrders()" class="btn-navy px-4 py-2 rounded-xl text-sm">↻ 重新載入</button>
       </div>
@@ -1027,7 +1040,7 @@
 <script src="./admin-assets/02-firebase-api.js?v=20260626-5"></script>
 <script src="./admin-assets/03-ui-utils.js?v=20260611-5"></script>
 <script src="./admin-assets/04-refunds.js?v=20260626-6"></script>
-<script src="./admin-assets/05-orders.js?v=20260708-4"></script>
+<script src="./admin-assets/05-orders.js?v=20260709-1"></script>
 <script src="./admin-assets/06-checkin-actions.js?v=20260610-1"></script>
 <script src="./admin-assets/07-calendar.js?v=20260626-6"></script>
 <script src="./admin-assets/08-finance.js?v=20260612-2"></script>
