@@ -17,7 +17,7 @@ import type { AuthContext } from "../lib/auth.js";
 import { writeAuditLog } from "../lib/audit.js";
 import { getIdempotentResponse, rememberIdempotentResponse } from "../lib/idempotency.js";
 import { calculateOrderTotal } from "../lib/money.js";
-import { assertStoreSlotAvailable, assertStoreSlotCapacityAvailable } from "./stores.js";
+import { assertStoreSlotAvailable, assertStoreSlotCapacityAvailable, resolveStoreServiceSelection } from "./stores.js";
 import { nextOrderNo } from "./orderNumber.js";
 import { calculateBookingDepositJpy } from "./paymentSettings.js";
 
@@ -34,9 +34,11 @@ export const createPublicOrderSchema = z.object({
   children: z.number().int().min(0).default(0),
   plan: z.string().optional(),
   hair: z.boolean().optional(),
+  hairOption: z.string().optional(),
   makeup: z.boolean().optional(),
   makeupPlan: z.string().optional(),
   photo: z.boolean().optional(),
+  photoOption: z.string().optional(),
   source: z.string().optional(),
   platform: z.string().optional(),
   brandPlatform: z.enum(brandPlatforms).optional(),
@@ -500,6 +502,21 @@ export async function createPublicOrder(raw: unknown) {
     adults,
     children: input.children
   });
+  const serviceSelection = input.storeCode
+    ? await resolveStoreServiceSelection(input.storeCode, {
+        hair: input.hair,
+        hairOption: input.hairOption,
+        makeup: input.makeup,
+        makeupPlan: input.makeupPlan,
+        photo: input.photo,
+        photoOption: input.photoOption
+      })
+    : {
+        hairFeeJpy: input.hairFeeJpy || 0,
+        makeupPlan: input.makeupPlan || "",
+        makeupFeeJpy: input.makeupFeeJpy || 0,
+        photoFeeJpy: input.photoFeeJpy || 0
+      };
 
   const result = await db.runTransaction(async (tx) => {
     if (input.storeCode) {
@@ -515,9 +532,9 @@ export async function createPublicOrder(raw: unknown) {
     const total = calculateOrderTotal({
       depositJpy,
       kimonoPriceJpy: input.kimonoPriceJpy || 0,
-      hairFeeJpy: input.hairFeeJpy || 0,
-      makeupFeeJpy: input.makeupFeeJpy || 0,
-      photoFeeJpy: input.photoFeeJpy || 0,
+      hairFeeJpy: serviceSelection.hairFeeJpy,
+      makeupFeeJpy: serviceSelection.makeupFeeJpy,
+      photoFeeJpy: serviceSelection.photoFeeJpy,
       discountRate: input.discountRate || 10
     });
     tx.set(customerRef, {
@@ -543,7 +560,7 @@ export async function createPublicOrder(raw: unknown) {
       plan: input.plan || "",
       hair: input.hair || false,
       makeup: input.makeup || false,
-      makeupPlan: input.makeupPlan || "",
+      makeupPlan: serviceSelection.makeupPlan,
       photo: input.photo || false,
       source: input.source || "web",
       platform: input.platform || "LINE",
@@ -552,9 +569,9 @@ export async function createPublicOrder(raw: unknown) {
       discountRate: input.discountRate || 10,
       depositJpy,
       kimonoPriceJpy: input.kimonoPriceJpy || 0,
-      hairFeeJpy: input.hairFeeJpy || 0,
-      makeupFeeJpy: input.makeupFeeJpy || 0,
-      photoFeeJpy: input.photoFeeJpy || 0,
+      hairFeeJpy: serviceSelection.hairFeeJpy,
+      makeupFeeJpy: serviceSelection.makeupFeeJpy,
+      photoFeeJpy: serviceSelection.photoFeeJpy,
       totalJpy: total.totalJpy,
       onsiteDueJpy: total.onsiteDueJpy,
       proofUrl: input.proofUrl || "",

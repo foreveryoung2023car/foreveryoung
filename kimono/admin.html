@@ -312,6 +312,7 @@
         <span class="store-info-details">
           <span id="store-info-address"></span>
           <span id="store-info-phone"></span>
+          <span id="store-info-services"></span>
         </span>
       </button>
       <div class="panel">
@@ -1007,7 +1008,7 @@
 <div id="toast-container"></div>
 
 <div id="store-editor-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeStoreEditor()">
-  <div class="custom-modal-frame max-w-md" style="max-width:32rem">
+  <div class="custom-modal-frame max-w-md" style="max-width:46rem">
     <button onclick="closeStoreEditor()" class="custom-modal-close" aria-label="關閉店鋪編輯">×</button>
     <div class="custom-modal-card">
       <h3 id="store-editor-title" class="custom-modal-title text-lg font-bold text-[#1A365D] mb-4">編輯店鋪信息</h3>
@@ -1029,6 +1030,24 @@
           <span class="section-label block mb-1">電話</span>
           <input id="store-edit-phone" class="input-field w-full" maxlength="80">
         </label>
+        <div class="pt-2 border-t border-slate-100">
+          <div class="section-label block mb-2">預約頁下拉選項</div>
+          <p class="text-xs text-slate-500 mb-3">每行一個選項，格式：value | 顯示文字 | JPY金額。value 建議用英文或短代號，No 代表不需要。</p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <label class="block">
+              <span class="text-xs font-bold text-slate-500 block mb-1">髮型設計</span>
+              <textarea id="store-edit-hair-options" class="input-field w-full font-mono text-xs" rows="5"></textarea>
+            </label>
+            <label class="block">
+              <span class="text-xs font-bold text-slate-500 block mb-1">化妝造型</span>
+              <textarea id="store-edit-makeup-options" class="input-field w-full font-mono text-xs" rows="5"></textarea>
+            </label>
+            <label class="block">
+              <span class="text-xs font-bold text-slate-500 block mb-1">攝影方案</span>
+              <textarea id="store-edit-photo-options" class="input-field w-full font-mono text-xs" rows="5"></textarea>
+            </label>
+          </div>
+        </div>
         <div id="store-editor-error" class="hidden text-red-600 text-sm"></div>
         <div class="flex gap-2 pt-3">
           <button onclick="closeStoreEditor()" class="flex-1 py-2 border-2 border-slate-200 rounded font-bold text-sm text-slate-600">取消</button>
@@ -1048,8 +1067,8 @@
 <script src="./admin-assets/06-checkin-actions.js?v=20260610-1"></script>
 <script src="./admin-assets/07-calendar.js?v=20260626-6"></script>
 <script src="./admin-assets/08-finance.js?v=20260612-2"></script>
-<script src="./admin-assets/09-reconcile.js?v=20260709-4"></script>
-<script src="./admin-assets/10-orders-edit.js?v=20260707-1"></script>
+<script src="./admin-assets/09-reconcile.js?v=20260709-5"></script>
+<script src="./admin-assets/10-orders-edit.js?v=20260709-1"></script>
 <script src="./admin-assets/11-refunds-edit.js?v=20260605-14"></script>
 <script src="./admin-assets/12-ui-admin-tools.js?v=20260626-8"></script>
 <script src="./admin-assets/13-weather.js?v=20260605-14"></script>
@@ -1059,7 +1078,7 @@
 <script src="./admin-assets/18-employees.js?v=20260622-2"></script>
 <script src="./admin-assets/19-tour.js?v=20260626-2"></script>
 <script src="./admin-assets/21-payment-settings.js?v=20260622-1"></script>
-<script src="./admin-assets/20-stores.js?v=20260624-2"></script>
+<script src="./admin-assets/20-stores.js?v=20260709-1"></script>
 
 <!-- v2.4: 新增現場訂單 FAB -->
 <button id="walkInFab" onclick="openWalkInModal()" class="hidden fixed bottom-6 right-6 z-40 bg-[#1A365D] text-white px-5 py-4 rounded-full shadow-2xl font-bold text-base flex items-center gap-2 hover:bg-blue-900 active:scale-95 transition-transform" style="box-shadow:0 8px 24px rgba(26,54,93,0.35)">

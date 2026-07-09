@@ -11,7 +11,7 @@ const legacyStores = [
   { id: "tokyo1", name: "東京淺草寺店", address: "東京都台東區淺草1-33-8 A-one大廈9樓", phone: "請洽客服" }
 ] as const;
 
-const legacyStoreMap = new Map<string, StoreRecord>(
+const legacyStoreMap = new Map<string, { id: string; name: string; address: string; phone: string }>(
   legacyStores.map((store) => [store.id, { ...store }])
 );
 const slotPattern = /^(?:[01]\d|2[0-3]):(?:00|30)$/;
@@ -45,19 +45,62 @@ const saveStoreScheduleSchema = z.object({
   })).optional()
 });
 
+const serviceOptionSchema = z.object({
+  value: z.string().trim().min(1).max(60),
+  label: z.string().trim().min(1).max(120),
+  feeJpy: z.coerce.number().int().min(0).max(999999).default(0)
+});
+
+const serviceOptionsSchema = z.object({
+  hair: z.array(serviceOptionSchema).min(1).max(20).optional(),
+  makeup: z.array(serviceOptionSchema).min(1).max(20).optional(),
+  photo: z.array(serviceOptionSchema).min(1).max(20).optional()
+}).optional();
+
 const saveStoreSchema = z.object({
   id: z.string().regex(storeIdPattern, "Invalid store ID"),
   name: z.string().trim().min(1).max(80),
   address: z.string().trim().max(300).default(""),
   phone: z.string().trim().max(80).default(""),
+  serviceOptions: serviceOptionsSchema,
   create: z.boolean().optional()
 });
+
+const defaultServiceOptions = {
+  hair: [
+    { value: "No", label: "不需要髮型設計", feeJpy: 0 },
+    { value: "Yes", label: "需要髮型設計 (+1500 JPY)", feeJpy: 1500 }
+  ],
+  makeup: [
+    { value: "No", label: "不需要化妝", feeJpy: 0 },
+    { value: "Basic", label: "基礎化妝 (+3000 JPY)", feeJpy: 3000 },
+    { value: "Standard", label: "精緻化妝 (+5000 JPY)", feeJpy: 5000 },
+    { value: "Premium", label: "高級化妝 (+8000 JPY)", feeJpy: 8000 }
+  ],
+  photo: [
+    { value: "No", label: "不需要攝影", feeJpy: 0 },
+    { value: "Yes", label: "需要專業攝影", feeJpy: 0 }
+  ]
+} as const;
+
+type ServiceOption = {
+  value: string;
+  label: string;
+  feeJpy: number;
+};
+
+type StoreServiceOptions = {
+  hair: ServiceOption[];
+  makeup: ServiceOption[];
+  photo: ServiceOption[];
+};
 
 type StoreRecord = {
   id: string;
   name: string;
   address: string;
   phone: string;
+  serviceOptions: StoreServiceOptions;
 };
 
 type StoreWithData = {
@@ -71,7 +114,34 @@ function storeFromData(id: string, data: FirebaseFirestore.DocumentData = {}): S
     id,
     name: String(data.name || fallback?.name || id),
     address: String(data.address || fallback?.address || ""),
-    phone: String(data.phone || fallback?.phone || "")
+    phone: String(data.phone || fallback?.phone || ""),
+    serviceOptions: normalizeServiceOptions(data.serviceOptions)
+  };
+}
+
+function normalizeServiceOptionList(raw: unknown, fallback: readonly ServiceOption[]): ServiceOption[] {
+  const values = Array.isArray(raw) ? raw : [];
+  const seen = new Set<string>();
+  const out = values.map((item) => {
+    const option = item && typeof item === "object" ? item as Record<string, unknown> : {};
+    const value = String(option.value || "").trim();
+    const label = String(option.label || value).trim();
+    const feeJpy = Math.max(0, Math.round(Number(option.feeJpy || 0) || 0));
+    return { value, label, feeJpy };
+  }).filter((option) => {
+    if (!option.value || !option.label || seen.has(option.value)) return false;
+    seen.add(option.value);
+    return true;
+  });
+  return out.length ? out.slice(0, 20) : fallback.map((option) => ({ ...option }));
+}
+
+function normalizeServiceOptions(raw: unknown): StoreServiceOptions {
+  const input = raw && typeof raw === "object" ? raw as Record<string, unknown> : {};
+  return {
+    hair: normalizeServiceOptionList(input.hair, defaultServiceOptions.hair),
+    makeup: normalizeServiceOptionList(input.makeup, defaultServiceOptions.makeup),
+    photo: normalizeServiceOptionList(input.photo, defaultServiceOptions.photo)
   };
 }
 
@@ -79,14 +149,14 @@ async function loadStore(storeId: string) {
   const snap = await db.collection("stores").doc(storeId).get();
   if (snap.exists) return { store: storeFromData(storeId, snap.data()), data: snap.data() || {} };
   const fallback = legacyStoreMap.get(storeId);
-  if (fallback) return { store: { ...fallback }, data: {} };
+  if (fallback) return { store: { ...fallback, serviceOptions: normalizeServiceOptions({}) }, data: {} };
   throw new HttpError(400, "Unknown store");
 }
 
 async function listStoresWithData(): Promise<StoreWithData[]> {
   const snap = await db.collection("stores").get();
   const records = new Map<string, StoreWithData>(
-    legacyStores.map((store) => [store.id, { store: { ...store }, data: {} }])
+    legacyStores.map((store) => [store.id, { store: { ...store, serviceOptions: normalizeServiceOptions({}) }, data: {} }])
   );
   snap.docs.forEach((doc) => records.set(doc.id, {
     store: storeFromData(doc.id, doc.data()),
@@ -238,6 +308,7 @@ async function availabilityFromSnapshot(
     slotAvailability: buildSlotAvailability(slots, slotCapacities, usage),
     defaultSlots,
     defaultSlotCapacities,
+    serviceOptions: store.serviceOptions,
     hasOverride
   };
 }
@@ -247,6 +318,42 @@ export async function getStoreAvailability(storeId: string, date: string) {
   const { store, data } = await loadStore(storeId);
   const scheduleSnap = await db.collection("storeSchedules").doc(`${storeId}_${date}`).get();
   return availabilityFromSnapshot(store, data, date, scheduleSnap);
+}
+
+function selectedServiceOption(
+  store: StoreRecord,
+  kind: keyof StoreServiceOptions,
+  enabled: boolean | undefined,
+  requested: unknown
+) {
+  if (!enabled) return null;
+  const value = String(requested || "").trim();
+  const options = store.serviceOptions[kind] || [];
+  const option = options.find((item) => item.value === value) ||
+    options.find((item) => item.label === value) ||
+    options.find((item) => !/^no$/i.test(item.value));
+  if (!option || /^no$/i.test(option.value)) return null;
+  return option;
+}
+
+export async function resolveStoreServiceSelection(storeId: string, input: {
+  hair?: boolean;
+  hairOption?: unknown;
+  makeup?: boolean;
+  makeupPlan?: unknown;
+  photo?: boolean;
+  photoOption?: unknown;
+}) {
+  const { store } = await loadStore(storeId);
+  const hair = selectedServiceOption(store, "hair", input.hair, input.hairOption);
+  const makeup = selectedServiceOption(store, "makeup", input.makeup, input.makeupPlan);
+  const photo = selectedServiceOption(store, "photo", input.photo, input.photoOption);
+  return {
+    hairFeeJpy: hair ? hair.feeJpy : 0,
+    makeupPlan: makeup ? makeup.label : "",
+    makeupFeeJpy: makeup ? makeup.feeJpy : 0,
+    photoFeeJpy: photo ? photo.feeJpy : 0
+  };
 }
 
 export async function listStoreSchedules(date: string, actor: AuthContext) {
@@ -277,12 +384,14 @@ export async function saveStore(raw: unknown, actor: AuthContext) {
   if (!input.create && !snap.exists && !legacyStoreMap.has(input.id)) throw new HttpError(404, "Store not found");
 
   const before = snap.exists ? snap.data() || null : legacyStoreMap.get(input.id) || null;
-  const store = { id: input.id, name: input.name, address: input.address, phone: input.phone };
+  const serviceOptions = normalizeServiceOptions(input.serviceOptions ?? (before as FirebaseFirestore.DocumentData | null)?.serviceOptions);
+  const store = { id: input.id, name: input.name, address: input.address, phone: input.phone, serviceOptions };
   await ref.set({
     storeId: input.id,
     name: input.name,
     address: input.address,
     phone: input.phone,
+    serviceOptions,
     updatedBy: actor.uid,
     updatedAt: FieldValue.serverTimestamp(),
     ...(snap.exists ? {} : { createdBy: actor.uid, createdAt: FieldValue.serverTimestamp() })

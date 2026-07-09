@@ -6,6 +6,22 @@ let storeScheduleRows = [];
 let canCreateStore = false;
 let creatingStore = false;
 const DEFAULT_STORE_SLOT_CAPACITY = 10;
+const DEFAULT_STORE_SERVICE_OPTIONS = {
+  hair: [
+    { value: 'No', label: '不需要髮型設計', feeJpy: 0 },
+    { value: 'Yes', label: '需要髮型設計 (+1500 JPY)', feeJpy: 1500 }
+  ],
+  makeup: [
+    { value: 'No', label: '不需要化妝', feeJpy: 0 },
+    { value: 'Basic', label: '基礎化妝 (+3000 JPY)', feeJpy: 3000 },
+    { value: 'Standard', label: '精緻化妝 (+5000 JPY)', feeJpy: 5000 },
+    { value: 'Premium', label: '高級化妝 (+8000 JPY)', feeJpy: 8000 }
+  ],
+  photo: [
+    { value: 'No', label: '不需要攝影', feeJpy: 0 },
+    { value: 'Yes', label: '需要專業攝影', feeJpy: 0 }
+  ]
+};
 
 function storeTodayJst() {
   return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
@@ -62,6 +78,8 @@ function renderSelectedStoreSchedule() {
   document.getElementById('store-info-id').textContent = row.id;
   document.getElementById('store-info-address').textContent = row.address || '尚未設定地址';
   document.getElementById('store-info-phone').textContent = row.phone || '尚未設定電話';
+  const serviceSummary = document.getElementById('store-info-services');
+  if (serviceSummary) serviceSummary.textContent = storeServiceOptionsSummary(row.serviceOptions);
   document.getElementById('store-schedule-title').textContent = row.name + ' · ' + row.date;
   document.getElementById('store-schedule-status').textContent = row.hasOverride
     ? '此日期已有個別設定'
@@ -75,6 +93,57 @@ function renderSelectedStoreSchedule() {
   document.getElementById('store-slot-grid').innerHTML = STORE_TIME_OPTIONS.map(slot =>
     renderStoreSlotEditor(slot, selected.has(slot), capacities[slot], usageBySlot[slot])
   ).join('');
+}
+
+function normalizeStoreServiceOptions(options) {
+  const source = options && typeof options === 'object' ? options : {};
+  return {
+    hair: normalizeStoreServiceOptionList(source.hair, DEFAULT_STORE_SERVICE_OPTIONS.hair),
+    makeup: normalizeStoreServiceOptionList(source.makeup, DEFAULT_STORE_SERVICE_OPTIONS.makeup),
+    photo: normalizeStoreServiceOptionList(source.photo, DEFAULT_STORE_SERVICE_OPTIONS.photo)
+  };
+}
+
+function normalizeStoreServiceOptionList(options, fallback) {
+  const seen = new Set();
+  const out = (Array.isArray(options) ? options : []).map(item => ({
+    value: String(item && item.value || '').trim(),
+    label: String(item && item.label || '').trim(),
+    feeJpy: Math.max(0, Math.round(Number(item && item.feeJpy || 0) || 0))
+  })).filter(item => {
+    if (!item.value || !item.label || seen.has(item.value)) return false;
+    seen.add(item.value);
+    return true;
+  });
+  return out.length ? out : fallback.map(item => ({ ...item }));
+}
+
+function storeServiceOptionsSummary(options) {
+  const normalized = normalizeStoreServiceOptions(options);
+  return '髮型 ' + normalized.hair.length + ' 項 · 化妝 ' + normalized.makeup.length + ' 項 · 攝影 ' + normalized.photo.length + ' 項';
+}
+
+function serviceOptionsToText(options) {
+  return (options || []).map(item =>
+    [item.value, item.label, Number(item.feeJpy || 0)].join(' | ')
+  ).join('\n');
+}
+
+function parseServiceOptionsTextarea(id, label) {
+  const text = document.getElementById(id).value.trim();
+  if (!text) throw new Error(label + '至少需要 1 個選項。');
+  const seen = new Set();
+  return text.split(/\n+/).map((line, index) => {
+    const parts = line.split('|').map(part => part.trim());
+    if (parts.length < 2) throw new Error(label + '第 ' + (index + 1) + ' 行格式需為 value | 顯示文字 | 金額。');
+    const value = parts[0];
+    const optionLabel = parts[1];
+    const feeJpy = Math.max(0, Math.round(Number(parts[2] || 0) || 0));
+    if (!value || !optionLabel) throw new Error(label + '第 ' + (index + 1) + ' 行缺少 value 或顯示文字。');
+    if (seen.has(value)) throw new Error(label + '的 value「' + value + '」重複。');
+    seen.add(value);
+    return { value, label: optionLabel, feeJpy };
+  });
 }
 
 function storeSlotCapacityValue(capacity, key) {
@@ -132,6 +201,10 @@ function openStoreEditor(create) {
   document.getElementById('store-edit-name').value = create ? '' : (row.name || '');
   document.getElementById('store-edit-address').value = create ? '' : (row.address || '');
   document.getElementById('store-edit-phone').value = create ? '' : (row.phone || '');
+  const options = normalizeStoreServiceOptions(create ? null : row.serviceOptions);
+  document.getElementById('store-edit-hair-options').value = serviceOptionsToText(options.hair);
+  document.getElementById('store-edit-makeup-options').value = serviceOptionsToText(options.makeup);
+  document.getElementById('store-edit-photo-options').value = serviceOptionsToText(options.photo);
   document.getElementById('store-editor-error').classList.add('hidden');
   document.getElementById('store-editor-modal').classList.remove('hidden');
   setTimeout(() => document.getElementById(create ? 'store-edit-id' : 'store-edit-name').focus(), 0);
@@ -155,6 +228,18 @@ async function saveStoreInfo() {
     error.classList.remove('hidden');
     return;
   }
+  let serviceOptions;
+  try {
+    serviceOptions = {
+      hair: parseServiceOptionsTextarea('store-edit-hair-options', '髮型設計'),
+      makeup: parseServiceOptionsTextarea('store-edit-makeup-options', '化妝造型'),
+      photo: parseServiceOptionsTextarea('store-edit-photo-options', '攝影方案')
+    };
+  } catch (err) {
+    error.textContent = err.message;
+    error.classList.remove('hidden');
+    return;
+  }
   const button = document.getElementById('save-store-info-btn');
   button.disabled = true;
   error.classList.add('hidden');
@@ -164,6 +249,7 @@ async function saveStoreInfo() {
       name,
       address: document.getElementById('store-edit-address').value.trim(),
       phone: document.getElementById('store-edit-phone').value.trim(),
+      serviceOptions,
       create: creatingStore
     });
     closeStoreEditor();

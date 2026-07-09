@@ -810,6 +810,8 @@ function guestTextHasPositiveCount(text) {
 }
 function makeupLabelFor(value, makeupFlag, fee) {
   const raw = String(value || '').trim();
+  const known = /^(No|false|否|Basic|Standard|Premium)$/i.test(raw) || /高級|高级|精緻|精致|基礎|基础/.test(raw);
+  if (raw && !known && makeupFlag !== false && makeupFlag !== 'false' && makeupFlag !== '否') return t(raw);
   if (/Premium|高級|高级|8000/.test(raw) || Number(fee) >= 8000) return t('高級化妝');
   if (/Standard|精緻|精致|5000/.test(raw) || Number(fee) >= 5000) return t('精緻化妝');
   if (/Basic|基礎|基础|3000/.test(raw) || Number(fee) >= 3000 || makeupFlag === true || makeupFlag === '是' || makeupFlag === 'true') return t('基礎化妝');

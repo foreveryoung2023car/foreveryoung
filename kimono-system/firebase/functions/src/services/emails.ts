@@ -27,6 +27,23 @@ type StoreContact = {
   phone: string;
 };
 
+const storeBrandName = "樱花和服";
+const publicEmailAssetBaseUrl = "https://foreveryoung2023car.github.io/foreveryoung/kimono/img/email";
+
+const storeFallbacks: Record<string, StoreContact> = {
+  kyoto1: { name: "京都清水寺店", address: "京都東山區五條橋東4-432-13 對嵐坊大廈1樓", phone: "請洽客服" },
+  kyoto2: { name: "京都祇園店", address: "京都東山區常盤町169 常盤大廈", phone: "請洽客服" },
+  osaka1: { name: "大阪日本橋店", address: "大阪中央區日本橋1-18-14 芝大廈7樓", phone: "請洽客服" },
+  tokyo1: { name: "東京淺草寺店", address: "東京都台東區淺草1-33-8 A-one大廈9樓", phone: "請洽客服" }
+};
+
+const storeRouteGuides: Record<string, { label: string; imageUrl: string }> = {
+  kyoto1: { label: "清水寺店引導路線圖", imageUrl: `${publicEmailAssetBaseUrl}/route-kyoto-kiyomizu.jpg` },
+  kyoto2: { label: "祇園店引導路線圖", imageUrl: `${publicEmailAssetBaseUrl}/route-kyoto-gion.jpg` },
+  osaka1: { label: "日本橋店引導路線圖", imageUrl: `${publicEmailAssetBaseUrl}/route-osaka-nippombashi.jpg` },
+  tokyo1: { label: "淺草店引導路線圖", imageUrl: `${publicEmailAssetBaseUrl}/route-tokyo-asakusa.jpg` }
+};
+
 const emailActionMap: Record<EmailKind, { sent: string; failed: string; message: string }> = {
   confirm: {
     sent: "confirm_email_sent",
@@ -58,13 +75,13 @@ type BrandEmailProfile = {
 
 const brandEmailProfiles: Record<BrandPlatform, BrandEmailProfile> = {
   foreveryoung: {
-    fromName: "Foreveryoung Kimono",
-    signature: "Foreveryoung 旅乘",
+    fromName: `Foreveryoung｜${storeBrandName}`,
+    signature: `${storeBrandName}\nForeveryoung 旅乘`,
     subjectBrand: "Foreveryoung"
   },
   "japan-go": {
-    fromName: "Japan Go Kimono",
-    signature: "Japan Go 樂禾",
+    fromName: `Japan Go｜${storeBrandName}`,
+    signature: `${storeBrandName}\nJapan Go 樂禾`,
     subjectBrand: "Japan Go"
   }
 };
@@ -277,6 +294,21 @@ async function loadTemplate(kind: EmailKind, brandPlatform: BrandPlatform) {
 function ensureRequiredTemplateLines(kind: EmailKind, template: EmailTemplate): EmailTemplate {
   let text = template.text || "";
   let html = template.html;
+  if (!text.includes("{{brandName}}")) {
+    text = [
+      "店鋪名稱：{{brandName}}",
+      "預約平台：{{platformName}}",
+      "",
+      text
+    ].join("\n");
+  }
+  if (html && !html.includes("{{brandName}}")) {
+    html = [
+      "<p><b>店鋪名稱：</b>{{brandName}}</p>",
+      "<p><b>預約平台：</b>{{platformName}}</p>",
+      html
+    ].join("");
+  }
   if (!text.includes("{{storeName}}")) {
     text += [
       "",
@@ -335,21 +367,36 @@ async function loadStoreContact(storeId: unknown): Promise<StoreContact> {
   const storeSnap = await db.collection("stores").doc(key).get();
   const legacySnap = storeSnap.exists ? null : await db.collection("settings").doc("stores").get();
   const configured = storeSnap.exists ? storeSnap.data() || {} : legacySnap?.data()?.[key] || {};
+  const fallback = storeFallbacks[key] || { name: "", address: "", phone: "" };
   return {
-    name: String(configured.name || "").trim(),
-    address: String(configured.address || "").trim(),
-    phone: String(configured.phone || "").trim()
+    name: String(configured.name || fallback.name || "").trim(),
+    address: String(configured.address || fallback.address || "").trim(),
+    phone: String(configured.phone || fallback.phone || "").trim()
   };
+}
+
+function routeGuideForStore(storeId: unknown, storeName: unknown) {
+  const key = String(storeId || "").trim();
+  if (storeRouteGuides[key]) return storeRouteGuides[key];
+
+  const name = String(storeName || "");
+  if (/清水|kiyomizu/i.test(name)) return storeRouteGuides.kyoto1;
+  if (/祇園|祇园|衹園|衹园|gion/i.test(name)) return storeRouteGuides.kyoto2;
+  if (/日本橋|日本桥|nippombashi|nihonbashi/i.test(name)) return storeRouteGuides.osaka1;
+  if (/淺草|浅草|asakusa/i.test(name)) return storeRouteGuides.tokyo1;
+  return null;
 }
 
 async function templateVariables(orderId: string, order: FirebaseFirestore.DocumentData) {
   const orderNo = order.orderNo || orderId;
   const store = await loadStoreContact(order.storeId);
   const profile = brandEmailProfiles[orderBrandPlatform(order)];
+  const routeGuide = routeGuideForStore(order.storeId, store.name);
   return {
     name: order.customerName || "貴賓",
     orderNo,
-    brandName: profile.subjectBrand,
+    brandName: storeBrandName,
+    platformName: profile.subjectBrand,
     brandSignature: profile.signature,
     bookingAt: formatJst(order.bookingAt),
     guests: guestLabel(order),
@@ -377,6 +424,9 @@ async function templateVariables(orderId: string, order: FirebaseFirestore.Docum
     refundReason: order.refundReason || "—",
     proofNote: order.proofNote || "—",
     proofUrl: order.proofUrl || "",
+    storeLogoUrl: `${publicEmailAssetBaseUrl}/ouka-kimono-logo.jpg`,
+    storeRouteGuideLabel: routeGuide?.label || "",
+    storeRouteGuideUrl: routeGuide?.imageUrl || "",
     phone: order.customerPhone || "",
     email: order.customerEmail || ""
   };
@@ -415,15 +465,80 @@ function textToHtml(text: string) {
   return `<div style="font-family:Arial,'Noto Sans TC',sans-serif;color:#1f2937;line-height:1.7;white-space:pre-line">${escapeHtml(text)}</div>`;
 }
 
+function ensureSubjectStoreBrand(subject: string) {
+  if (subject.includes(storeBrandName)) return subject;
+  if (subject.startsWith("【") && subject.includes("】")) {
+    return subject.replace("】", `｜${storeBrandName}】`);
+  }
+  return `【${storeBrandName}】${subject}`;
+}
+
+function appendEmailGuidanceText(text: string, vars: Record<string, unknown>) {
+  const lines = [
+    "",
+    "店鋪資訊：",
+    `店鋪名稱：${storeBrandName}`,
+    `預約平台：${vars.platformName || "—"}`,
+    `店鋪 Logo：${vars.storeLogoUrl || ""}`
+  ];
+  if (vars.storeRouteGuideUrl) {
+    lines.push(`店鋪引導路線圖（${vars.storeRouteGuideLabel || "引導路線圖"}）：${vars.storeRouteGuideUrl}`);
+  }
+  return `${text.trimEnd()}\n${lines.join("\n")}`;
+}
+
+function decorateHtmlEmail(html: string, vars: Record<string, unknown>) {
+  const logoUrl = String(vars.storeLogoUrl || "");
+  const routeGuideUrl = String(vars.storeRouteGuideUrl || "");
+  const routeGuideLabel = String(vars.storeRouteGuideLabel || "店鋪引導路線圖");
+  const platformName = String(vars.platformName || "");
+  const storeName = String(vars.storeName || "");
+  const storeAddress = String(vars.storeAddress || "");
+  const storePhone = String(vars.storePhone || "");
+
+  const storeRows = [
+    ["預約店鋪", storeName],
+    ["店鋪地址", storeAddress],
+    ["店鋪電話", storePhone],
+    ["預約平台", platformName]
+  ].filter(([, value]) => String(value || "").trim()).map(([label, value]) =>
+    `<tr><td style="padding:6px 10px;color:#64748b;white-space:nowrap">${escapeHtml(label)}</td><td style="padding:6px 10px;color:#111827;font-weight:600">${escapeHtml(value)}</td></tr>`
+  ).join("");
+
+  const routeBlock = routeGuideUrl
+    ? `<div style="margin-top:22px">
+        <div style="font-size:16px;font-weight:700;color:#111827;margin-bottom:10px">${escapeHtml(routeGuideLabel)}</div>
+        <img src="${escapeHtml(routeGuideUrl)}" alt="${escapeHtml(routeGuideLabel)}" style="display:block;width:100%;max-width:680px;height:auto;border:1px solid #e5e7eb;border-radius:10px">
+      </div>`
+    : "";
+
+  return `<div style="margin:0;padding:24px;background:#f8fafc;font-family:Arial,'Noto Sans TC',sans-serif;color:#1f2937;line-height:1.7">
+    <div style="max-width:720px;margin:0 auto;background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="padding:24px 24px 18px;text-align:center;border-bottom:1px solid #f1f5f9;background:#fff7fb">
+        <img src="${escapeHtml(logoUrl)}" alt="${storeBrandName}" style="display:block;width:180px;max-width:70%;height:auto;margin:0 auto 12px">
+        <div style="font-size:22px;font-weight:800;color:#be185d;letter-spacing:.02em">${storeBrandName}</div>
+        ${platformName ? `<div style="font-size:13px;color:#64748b;margin-top:4px">預約平台：${escapeHtml(platformName)}</div>` : ""}
+      </div>
+      <div style="padding:24px">${html}</div>
+      <div style="padding:0 24px 24px">
+        ${storeRows ? `<table role="presentation" style="width:100%;border-collapse:collapse;margin-top:4px;background:#f8fafc;border-radius:10px;overflow:hidden">${storeRows}</table>` : ""}
+        ${routeBlock}
+      </div>
+    </div>
+  </div>`;
+}
+
 async function buildOrderEmail(kind: EmailKind, orderId: string, order: FirebaseFirestore.DocumentData, to: string): Promise<RenderedEmail> {
   const brandPlatform = orderBrandPlatform(order);
   const template = await loadTemplate(kind, brandPlatform);
   const vars = await templateVariables(orderId, order);
-  const subject = renderString(template.subject, vars);
-  const text = renderString(removeMissingStoreFields(template.text, vars, false), vars);
-  const html = template.html
+  const subject = ensureSubjectStoreBrand(renderString(template.subject, vars));
+  const bodyText = renderString(removeMissingStoreFields(template.text, vars, false), vars);
+  const text = appendEmailGuidanceText(bodyText, vars);
+  const bodyHtml = template.html
     ? renderString(removeMissingStoreFields(template.html, vars, true), vars)
-    : textToHtml(text);
+    : textToHtml(bodyText);
+  const html = decorateHtmlEmail(bodyHtml, vars);
   return { to, subject, text, html, fromName: brandEmailProfiles[brandPlatform].fromName };
 }
 

@@ -2055,6 +2055,86 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 
         let guestData = { maleAdults: 0, femaleAdults: 0, children: 0 };
         let bookingSlotAvailability = {};
+        const DEFAULT_BOOKING_SERVICE_OPTIONS = {
+            hair: [
+                { value: 'No', label: '不需要髮型設計', feeJpy: 0 },
+                { value: 'Yes', label: '需要髮型設計 (+1500 JPY)', feeJpy: 1500 }
+            ],
+            makeup: [
+                { value: 'No', label: '不需要化妝', feeJpy: 0 },
+                { value: 'Basic', label: '基礎化妝 (+3000 JPY)', feeJpy: 3000 },
+                { value: 'Standard', label: '精緻化妝 (+5000 JPY)', feeJpy: 5000 },
+                { value: 'Premium', label: '高級化妝 (+8000 JPY)', feeJpy: 8000 }
+            ],
+            photo: [
+                { value: 'No', label: '不需要攝影', feeJpy: 0 },
+                { value: 'Yes', label: '需要專業攝影', feeJpy: 0 }
+            ]
+        };
+        let bookingServiceOptions = normalizeBookingServiceOptions();
+
+        function escapeAttr(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function normalizeBookingServiceOptions(options) {
+            const source = options && typeof options === 'object' ? options : {};
+            return {
+                hair: normalizeBookingServiceOptionList(source.hair, DEFAULT_BOOKING_SERVICE_OPTIONS.hair),
+                makeup: normalizeBookingServiceOptionList(source.makeup, DEFAULT_BOOKING_SERVICE_OPTIONS.makeup),
+                photo: normalizeBookingServiceOptionList(source.photo, DEFAULT_BOOKING_SERVICE_OPTIONS.photo)
+            };
+        }
+
+        function normalizeBookingServiceOptionList(options, fallback) {
+            const seen = new Set();
+            const out = (Array.isArray(options) ? options : []).map(item => ({
+                value: String(item && item.value || '').trim(),
+                label: String(item && item.label || '').trim(),
+                feeJpy: Math.max(0, Math.round(Number(item && item.feeJpy || 0) || 0))
+            })).filter(item => {
+                if (!item.value || !item.label || seen.has(item.value)) return false;
+                seen.add(item.value);
+                return true;
+            });
+            return out.length ? out : fallback.map(item => ({ ...item }));
+        }
+
+        function renderBookingServiceSelect(kind) {
+            const select = document.getElementById('input-' + kind);
+            if (!select) return;
+            const previousValue = select.value;
+            const options = bookingServiceOptions[kind] || DEFAULT_BOOKING_SERVICE_OPTIONS[kind] || [];
+            select.innerHTML = options.map(item =>
+                '<option value="' + escapeAttr(item.value) + '" data-fee-jpy="' + Number(item.feeJpy || 0) + '" data-i18n-source="' + escapeAttr(item.label) + '">' + t(item.label) + '</option>'
+            ).join('');
+            if (options.some(item => item.value === previousValue)) select.value = previousValue;
+        }
+
+        function renderBookingServiceOptions() {
+            ['hair', 'makeup', 'photo'].forEach(renderBookingServiceSelect);
+        }
+
+        function updateBookingServiceOptions(options) {
+            bookingServiceOptions = normalizeBookingServiceOptions(options);
+            renderBookingServiceOptions();
+        }
+
+        function selectedBookingServiceOption(kind) {
+            const select = document.getElementById('input-' + kind);
+            const options = bookingServiceOptions[kind] || [];
+            const value = select ? select.value : '';
+            return options.find(item => item.value === value) || options[0] || { value: 'No', label: '', feeJpy: 0 };
+        }
+
+        function serviceOptionIsSelected(option) {
+            return option && !/^no$/i.test(String(option.value || '')) && Number(option.feeJpy || 0) >= 0;
+        }
         function adultCount() {
             return guestData.maleAdults + guestData.femaleAdults;
         }
@@ -2370,6 +2450,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 input.value = '';
                 bookingTimeSlots = [];
                 bookingSlotAvailability = {};
+                updateBookingServiceOptions();
                 if (list) list.innerHTML = '<div class="md:col-span-2 p-6 rounded-xl bg-slate-50 text-center text-sm text-slate-400 font-bold font-sans">' + t('請先選擇門市與日期') + '</div>';
                 if (hint) hint.textContent = t('請先選擇門市與日期，下方會顯示各時段剩餘名額');
                 return;
@@ -2381,9 +2462,11 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 const data = await res.json().catch(() => ({}));
                 if (!res.ok || data.status !== 'success') throw new Error(data.message || '時段載入失敗');
                 if (requestId !== timeSlotRequestId) return;
+                updateBookingServiceOptions(data.serviceOptions);
                 renderBookingTimeSlots(data.slots || [], previousValue, data.slotAvailability || []);
             } catch (err) {
                 if (requestId !== timeSlotRequestId) return;
+                updateBookingServiceOptions();
                 renderBookingTimeSlots([], '');
                 if (hint) hint.textContent = t('暫時無法取得店鋪時段，請稍後重選門市或日期');
             }
@@ -2400,9 +2483,15 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 : '';
             const proofUrl = proofText ? '' : (payload.proofImageUrl || '');
             const makeupNote = payload.makeup === '是'
-                ? `化妝造型：${payload.makeupPlan || 'Yes'}，化妝費：${Number(payload.makeupFeeJpy || 0)} JPY`
+                ? `化妝造型：${payload.makeupLabel || payload.makeupPlan || 'Yes'}，化妝費：${Number(payload.makeupFeeJpy || 0)} JPY`
                 : '';
-            const proofNote = [proofText, makeupNote].filter(Boolean).join('; ');
+            const hairNote = payload.hair === '是'
+                ? `髮型設計：${payload.hairLabel || '需要'}，髮型費：${Number(payload.hairFeeJpy || 0)} JPY`
+                : '';
+            const photoNote = payload.photo === '是'
+                ? `攝影方案：${payload.photoLabel || '需要'}，攝影費：${Number(payload.photoFeeJpy || 0)} JPY`
+                : '';
+            const proofNote = [proofText, hairNote, makeupNote, photoNote].filter(Boolean).join('; ');
             const dateValue = document.getElementById('input-date').value;
             const timeValue = document.getElementById('input-time').value;
             const requestBody = {
@@ -2418,10 +2507,14 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 children: Number(payload.children || 0),
                 plan: payload.plan || '',
                 hair: payload.hair === '是',
+                hairOption: payload.hairOption || undefined,
+                hairFeeJpy: Number(payload.hairFeeJpy || 0),
                 makeup: payload.makeup === '是',
                 makeupPlan: payload.makeupPlan || '',
                 makeupFeeJpy: Number(payload.makeupFeeJpy || 0),
                 photo: payload.photo === '是',
+                photoOption: payload.photoOption || undefined,
+                photoFeeJpy: Number(payload.photoFeeJpy || 0),
                 source: payload.source || '官網',
                 platform: payload.platform || 'LINE',
                 brandPlatform: (KIMONO_CONFIG && KIMONO_CONFIG.BRAND_PLATFORM) || 'foreveryoung',
@@ -2477,6 +2570,12 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             } catch(err) {}
             const seqStr = String(todaySeq).padStart(3, '0');
             const finalId = 'K' + dateKey + seqStr;
+            const selectedHair = selectedBookingServiceOption('hair');
+            const selectedMakeup = selectedBookingServiceOption('makeup');
+            const selectedPhoto = selectedBookingServiceOption('photo');
+            const hairSelected = serviceOptionIsSelected(selectedHair);
+            const makeupSelected = serviceOptionIsSelected(selectedMakeup);
+            const photoSelected = serviceOptionIsSelected(selectedPhoto);
 
             const payload = {
                 orderId: finalId, submitDate: submitDateTWN,
@@ -2497,11 +2596,18 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 femaleAdults: guestData.femaleAdults,
                 children: guestData.children,
                 plan: '',  // v2.4.42d: hide per-person kimono UI (re-enable later)
-                hair: document.getElementById('input-hair').value === 'Yes' ? '是' : '否',
-                makeup: document.getElementById('input-makeup').value === 'No' ? '否' : '是',
-                makeupPlan: document.getElementById('input-makeup').value,
-                makeupFeeJpy: ({ Basic: 3000, Standard: 5000, Premium: 8000 })[document.getElementById('input-makeup').value] || 0,
-                photo: document.getElementById('input-photo').value === 'Yes' ? '是' : '否',
+                hair: hairSelected ? '是' : '否',
+                hairOption: selectedHair.value || 'No',
+                hairFeeJpy: hairSelected ? Number(selectedHair.feeJpy || 0) : 0,
+                hairLabel: selectedHair.label || '',
+                makeup: makeupSelected ? '是' : '否',
+                makeupPlan: makeupSelected ? (selectedMakeup.value || selectedMakeup.label) : 'No',
+                makeupFeeJpy: makeupSelected ? Number(selectedMakeup.feeJpy || 0) : 0,
+                makeupLabel: selectedMakeup.label || '',
+                photo: photoSelected ? '是' : '否',
+                photoOption: selectedPhoto.value || 'No',
+                photoFeeJpy: photoSelected ? Number(selectedPhoto.feeJpy || 0) : 0,
+                photoLabel: selectedPhoto.label || '',
                 source: '官網',
                 storeKey: document.getElementById('input-store').value || '',
                 couponCode: document.getElementById('input-coupon').value.trim() || '',

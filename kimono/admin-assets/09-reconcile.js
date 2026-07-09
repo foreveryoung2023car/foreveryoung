@@ -642,6 +642,7 @@ function orderExportTableData(list){
 function orderExportHtml(list, title){
   const { headers, rows } = orderExportTableData(list);
   const generatedAt = new Date().toLocaleString('zh-TW', { hour12:false });
+  const colClasses = ['col-id','col-name','col-phone','col-time','col-count','col-small','col-makeup','col-small','col-note','col-money','col-money','col-remark'];
   return '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">'+
     '<head><meta charset="utf-8"><title>'+csvHtml(title)+'</title>'+
     '<style>'+
@@ -654,18 +655,19 @@ function orderExportHtml(list, title){
     'th,td{border:1px solid #b8c2cc;padding:3px 4px;vertical-align:top;line-height:1.2;word-break:break-word;mso-number-format:"\\@"}'+
     'th{background:#eef2f7;font-weight:800;text-align:left;white-space:nowrap}'+
     '.num{text-align:right;mso-number-format:"0"}'+
-    '.col-id{width:9%}.col-name{width:7%}.col-phone{width:9%}.col-time{width:10%}.col-count{width:5%}.col-small{width:5.5%}.col-makeup{width:7%}.col-note{width:16%}.col-money{width:7%}'+
+    '.col-id{width:70pt}.col-name{width:58pt}.col-phone{width:66pt}.col-time{width:78pt}.col-count{width:34pt}.col-small{width:34pt}.col-makeup{width:54pt}.col-note{width:150pt}.col-money{width:56pt}.col-remark{width:120pt}'+
     '</style>'+
     '<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>訂單列印表</x:Name><x:WorksheetOptions><x:FitToPage/><x:Print><x:FitWidth>1</x:FitWidth><x:FitHeight>0</x:FitHeight><x:ValidPrinterInfo/><x:PaperSizeIndex>9</x:PaperSizeIndex><x:HorizontalResolution>600</x:HorizontalResolution><x:VerticalResolution>600</x:VerticalResolution></x:Print><x:Selected/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->'+
     '</head><body><div class="Section1">'+
     '<div class="print-head"><h1>'+csvHtml(title)+'</h1><div class="meta">共 '+rows.length+' 筆 · '+csvHtml(generatedAt)+'</div></div>'+
-    '<table><thead><tr>'+
+    '<table><colgroup>'+
+    colClasses.map(cls => '<col class="'+cls+'">').join('')+
+    '</colgroup><thead><tr>'+
     headers.map((h, i) => {
-      const classes = ['col-id','col-name','col-phone','col-time','col-count','col-small','col-makeup','col-small','col-note','col-money','col-money','col-note'];
-      return '<th class="'+classes[i]+'">'+csvHtml(h)+'</th>';
+      return '<th class="'+colClasses[i]+'">'+csvHtml(h)+'</th>';
     }).join('')+
     '</tr></thead><tbody>'+
-    rows.map(row => '<tr>'+row.map((c, i) => '<td class="'+(i === 9 || i === 10 ? 'num' : '')+'">'+csvHtml(c)+'</td>').join('')+'</tr>').join('')+
+    rows.map(row => '<tr>'+row.map((c, i) => '<td class="'+colClasses[i]+' '+(i === 9 || i === 10 ? 'num' : '')+'">'+csvHtml(c)+'</td>').join('')+'</tr>').join('')+
     '</tbody></table></div></body></html>';
 }
 function ordersToA4Excel(list, title){

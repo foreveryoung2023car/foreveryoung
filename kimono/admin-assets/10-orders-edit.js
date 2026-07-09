@@ -37,6 +37,13 @@ function makeupLabelForPlan(plan) {
   })[plan] || '無';
 }
 
+function displayMakeupLabel(o) {
+  const raw = String(o && o.makeupPlan || '').trim();
+  const known = /^(No|false|否|Basic|Standard|Premium)$/i.test(raw) || /高級|高级|精緻|精致|基礎|基础/.test(raw);
+  if (raw && !known && orderHasMakeup(o)) return raw;
+  return makeupLabelForPlan(normalizeMakeupPlan(o));
+}
+
 function orderMakeupText(o) {
   return String(o && [
     o.makeupPlan,
@@ -210,7 +217,7 @@ function renderStoreOrderDetailView(o) {
   document.getElementById('store-view-female').textContent = guests.femaleAdults === null ? guests.adults : guests.femaleAdults;
   document.getElementById('store-view-children').textContent = guests.children;
   document.getElementById('store-view-hair').textContent = (o.hair === true || o.hair === 'true') ? '有' : '無';
-  document.getElementById('store-view-makeup').textContent = makeupLabelForPlan(normalizeMakeupPlan(o));
+  document.getElementById('store-view-makeup').textContent = displayMakeupLabel(o);
   document.getElementById('store-view-photo').textContent = (o.photo === true || o.photo === 'true') ? '有' : '無';
   setStoreInlineEditorValue('store-inline-male', guests.maleAdults === null ? 0 : guests.maleAdults);
   setStoreInlineEditorValue('store-inline-female', guests.femaleAdults === null ? guests.adults : guests.femaleAdults);
