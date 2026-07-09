@@ -419,6 +419,125 @@ function populateFilters(){
   fp.innerHTML = '<option value="">全部款式</option>' + [...plans].map(p=>'<option>'+p+'</option>').join('');
   fl.innerHTML = '<option value="">全部來源</option>' + [...platforms].map(p=>'<option>'+p+'</option>').join('');
   initOrderMonthFilters();
+  initOrderStoreFilter();
+}
+
+const ORDER_STORE_LABELS = {
+  kyoto1: '京都清水寺店',
+  kyoto2: '京都祇園店',
+  osaka1: '大阪日本橋店',
+  tokyo1: '東京淺草寺店'
+};
+
+function orderFilterEsc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function orderStoreLabel(storeKey) {
+  return (ORDER_STORE_LABELS[storeKey] || storeKey || '未指定') + (storeKey ? ' (' + storeKey + ')' : '');
+}
+
+function orderStoreKeyOf(o) {
+  const direct = String(o && (o.storeKey || o.storeId) || '').trim().toLowerCase();
+  if (direct) return direct;
+  const known = Object.keys(ORDER_STORE_LABELS).find(k => orderBelongsToStore(o, k));
+  return known || '';
+}
+
+function getAvailableOrderStoreKeys() {
+  const visible = filterOrdersForRole(allOrders.slice());
+  const keys = new Set();
+  visible.forEach(o => {
+    const direct = orderStoreKeyOf(o);
+    if (direct) keys.add(direct);
+    Object.keys(ORDER_STORE_LABELS).forEach(k => { if (orderBelongsToStore(o, k)) keys.add(k); });
+  });
+  if (currentRole === 'store' && currentStoreKey) keys.add(String(currentStoreKey).toLowerCase());
+  const knownOrder = Object.keys(ORDER_STORE_LABELS);
+  return [...keys].sort((a,b)=>{
+    const ia = knownOrder.indexOf(a);
+    const ib = knownOrder.indexOf(b);
+    if (ia >= 0 || ib >= 0) return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib);
+    return a.localeCompare(b);
+  });
+}
+
+function initOrderStoreFilter() {
+  const wrap = document.getElementById('f-store-multi-wrap');
+  const menu = document.getElementById('f-store-menu');
+  const btn = document.getElementById('f-store-menu-btn');
+  if (!wrap || !menu || !btn) return;
+  const stores = getAvailableOrderStoreKeys();
+  window.__orderStoreFilterKeys = stores;
+  if (!stores.length) {
+    wrap.classList.add('hidden');
+    return;
+  }
+  wrap.classList.remove('hidden');
+  const previous = new Set(Array.isArray(window.__orderStoreFilterSelected) ? window.__orderStoreFilterSelected : stores);
+  const selected = stores.filter(k => previous.has(k));
+  window.__orderStoreFilterSelected = selected.length ? selected : stores.slice();
+  const disabled = stores.length <= 1;
+  btn.disabled = disabled;
+  btn.classList.toggle('opacity-60', disabled);
+  btn.classList.toggle('cursor-not-allowed', disabled);
+  menu.innerHTML =
+    '<div class="flex items-center justify-between gap-2 px-2 py-1 border-b border-slate-100 mb-1">' +
+      '<span class="text-xs font-bold text-slate-600">店鋪</span>' +
+      (disabled ? '' : '<button type="button" class="text-xs text-[#1A365D] font-bold" onclick="selectAllOrderStores(event)">全選</button>') +
+    '</div>' +
+    stores.map(k => {
+      const checked = window.__orderStoreFilterSelected.indexOf(k) >= 0 ? ' checked' : '';
+      return '<label class="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-slate-50 text-sm font-semibold cursor-pointer">' +
+        '<input type="checkbox" data-order-store-filter value="'+orderFilterEsc(k)+'"'+checked+' '+(disabled?'disabled':'')+' onchange="applyOrderStoreFilter()">' +
+        '<span>'+orderFilterEsc(orderStoreLabel(k))+'</span>' +
+      '</label>';
+    }).join('');
+  syncOrderStoreFilterLabel();
+}
+
+function toggleOrderStoreMenu(event) {
+  if (event) event.stopPropagation();
+  const btn = document.getElementById('f-store-menu-btn');
+  const menu = document.getElementById('f-store-menu');
+  if (!btn || !menu || btn.disabled) return;
+  menu.classList.toggle('hidden');
+}
+
+function selectAllOrderStores(event) {
+  if (event) event.stopPropagation();
+  document.querySelectorAll('#f-store-menu input[data-order-store-filter]').forEach(cb => { cb.checked = true; });
+  applyOrderStoreFilter();
+}
+
+function applyOrderStoreFilter() {
+  const stores = Array.isArray(window.__orderStoreFilterKeys) ? window.__orderStoreFilterKeys : [];
+  const checked = Array.from(document.querySelectorAll('#f-store-menu input[data-order-store-filter]:checked')).map(cb => cb.value);
+  window.__orderStoreFilterSelected = checked.length ? checked : stores.slice();
+  if (!checked.length) {
+    document.querySelectorAll('#f-store-menu input[data-order-store-filter]').forEach(cb => { cb.checked = true; });
+  }
+  syncOrderStoreFilterLabel();
+  filterOrders();
+}
+
+function syncOrderStoreFilterLabel() {
+  const btn = document.getElementById('f-store-menu-btn');
+  if (!btn) return;
+  const stores = Array.isArray(window.__orderStoreFilterKeys) ? window.__orderStoreFilterKeys : [];
+  const selected = Array.isArray(window.__orderStoreFilterSelected) ? window.__orderStoreFilterSelected : stores;
+  if (!stores.length) btn.textContent = '全部店鋪';
+  else if (stores.length === 1) btn.textContent = orderStoreLabel(stores[0]);
+  else if (!selected.length || selected.length === stores.length) btn.textContent = '全部店鋪';
+  else if (selected.length === 1) btn.textContent = orderStoreLabel(selected[0]);
+  else btn.textContent = selected.length + ' 家店鋪';
+}
+
+function selectedOrderStoreKeysForFilter() {
+  const stores = Array.isArray(window.__orderStoreFilterKeys) ? window.__orderStoreFilterKeys : [];
+  const selected = Array.isArray(window.__orderStoreFilterSelected) ? window.__orderStoreFilterSelected : stores;
+  if (!stores.length || stores.length <= 1 || selected.length === stores.length) return [];
+  return selected;
 }
 
 function initOrderMonthFilters(){
@@ -531,6 +650,9 @@ function resetAllFilters(){
   ['f-search','f-date-from','f-date-to','f-plan','f-platform','f-hair','f-makeup','f-photo','f-status'].forEach(id=>{
     const el = document.getElementById(id); if(el) el.value = '';
   });
+  window.__orderStoreFilterSelected = (window.__orderStoreFilterKeys || []).slice();
+  document.querySelectorAll('#f-store-menu input[data-order-store-filter]').forEach(cb => { cb.checked = true; });
+  syncOrderStoreFilterLabel();
   const fSort = document.getElementById('f-sort'); if(fSort) fSort.value = 'booking-desc';
   clearOrderMonthFilter();
   const allBtn = document.querySelectorAll('#sec-orders .tab-btn')[0];
@@ -646,6 +768,7 @@ function filterOrders(){
   const fMakeup = (document.getElementById('f-makeup') || {}).value || '';
   const fPhoto = document.getElementById('f-photo').value;
   const fStatus = (document.getElementById('f-status') || {}).value || '';
+  const fStoreKeys = selectedOrderStoreKeysForFilter();
   const fSort = document.getElementById('f-sort').value;
 
   let list = filterOrdersForRole(allOrders.slice());
@@ -683,6 +806,7 @@ function filterOrders(){
   if(dTo) list = list.filter(o=>{const d=orderBookingDate(o); const dt=new Date(dTo + 'T00:00'); dt.setHours(23,59,59,999); return d && !isNaN(d) && d<=dt;});
   if(fPlan) list = list.filter(o=>(o.plan||'').includes(fPlan));
   if(fStore) list = list.filter(o=>orderBelongsToStore(o, fStore));
+  if(fStoreKeys.length) list = list.filter(o=>fStoreKeys.some(k => orderBelongsToStore(o, k)));
   if(fPlatform) list = list.filter(o=>(o.platform||'')===fPlatform);
   if(fStatus) list = list.filter(o=>orderStatusOf(o)===fStatus);
   if(fHair!=='') list = list.filter(o=>String(orderHasHair(o))===fHair);
@@ -954,6 +1078,7 @@ function renderOrders(orders){
     const fdf = document.getElementById('f-date-from'); if(fdf && fdf.value) reasons.push('起日：' + fdf.value);
     const fdt = document.getElementById('f-date-to'); if(fdt && fdt.value) reasons.push('迄日：' + fdt.value);
     const fst = document.getElementById('f-status'); if(fst && fst.value) reasons.push('狀態：' + (orderStatusMeta(fst.value).label || fst.value));
+    const fsks = selectedOrderStoreKeysForFilter(); if(fsks.length) reasons.push('店鋪：' + fsks.map(k => orderStoreLabel(k)).join(' / '));
     const fp = document.getElementById('f-plan'); if(fp && fp.value) reasons.push('款式：' + fp.value);
     const fpl = document.getElementById('f-platform'); if(fpl && fpl.value) reasons.push('來源：' + fpl.value);
     const fh = document.getElementById('f-hair'); if(fh && fh.value!=='') reasons.push('髮型：' + (fh.value==='true'?'有':'無'));
