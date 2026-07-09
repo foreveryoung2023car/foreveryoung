@@ -11,7 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./admin-assets/admin.css?v=20260709-2">
+<link rel="stylesheet" href="./admin-assets/admin.css?v=20260709-3">
 </head>
 <body class="min-h-screen" style="overflow-x:hidden">
 
@@ -215,7 +215,7 @@
           <option value="cancelled">已取消</option>
         </select>
         <div id="f-store-multi-wrap" class="relative hidden">
-          <button id="f-store-menu-btn" type="button" onclick="toggleOrderStoreMenu(event)" class="input-field order-filter-control order-store-filter-btn !w-auto text-left" title="店鋪篩選" aria-expanded="false">全部店鋪</button>
+          <button id="f-store-menu-btn" type="button" onclick="toggleOrderStoreMenu(event)" class="input-field order-filter-control order-store-filter-btn !w-auto" title="店鋪篩選" aria-expanded="false"><span class="order-store-filter-label">全部店鋪</span><span class="order-store-filter-arrow" aria-hidden="true">⌄</span></button>
           <div id="f-store-menu" class="hidden absolute right-0 mt-2 z-30 w-64 max-h-72 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl p-2"></div>
         </div>
         <button onclick="exportCSV()" class="btn-outline px-4 py-2 rounded-xl text-sm">📥 匯出表格</button>
@@ -1085,7 +1085,7 @@
 <script src="./admin-assets/02-firebase-api.js?v=20260626-5"></script>
 <script src="./admin-assets/03-ui-utils.js?v=20260611-5"></script>
 <script src="./admin-assets/04-refunds.js?v=20260626-6"></script>
-<script src="./admin-assets/05-orders.js?v=20260709-4"></script>
+<script src="./admin-assets/05-orders.js?v=20260709-5"></script>
 <script src="./admin-assets/06-checkin-actions.js?v=20260610-1"></script>
 <script src="./admin-assets/07-calendar.js?v=20260626-6"></script>
 <script src="./admin-assets/08-finance.js?v=20260612-2"></script>

@@ -537,13 +537,14 @@ function applyOrderStoreFilter() {
 function syncOrderStoreFilterLabel() {
   const btn = document.getElementById('f-store-menu-btn');
   if (!btn) return;
+  const labelEl = btn.querySelector('.order-store-filter-label') || btn;
   const stores = Array.isArray(window.__orderStoreFilterKeys) ? window.__orderStoreFilterKeys : [];
   const selected = Array.isArray(window.__orderStoreFilterSelected) ? window.__orderStoreFilterSelected : stores;
-  if (!stores.length) btn.textContent = '全部店鋪';
-  else if (stores.length === 1) btn.textContent = orderStoreLabel(stores[0]);
-  else if (!selected.length || selected.length === stores.length) btn.textContent = '全部店鋪';
-  else if (selected.length === 1) btn.textContent = orderStoreLabel(selected[0]);
-  else btn.textContent = selected.length + ' 家店鋪';
+  if (!stores.length) labelEl.textContent = '全部店鋪';
+  else if (stores.length === 1) labelEl.textContent = orderStoreLabel(stores[0]);
+  else if (!selected.length || selected.length === stores.length) labelEl.textContent = '全部店鋪';
+  else if (selected.length === 1) labelEl.textContent = orderStoreLabel(selected[0]);
+  else labelEl.textContent = selected.length + ' 家店鋪';
 }
 
 function selectedOrderStoreKeysForFilter() {
