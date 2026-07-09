@@ -591,13 +591,37 @@ function csvBookingDateTime(value){
 function csvYesNo(value){
   return value ? '有' : '無';
 }
+function csvMakeupLabel(o){
+  const plan = typeof normalizeMakeupPlan === 'function' ? normalizeMakeupPlan(o) : String(o && o.makeupPlan || '').trim();
+  const labels = {
+    Basic: '基礎化妝',
+    Standard: '精緻化妝',
+    Premium: '高級化妝',
+    No: '無'
+  };
+  if (labels[plan]) return labels[plan];
+  if (/Premium|高級|高级|8000/.test(plan)) return '高級化妝';
+  if (/Standard|精緻|精致|5000/.test(plan)) return '精緻化妝';
+  if (/Basic|基礎|基础|3000/.test(plan)) return '基礎化妝';
+  return (typeof orderHasMakeup === 'function' ? orderHasMakeup(o) : (o && (o.makeup === true || o.makeup === 'true' || o.makeup === '是'))) ? '基礎化妝' : '無';
+}
 function csvPlatformNote(o){
-  const parts = [o && (o.platform || o.source), o && (o.platformNote || o.sourceNote || o.introducer)]
+  const parts = [o && (o.proofNote || o.platformNote || o.platformRemark || o.sourceNote)]
     .map(csvCleanText)
+    .flatMap(text => text.split(/\s*[;；]\s*/))
+    .filter(text => !/化妝造型|化妝費|makeup/i.test(text))
     .filter(Boolean);
   return parts.filter((part, idx) => parts.indexOf(part) === idx).join(' ');
 }
-function ordersToCSV(list){
+function csvHtml(value){
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+function orderExportTableData(list){
   const headers = ['訂單號','姓名','電話','預約時間','人數','髮型','化妝','攝影','平台備註','已付定金','和服價格','備註'];
   const rows = list.map(o=>[
     o.orderId,
@@ -606,13 +630,17 @@ function ordersToCSV(list){
     csvBookingDateTime(o.bookingDate),
     formatGuestCount(o),
     csvYesNo(typeof orderHasHair === 'function' ? orderHasHair(o) : (o.hair === true || o.hair === 'true' || o.hair === '是')),
-    csvYesNo(typeof orderHasMakeup === 'function' ? orderHasMakeup(o) : (o.makeup === true || o.makeup === 'true' || o.makeup === '是')),
+    csvMakeupLabel(o),
     csvYesNo(typeof orderHasPhoto === 'function' ? orderHasPhoto(o) : (o.photo === true || o.photo === 'true' || o.photo === '是')),
     csvPlatformNote(o),
     typeof orderPaidDeposit === 'function' ? orderPaidDeposit(o) : reconcileDeposit(o),
     o.price || o.kimonoPrice || 0,
     csvCleanText(o.remark || o.note || '')
   ]);
+  return { headers, rows };
+}
+function ordersToCSV(list){
+  const { headers, rows } = orderExportTableData(list);
   const csv = [headers, ...rows].map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\n');
   const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
   const url = URL.createObjectURL(blob);
@@ -621,12 +649,15 @@ function ordersToCSV(list){
   a.click();
   URL.revokeObjectURL(url);
 }
-function exportCSV(){
+function currentOrderExportList(){
   // v2.4.29: store 角色匯出只能匯自家
   const allowed = filterOrdersForRole(allOrders);
   const visibleList = Array.isArray(window.__ordersFilteredList) ? window.__ordersFilteredList : allowed;
   const visibleIds = new Set(visibleList.map(o => o && o.orderId).filter(Boolean));
-  const list = allowed.filter(o => visibleIds.has(o.orderId));
+  return allowed.filter(o => visibleIds.has(o.orderId));
+}
+function exportCSV(){
+  const list = currentOrderExportList();
   if(!list.length){ toast('無資料可匯出','warning'); return; }
   ordersToCSV(list);
   toast('已匯出 CSV');
@@ -637,4 +668,55 @@ function batchExportCSV(){
   const allowed = filterOrdersForRole(allOrders);
   ordersToCSV(allowed.filter(o=>selectedIds.has(o.orderId)));
   toast('已匯出 '+selectedIds.size+' 筆');
+}
+function openOrdersA4Print(list, title){
+  if(!list.length){ toast('無資料可列印','warning'); return; }
+  const { headers, rows } = orderExportTableData(list);
+  const generatedAt = new Date().toLocaleString('zh-TW', { hour12:false });
+  const html = '<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><title>'+csvHtml(title)+'</title>'+
+    '<style>'+
+    '@page{size:A4 landscape;margin:8mm}'+
+    'body{font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;color:#111827;margin:0}'+
+    '.print-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6mm}'+
+    'h1{font-size:15pt;margin:0}.meta{font-size:8.5pt;color:#475569}'+
+    'table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8.3pt}'+
+    'th,td{border:1px solid #cbd5e1;padding:3.5px 4px;vertical-align:top;line-height:1.25;word-break:break-word}'+
+    'th{background:#f1f5f9;font-weight:800;text-align:left;white-space:nowrap}'+
+    'td:nth-child(1){font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:7.8pt}'+
+    'td:nth-child(10),td:nth-child(11){text-align:right;font-variant-numeric:tabular-nums}'+
+    '.col-id{width:9%}.col-name{width:7%}.col-phone{width:9%}.col-time{width:10%}.col-count{width:5%}.col-small{width:5.5%}.col-makeup{width:7%}.col-note{width:16%}.col-money{width:7%}'+
+    '@media print{.no-print{display:none}}'+
+    '</style></head><body>'+
+    '<div class="print-head"><h1>'+csvHtml(title)+'</h1><div class="meta">共 '+rows.length+' 筆 · '+csvHtml(generatedAt)+'</div></div>'+
+    '<table><thead><tr>'+
+    headers.map((h, i) => {
+      const classes = ['col-id','col-name','col-phone','col-time','col-count','col-small','col-makeup','col-small','col-note','col-money','col-money','col-note'];
+      return '<th class="'+classes[i]+'">'+csvHtml(h)+'</th>';
+    }).join('')+
+    '</tr></thead><tbody>'+
+    rows.map(row => '<tr>'+row.map(c => '<td>'+csvHtml(c)+'</td>').join('')+'</tr>').join('')+
+    '</tbody></table></body></html>';
+  const win = window.open('', '_blank');
+  if (!win) {
+    const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'kimono-orders-a4-'+new Date().toISOString().slice(0,10)+'.html'; a.click();
+    URL.revokeObjectURL(url);
+    toast('已下載 A4 列印表 HTML');
+    return;
+  }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(() => win.print(), 300);
+}
+function printOrdersA4(){
+  openOrdersA4Print(currentOrderExportList(), '訂單列印表');
+}
+function batchPrintOrdersA4(){
+  if(!selectedIds.size){ toast('請先選取訂單','warning'); return; }
+  const allowed = filterOrdersForRole(allOrders);
+  openOrdersA4Print(allowed.filter(o=>selectedIds.has(o.orderId)), '選取訂單列印表');
 }

@@ -219,6 +219,7 @@
           <div id="f-store-menu" class="hidden absolute right-0 mt-2 z-30 w-64 max-h-72 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl p-2"></div>
         </div>
         <button onclick="exportCSV()" class="btn-outline px-4 py-2 rounded-xl text-sm">📥 匯出 CSV</button>
+        <button onclick="printOrdersA4()" class="btn-outline px-4 py-2 rounded-xl text-sm">🖨 A4 列印</button>
         <button onclick="loadOrders()" class="btn-navy px-4 py-2 rounded-xl text-sm">↻ 重新載入</button>
       </div>
     </div>
@@ -266,6 +267,7 @@
         <div class="flex gap-2 flex-wrap">
           <button onclick="batchConfirm()" data-confirmation-ui="1" class="px-3 py-1.5 bg-white border-2 border-emerald-400 text-emerald-700 rounded-lg text-sm hover:bg-emerald-50 font-semibold">✅ 批次確認</button>
           <button onclick="batchExportCSV()" class="px-3 py-1.5 bg-white border-2 border-slate-300 rounded-lg text-sm hover:bg-slate-50 font-semibold">📥 匯出選取</button>
+          <button onclick="batchPrintOrdersA4()" class="px-3 py-1.5 bg-white border-2 border-slate-300 rounded-lg text-sm hover:bg-slate-50 font-semibold">🖨 列印選取</button>
           <button onclick="clearSelection()" class="px-3 py-1.5 bg-white border-2 border-slate-300 rounded-lg text-sm hover:bg-slate-50 font-semibold">取消選取</button>
         </div>
       </div>
@@ -1048,7 +1050,7 @@
 <script src="./admin-assets/06-checkin-actions.js?v=20260610-1"></script>
 <script src="./admin-assets/07-calendar.js?v=20260626-6"></script>
 <script src="./admin-assets/08-finance.js?v=20260612-2"></script>
-<script src="./admin-assets/09-reconcile.js?v=20260709-2"></script>
+<script src="./admin-assets/09-reconcile.js?v=20260709-3"></script>
 <script src="./admin-assets/10-orders-edit.js?v=20260707-1"></script>
 <script src="./admin-assets/11-refunds-edit.js?v=20260605-14"></script>
 <script src="./admin-assets/12-ui-admin-tools.js?v=20260626-8"></script>
