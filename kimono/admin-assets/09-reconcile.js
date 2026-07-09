@@ -574,7 +574,7 @@ async function confirmAutoReconcile(btn){
   }
 }
 
-// ── CSV EXPORT ──
+// ── A4 EXCEL EXPORT ──
 function csvCleanText(value){
   return String(value == null ? '' : value).replace(/[\r\n]+/g, ' ').trim();
 }
@@ -639,13 +639,41 @@ function orderExportTableData(list){
   ]);
   return { headers, rows };
 }
-function ordersToCSV(list){
+function orderExportHtml(list, title){
   const { headers, rows } = orderExportTableData(list);
-  const csv = [headers, ...rows].map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\n');
-  const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
+  const generatedAt = new Date().toLocaleString('zh-TW', { hour12:false });
+  return '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">'+
+    '<head><meta charset="utf-8"><title>'+csvHtml(title)+'</title>'+
+    '<style>'+
+    '@page Section1{size:11.69in 8.27in;margin:.25in .22in .25in .22in;mso-page-orientation:landscape}'+
+    'div.Section1{page:Section1}'+
+    'body{font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;color:#111827;margin:0}'+
+    '.print-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px}'+
+    'h1{font-size:15pt;margin:0}.meta{font-size:8.5pt;color:#475569}'+
+    'table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8.2pt}'+
+    'th,td{border:1px solid #b8c2cc;padding:3px 4px;vertical-align:top;line-height:1.2;word-break:break-word;mso-number-format:"\\@"}'+
+    'th{background:#eef2f7;font-weight:800;text-align:left;white-space:nowrap}'+
+    '.num{text-align:right;mso-number-format:"0"}'+
+    '.col-id{width:9%}.col-name{width:7%}.col-phone{width:9%}.col-time{width:10%}.col-count{width:5%}.col-small{width:5.5%}.col-makeup{width:7%}.col-note{width:16%}.col-money{width:7%}'+
+    '</style>'+
+    '<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>訂單列印表</x:Name><x:WorksheetOptions><x:FitToPage/><x:Print><x:FitWidth>1</x:FitWidth><x:FitHeight>0</x:FitHeight><x:ValidPrinterInfo/><x:PaperSizeIndex>9</x:PaperSizeIndex><x:HorizontalResolution>600</x:HorizontalResolution><x:VerticalResolution>600</x:VerticalResolution></x:Print><x:Selected/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->'+
+    '</head><body><div class="Section1">'+
+    '<div class="print-head"><h1>'+csvHtml(title)+'</h1><div class="meta">共 '+rows.length+' 筆 · '+csvHtml(generatedAt)+'</div></div>'+
+    '<table><thead><tr>'+
+    headers.map((h, i) => {
+      const classes = ['col-id','col-name','col-phone','col-time','col-count','col-small','col-makeup','col-small','col-note','col-money','col-money','col-note'];
+      return '<th class="'+classes[i]+'">'+csvHtml(h)+'</th>';
+    }).join('')+
+    '</tr></thead><tbody>'+
+    rows.map(row => '<tr>'+row.map((c, i) => '<td class="'+(i === 9 || i === 10 ? 'num' : '')+'">'+csvHtml(c)+'</td>').join('')+'</tr>').join('')+
+    '</tbody></table></div></body></html>';
+}
+function ordersToA4Excel(list, title){
+  const html = orderExportHtml(list, title || '訂單列印表');
+  const blob = new Blob(['\ufeff'+html], {type:'application/vnd.ms-excel;charset=utf-8'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'kimono-orders-'+new Date().toISOString().slice(0,10)+'.csv';
+  a.href = url; a.download = 'kimono-orders-a4-'+new Date().toISOString().slice(0,10)+'.xls';
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -659,64 +687,14 @@ function currentOrderExportList(){
 function exportCSV(){
   const list = currentOrderExportList();
   if(!list.length){ toast('無資料可匯出','warning'); return; }
-  ordersToCSV(list);
-  toast('已匯出 CSV');
+  ordersToA4Excel(list, '訂單列印表');
+  toast('已匯出 A4 Excel');
 }
 function batchExportCSV(){
   if(!selectedIds.size){ toast('請先選取訂單','warning'); return; }
   // v2.4.29: 雙重保險，store 角色僅匯出自家訂單
   const allowed = filterOrdersForRole(allOrders);
-  ordersToCSV(allowed.filter(o=>selectedIds.has(o.orderId)));
-  toast('已匯出 '+selectedIds.size+' 筆');
-}
-function openOrdersA4Print(list, title){
-  if(!list.length){ toast('無資料可列印','warning'); return; }
-  const { headers, rows } = orderExportTableData(list);
-  const generatedAt = new Date().toLocaleString('zh-TW', { hour12:false });
-  const html = '<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><title>'+csvHtml(title)+'</title>'+
-    '<style>'+
-    '@page{size:A4 landscape;margin:8mm}'+
-    'body{font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;color:#111827;margin:0}'+
-    '.print-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6mm}'+
-    'h1{font-size:15pt;margin:0}.meta{font-size:8.5pt;color:#475569}'+
-    'table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8.3pt}'+
-    'th,td{border:1px solid #cbd5e1;padding:3.5px 4px;vertical-align:top;line-height:1.25;word-break:break-word}'+
-    'th{background:#f1f5f9;font-weight:800;text-align:left;white-space:nowrap}'+
-    'td:nth-child(1){font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:7.8pt}'+
-    'td:nth-child(10),td:nth-child(11){text-align:right;font-variant-numeric:tabular-nums}'+
-    '.col-id{width:9%}.col-name{width:7%}.col-phone{width:9%}.col-time{width:10%}.col-count{width:5%}.col-small{width:5.5%}.col-makeup{width:7%}.col-note{width:16%}.col-money{width:7%}'+
-    '@media print{.no-print{display:none}}'+
-    '</style></head><body>'+
-    '<div class="print-head"><h1>'+csvHtml(title)+'</h1><div class="meta">共 '+rows.length+' 筆 · '+csvHtml(generatedAt)+'</div></div>'+
-    '<table><thead><tr>'+
-    headers.map((h, i) => {
-      const classes = ['col-id','col-name','col-phone','col-time','col-count','col-small','col-makeup','col-small','col-note','col-money','col-money','col-note'];
-      return '<th class="'+classes[i]+'">'+csvHtml(h)+'</th>';
-    }).join('')+
-    '</tr></thead><tbody>'+
-    rows.map(row => '<tr>'+row.map(c => '<td>'+csvHtml(c)+'</td>').join('')+'</tr>').join('')+
-    '</tbody></table></body></html>';
-  const win = window.open('', '_blank');
-  if (!win) {
-    const blob = new Blob([html], {type:'text/html;charset=utf-8'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'kimono-orders-a4-'+new Date().toISOString().slice(0,10)+'.html'; a.click();
-    URL.revokeObjectURL(url);
-    toast('已下載 A4 列印表 HTML');
-    return;
-  }
-  win.document.open();
-  win.document.write(html);
-  win.document.close();
-  win.focus();
-  setTimeout(() => win.print(), 300);
-}
-function printOrdersA4(){
-  openOrdersA4Print(currentOrderExportList(), '訂單列印表');
-}
-function batchPrintOrdersA4(){
-  if(!selectedIds.size){ toast('請先選取訂單','warning'); return; }
-  const allowed = filterOrdersForRole(allOrders);
-  openOrdersA4Print(allowed.filter(o=>selectedIds.has(o.orderId)), '選取訂單列印表');
+  const list = allowed.filter(o=>selectedIds.has(o.orderId));
+  ordersToA4Excel(list, '選取訂單列印表');
+  toast('已匯出 A4 Excel '+list.length+' 筆');
 }
