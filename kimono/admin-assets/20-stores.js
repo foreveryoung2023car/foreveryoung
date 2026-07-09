@@ -130,8 +130,7 @@ function renderServiceOptionsEditor(kind, options) {
 }
 
 function renderServiceOptionRow(item) {
-  return '<div class="grid grid-cols-[86px_1fr_96px_34px] gap-2 items-center" data-store-service-option-row>' +
-    '<input data-service-field="value" class="input-field w-full px-2 py-1.5 text-sm font-mono" maxlength="60" placeholder="No" value="' + adminEsc(item.value || '') + '">' +
+  return '<div class="grid grid-cols-[1fr_110px_34px] gap-2 items-center" data-store-service-option-row data-service-value="' + adminEsc(item.value || '') + '">' +
     '<input data-service-field="label" class="input-field w-full px-2 py-1.5 text-sm" maxlength="120" placeholder="顯示文字" value="' + adminEsc(item.label || '') + '">' +
     '<input data-service-field="feeJpy" class="input-field w-full px-2 py-1.5 text-sm font-mono text-right" type="number" min="0" step="1" placeholder="0" value="' + Number(item.feeJpy || 0) + '">' +
     '<button type="button" onclick="removeStoreServiceOption(this)" class="h-9 rounded-lg border border-slate-200 text-slate-400 hover:text-red-600 hover:border-red-200" aria-label="刪除選項">×</button>' +
@@ -143,7 +142,7 @@ function addStoreServiceOption(kind) {
   if (!container) return;
   container.insertAdjacentHTML('beforeend', renderServiceOptionRow({ value: '', label: '', feeJpy: 0 }));
   const row = container.querySelector('[data-store-service-option-row]:last-child');
-  if (row) row.querySelector('[data-service-field="value"]').focus();
+  if (row) row.querySelector('[data-service-field="label"]').focus();
 }
 
 function removeStoreServiceOption(button) {
@@ -152,24 +151,51 @@ function removeStoreServiceOption(button) {
   if (!row || !container) return;
   if (container.querySelectorAll('[data-store-service-option-row]').length <= 1) {
     row.querySelectorAll('input').forEach(input => { input.value = input.dataset.serviceField === 'feeJpy' ? '0' : ''; });
-    row.querySelector('[data-service-field="value"]').focus();
+    row.dataset.serviceValue = '';
+    row.querySelector('[data-service-field="label"]').focus();
     return;
   }
   row.remove();
+}
+
+function isNoNeedServiceLabel(label) {
+  return /^(no|不需要|不要|不用|無|无|なし|不要)/i.test(String(label || '').trim());
+}
+
+function generatedServiceValue(kind, label, index, usedValues) {
+  if (isNoNeedServiceLabel(label) && !usedValues.has('No')) return 'No';
+  let base = String(label || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+  if (!base) base = kind + '_' + (index + 1);
+  let value = base;
+  let suffix = 2;
+  while (usedValues.has(value) || value === 'No') {
+    value = base + '_' + suffix;
+    suffix += 1;
+  }
+  return value;
 }
 
 function parseServiceOptionsRows(kind, label) {
   const container = document.getElementById('store-edit-' + kind + '-options');
   const rows = Array.from(container ? container.querySelectorAll('[data-store-service-option-row]') : []);
   if (!rows.length) throw new Error(label + '至少需要 1 個選項。');
-  const seen = new Set();
+  const usedValues = new Set();
+  const usedLabels = new Set();
   const options = rows.map((row, index) => {
-    const value = row.querySelector('[data-service-field="value"]').value.trim();
     const optionLabel = row.querySelector('[data-service-field="label"]').value.trim();
     const feeJpy = Math.max(0, Math.round(Number(row.querySelector('[data-service-field="feeJpy"]').value || 0) || 0));
-    if (!value || !optionLabel) throw new Error(label + '第 ' + (index + 1) + ' 行缺少 value 或顯示文字。');
-    if (seen.has(value)) throw new Error(label + '的 value「' + value + '」重複。');
-    seen.add(value);
+    if (!optionLabel) throw new Error(label + '第 ' + (index + 1) + ' 行缺少顯示文字。');
+    if (usedLabels.has(optionLabel)) throw new Error(label + '的「' + optionLabel + '」重複。');
+    usedLabels.add(optionLabel);
+    const storedValue = String(row.dataset.serviceValue || '').trim();
+    const shouldUseNo = isNoNeedServiceLabel(optionLabel) && !usedValues.has('No');
+    const canReuseStored = storedValue && storedValue !== 'No' && !usedValues.has(storedValue);
+    const value = shouldUseNo ? 'No' : (canReuseStored ? storedValue : generatedServiceValue(kind, optionLabel, index, usedValues));
+    usedValues.add(value);
     return { value, label: optionLabel, feeJpy };
   }).filter(item => item.value && item.label);
   if (!options.length) throw new Error(label + '至少需要 1 個選項。');
