@@ -174,6 +174,162 @@ function reconcileDeposit(o) {
   return Math.max(0, Number(o && o.deposit || 0) - Number(o && (o.refundAmount !== undefined ? o.refundAmount : o.refundAmountJpy) || 0));
 }
 
+// ── 對帳列表行內編輯 ──
+// 金額欄位沿用訂單詳情的計算與權限：店鋪只有在結帳流程中能調整款項。
+let editingReconcileOrderId = '';
+
+function reconcileInlineCanEdit(o) {
+  if (currentRole !== 'store') return true;
+  return ['confirmed', 'checked_in'].includes(orderStatusOf(o));
+}
+
+function reconcileInlineInput(orderId, field, value) {
+  return '<input class="recon-inline-input" type="number" min="0" step="1" inputmode="numeric" '+
+    'data-recon-order="'+adminEsc(orderId)+'" data-recon-field="'+field+'" value="'+Math.max(0, Number(value) || 0)+'" '+
+    'oninput="updateReconcileInlinePreview(\''+adminEsc(orderId)+'\')">';
+}
+
+function reconcileInlineValue(orderId, field, fallback) {
+  const input = document.querySelector('.recon-inline-input[data-recon-order="'+CSS.escape(orderId)+'"][data-recon-field="'+field+'"]');
+  return Math.max(0, Math.round(Number(input ? input.value : fallback) || 0));
+}
+
+function reconcileInlineDraft(orderId) {
+  const order = allOrders.find(o => o.orderId === orderId);
+  if (!order) return null;
+  const amount = reconcileAmounts(order);
+  const draft = Object.assign({}, order, {
+    price: reconcileInlineValue(orderId, 'kimonoPrice', amount.kimonoPrice),
+    kimonoPrice: reconcileInlineValue(orderId, 'kimonoPrice', amount.kimonoPrice),
+    hairFee: reconcileInlineValue(orderId, 'hairFee', amount.hairFee),
+    makeupFee: reconcileInlineValue(orderId, 'makeupFee', amount.makeupFee),
+    photoFee: reconcileInlineValue(orderId, 'photoFee', amount.photoFee),
+    discountRefundAmount: reconcileInlineValue(orderId, 'discountRefundAmount', amount.discountRefund),
+    overtimeDamageDeduction: reconcileInlineValue(orderId, 'overtimeDamageDeduction', amount.overtimeDamageDeduction),
+    storeActualReceived: reconcileInlineValue(orderId, 'storeActualReceived', amount.actualReceived)
+  });
+  if (currentRole !== 'store') {
+    // 列表顯示的是「已收訂金」（已扣退款），儲存時轉回訂單詳情使用的原始訂金。
+    draft.deposit = reconcileInlineValue(orderId, 'deposit', amount.deposit) + Number(order.refundAmount || order.refundAmountJpy || 0);
+  }
+  return draft;
+}
+
+function reconcileInlinePreviewCell(orderId, key, value, className) {
+  return '<span data-recon-preview="'+key+'" data-recon-order="'+adminEsc(orderId)+'" class="'+(className || '')+'">'+value+'</span>';
+}
+
+function updateReconcileInlinePreview(orderId) {
+  const draft = reconcileInlineDraft(orderId);
+  if (!draft) return;
+  const amount = reconcileAmounts(draft);
+  const values = {
+    total: fmtY0(amount.total),
+    balance: fmtY0(amount.balance),
+    platformFee: fmtY0(amount.platformFee),
+    storeBalance: fmtY0(amount.storeBalance),
+    platformPayable: fmtSignedY0(amount.platformPayable),
+    storeReceivable: fmtSignedY0(amount.storeReceivable)
+  };
+  Object.entries(values).forEach(([key, value]) => {
+    document.querySelectorAll('[data-recon-preview="'+key+'"][data-recon-order="'+CSS.escape(orderId)+'"]').forEach(el => { el.textContent = value; });
+  });
+}
+
+function editReconcileRow(orderId) {
+  editingReconcileOrderId = orderId;
+  renderReconcile();
+  const firstInput = document.querySelector('.recon-inline-input[data-recon-order="'+CSS.escape(orderId)+'"]');
+  if (firstInput) firstInput.focus();
+}
+
+function cancelReconcileRowEdit() {
+  editingReconcileOrderId = '';
+  renderReconcile();
+}
+
+async function saveReconcileRow(orderId, button) {
+  const order = allOrders.find(o => o.orderId === orderId);
+  const draft = reconcileInlineDraft(orderId);
+  if (!order || !draft) return;
+  const isStoreCheckout = currentRole === 'store' && reconcileInlineCanEdit(order);
+  const amounts = reconcileAmounts(draft);
+  if (isStoreCheckout) {
+    const nextLabel = amounts.balance === 0 ? '已完成' : '待付尾款（¥' + amounts.balance.toLocaleString() + '）';
+    if (!confirm('確認提交本次消費與付款金額？\n儲存後狀態將變為「' + nextLabel + '」，店鋪端不可再修改。')) return;
+  }
+  button.disabled = true;
+  button.textContent = '儲存中…';
+  const values = {
+    deposit: Math.max(0, Math.round(Number(draft.deposit || 0))),
+    kimonoPrice: Math.max(0, Math.round(Number(draft.kimonoPrice || 0))),
+    hairFee: Math.max(0, Math.round(Number(draft.hairFee || 0))),
+    makeupFee: Math.max(0, Math.round(Number(draft.makeupFee || 0))),
+    photoFee: Math.max(0, Math.round(Number(draft.photoFee || 0))),
+    discountRefundAmount: Math.max(0, Math.round(Number(draft.discountRefundAmount || 0))),
+    overtimeDamageDeduction: Math.max(0, Math.round(Number(draft.overtimeDamageDeduction || 0))),
+    storeActualReceived: Math.max(0, Math.round(Number(draft.storeActualReceived || 0)))
+  };
+  try {
+    if (useFirebaseAdmin()) {
+      const token = await getFreshAdminToken();
+      const apiBaseUrl = (KIMONO_CONFIG.API_BASE_URL || '').replace(/\/$/, '');
+      const firebasePayload = {
+        orderId: order.firebaseDocId || order.orderId,
+        kimonoPriceJpy: values.kimonoPrice,
+        hairFeeJpy: values.hairFee,
+        makeupFeeJpy: values.makeupFee,
+        photoFeeJpy: values.photoFee,
+        discountRefundAmountJpy: values.discountRefundAmount,
+        overtimeDamageDeductionJpy: values.overtimeDamageDeduction,
+        storeActualReceivedJpy: values.storeActualReceived,
+        ...(currentRole === 'store' ? { checkout: true } : { depositJpy: values.deposit })
+      };
+      const res = await fetch(apiBaseUrl + '/updateOrderByStaff', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify(firebasePayload)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.status !== 'success') throw new Error(data.message || '儲存失敗');
+      const updatedOrder = typeof adminMutationOrderToLocal === 'function'
+        ? adminMutationOrderToLocal(data.order || {}, order)
+        : Object.assign({}, order, draft);
+      mergeOrderIntoLocalList(orderId, updatedOrder);
+    } else {
+      // 舊 GAS 模式送出與訂單詳情相同的金額欄位，其他資料維持原值。
+      const payload = {
+        action: 'adminUpdate', agent: currentAgent, token: adminToken, orderId: order.orderId,
+        name: order.name || '', phone: order.phone || '', email: order.email || '', bookingDate: order.bookingDate || '',
+        pax: order.pax || '', plan: order.plan || '', platform: order.platform || '', hair: order.hair || 'false',
+        hairPlan: order.hairPlan || '', makeup: order.makeupPlan || normalizeMakeupPlan(order), photo: order.photo || 'false',
+        photoPlan: order.photoPlan || '', confirmed: order.confirmed ? 'TRUE' : 'FALSE',
+        deposit: values.deposit, kimonoPrice: values.kimonoPrice, hairFee: values.hairFee, makeupFee: values.makeupFee,
+        photoFee: values.photoFee, coupon: order.coupon || '', rate: order.rate || '',
+        discountRefundAmount: values.discountRefundAmount, overtimeDamageDeduction: values.overtimeDamageDeduction,
+        storeActualReceived: values.storeActualReceived, refundAmt: order.refundAmount || 0, refundDate: order.refundTime || '',
+        refundReason: order.refundReason || '', note: order.remark || order.note || '', storeNote: order.storeNote || ''
+      };
+      if (currentRole === 'store') {
+        ['name', 'phone', 'email', 'confirmed', 'deposit', 'refundAmt', 'refundDate', 'refundReason'].forEach(key => delete payload[key]);
+      }
+      const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+      const data = await res.json();
+      if (data.status !== 'ok' && data.status !== 'success') throw new Error(data.message || '儲存失敗');
+      const localPayload = Object.assign({}, payload, { deposit: values.deposit });
+      mergeOrderIntoLocalList(orderId, adminOrderPatchFromFormPayload(localPayload));
+    }
+    editingReconcileOrderId = '';
+    toast('已儲存 ' + orderId, 'success');
+    refreshCurrentSectionAfterLocalOrderChange();
+    scheduleQuietOrdersRefresh(700);
+  } catch (error) {
+    button.disabled = false;
+    button.textContent = currentRole === 'store' ? '儲存並結帳' : '儲存';
+    toast('儲存失敗：' + (error.message || error), 'error');
+  }
+}
+
 function fmtSignedY0(n) {
   const amount = Number(n) || 0;
   if (amount === 0) return '¥0';
@@ -373,52 +529,69 @@ function renderReconcile(){
   tbl.innerHTML = '<table class="data-table"><thead><tr>'+
     (currentRole === 'store'
       ? '<th>狀態</th>' + (showStoreColumn ? '<th>門市</th>' : '') + '<th>訂單號</th>' + brandHeader + '<th>客戶</th><th>體驗日期</th>'+
-        '<th class="num">已收訂金</th><th class="num">和服原價</th>'+
-        '<th class="num">髮型費</th><th class="num">化妝費</th><th class="num">攝影費</th>'+
-        '<th class="num">折扣與退款</th><th class="num">超時污損費</th><th class="num">總價</th>'+
+        '<th class="num">已收訂金</th><th class="num">髮型費</th><th class="num">化妝費</th><th class="num">攝影費</th>'+
+        '<th class="num">折扣與退款</th><th class="num">超時污損費</th><th class="num">和服原價</th><th class="num">總價</th>'+
         '<th class="num">實際收款</th><th class="num">平台費</th>'+
         '<th class="num">店鋪利潤</th><th class="num">需付平台</th>'
       : '<th>狀態</th><th>訂單號</th>' + brandHeader + '<th>客戶</th><th>體驗日期</th>'+
-        '<th class="num">已收訂金</th><th class="num">和服原價</th>'+
-        '<th class="num">折扣與退款</th><th class="num">超時污損費</th><th class="num">總價</th>'+
+        '<th class="num">已收訂金</th><th class="num">折扣與退款</th><th class="num">超時污損費</th><th class="num">和服原價</th><th class="num">總價</th>'+
         '<th class="num">店鋪實收</th><th class="num">尾款</th>'+
         '<th class="num">平台費</th><th class="num">需收店鋪</th>')+
+    '<th class="recon-action-cell">操作</th>'+
     '</tr></thead><tbody>'+
     list.map(o=>{
       const statusBadge = reconcileStatusBadge(o);
       const amount = reconcileAmounts(o);
       const showStoreReceivable = shouldShowStoreReceivable(o);
+      const isEditing = editingReconcileOrderId === o.orderId;
+      const isInlineEditable = reconcileInlineCanEdit(o);
+      const amountCell = (field, value, editable, className) => {
+        const classes = 'num ' + (className || '');
+        return '<td class="'+classes+'">'+(isEditing && editable
+          ? reconcileInlineInput(o.orderId, field, value)
+          : fmtY0(value))+'</td>';
+      };
+      const previewCell = (key, value, className) => '<td class="num '+(className || '')+'">'+(
+        isEditing ? reconcileInlinePreviewCell(o.orderId, key, value, '') : value
+      )+'</td>';
       const commonCells =
         '<td>'+renderReconcileOrderStatus(o)+'</td>'+
         (showStoreColumn ? '<td class="font-mono text-sm whitespace-nowrap">'+adminEsc(o.storeKey || o.storeId || '—')+'</td>' : '')+
-        '<td class="font-mono text-sm whitespace-nowrap">'+(o.orderId||'')+'</td>'+
+        '<td class="font-mono text-sm whitespace-nowrap"><button class="recon-order-link" onclick="openEdit(\''+adminJsArg(o.orderId||'')+'\')">'+adminEsc(o.orderId||'')+'</button></td>'+
         (canSeeMultipleBrandPlatforms() ? '<td>'+platformBadge(o)+'</td>' : '')+
         '<td class="font-bold whitespace-nowrap">'+(o.name||'—')+'</td>'+
         '<td>'+fmtDate(o.bookingDate)+'</td>';
       const amountCells = currentRole === 'store'
         ? '<td class="num">'+fmtY0(amount.deposit)+'</td>'+
-          '<td class="num">'+fmtY0(amount.kimonoPrice)+'</td>'+
-          '<td class="num">'+fmtY0(amount.hairFee)+'</td>'+
-          '<td class="num">'+fmtY0(amount.makeupFee)+'</td>'+
-          '<td class="num">'+fmtY0(amount.photoFee)+'</td>'+
-          '<td class="num">'+fmtY0(amount.discountRefund)+'</td>'+
-          '<td class="num">'+fmtY0(amount.overtimeDamageDeduction)+'</td>'+
-          '<td class="num font-bold">'+fmtY0(amount.total)+'</td>'+
-          '<td class="num">'+fmtY0(amount.actualReceived)+'</td>'+
-          '<td class="num">'+fmtY0(amount.platformFee)+'</td>'+
-          '<td class="num font-bold text-[#C9A961]">'+fmtY0(amount.storeBalance)+'</td>'+
-          '<td class="num font-bold" style="color:#991B1B">'+fmtSignedY0(amount.platformPayable)+'</td>'
-        : '<td class="num">'+fmtY0(amount.deposit)+'</td>'+
-          '<td class="num">'+fmtY0(amount.kimonoPrice)+'</td>'+
-          '<td class="num">'+fmtY0(amount.discountRefund)+'</td>'+
-          '<td class="num">'+fmtY0(amount.overtimeDamageDeduction)+'</td>'+
-          '<td class="num font-bold">'+fmtY0(amount.total)+'</td>'+
-          '<td class="num">'+fmtY0(amount.actualReceived)+'</td>'+
-          '<td class="num font-bold" style="color:#991B1B">'+fmtY0(amount.balance)+'</td>'+
-          '<td class="num font-bold text-[#C9A961]">'+fmtY0(amount.platformFee)+'</td>'+
-          '<td class="num font-bold" style="color:#991B1B">'+(showStoreReceivable ? fmtSignedY0(amount.storeReceivable) : '')+'</td>';
-      return '<tr class="recon-row '+statusBadge.rowClass+'" onclick="openEdit(\''+(o.orderId||'')+'\')">'+
-        commonCells+amountCells+
+          amountCell('hairFee', amount.hairFee, true)+
+          amountCell('makeupFee', amount.makeupFee, true)+
+          amountCell('photoFee', amount.photoFee, true)+
+          amountCell('discountRefundAmount', amount.discountRefund, true)+
+          amountCell('overtimeDamageDeduction', amount.overtimeDamageDeduction, true)+
+          amountCell('kimonoPrice', amount.kimonoPrice, true)+
+          previewCell('total', fmtY0(amount.total), 'font-bold')+
+          amountCell('storeActualReceived', amount.actualReceived, true)+
+          previewCell('platformFee', fmtY0(amount.platformFee))+
+          previewCell('storeBalance', fmtY0(amount.storeBalance), 'font-bold text-[#C9A961]')+
+          previewCell('platformPayable', fmtSignedY0(amount.platformPayable), 'font-bold')
+        : amountCell('deposit', amount.deposit, true)+
+          amountCell('discountRefundAmount', amount.discountRefund, true)+
+          amountCell('overtimeDamageDeduction', amount.overtimeDamageDeduction, true)+
+          amountCell('kimonoPrice', amount.kimonoPrice, true)+
+          previewCell('total', fmtY0(amount.total), 'font-bold')+
+          amountCell('storeActualReceived', amount.actualReceived, true)+
+          previewCell('balance', fmtY0(amount.balance), 'font-bold')+
+          previewCell('platformFee', fmtY0(amount.platformFee), 'font-bold text-[#C9A961]')+
+          '<td class="num font-bold" style="color:#991B1B">'+(showStoreReceivable
+            ? (isEditing ? reconcileInlinePreviewCell(o.orderId, 'storeReceivable', fmtSignedY0(amount.storeReceivable), '') : fmtSignedY0(amount.storeReceivable))
+            : '')+'</td>';
+      const actionCell = isEditing
+        ? '<td class="recon-action-cell"><div class="recon-inline-actions"><button class="recon-inline-cancel" onclick="cancelReconcileRowEdit()">取消</button><button class="recon-inline-save" onclick="saveReconcileRow(\''+adminJsArg(o.orderId||'')+'\',this)">'+(currentRole === 'store' ? '儲存並結帳' : '儲存')+'</button></div></td>'
+        : '<td class="recon-action-cell"><div class="recon-inline-actions">'+
+          (isInlineEditable ? '<button class="recon-inline-edit" onclick="editReconcileRow(\''+adminJsArg(o.orderId||'')+'\')">✏️ 編輯</button>' : '')+
+          '<button class="recon-inline-detail" onclick="openEdit(\''+adminJsArg(o.orderId||'')+'\')">詳情</button></div></td>';
+      return '<tr class="recon-row '+statusBadge.rowClass+(isEditing ? ' is-inline-editing' : '')+'">'+
+        commonCells+amountCells+actionCell+
       '</tr>';
     }).join('')+'</tbody></table>';
 }

@@ -272,6 +272,19 @@
   .recon-row.match{background:#ECFDF5}
   .recon-row.mismatch{background:#FEF2F2}
   .recon-row.pending{background:#FFFBEB}
+  .recon-row.is-inline-editing{background:#EFF6FF}
+  .recon-action-cell{min-width:142px;text-align:center!important}
+  .recon-inline-actions{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+  .recon-inline-actions button{border-radius:7px;padding:6px 8px;font-size:12px;font-weight:700;line-height:1.2;transition:.15s}
+  .recon-inline-edit,.recon-inline-detail,.recon-inline-cancel{border:1px solid #BFDBFE;background:#FFF;color:#1D4ED8}
+  .recon-inline-edit:hover,.recon-inline-detail:hover,.recon-inline-cancel:hover{background:#DBEAFE}
+  .recon-inline-save{border:1px solid #1A365D;background:#1A365D;color:#FFF}
+  .recon-inline-save:hover{background:#12274A}
+  .recon-inline-save:disabled{opacity:.55;cursor:not-allowed}
+  .recon-inline-input{width:94px;min-width:94px;border:1.5px solid #60A5FA;border-radius:7px;padding:6px 7px;background:#FFF;color:#1E3A5F;text-align:right;font:inherit;font-weight:700;font-variant-numeric:tabular-nums;outline:none}
+  .recon-inline-input:focus{border-color:#1D4ED8;box-shadow:0 0 0 3px rgba(59,130,246,.16)}
+  .recon-order-link{border:0;padding:0;background:transparent;color:#1A365D;font:inherit;font-weight:700;cursor:pointer}
+  .recon-order-link:hover{text-decoration:underline;color:#1D4ED8}
 
 
   body, #topNav, .container { max-width: 100vw; overflow-x: clip; }

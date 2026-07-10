@@ -295,19 +295,18 @@ function ensureRequiredTemplateLines(kind: EmailKind, template: EmailTemplate): 
   let text = template.text || "";
   let html = template.html;
   if (!text.includes("{{brandName}}")) {
-    text = [
-      "店鋪名稱：{{brandName}}",
-      "預約平台：{{platformName}}",
-      "",
-      text
-    ].join("\n");
+    const lines = text.split(/\r?\n/);
+    const orderNoIndex = lines.findIndex((line) => line.includes("{{orderNo}}"));
+    const insertAt = orderNoIndex >= 0 ? orderNoIndex : 0;
+    lines.splice(insertAt, 0, "店鋪名稱：{{brandName}}", "預約平台：{{platformName}}");
+    text = lines.join("\n");
   }
   if (html && !html.includes("{{brandName}}")) {
-    html = [
-      "<p><b>店鋪名稱：</b>{{brandName}}</p>",
-      "<p><b>預約平台：</b>{{platformName}}</p>",
-      html
-    ].join("");
+    const brandHtml = "<p><b>店鋪名稱：</b>{{brandName}}</p><p><b>預約平台：</b>{{platformName}}</p>";
+    const orderNoBlock = html.match(/<(p|li|tr)\b[^>]*>(?:(?!<\/\1>)[\s\S])*?\{\{\s*orderNo\s*\}\}(?:(?!<\/\1>)[\s\S])*?<\/\1>/i);
+    html = orderNoBlock
+      ? html.replace(orderNoBlock[0], `${brandHtml}${orderNoBlock[0]}`)
+      : `${brandHtml}${html}`;
   }
   if (!text.includes("{{storeName}}")) {
     text += [
@@ -575,7 +574,6 @@ function decorateHtmlEmail(html: string, vars: Record<string, unknown>, includeS
       <div style="padding:24px 24px 18px;text-align:center;border-bottom:1px solid #f1f5f9;background:#fff7fb">
         <img src="${escapeHtml(logoUrl)}" alt="${storeBrandName}" style="display:block;width:180px;max-width:70%;height:auto;margin:0 auto 12px">
         <div style="font-size:22px;font-weight:800;color:#be185d;letter-spacing:.02em">${storeBrandName}</div>
-        ${platformName ? `<div style="font-size:13px;color:#64748b;margin-top:4px">預約平台：${escapeHtml(platformName)}</div>` : ""}
       </div>
       <div style="padding:24px">${html}</div>
       <div style="padding:0 24px 24px">
