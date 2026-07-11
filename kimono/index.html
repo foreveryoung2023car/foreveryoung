@@ -1436,7 +1436,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                                 </div>
                                 <input required type="hidden" id="input-time" value="">
                             </div>
-                            <div id="time-slot-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+                            <div id="time-slot-list" class="space-y-8"></div>
                         </div>
                         <div id="person-kimono-section" class="mb-2" style="display:none">
                             <span class="text-[10px] font-bold text-slate-400 uppercase font-sans block mb-3">每人和服選擇</span>
@@ -2300,10 +2300,26 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
         const API_BASE_URL = (KIMONO_CONFIG.API_BASE_URL || '').replace(/\/$/, '');
         let timeSlotRequestId = 0;
         let bookingTimeSlots = [];
+        let activeBookingTimePeriod = 'morning';
 
         function bookingTimeLabel(slot) {
-            const hour = Number(slot.slice(0, 2));
-            return (hour < 12 ? t('上午 ') : t('下午 ')) + slot;
+            return slot;
+        }
+
+        function bookingTimePeriod(slot) {
+            return Number(slot.slice(0, 2)) < 12 ? 'morning' : 'afternoon';
+        }
+
+        function bookingTimePeriodLabel(period) {
+            const labels = {
+                'zh-Hant': { morning: '午前', afternoon: '午後' },
+                'zh-Hans': { morning: '午前', afternoon: '午后' },
+                ja: { morning: '午前', afternoon: '午後' },
+                en: { morning: 'Morning', afternoon: 'Afternoon' },
+                ko: { morning: '오전', afternoon: '오후' },
+                id: { morning: 'Pagi', afternoon: 'Siang' }
+            };
+            return (labels[currentLanguage] || labels['zh-Hant'])[period];
         }
 
         function guestTypeLabel(type) {
@@ -2350,6 +2366,12 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
         function selectBookingSlot(slot) {
             if (document.getElementById('input-time').value !== slot) resetGuestData();
             document.getElementById('input-time').value = slot;
+            renderBookingSlotList();
+        }
+
+        function selectBookingTimePeriod(period) {
+            if (period !== 'morning' && period !== 'afternoon') return;
+            activeBookingTimePeriod = period;
             renderBookingSlotList();
         }
 
@@ -2407,9 +2429,30 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
         function renderBookingSlotList() {
             const list = document.getElementById('time-slot-list');
             if (!list || !bookingTimeSlots.length) return;
-            list.innerHTML = bookingTimeSlots.map(renderTimeSlotCard).join('');
+            list.innerHTML = renderBookingTimeSlotGroups(bookingTimeSlots);
             renderSelectedTimeSlotState();
             translatePage(list);
+        }
+
+        function renderBookingTimeSlotGroups(slots) {
+            const groups = {
+                morning: slots.filter(slot => bookingTimePeriod(slot) === 'morning'),
+                afternoon: slots.filter(slot => bookingTimePeriod(slot) === 'afternoon')
+            };
+            const periods = ['morning', 'afternoon'].filter(period => groups[period].length);
+            if (!groups[activeBookingTimePeriod]?.length) activeBookingTimePeriod = periods[0] || 'morning';
+            return '<div class="flex gap-2 rounded-xl bg-slate-100 p-1.5 mb-4" role="tablist" aria-label="' + t('選擇預約時段') + '">' +
+                periods.map(period => {
+                    const isActive = period === activeBookingTimePeriod;
+                    return '<button type="button" role="tab" aria-selected="' + isActive + '" onclick="selectBookingTimePeriod(\'' + period + '\')" ' +
+                        'class="flex-1 rounded-lg px-4 py-3 text-sm font-bold font-sans transition-all ' +
+                        (isActive ? 'bg-white text-[#1A365D] shadow-sm' : 'text-slate-400 hover:text-[#1A365D]') + '">' +
+                        bookingTimePeriodLabel(period) + '</button>';
+                }).join('') +
+                '</div>' +
+                '<div role="tabpanel" class="grid grid-cols-1 md:grid-cols-2 gap-3">' +
+                    groups[activeBookingTimePeriod].map(renderTimeSlotCard).join('') +
+                '</div>';
         }
 
         function renderBookingTimeSlots(slots, previousValue, availability) {
@@ -2423,13 +2466,14 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 if (item && item.slot) bookingSlotAvailability[item.slot] = item;
             });
             if (input) input.value = '';
-            if (list) {
-                list.innerHTML = validSlots.length
-                    ? validSlots.map(renderTimeSlotCard).join('')
-                    : '<div class="md:col-span-2 p-6 rounded-xl bg-slate-50 text-center text-sm text-slate-400 font-bold font-sans">' + t('當日無可預約時段') + '</div>';
-            }
             if (previousValue && validSlots.includes(previousValue) && canSelectSlot(bookingSlotAvailability[previousValue]?.remaining)) {
                 input.value = previousValue;
+                activeBookingTimePeriod = bookingTimePeriod(previousValue);
+            }
+            if (list) {
+                list.innerHTML = validSlots.length
+                    ? renderBookingTimeSlotGroups(validSlots)
+                    : '<div class="p-6 rounded-xl bg-slate-50 text-center text-sm text-slate-400 font-bold font-sans">' + t('當日無可預約時段') + '</div>';
             }
             if (hint) hint.textContent = validSlots.length
                 ? t('此店當日共有') + ' ' + validSlots.length + ' ' + t('個可預約時段，請點選下方時段')
