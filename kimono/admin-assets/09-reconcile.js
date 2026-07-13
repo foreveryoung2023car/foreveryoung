@@ -108,9 +108,9 @@ function reconcileDeposit(o) {
   return Math.max(0, Number(o && o.deposit || 0) - Number(o && (o.refundAmount !== undefined ? o.refundAmount : o.refundAmountJpy) || 0));
 }
 
-// ── 對帳列表行內編輯 ──
+// ── 對帳列表整體編輯 ──
 // 金額欄位沿用訂單詳情的計算與權限：店鋪只有在結帳流程中能調整款項。
-let editingReconcileOrderId = '';
+let isReconBulkEditing = false;
 
 function reconcileInlineCanEdit(o) {
   if (currentRole !== 'store') return true;
@@ -170,31 +170,8 @@ function updateReconcileInlinePreview(orderId) {
   });
 }
 
-function editReconcileRow(orderId) {
-  editingReconcileOrderId = orderId;
-  renderReconcile();
-  const firstInput = document.querySelector('.recon-inline-input[data-recon-order="'+CSS.escape(orderId)+'"]');
-  if (firstInput) firstInput.focus();
-}
-
-function cancelReconcileRowEdit() {
-  editingReconcileOrderId = '';
-  renderReconcile();
-}
-
-async function saveReconcileRow(orderId, button) {
-  const order = allOrders.find(o => o.orderId === orderId);
-  const draft = reconcileInlineDraft(orderId);
-  if (!order || !draft) return;
-  const isStoreCheckout = currentRole === 'store' && reconcileInlineCanEdit(order);
-  const amounts = reconcileAmounts(draft);
-  if (isStoreCheckout) {
-    const nextLabel = amounts.balance === 0 ? '已完成' : '待付尾款（¥' + amounts.balance.toLocaleString() + '）';
-    if (!confirm('確認提交本次消費與付款金額？\n儲存後狀態將變為「' + nextLabel + '」，店鋪端不可再修改。')) return;
-  }
-  button.disabled = true;
-  button.textContent = '儲存中…';
-  const values = {
+function reconcileDraftValues(draft) {
+  return {
     deposit: Math.max(0, Math.round(Number(draft.deposit || 0))),
     kimonoPrice: Math.max(0, Math.round(Number(draft.kimonoPrice || 0))),
     hairFee: Math.max(0, Math.round(Number(draft.hairFee || 0))),
@@ -204,64 +181,119 @@ async function saveReconcileRow(orderId, button) {
     overtimeDamageDeduction: Math.max(0, Math.round(Number(draft.overtimeDamageDeduction || 0))),
     storeActualReceived: Math.max(0, Math.round(Number(draft.storeActualReceived || 0)))
   };
-  try {
-    if (useFirebaseAdmin()) {
-      const token = await getFreshAdminToken();
-      const apiBaseUrl = (KIMONO_CONFIG.API_BASE_URL || '').replace(/\/$/, '');
-      const firebasePayload = {
-        orderId: order.firebaseDocId || order.orderId,
-        kimonoPriceJpy: values.kimonoPrice,
-        hairFeeJpy: values.hairFee,
-        makeupFeeJpy: values.makeupFee,
-        photoFeeJpy: values.photoFee,
-        discountRefundAmountJpy: values.discountRefundAmount,
-        overtimeDamageDeductionJpy: values.overtimeDamageDeduction,
-        storeActualReceivedJpy: values.storeActualReceived,
-        ...(currentRole === 'store' ? { checkout: true } : { depositJpy: values.deposit })
-      };
-      const res = await fetch(apiBaseUrl + '/updateOrderByStaff', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-        body: JSON.stringify(firebasePayload)
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || data.status !== 'success') throw new Error(data.message || '儲存失敗');
-      const updatedOrder = typeof adminMutationOrderToLocal === 'function'
-        ? adminMutationOrderToLocal(data.order || {}, order)
-        : Object.assign({}, order, draft);
-      mergeOrderIntoLocalList(orderId, updatedOrder);
-    } else {
-      // 舊 GAS 模式送出與訂單詳情相同的金額欄位，其他資料維持原值。
-      const payload = {
-        action: 'adminUpdate', agent: currentAgent, token: adminToken, orderId: order.orderId,
-        name: order.name || '', phone: order.phone || '', email: order.email || '', bookingDate: order.bookingDate || '',
-        pax: order.pax || '', plan: order.plan || '', platform: order.platform || '', hair: order.hair || 'false',
-        hairPlan: order.hairPlan || '', makeup: order.makeupPlan || normalizeMakeupPlan(order), photo: order.photo || 'false',
-        photoPlan: order.photoPlan || '', confirmed: order.confirmed ? 'TRUE' : 'FALSE',
-        deposit: values.deposit, kimonoPrice: values.kimonoPrice, hairFee: values.hairFee, makeupFee: values.makeupFee,
-        photoFee: values.photoFee, coupon: order.coupon || '', rate: order.rate || '',
-        discountRefundAmount: values.discountRefundAmount, overtimeDamageDeduction: values.overtimeDamageDeduction,
-        storeActualReceived: values.storeActualReceived, refundAmt: order.refundAmount || 0, refundDate: order.refundTime || '',
-        refundReason: order.refundReason || '', note: order.remark || order.note || '', storeNote: order.storeNote || ''
-      };
-      if (currentRole === 'store') {
-        ['name', 'phone', 'email', 'confirmed', 'deposit', 'refundAmt', 'refundDate', 'refundReason'].forEach(key => delete payload[key]);
-      }
-      const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
-      const data = await res.json();
-      if (data.status !== 'ok' && data.status !== 'success') throw new Error(data.message || '儲存失敗');
-      const localPayload = Object.assign({}, payload, { deposit: values.deposit });
-      mergeOrderIntoLocalList(orderId, adminOrderPatchFromFormPayload(localPayload));
-    }
-    editingReconcileOrderId = '';
-    toast('已儲存 ' + orderId, 'success');
-    refreshCurrentSectionAfterLocalOrderChange();
-    scheduleQuietOrdersRefresh(700);
-  } catch (error) {
-    button.disabled = false;
-    button.textContent = currentRole === 'store' ? '儲存並結帳' : '儲存';
-    toast('儲存失敗：' + (error.message || error), 'error');
+}
+
+function reconcileDraftHasChanges(order, draft) {
+  const current = reconcileDraftValues(order);
+  const next = reconcileDraftValues(draft);
+  const fields = ['kimonoPrice', 'hairFee', 'makeupFee', 'photoFee', 'discountRefundAmount', 'overtimeDamageDeduction', 'storeActualReceived'];
+  if (currentRole !== 'store') fields.push('deposit');
+  return fields.some(field => current[field] !== next[field]);
+}
+
+function syncReconcileBulkEditActions() {
+  const editButton = document.getElementById('recon-edit-btn');
+  const bulkActions = document.getElementById('recon-bulk-actions');
+  if (editButton) editButton.classList.toggle('hidden', isReconBulkEditing);
+  if (bulkActions) bulkActions.classList.toggle('hidden', !isReconBulkEditing);
+  ['recon-month', 'recon-day', 'recon-sort', 'recon-status', 'recon-brand', 'recon-export'].forEach(id => {
+    const control = document.getElementById(id);
+    if (control) control.disabled = isReconBulkEditing;
+  });
+}
+
+function startReconcileBulkEdit() {
+  isReconBulkEditing = true;
+  renderReconcile();
+  const firstInput = document.querySelector('.recon-inline-input');
+  if (firstInput) firstInput.focus();
+}
+
+function cancelReconcileBulkEdit() {
+  isReconBulkEditing = false;
+  renderReconcile();
+}
+
+async function persistReconcileDraft(order, draft) {
+  const values = reconcileDraftValues(draft);
+  if (useFirebaseAdmin()) {
+    const token = await getFreshAdminToken();
+    const apiBaseUrl = (KIMONO_CONFIG.API_BASE_URL || '').replace(/\/$/, '');
+    const firebasePayload = {
+      orderId: order.firebaseDocId || order.orderId,
+      kimonoPriceJpy: values.kimonoPrice,
+      hairFeeJpy: values.hairFee,
+      makeupFeeJpy: values.makeupFee,
+      photoFeeJpy: values.photoFee,
+      discountRefundAmountJpy: values.discountRefundAmount,
+      overtimeDamageDeductionJpy: values.overtimeDamageDeduction,
+      storeActualReceivedJpy: values.storeActualReceived,
+      ...(currentRole === 'store' ? { checkout: true } : { depositJpy: values.deposit })
+    };
+    const res = await fetch(apiBaseUrl + '/updateOrderByStaff', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify(firebasePayload)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.status !== 'success') throw new Error(data.message || '儲存失敗');
+    const updatedOrder = typeof adminMutationOrderToLocal === 'function'
+      ? adminMutationOrderToLocal(data.order || {}, order)
+      : Object.assign({}, order, draft);
+    mergeOrderIntoLocalList(order.orderId, updatedOrder);
+    return;
   }
+  const payload = {
+    action: 'adminUpdate', agent: currentAgent, token: adminToken, orderId: order.orderId,
+    name: order.name || '', phone: order.phone || '', email: order.email || '', bookingDate: order.bookingDate || '',
+    pax: order.pax || '', plan: order.plan || '', platform: order.platform || '', hair: order.hair || 'false',
+    hairPlan: order.hairPlan || '', makeup: order.makeupPlan || normalizeMakeupPlan(order), photo: order.photo || 'false',
+    photoPlan: order.photoPlan || '', confirmed: order.confirmed ? 'TRUE' : 'FALSE',
+    deposit: values.deposit, kimonoPrice: values.kimonoPrice, hairFee: values.hairFee, makeupFee: values.makeupFee,
+    photoFee: values.photoFee, coupon: order.coupon || '', rate: order.rate || '',
+    discountRefundAmount: values.discountRefundAmount, overtimeDamageDeduction: values.overtimeDamageDeduction,
+    storeActualReceived: values.storeActualReceived, refundAmt: order.refundAmount || 0, refundDate: order.refundTime || '',
+    refundReason: order.refundReason || '', note: order.remark || order.note || '', storeNote: order.storeNote || ''
+  };
+  if (currentRole === 'store') {
+    ['name', 'phone', 'email', 'confirmed', 'deposit', 'refundAmt', 'refundDate', 'refundReason'].forEach(key => delete payload[key]);
+  }
+  const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+  const data = await res.json();
+  if (data.status !== 'ok' && data.status !== 'success') throw new Error(data.message || '儲存失敗');
+  const localPayload = Object.assign({}, payload, { deposit: values.deposit });
+  mergeOrderIntoLocalList(order.orderId, adminOrderPatchFromFormPayload(localPayload));
+}
+
+async function saveReconcileBulkEdit() {
+  const saveButton = document.getElementById('recon-bulk-save-btn');
+  const orderIds = [...new Set([...document.querySelectorAll('.recon-inline-input[data-recon-order]')]
+    .map(input => input.dataset.reconOrder).filter(Boolean))];
+  const changes = orderIds.map(orderId => {
+    const order = allOrders.find(item => item.orderId === orderId);
+    const draft = reconcileInlineDraft(orderId);
+    return order && draft && reconcileDraftHasChanges(order, draft) ? { order, draft } : null;
+  }).filter(Boolean);
+  if (!changes.length) {
+    cancelReconcileBulkEdit();
+    toast('沒有需要儲存的變更', 'warning');
+    return;
+  }
+  if (currentRole === 'store' && !confirm('確認提交 ' + changes.length + ' 筆消費與付款金額？\n儲存後，這些訂單會依尾款自動轉為「已完成」或「待付尾款」。')) return;
+  if (saveButton) { saveButton.disabled = true; saveButton.textContent = '儲存中…'; }
+  const failures = [];
+  for (const change of changes) {
+    try {
+      await persistReconcileDraft(change.order, change.draft);
+    } catch (error) {
+      failures.push(change.order.orderId + '：' + (error.message || error));
+    }
+  }
+  isReconBulkEditing = false;
+  renderReconcile();
+  if (failures.length) toast('已儲存 ' + (changes.length - failures.length) + ' 筆；' + failures.length + ' 筆失敗：' + failures[0], 'error');
+  else toast('已儲存 ' + changes.length + ' 筆對帳變更', 'success');
+  if (typeof scheduleQuietOrdersRefresh === 'function') scheduleQuietOrdersRefresh(700);
 }
 
 function fmtSignedY0(n) {
@@ -376,6 +408,7 @@ function renderReconcileStats(list) {
 }
 
 function renderReconcile(){
+  syncReconcileBulkEditActions();
   const month = getReconcileMonthFilter();
   const day = getReconcileDayFilter();
   const status = document.getElementById('recon-status').value;
@@ -472,14 +505,13 @@ function renderReconcile(){
         '<th class="num">已收訂金</th><th class="num">折扣與退款</th><th class="num">超時污損費</th><th class="num">和服原價</th><th class="num">總價</th>'+
         '<th class="num">店鋪實收</th><th class="num">尾款</th>'+
         '<th class="num">平台費</th><th class="num">需收店鋪</th>')+
-    '<th class="recon-action-cell">操作</th>'+
+    '<th class="recon-action-cell">詳情</th>'+
     '</tr></thead><tbody>'+
     list.map(o=>{
       const statusBadge = reconcileStatusBadge(o);
       const amount = reconcileAmounts(o);
       const showStoreReceivable = shouldShowStoreReceivable(o);
-      const isEditing = editingReconcileOrderId === o.orderId;
-      const isInlineEditable = reconcileInlineCanEdit(o);
+      const isEditing = isReconBulkEditing && reconcileInlineCanEdit(o);
       const amountCell = (field, value, editable, className) => {
         const classes = 'num ' + (className || '');
         return '<td class="'+classes+'">'+(isEditing && editable
@@ -520,11 +552,8 @@ function renderReconcile(){
           '<td class="num font-bold" style="color:#991B1B">'+(showStoreReceivable
             ? (isEditing ? reconcileInlinePreviewCell(o.orderId, 'storeReceivable', fmtSignedY0(amount.storeReceivable), '') : fmtSignedY0(amount.storeReceivable))
             : '')+'</td>';
-      const actionCell = isEditing
-        ? '<td class="recon-action-cell"><div class="recon-inline-actions"><button class="recon-inline-cancel" onclick="cancelReconcileRowEdit()">取消</button><button class="recon-inline-save" onclick="saveReconcileRow(\''+adminJsArg(o.orderId||'')+'\',this)">'+(currentRole === 'store' ? '儲存並結帳' : '儲存')+'</button></div></td>'
-        : '<td class="recon-action-cell"><div class="recon-inline-actions">'+
-          (isInlineEditable ? '<button class="recon-inline-edit" onclick="editReconcileRow(\''+adminJsArg(o.orderId||'')+'\')">✏️ 編輯</button>' : '')+
-          '<button class="recon-inline-detail" onclick="openEdit(\''+adminJsArg(o.orderId||'')+'\')">詳情</button></div></td>';
+      const actionCell = '<td class="recon-action-cell"><div class="recon-inline-actions">'+
+        '<button class="recon-inline-detail" onclick="openEdit(\''+adminJsArg(o.orderId||'')+'\')">詳情</button></div></td>';
       return '<tr class="recon-row '+statusBadge.rowClass+(isEditing ? ' is-inline-editing' : '')+'">'+
         commonCells+amountCells+actionCell+
       '</tr>';

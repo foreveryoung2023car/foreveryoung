@@ -573,7 +573,7 @@
     <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
       <div>
         <h2 class="text-2xl font-bold text-[#1A365D] title-serif inline-flex items-center gap-2">🧾 對帳作業<button onclick="openReconHelp()" class="w-6 h-6 inline-flex items-center justify-center rounded-full bg-slate-200 hover:bg-slate-300 text-slate-600 text-sm font-bold" title="對帳說明">i</button></h2>
-        <p class="text-sm text-slate-600 mt-1 font-semibold">逐筆核對訂金匯款，標記異常並追蹤入帳狀態；可按每筆右側「編輯」直接修改金額。</p>
+        <p class="text-sm text-slate-600 mt-1 font-semibold">逐筆核對訂金匯款，標記異常並追蹤入帳狀態；按右上角「編輯對帳」後可統一修改並整體儲存。</p>
       </div>
       <div class="flex gap-2 items-center flex-wrap">
         <input id="recon-month" type="month" class="input-field !w-auto recon-month-control" onchange="handleReconMonthChange()" title="體驗年月">
@@ -597,7 +597,12 @@
           <option value="foreveryoung">旅乘訂單</option>
           <option value="japan-go">樂禾訂單</option>
         </select>
-        <button onclick="exportReconCSV()" class="btn-outline px-4 py-2 rounded-xl text-sm">📥 匯出對帳</button>
+        <button id="recon-edit-btn" onclick="startReconcileBulkEdit()" class="btn-outline px-4 py-2 rounded-xl text-sm">✏️ 編輯對帳</button>
+        <div id="recon-bulk-actions" class="hidden flex gap-2">
+          <button onclick="cancelReconcileBulkEdit()" class="btn-outline px-4 py-2 rounded-xl text-sm">取消</button>
+          <button id="recon-bulk-save-btn" onclick="saveReconcileBulkEdit()" class="btn-navy px-4 py-2 rounded-xl text-sm">💾 儲存全部</button>
+        </div>
+        <button id="recon-export" onclick="exportReconCSV()" class="btn-outline px-4 py-2 rounded-xl text-sm">📥 匯出對帳</button>
         <button id="auto-reconcile-btn" onclick="runAutoReconcile()" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-bold" title="從収款辨識分頁自動配對銀行入帳到訂單（限 Jun）">🤖 自動配對銀行入帳</button>
         <button id="close-month-btn" onclick="openCloseMonthDialog()" class="hidden bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl text-sm font-bold" title="月度關帳並歸檔（限 Jun）">📦 關帳並歸檔</button>
       </div>
@@ -1092,7 +1097,7 @@
 <script src="./admin-assets/06-checkin-actions.js?v=20260610-1"></script>
 <script src="./admin-assets/07-calendar.js?v=20260713-1"></script>
 <script src="./admin-assets/08-finance.js?v=20260612-2"></script>
-<script src="./admin-assets/09-reconcile.js?v=20260713-1"></script>
+<script src="./admin-assets/09-reconcile.js?v=20260713-2"></script>
 <script src="./admin-assets/10-orders-edit.js?v=20260710-2"></script>
 <script src="./admin-assets/11-refunds-edit.js?v=20260605-14"></script>
 <script src="./admin-assets/12-ui-admin-tools.js?v=20260710-1"></script>
