@@ -165,6 +165,17 @@ function isOwnerRole() {
   return (localStorage.getItem('admin_firebaseRole') || '') === 'owner';
 }
 
+function canManageEmployeeAccounts() {
+  if (!useFirebaseAdmin()) {
+    const isStore = currentRole === 'store';
+    return isStore && (localStorage.getItem('admin_isStoreAdmin') === '1' || !localStorage.getItem('admin_employeeId'));
+  }
+  const firebaseRole = localStorage.getItem('admin_firebaseRole') || '';
+  return firebaseRole === 'owner' ||
+    firebaseRole === 'head_store_manager' ||
+    (firebaseRole === 'store_manager' && !!currentStoreKey);
+}
+
 // v2.5: 依角色控制 UI 顯示
 function applyRolePermissions() {
   // v2.4.20: 只有 Jun 看得到關帳按鈕（用 classList 切，不是 style.display）
@@ -235,16 +246,10 @@ function applyRolePermissions() {
   } else {
     if (typeof hideWalkInFab === 'function') hideWalkInFab();
   }
-  // v2.4.41: 員工管理 tab 限店家管理者 + Jun 看
+  // 員工管理不开放给 Firebase 管理者；只保留 Owner 与店铺管理角色。
   const empTab = document.querySelector('.nav-tab[data-sec="employees"]');
   if (empTab) {
-    const canManageFirebaseUsers = useFirebaseAdmin() && (
-      ['owner', 'admin'].indexOf(firebaseRole) >= 0 ||
-      firebaseRole === 'head_store_manager' ||
-      (firebaseRole === 'store_manager' && !!currentStoreKey)
-    );
-    const isStoreAdmin = isStore && (localStorage.getItem('admin_isStoreAdmin') === '1' || !localStorage.getItem('admin_employeeId'));
-    empTab.style.display = (canManageFirebaseUsers || (!useFirebaseAdmin() && isStoreAdmin)) ? '' : 'none';
+    empTab.style.display = canManageEmployeeAccounts() ? '' : 'none';
   }
   const storesTab = document.querySelector('.nav-tab[data-sec="stores"]');
   if (storesTab) {
@@ -324,6 +329,11 @@ window.addEventListener('load', () => {
 function switchSection(sec, el){
   if (sec === 'payment-settings' && !isOwnerRole()) {
     if (typeof toast === 'function') toast('只有 owner 可查看匯款設定', 'warning');
+    sec = 'dashboard';
+    el = document.querySelector('[data-sec="dashboard"]');
+  }
+  if (sec === 'employees' && !canManageEmployeeAccounts()) {
+    if (typeof toast === 'function') toast('目前帳號沒有員工管理權限', 'warning');
     sec = 'dashboard';
     el = document.querySelector('[data-sec="dashboard"]');
   }

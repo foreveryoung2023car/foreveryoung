@@ -59,7 +59,7 @@ export type Permission = (typeof permissions)[number];
 
 export const rolePermissions: Record<Role, Permission[]> = {
   owner: [...permissions],
-  admin: ["orders:read", "orders:create", "orders:update", "orders:transition", "checkins:create", "refunds:request", "refunds:pay", "audit:read", "users:manage", "stores:manage"],
+  admin: ["orders:read", "orders:create", "orders:update", "orders:transition", "checkins:create", "refunds:request", "refunds:pay", "audit:read", "stores:manage"],
   agent: ["orders:read", "orders:create", "orders:update", "orders:transition", "checkins:create", "refunds:request"],
   head_store_manager: ["orders:read", "orders:create", "orders:update", "users:manage", "stores:manage"],
   store_manager: ["orders:read", "orders:create", "orders:update", "users:manage", "stores:manage"],

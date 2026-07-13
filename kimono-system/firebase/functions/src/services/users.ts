@@ -7,7 +7,6 @@ import { writeAuditLog } from "../lib/audit.js";
 const roleSchema = z.enum(roles);
 const platformAccessSchema = z.array(z.enum(brandPlatforms)).min(1).max(2).optional();
 const ownerAssignableRoles = ["admin", "agent", "head_store_manager", "store_manager", "store_staff", "accountant", "readonly"];
-const adminAssignableRoles = ["agent", "head_store_manager", "store_manager", "store_staff", "accountant", "readonly"];
 const storeManagerAssignableRoles = ["store_staff", "accountant", "readonly"];
 const headStoreManagerAssignableRoles = ["store_manager", "store_staff"];
 
@@ -37,7 +36,6 @@ export const resetAdminUserPasswordSchema = z.object({
 
 function assignableRoles(actor: AuthContext) {
   if (actor.role === "owner") return ownerAssignableRoles;
-  if (actor.role === "admin") return adminAssignableRoles;
   if (actor.role === "head_store_manager") return headStoreManagerAssignableRoles;
   if (isStoreManagerRole(actor.role)) return storeManagerAssignableRoles;
   return [];

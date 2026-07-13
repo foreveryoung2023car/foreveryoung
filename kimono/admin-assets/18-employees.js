@@ -4,6 +4,10 @@
 async function renderEmployees() {
   const list = document.getElementById('employees-list');
   if (!list) return;
+  if (!canManageEmployeeAccounts()) {
+    list.innerHTML = '<div class="text-center py-6 text-red-500">目前帳號沒有員工管理權限</div>';
+    return;
+  }
   list.innerHTML = '<div class="text-center py-6 text-slate-400">載入中...</div>';
   if (useFirebaseAdmin()) {
     try {
@@ -113,6 +117,10 @@ function filterManageableFirebaseUsers(users) {
 }
 
 function openAddEmployeeModal() {
+  if (!canManageEmployeeAccounts()) {
+    if (typeof toast === 'function') toast('目前帳號沒有新增員工權限', 'warning');
+    return;
+  }
   const emailRow = document.getElementById('emp-email-row');
   if (emailRow) emailRow.classList.toggle('hidden', !useFirebaseAdmin());
   const emailEl = document.getElementById('new-emp-email');
@@ -184,7 +192,6 @@ function getAssignableFirebaseRoles(firebaseRole) {
   };
   const matrix = {
     owner: ['admin', 'agent', 'head_store_manager', 'store_manager', 'store_staff', 'accountant', 'readonly'],
-    admin: ['agent', 'head_store_manager', 'store_manager', 'store_staff', 'accountant', 'readonly'],
     head_store_manager: ['store_manager', 'store_staff'],
     store_manager: ['store_staff', 'accountant', 'readonly']
   };
@@ -227,6 +234,10 @@ function selectedEmployeePlatformAccess() {
 }
 
 async function submitNewEmployee() {
+  if (!canManageEmployeeAccounts()) {
+    if (typeof toast === 'function') toast('目前帳號沒有新增員工權限', 'warning');
+    return;
+  }
   const emailEl = document.getElementById('new-emp-email');
   const email = emailEl ? emailEl.value.trim() : '';
   const name = document.getElementById('new-emp-name').value.trim();
@@ -282,6 +293,10 @@ async function submitNewEmployee() {
 }
 
 async function disableEmployee(empId, empName) {
+  if (!canManageEmployeeAccounts()) {
+    if (typeof toast === 'function') toast('目前帳號沒有員工管理權限', 'warning');
+    return;
+  }
   if (!confirm('確定停用員工「' + empName + '」？\n停用後該員工無法登入。')) return;
   try {
     if (useFirebaseAdmin()) {
@@ -300,6 +315,10 @@ async function disableEmployee(empId, empName) {
 }
 
 async function enableEmployee(empId) {
+  if (!canManageEmployeeAccounts()) {
+    if (typeof toast === 'function') toast('目前帳號沒有員工管理權限', 'warning');
+    return;
+  }
   try {
     if (useFirebaseAdmin()) {
       await callFirebaseAdminFunction('/setAdminUserActive', { uid: empId, active: true });
@@ -317,6 +336,10 @@ async function enableEmployee(empId) {
 }
 
 async function resetEmployeePass(empId, empName) {
+  if (!canManageEmployeeAccounts()) {
+    if (typeof toast === 'function') toast('目前帳號沒有員工管理權限', 'warning');
+    return;
+  }
   const newPass = prompt('重設「' + empName + '」的新密碼（至少 6 碼）：');
   if (!newPass) return;
   if (newPass.length < 6) { alert('密碼至少 6 碼'); return; }
