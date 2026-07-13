@@ -1,9 +1,116 @@
 // ── CALENDAR ──
 function changeMonth(d){ calCursor.setMonth(calCursor.getMonth()+d); renderCalendar(); }
 function goToday(){ calCursor = nowAsJstLocalDate(); renderCalendar(); }
+
+function getAvailableCalendarStoreKeys() {
+  if (typeof getAvailableOrderStoreKeys === 'function') return getAvailableOrderStoreKeys();
+  const keys = new Set();
+  filterOrdersForRole(allOrders.slice()).forEach(order => {
+    const key = String(order && (order.storeKey || order.storeId) || '').trim().toLowerCase();
+    if (key) keys.add(key);
+  });
+  return [...keys].sort();
+}
+
+function initCalendarStoreFilter() {
+  const wrap = document.getElementById('cal-store-multi-wrap');
+  const menu = document.getElementById('cal-store-menu');
+  const button = document.getElementById('cal-store-menu-btn');
+  if (!wrap || !menu || !button) return;
+  const stores = getAvailableCalendarStoreKeys();
+  window.__calendarStoreFilterKeys = stores;
+  const previous = new Set(Array.isArray(window.__calendarStoreFilterSelected) ? window.__calendarStoreFilterSelected : stores);
+  const selected = stores.filter(key => previous.has(key));
+  window.__calendarStoreFilterSelected = selected.length ? selected : stores.slice();
+  const disabled = stores.length <= 1;
+  button.disabled = disabled;
+  button.classList.toggle('opacity-60', disabled);
+  button.classList.toggle('cursor-not-allowed', disabled);
+  if (!window.__calendarStoreFilterOutsideClickBound) {
+    window.__calendarStoreFilterOutsideClickBound = true;
+    document.addEventListener('click', event => {
+      const currentWrap = document.getElementById('cal-store-multi-wrap');
+      const currentMenu = document.getElementById('cal-store-menu');
+      const currentButton = document.getElementById('cal-store-menu-btn');
+      if (!currentWrap || !currentMenu || currentMenu.classList.contains('hidden') || currentWrap.contains(event.target)) return;
+      currentMenu.classList.add('hidden');
+      if (currentButton) currentButton.setAttribute('aria-expanded', 'false');
+    });
+  }
+  menu.innerHTML =
+    '<div class="flex items-center justify-between gap-2 px-2 py-1 border-b border-slate-100 mb-1">' +
+      '<span class="text-xs font-bold text-slate-600">店鋪</span>' +
+      (disabled ? '' : '<button type="button" class="text-xs text-[#1A365D] font-bold" onclick="selectAllCalendarStores(event)">全選</button>') +
+    '</div>' +
+    stores.map(key => {
+      const checked = window.__calendarStoreFilterSelected.includes(key) ? ' checked' : '';
+      const label = typeof orderStoreLabel === 'function' ? orderStoreLabel(key) : key;
+      return '<label class="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-slate-50 text-sm font-semibold cursor-pointer">' +
+        '<input type="checkbox" data-calendar-store-filter value="'+adminEsc(key)+'"'+checked+' '+(disabled ? 'disabled' : '')+' onchange="applyCalendarStoreFilter()">' +
+        '<span>'+adminEsc(label)+'</span>' +
+      '</label>';
+    }).join('');
+  syncCalendarStoreFilterLabel();
+}
+
+function toggleCalendarStoreMenu(event) {
+  if (event) event.stopPropagation();
+  const button = document.getElementById('cal-store-menu-btn');
+  const menu = document.getElementById('cal-store-menu');
+  if (!button || !menu || button.disabled) return;
+  menu.classList.toggle('hidden');
+  button.setAttribute('aria-expanded', menu.classList.contains('hidden') ? 'false' : 'true');
+}
+
+function selectAllCalendarStores(event) {
+  if (event) event.stopPropagation();
+  document.querySelectorAll('#cal-store-menu input[data-calendar-store-filter]').forEach(checkbox => { checkbox.checked = true; });
+  applyCalendarStoreFilter();
+}
+
+function applyCalendarStoreFilter() {
+  const stores = Array.isArray(window.__calendarStoreFilterKeys) ? window.__calendarStoreFilterKeys : [];
+  const checked = Array.from(document.querySelectorAll('#cal-store-menu input[data-calendar-store-filter]:checked')).map(checkbox => checkbox.value);
+  window.__calendarStoreFilterSelected = checked.length ? checked : stores.slice();
+  if (!checked.length) {
+    document.querySelectorAll('#cal-store-menu input[data-calendar-store-filter]').forEach(checkbox => { checkbox.checked = true; });
+  }
+  syncCalendarStoreFilterLabel();
+  renderCalendar();
+}
+
+function syncCalendarStoreFilterLabel() {
+  const button = document.getElementById('cal-store-menu-btn');
+  if (!button) return;
+  const label = button.querySelector('.order-store-filter-label') || button;
+  const stores = Array.isArray(window.__calendarStoreFilterKeys) ? window.__calendarStoreFilterKeys : [];
+  const selected = Array.isArray(window.__calendarStoreFilterSelected) ? window.__calendarStoreFilterSelected : stores;
+  if (!stores.length || stores.length === 1 || !selected.length || selected.length === stores.length) {
+    label.textContent = stores.length === 1 && typeof orderStoreLabel === 'function' ? orderStoreLabel(stores[0]) : '全部店鋪';
+  } else if (selected.length === 1) {
+    label.textContent = typeof orderStoreLabel === 'function' ? orderStoreLabel(selected[0]) : selected[0];
+  } else {
+    label.textContent = selected.length + ' 家店鋪';
+  }
+}
+
+function selectedCalendarStoreKeys() {
+  const stores = Array.isArray(window.__calendarStoreFilterKeys) ? window.__calendarStoreFilterKeys : [];
+  const selected = Array.isArray(window.__calendarStoreFilterSelected) ? window.__calendarStoreFilterSelected : stores;
+  if (!stores.length || stores.length <= 1 || selected.length === stores.length) return [];
+  return selected;
+}
+
+function calendarVisibleOrders() {
+  const stores = selectedCalendarStoreKeys();
+  let visible = filterOrdersForRole(allOrders);
+  if (stores.length) visible = visible.filter(order => stores.some(store => orderBelongsToStore(order, store)));
+  return visible;
+}
+
 function renderCalendar(){
-  // v2.4.29: store 角色行事曆只看自家
-  const visible = filterOrdersForRole(allOrders);
+  initCalendarStoreFilter();
+  const visible = calendarVisibleOrders();
   const ordersByDay = new Map();
   visible.forEach(o => {
     const key = orderDayKey(o);
@@ -41,8 +148,8 @@ function showDayOrders(dateStr){
   const [y, m, d] = dateStr.split('-').map(Number);
   const dt = new Date(y, m-1, d);
   const dayStr = y+'/'+String(m).padStart(2,'0')+'/'+String(d).padStart(2,'0');
-  const visible = filterOrdersForRole(allOrders);
-  const visitCounts = buildVisitCountMap(allOrders);
+  const visible = calendarVisibleOrders();
+  const visitCounts = buildVisitCountMap(visible);
   const orders = visible.filter(o=>{
     const od = orderBookingDate(o);
     return od && od.getFullYear()===y && od.getMonth()===m-1 && od.getDate()===d;
@@ -97,7 +204,7 @@ function showDayOrders(dateStr){
 }
 function exportCalendarDayOrders(dateStr){
   const [y, m, d] = dateStr.split('-').map(Number);
-  const orders = filterOrdersForRole(allOrders).filter(o=>{
+  const orders = calendarVisibleOrders().filter(o=>{
     const od = orderBookingDate(o);
     return od && od.getFullYear()===y && od.getMonth()===m-1 && od.getDate()===d;
   }).sort((a,b)=>orderBookingDate(a)-orderBookingDate(b));

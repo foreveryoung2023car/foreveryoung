@@ -480,7 +480,11 @@
   <section id="sec-calendar" class="section">
     <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
       <h2 class="text-2xl font-bold text-[#1A365D] title-serif">行事曆檢視</h2>
-      <div class="flex gap-2 items-center">
+      <div class="flex gap-2 items-center flex-wrap justify-end">
+        <div id="cal-store-multi-wrap" class="relative">
+          <button id="cal-store-menu-btn" type="button" onclick="toggleCalendarStoreMenu(event)" class="input-field order-store-filter-btn !w-auto" title="店鋪篩選" aria-expanded="false"><span class="order-store-filter-label">全部店鋪</span><span class="order-store-filter-arrow" aria-hidden="true">⌄</span></button>
+          <div id="cal-store-menu" class="hidden absolute right-0 mt-2 z-30 w-64 max-h-72 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl p-2"></div>
+        </div>
         <button onclick="changeMonth(-1)" class="btn-outline px-3 py-2 rounded-lg text-sm">‹ 上月</button>
         <span id="cal-title" class="font-bold text-[#1A365D] min-w-[140px] text-center text-base title-serif">—</span>
         <button onclick="changeMonth(1)" class="btn-outline px-3 py-2 rounded-lg text-sm">下月 ›</button>
@@ -1105,7 +1109,7 @@
 <script src="./admin-assets/04-refunds.js?v=20260626-6"></script>
 <script src="./admin-assets/05-orders.js?v=20260709-5"></script>
 <script src="./admin-assets/06-checkin-actions.js?v=20260610-1"></script>
-<script src="./admin-assets/07-calendar.js?v=20260713-1"></script>
+<script src="./admin-assets/07-calendar.js?v=20260713-2"></script>
 <script src="./admin-assets/08-finance.js?v=20260612-2"></script>
 <script src="./admin-assets/09-reconcile.js?v=20260713-6"></script>
 <script src="./admin-assets/10-orders-edit.js?v=20260710-2"></script>
