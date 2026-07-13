@@ -75,9 +75,9 @@ type BrandEmailProfile = {
 
 const brandEmailProfiles: Record<BrandPlatform, BrandEmailProfile> = {
   foreveryoung: {
-    fromName: `Foreveryoung｜${storeBrandName}`,
+    fromName: `Foreveryoung 旅乘｜${storeBrandName}`,
     signature: `${storeBrandName}\nForeveryoung 旅乘`,
-    subjectBrand: "Foreveryoung"
+    subjectBrand: "Foreveryoung 旅乘"
   },
   "japan-go": {
     fromName: `Japan Go｜${storeBrandName}`,

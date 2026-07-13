@@ -4,7 +4,6 @@ function goToday(){ calCursor = nowAsJstLocalDate(); renderCalendar(); }
 function renderCalendar(){
   // v2.4.29: store 角色行事曆只看自家
   const visible = filterOrdersForRole(allOrders);
-  const visitCounts = buildVisitCountMap(allOrders);
   const ordersByDay = new Map();
   visible.forEach(o => {
     const key = orderDayKey(o);
@@ -30,23 +29,9 @@ function renderCalendar(){
     if(cnt>=5) cls += ' full';
     else if(cnt>=3) cls += ' busy';
     else if(cnt>0) cls += ' has-orders';
-    // v2.5p: 日格升級 — 加值/報到/收齊統計
-    const hairCnt = dayOrders.filter(o=>o.hair===true||o.hair==='true'||o.hair==='是').length;
-    const photoCnt = dayOrders.filter(o=>o.photo===true||o.photo==='true'||o.photo==='是').length;
-    const checkedCnt = dayOrders.filter(o=>o.checkedInAt).length;
     const isToday = (dt.toDateString()===today.toDateString());
-    const isPast = dt < today;
-    const peek = dayOrders.slice(0,2).map(o=>{
-      const isVip = (visitCounts.get(normalizedOrderPhone(o)) || 0) >= 3;
-      return '<div class="text-[11px] truncate font-semibold" title="'+(o.name||'')+'">'+(isVip?'⭐':'')+(o.name||'').slice(0,5)+'</div>';
-    }).join('');
-    const stats = cnt ? ('<div class="flex items-center gap-1 text-[10px] mt-0.5">' +
-      '<span class="font-bold" style="color:'+(cnt>=5?'#7F1D1D':cnt>=3?'#B91C1C':'#1E40AF')+'">'+cnt+'組</span>' +
-      (hairCnt?'<span class="text-pink-600">💆'+hairCnt+'</span>':'') +
-      (photoCnt?'<span class="text-blue-600">📷'+photoCnt+'</span>':'') +
-      ((isToday||isPast)&&cnt>0 ? '<span class="ml-auto '+(checkedCnt===cnt?'text-emerald-600 font-bold':'text-amber-600')+'">'+(checkedCnt===cnt?'✓':checkedCnt+'/'+cnt)+'</span>':'') +
-    '</div>') : '';
-    html += '<div class="calendar-day'+cls+'" onclick="showDayOrders(\''+y+'-'+(m+1)+'-'+d+'\')"><div class="flex items-baseline justify-between"><div class="font-bold text-sm">'+d+'</div>'+(isToday?'<div class="text-[9px] text-amber-600 font-bold">今日</div>':'')+'</div>'+stats+peek+'</div>';
+    const countLabel = cnt ? '<div class="mt-1 text-sm font-bold">'+cnt+' 單</div>' : '';
+    html += '<div class="calendar-day'+cls+'" onclick="showDayOrders(\''+y+'-'+(m+1)+'-'+d+'\')"><div class="flex items-baseline justify-between"><div class="font-bold text-sm">'+d+'</div>'+(isToday?'<div class="text-[9px] text-amber-600 font-bold">今日</div>':'')+'</div>'+countLabel+'</div>';
   }
   const remaining = (7 - (startDay+daysInMonth)%7) % 7;
   for(let i=1;i<=remaining;i++) html += '<div class="calendar-day other-month"><div>'+i+'</div></div>';
@@ -66,7 +51,7 @@ function showDayOrders(dateStr){
   const old = document.getElementById('cal-day-modal');
   if (old) old.remove();
   const wk = ['週日','週一','週二','週三','週四','週五','週六'][dt.getDay()];
-  let html = '<div class="todo-modal-bg" id="cal-day-modal" onclick="if(event.target.id===\'cal-day-modal\')closeCalDayModal()"><div class="custom-modal-frame" style="max-width:720px"><button onclick="closeCalDayModal()" class="custom-modal-close" aria-label="關閉日曆訂單">×</button><div class="todo-modal-card" style="max-width:720px"><div class="todo-modal-head"><span class="font-bold text-lg text-[#1A365D]">📅 '+dayStr+' '+wk+' ('+orders.length+' 單)</span></div><div class="todo-modal-body" style="padding:14px 18px">';
+  let html = '<div class="todo-modal-bg" id="cal-day-modal" onclick="if(event.target.id===\'cal-day-modal\')closeCalDayModal()"><div class="custom-modal-frame" style="max-width:720px"><button onclick="closeCalDayModal()" class="custom-modal-close" aria-label="關閉日曆訂單">×</button><div class="todo-modal-card" style="max-width:720px"><div class="todo-modal-head"><span class="font-bold text-lg text-[#1A365D]">📅 '+dayStr+' '+wk+' ('+orders.length+' 單)</span><button onclick="exportCalendarDayOrders(\''+dateStr+'\')" class="btn-outline px-3 py-2 rounded-lg text-sm whitespace-nowrap"'+(orders.length?'':' disabled')+'>📥 匯出表格</button></div><div class="todo-modal-body" style="padding:14px 18px">';
 
   if (!orders.length) {
     html += '<div class="text-center text-slate-400 py-8">此日無預約</div>';
@@ -109,6 +94,17 @@ function showDayOrders(dateStr){
   html += '</div></div></div></div>';
   const wrap = document.createElement('div'); wrap.innerHTML = html;
   document.body.appendChild(wrap.firstChild);
+}
+function exportCalendarDayOrders(dateStr){
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const orders = filterOrdersForRole(allOrders).filter(o=>{
+    const od = orderBookingDate(o);
+    return od && od.getFullYear()===y && od.getMonth()===m-1 && od.getDate()===d;
+  }).sort((a,b)=>orderBookingDate(a)-orderBookingDate(b));
+  if(!orders.length){ toast('此日無資料可匯出','warning'); return; }
+  const dayStr = y+'/'+String(m).padStart(2,'0')+'/'+String(d).padStart(2,'0');
+  ordersToA4Excel(orders, dayStr+' 訂單列印表');
+  toast('已匯出 '+dayStr+' 表格');
 }
 function closeCalDayModal(){ const x = document.getElementById('cal-day-modal'); if (x) x.remove(); }
 
