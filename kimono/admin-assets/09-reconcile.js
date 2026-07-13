@@ -1,136 +1,70 @@
 // ── RECONCILE 對帳 ──
 function initReconMonths(){
-  const hidden = document.getElementById('recon-month');
-  const yearSel = document.getElementById('recon-year');
-  const monthSel = document.getElementById('recon-month-part');
-  if (!hidden || !yearSel || !monthSel) return;
-  // v2.4.20: 每次都重建（不再用 cache 阻擋），並合併歷史檔案月份
-  const months = new Set();
-  allOrders.forEach(o=>{ const m=bookingMonth(o); if(m) months.add(m); });
-  // v2.4.43: 不只依賴已載入訂單，固定補前後月份，避免只剩「全部 / 當月」。
-  const now = new Date();
-  for (let i = -6; i < 12; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    months.add(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'));
-  }
-  // 加歷史檔案已關帳月份（從 window.__archivedMonthsList 取，由 loadArchivedList 設定）
-  const archivedSet = new Set(window.__archivedMonthsList || []);
-  archivedSet.forEach(m => months.add(m));
-  const sorted = [...months].sort().reverse();
-  const cur = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
-  if(!sorted.includes(cur)) sorted.unshift(cur);
-  const currentValue = hidden.value || cur;
-  const prevSelected = currentValue && (currentValue === 'all' || /^\d{4}$/.test(currentValue) || sorted.includes(currentValue))
-    ? currentValue
-    : cur;
-  const years = [...new Set(sorted.map(m => m.slice(0, 4)))].sort().reverse();
-  const selectedYear = prevSelected === 'all' ? 'all' : prevSelected.slice(0, 4);
-  const selectedMonth = /^\d{4}-\d{2}$/.test(prevSelected) ? prevSelected.slice(5, 7) : 'all';
-  yearSel.innerHTML = '<option value="all"'+(selectedYear==='all'?' selected':'')+'>全部年份</option>' +
-    years.map(y => '<option value="'+y+'"'+(y===selectedYear?' selected':'')+'>'+y+'年</option>').join('');
-  updateReconcileMonthOptions(selectedYear, selectedMonth, sorted, archivedSet, cur);
-  syncReconcileMonthFilter();
+  const monthInput = document.getElementById('recon-month');
+  const daySel = document.getElementById('recon-day');
+  if (!monthInput || !daySel) return;
+  const now = typeof nowAsJstLocalDate === 'function' ? nowAsJstLocalDate() : new Date();
+  const currentMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  if (!/^\d{4}-\d{2}$/.test(monthInput.value || '')) monthInput.value = currentMonth;
+  updateReconcileDayOptions(monthInput.value, daySel.value || 'all');
 }
 
-function updateReconcileMonthOptions(year, selectedMonth, sorted, archivedSet, cur) {
-  const monthSel = document.getElementById('recon-month-part');
-  if (!monthSel) return;
-  if (!year || year === 'all') {
-    monthSel.innerHTML = '<option value="all" selected>全部月份</option>';
-    monthSel.disabled = true;
+function updateReconcileDayOptions(month, selectedDay) {
+  const daySel = document.getElementById('recon-day');
+  if (!daySel) return;
+  if (!/^\d{4}-\d{2}$/.test(month || '')) {
+    daySel.innerHTML = '<option value="all" selected>全部日期</option>';
+    daySel.disabled = true;
     return;
   }
-  monthSel.disabled = false;
-  const yearMonths = new Set(sorted.filter(m => m.slice(0, 4) === year).map(m => m.slice(5, 7)));
-  for (let i = 1; i <= 12; i++) yearMonths.add(String(i).padStart(2, '0'));
-  const monthOptions = [...yearMonths].sort().map(mm=>{
-    const m = year + '-' + mm;
-    const label = Number(mm)+'月';
-    const selected = (mm === selectedMonth) ? ' selected' : '';
-    return '<option value="'+mm+'"'+selected+'>'+label+'</option>';
-  }).join('');
-  monthSel.innerHTML = '<option value="all"'+(selectedMonth==='all'?' selected':'')+'>全年</option>' + monthOptions;
-}
-
-function syncReconcileMonthFilter() {
-  const hidden = document.getElementById('recon-month');
-  const yearSel = document.getElementById('recon-year');
-  const monthSel = document.getElementById('recon-month-part');
-  if (!hidden) return 'all';
-  const year = yearSel ? yearSel.value : 'all';
-  const month = monthSel ? monthSel.value : 'all';
-  hidden.value = !year || year === 'all' ? 'all' : (month && month !== 'all' ? year + '-' + month : year);
-  return hidden.value;
+  const [year, monthNumber] = month.split('-').map(Number);
+  const daysInMonth = new Date(year, monthNumber, 0).getDate();
+  const day = String(selectedDay || 'all');
+  const normalizedDay = day === 'all' || (Number(day) >= 1 && Number(day) <= daysInMonth) ? day : 'all';
+  daySel.disabled = false;
+  daySel.innerHTML = '<option value="all"'+(normalizedDay === 'all' ? ' selected' : '')+'>整月</option>' +
+    Array.from({ length: daysInMonth }, (_, index) => {
+      const value = String(index + 1);
+      return '<option value="'+value+'"'+(value === normalizedDay ? ' selected' : '')+'>'+value+'日</option>';
+    }).join('');
 }
 
 function getReconcileMonthFilter() {
-  const hidden = document.getElementById('recon-month');
-  const yearSel = document.getElementById('recon-year');
-  const monthSel = document.getElementById('recon-month-part');
-  if (yearSel && monthSel) return syncReconcileMonthFilter();
-  return hidden ? (hidden.value || 'all') : 'all';
+  const monthInput = document.getElementById('recon-month');
+  return monthInput ? (monthInput.value || 'all') : 'all';
+}
+
+function getReconcileDayFilter() {
+  const daySel = document.getElementById('recon-day');
+  return daySel && !daySel.disabled ? (daySel.value || 'all') : 'all';
 }
 
 function setReconcileMonthFilter(value) {
-  const hidden = document.getElementById('recon-month');
-  const yearSel = document.getElementById('recon-year');
-  const monthSel = document.getElementById('recon-month-part');
-  const filter = value || 'all';
-  if (hidden) hidden.value = filter;
-  if (!yearSel || !monthSel) return filter;
-  if (filter === 'all') {
-    yearSel.value = 'all';
-    updateReconcileMonthOptions('all', 'all', [], new Set(), '');
-    return syncReconcileMonthFilter();
-  }
-  const year = filter.slice(0, 4);
-  const month = /^\d{4}-\d{2}$/.test(filter) ? filter.slice(5, 7) : 'all';
-  yearSel.value = year;
-  const now = new Date();
-  const cur = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
-  const months = [];
-  for (let i = -6; i < 12; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    months.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'));
-  }
-  allOrders.forEach(o=>{ const m=bookingMonth(o); if(m) months.push(m); });
-  const archivedSet = new Set(window.__archivedMonthsList || []);
-  archivedSet.forEach(m => months.push(m));
-  updateReconcileMonthOptions(year, month, [...new Set(months)].sort().reverse(), archivedSet, cur);
-  return syncReconcileMonthFilter();
-}
-
-function handleReconYearChange() {
-  const yearSel = document.getElementById('recon-year');
-  const monthSel = document.getElementById('recon-month-part');
-  if (yearSel && monthSel) {
-    const selectedMonth = yearSel.value === 'all' ? 'all' : (monthSel.value || 'all');
-    const now = new Date();
-    const cur = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
-    const months = [];
-    for (let i = -6; i < 12; i++) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      months.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'));
-    }
-    allOrders.forEach(o=>{ const m=bookingMonth(o); if(m) months.push(m); });
-    const archivedSet = new Set(window.__archivedMonthsList || []);
-    archivedSet.forEach(m => months.push(m));
-    updateReconcileMonthOptions(yearSel.value, selectedMonth, [...new Set(months)].sort().reverse(), archivedSet, cur);
-  }
-  syncReconcileMonthFilter();
-  renderReconcile();
+  const monthInput = document.getElementById('recon-month');
+  const filter = /^\d{4}-\d{2}$/.test(value || '') ? value : '';
+  if (monthInput) monthInput.value = filter;
+  updateReconcileDayOptions(filter, 'all');
+  return filter || 'all';
 }
 
 function handleReconMonthChange() {
-  syncReconcileMonthFilter();
+  const monthInput = document.getElementById('recon-month');
+  const daySel = document.getElementById('recon-day');
+  updateReconcileDayOptions(monthInput && monthInput.value, daySel && daySel.value);
   renderReconcile();
 }
 
-function orderMatchesReconcileMonth(o, filter) {
+function handleReconDayChange() {
+  renderReconcile();
+}
+
+function orderMatchesReconcileMonth(o, filter, day) {
   if (!filter || filter === 'all') return true;
   const m = bookingMonth(o);
-  if (/^\d{4}$/.test(filter)) return m && m.slice(0, 4) === filter;
-  return m === filter;
+  if (m !== filter) return false;
+  if (!day || day === 'all') return true;
+  const booking = typeof parseBookingDate === 'function' ? parseBookingDate(o.bookingDate) : new Date(o.bookingDate);
+  return !!booking && !isNaN(booking) && booking.getDate() === Number(day);
 }
 
 function reconcileAmounts(o) {
@@ -443,6 +377,7 @@ function renderReconcileStats(list) {
 
 function renderReconcile(){
   const month = getReconcileMonthFilter();
+  const day = getReconcileDayFilter();
   const status = document.getElementById('recon-status').value;
   const firebaseRole = localStorage.getItem('admin_firebaseRole') || '';
   const showStoreColumn = firebaseRole === 'head_store_manager';
@@ -457,7 +392,7 @@ function renderReconcile(){
   if (currentRole === 'store' && firebaseRole !== 'head_store_manager' && currentStoreKey) {
     list = list.filter(o => orderBelongsToStore(o, currentStoreKey));
   }
-  if(month && month!=='all') list = list.filter(o=>orderMatchesReconcileMonth(o, month));
+  if(month && month!=='all') list = list.filter(o=>orderMatchesReconcileMonth(o, month, day));
   if(brand && brand!=='all') list = list.filter(o=>orderBrandPlatform(o)===brand);
 
   // 計算對帳狀態
@@ -598,23 +533,24 @@ function renderReconcile(){
 
 function exportReconCSV(){
   const month = getReconcileMonthFilter();
+  const day = getReconcileDayFilter();
   const brandEl = document.getElementById('recon-brand');
   const brand = brandEl ? brandEl.value : 'all';
   let list = allOrders.slice();
   if (currentRole === 'store' && currentStoreKey) {
     list = list.filter(o => orderBelongsToStore(o, currentStoreKey));
   }
-  if(month && month!=='all') list = list.filter(o=>orderMatchesReconcileMonth(o, month));
+  if(month && month!=='all') list = list.filter(o=>orderMatchesReconcileMonth(o, month, day));
   if(brand && brand!=='all') list = list.filter(o=>orderBrandPlatform(o)===brand);
   const headers = currentRole === 'store'
-    ? ['平台','狀態','訂單號','客戶','體驗日期','已收訂金','和服原價','髮型費','化妝費','攝影費','折扣與退款','超時污損費','總價','實際收款','平台費','店鋪利潤','需付平台']
-    : ['平台','狀態','訂單號','客戶','體驗日期','已收訂金','和服原價','折扣與退款','超時污損費','總價','店鋪實收','尾款','平台費','需收店鋪'];
+    ? ['平台','狀態','訂單號','客戶','體驗日期','已收訂金','髮型費','化妝費','攝影費','折扣與退款','超時污損費','和服原價','總價','實際收款','平台費','店鋪利潤','需付平台']
+    : ['平台','狀態','訂單號','客戶','體驗日期','已收訂金','折扣與退款','超時污損費','和服原價','總價','店鋪實收','尾款','平台費','需收店鋪'];
   const rows = list.map(o=>{
     const st = reconcileOrderStatusLabel(o);
     const amount = reconcileAmounts(o);
     return currentRole === 'store'
-      ? [platformLabel(orderBrandPlatform(o)), st, o.orderId, o.name, fmtDate(o.bookingDate), amount.deposit, amount.kimonoPrice, amount.hairFee, amount.makeupFee, amount.photoFee, amount.discountRefund, amount.overtimeDamageDeduction, amount.total, amount.actualReceived, amount.platformFee, amount.storeBalance, amount.platformPayable]
-      : [platformLabel(orderBrandPlatform(o)), st, o.orderId, o.name, fmtDate(o.bookingDate), amount.deposit, amount.kimonoPrice, amount.discountRefund, amount.overtimeDamageDeduction, amount.total, amount.actualReceived, amount.balance, amount.platformFee, shouldShowStoreReceivable(o) ? amount.storeReceivable : ''];
+      ? [platformLabel(orderBrandPlatform(o)), st, o.orderId, o.name, fmtDate(o.bookingDate), amount.deposit, amount.hairFee, amount.makeupFee, amount.photoFee, amount.discountRefund, amount.overtimeDamageDeduction, amount.kimonoPrice, amount.total, amount.actualReceived, amount.platformFee, amount.storeBalance, amount.platformPayable]
+      : [platformLabel(orderBrandPlatform(o)), st, o.orderId, o.name, fmtDate(o.bookingDate), amount.deposit, amount.discountRefund, amount.overtimeDamageDeduction, amount.kimonoPrice, amount.total, amount.actualReceived, amount.balance, amount.platformFee, shouldShowStoreReceivable(o) ? amount.storeReceivable : ''];
   });
   const csv = [headers, ...rows].map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\n');
   const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
@@ -628,8 +564,9 @@ function exportReconCSV(){
 // ── v2.4.32 自動配對銀行入帳 ──
 function renderFirebaseReconcilePreview(){
   const month = getReconcileMonthFilter();
+  const day = getReconcileDayFilter();
   let list = filterOrdersForRole(allOrders.slice());
-  if(month && month!=='all') list = list.filter(o=>orderMatchesReconcileMonth(o, month));
+  if(month && month!=='all') list = list.filter(o=>orderMatchesReconcileMonth(o, month, day));
   const rows = list.map(o=>{
     const expect = expectedDeposit(o);
     const got = reconcileDeposit(o);

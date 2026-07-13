@@ -345,9 +345,7 @@ function switchSection(sec, el){
   else if(sec==='finance') renderFinance();
   else if(sec==='payment-settings') loadPaymentSettings();
   else if(sec==='reconcile') {
-    // v2.4.20: 每次進對帳都重建月份下拉
-    const sel = document.getElementById('recon-month');
-    if (sel) sel.innerHTML = '';
+    // 每次進對帳都同步年月與日期選項。
     initReconMonths();
     renderReconcile();
   }
