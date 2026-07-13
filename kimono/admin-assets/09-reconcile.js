@@ -7,6 +7,7 @@ function initReconMonths(){
   const currentMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
   if (!/^\d{4}-\d{2}$/.test(monthInput.value || '')) monthInput.value = currentMonth;
   updateReconcileDayOptions(monthInput.value, daySel.value || 'all');
+  initReconcileStoreFilter();
 }
 
 function updateReconcileDayOptions(month, selectedDay) {
@@ -36,7 +37,35 @@ function getReconcileMonthFilter() {
 
 function getReconcileDayFilter() {
   const daySel = document.getElementById('recon-day');
-  return daySel && !daySel.disabled ? (daySel.value || 'all') : 'all';
+  // 編輯模式會暫時鎖定篩選器，但仍須沿用鎖定前選定的日期。
+  return daySel ? (daySel.value || 'all') : 'all';
+}
+
+function initReconcileStoreFilter() {
+  const storeSel = document.getElementById('recon-store');
+  if (!storeSel) return;
+  const previous = storeSel.value || 'all';
+  const keys = new Set();
+  allOrders.forEach(order => {
+    const direct = String(order && (order.storeKey || order.storeId) || '').trim().toLowerCase();
+    if (direct) keys.add(direct);
+  });
+  if (typeof ORDER_STORE_LABELS !== 'undefined' && typeof orderBelongsToStore === 'function') {
+    Object.keys(ORDER_STORE_LABELS).forEach(key => {
+      if (allOrders.some(order => orderBelongsToStore(order, key))) keys.add(key);
+    });
+  }
+  const sortedKeys = [...keys].sort();
+  storeSel.innerHTML = '<option value="all">全部門市</option>' + sortedKeys.map(key => {
+    const label = typeof orderStoreLabel === 'function' ? orderStoreLabel(key) : key;
+    return '<option value="'+adminEsc(key)+'">'+adminEsc(label)+'</option>';
+  }).join('');
+  storeSel.value = sortedKeys.includes(previous) ? previous : 'all';
+}
+
+function getReconcileStoreFilter() {
+  const storeSel = document.getElementById('recon-store');
+  return storeSel ? (storeSel.value || 'all') : 'all';
 }
 
 function setReconcileMonthFilter(value) {
@@ -196,7 +225,7 @@ function syncReconcileBulkEditActions() {
   const bulkActions = document.getElementById('recon-bulk-actions');
   if (editButton) editButton.classList.toggle('hidden', isReconBulkEditing);
   if (bulkActions) bulkActions.classList.toggle('hidden', !isReconBulkEditing);
-  ['recon-month', 'recon-day', 'recon-sort', 'recon-status', 'recon-brand', 'recon-export'].forEach(id => {
+  ['recon-month', 'recon-day', 'recon-store', 'recon-sort', 'recon-status', 'recon-brand', 'recon-export'].forEach(id => {
     const control = document.getElementById(id);
     if (control) control.disabled = isReconBulkEditing;
   });
@@ -412,6 +441,7 @@ function renderReconcile(){
   const month = getReconcileMonthFilter();
   const day = getReconcileDayFilter();
   const status = document.getElementById('recon-status').value;
+  const store = getReconcileStoreFilter();
   const firebaseRole = localStorage.getItem('admin_firebaseRole') || '';
   const showStoreColumn = firebaseRole === 'head_store_manager';
   const brandEl = document.getElementById('recon-brand');
@@ -425,6 +455,7 @@ function renderReconcile(){
   if (currentRole === 'store' && firebaseRole !== 'head_store_manager' && currentStoreKey) {
     list = list.filter(o => orderBelongsToStore(o, currentStoreKey));
   }
+  if (store !== 'all') list = list.filter(o => orderBelongsToStore(o, store));
   if(month && month!=='all') list = list.filter(o=>orderMatchesReconcileMonth(o, month, day));
   if(brand && brand!=='all') list = list.filter(o=>orderBrandPlatform(o)===brand);
 
@@ -565,10 +596,12 @@ function exportReconCSV(){
   const day = getReconcileDayFilter();
   const brandEl = document.getElementById('recon-brand');
   const brand = brandEl ? brandEl.value : 'all';
+  const store = getReconcileStoreFilter();
   let list = allOrders.slice();
   if (currentRole === 'store' && currentStoreKey) {
     list = list.filter(o => orderBelongsToStore(o, currentStoreKey));
   }
+  if (store !== 'all') list = list.filter(o => orderBelongsToStore(o, store));
   if(month && month!=='all') list = list.filter(o=>orderMatchesReconcileMonth(o, month, day));
   if(brand && brand!=='all') list = list.filter(o=>orderBrandPlatform(o)===brand);
   const headers = currentRole === 'store'
@@ -594,7 +627,9 @@ function exportReconCSV(){
 function renderFirebaseReconcilePreview(){
   const month = getReconcileMonthFilter();
   const day = getReconcileDayFilter();
+  const store = getReconcileStoreFilter();
   let list = filterOrdersForRole(allOrders.slice());
+  if (store !== 'all') list = list.filter(o => orderBelongsToStore(o, store));
   if(month && month!=='all') list = list.filter(o=>orderMatchesReconcileMonth(o, month, day));
   const rows = list.map(o=>{
     const expect = expectedDeposit(o);
@@ -762,7 +797,14 @@ function csvHtml(value){
 }
 function orderExportTableData(list){
   const headers = ['訂單號','姓名','電話','預約時間','人數','髮型','化妝','攝影','平台備註','已付定金','和服價格','備註'];
-  const rows = list.map(o=>[
+  const sortedList = [...list].sort((a,b)=>{
+    const aDate = orderBookingDate(a);
+    const bDate = orderBookingDate(b);
+    const aTime = aDate && !isNaN(aDate) ? aDate.getTime() : Number.POSITIVE_INFINITY;
+    const bTime = bDate && !isNaN(bDate) ? bDate.getTime() : Number.POSITIVE_INFINITY;
+    return aTime - bTime || String(a.orderId || '').localeCompare(String(b.orderId || ''));
+  });
+  const rows = sortedList.map(o=>[
     o.orderId,
     o.name,
     o.phone,

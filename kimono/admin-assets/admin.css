@@ -24,6 +24,7 @@
   .orders-filter-toolbar #f-day{min-width:5.5em}
   .recon-month-control{min-width:11.5em}
   .recon-day-control{min-width:6.5em}
+  .recon-store-control{min-width:9em}
   .orders-filter-toolbar #f-status{min-width:7em}
   .order-store-filter-btn{display:inline-flex!important;align-items:center;justify-content:space-between;gap:12px;min-width:7.5em;max-width:18em}
   .order-store-filter-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -215,12 +216,9 @@
     #edit-modal.store-modal .store-summary-money{margin-left:10px}
     #edit-modal.store-modal .store-summary-note-value{margin-top:4px;min-height:20px}
     #edit-modal.store-modal .order-fee-grid{grid-template-columns:repeat(10,minmax(0,1fr))}
-    #edit-modal.store-modal .order-fee-grid > div:nth-child(7),
-    #edit-modal.store-modal .order-fee-grid > div:nth-child(8){grid-column:span 2}
-    #edit-modal.store-modal .order-fee-grid > div:nth-child(7) .section-label,
-    #edit-modal.store-modal .order-fee-grid > div:nth-child(8) .section-label{white-space:nowrap}
-    #edit-modal.store-modal #e-discount-refund-amount,
-    #edit-modal.store-modal #e-overtime-damage-deduction{width:190px!important;max-width:190px}
+    #edit-modal.store-modal .order-fee-grid > .order-fee-long{grid-column:span 2;justify-self:start}
+    #edit-modal.store-modal .order-fee-grid > .order-fee-long .section-label{white-space:nowrap}
+    #edit-modal.store-modal .order-fee-grid > .order-fee-long .input-field{display:block;width:120px!important;max-width:120px!important}
     #edit-modal.store-modal #e-store-actual-received{width:50%;min-width:180px}
   }
 

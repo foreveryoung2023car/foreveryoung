@@ -11,7 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./admin-assets/admin.css?v=20260713-7">
+<link rel="stylesheet" href="./admin-assets/admin.css?v=20260713-9">
 </head>
 <body class="min-h-screen" style="overflow-x:hidden">
 
@@ -578,6 +578,7 @@
       <div class="flex gap-2 items-center flex-wrap">
         <input id="recon-month" type="month" class="input-field !w-auto recon-month-control" onchange="handleReconMonthChange()" title="體驗年月">
         <select id="recon-day" class="input-field !w-auto recon-day-control" onchange="handleReconDayChange()" title="體驗日期"></select>
+        <select id="recon-store" class="input-field !w-auto recon-store-control" onchange="renderReconcile()" title="篩選門市"><option value="all">全部門市</option></select>
         <select id="recon-sort" class="input-field !w-auto" onchange="renderReconcile()" title="排序"><option value="status-asc">按狀態 + 日期 ↑</option><option value="status-desc">按狀態 + 日期 ↓</option><option value="date-asc">日期 ↑</option><option value="date-desc">日期 ↓</option></select>
         <select id="recon-status" class="input-field !w-auto" onchange="renderReconcile()">
           <option value="all">全部訂單</option>
@@ -890,8 +891,8 @@
           <div><div class="section-label">化妝費 JPY</div><input id="e-makeup-fee" class="input-field" type="number" placeholder="0" oninput="updateCalc()"></div>
           <div><div class="section-label">攝影費 JPY</div><input id="e-photo-fee" class="input-field" type="number" placeholder="0" oninput="updateCalc()"></div>
           <div><div class="section-label">折扣碼</div><input id="e-coupon" class="input-field" placeholder="留空=無折扣"></div>
-          <div><div class="section-label">折扣與退款金額 JPY</div><input id="e-discount-refund-amount" class="input-field" type="number" min="0" step="1" placeholder="0" oninput="updateCalc()"></div>
-          <div><div class="section-label">超時與污損扣款 JPY</div><input id="e-overtime-damage-deduction" class="input-field" type="number" min="0" step="1" placeholder="0" oninput="updateCalc()"></div>
+          <div class="order-fee-long"><div class="section-label">折扣與退款金額 JPY</div><input id="e-discount-refund-amount" class="input-field" type="number" min="0" step="1" placeholder="0" oninput="updateCalc()"></div>
+          <div class="order-fee-long"><div class="section-label">超時與污損扣款 JPY</div><input id="e-overtime-damage-deduction" class="input-field" type="number" min="0" step="1" placeholder="0" oninput="updateCalc()"></div>
         </div>
         <div class="order-payment-summary grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] gap-4">
           <div class="bg-white rounded-xl p-4 border-2 border-slate-200">
@@ -1099,7 +1100,7 @@
 <script src="./admin-assets/06-checkin-actions.js?v=20260610-1"></script>
 <script src="./admin-assets/07-calendar.js?v=20260713-1"></script>
 <script src="./admin-assets/08-finance.js?v=20260612-2"></script>
-<script src="./admin-assets/09-reconcile.js?v=20260713-2"></script>
+<script src="./admin-assets/09-reconcile.js?v=20260713-4"></script>
 <script src="./admin-assets/10-orders-edit.js?v=20260710-2"></script>
 <script src="./admin-assets/11-refunds-edit.js?v=20260605-14"></script>
 <script src="./admin-assets/12-ui-admin-tools.js?v=20260710-1"></script>
