@@ -201,11 +201,11 @@
     #edit-modal.store-modal .store-detail-view{padding:0}
     #edit-modal.store-modal .store-summary-card{padding:14px 16px}
     #edit-modal.store-modal .store-summary-row{gap:10px;padding:8px 0}
-    #edit-modal.store-modal .store-summary-row-top{grid-template-columns:max-content max-content;column-gap:28px;justify-content:start}
-    #edit-modal.store-modal .store-summary-three{grid-template-columns:max-content max-content max-content;column-gap:46px;justify-content:start}
+    #edit-modal.store-modal .store-summary-row-top{grid-template-columns:max-content max-content;column-gap:40px;justify-content:start}
+    #edit-modal.store-modal .store-summary-three{grid-template-columns:max-content max-content max-content;column-gap:56px;justify-content:start}
     #edit-modal.store-modal .store-summary-cell,
     #edit-modal.store-modal .store-summary-person{gap:10px}
-    #edit-modal.store-modal .store-summary-people{grid-template-columns:repeat(3,max-content);gap:18px;padding-left:18px}
+    #edit-modal.store-modal .store-summary-people{grid-template-columns:repeat(3,max-content);gap:24px;padding-left:24px}
     #edit-modal.store-modal .store-summary-icon{width:38px;height:38px;background-size:21px}
     #edit-modal.store-modal .store-summary-label{margin-right:8px}
     #edit-modal.store-modal .store-summary-value{font-size:24px}
@@ -215,6 +215,11 @@
     #edit-modal.store-modal .store-summary-money{margin-left:10px}
     #edit-modal.store-modal .store-summary-note-value{margin-top:4px;min-height:20px}
     #edit-modal.store-modal .order-fee-grid{grid-template-columns:repeat(10,minmax(0,1fr))}
+    #edit-modal.store-modal .order-fee-grid > div:nth-child(7),
+    #edit-modal.store-modal .order-fee-grid > div:nth-child(8){grid-column:span 2}
+    #edit-modal.store-modal .order-fee-grid > div:nth-child(7) .section-label,
+    #edit-modal.store-modal .order-fee-grid > div:nth-child(8) .section-label{white-space:nowrap}
+    #edit-modal.store-modal #e-store-actual-received{width:50%;min-width:180px}
   }
 
   .tag { display:inline-block;background:#DBEAFE;color:#1E40AF;border-radius:6px;padding:3px 9px;font-size:12px;margin:2px;border:1px solid #93C5FD;font-weight:600 }
