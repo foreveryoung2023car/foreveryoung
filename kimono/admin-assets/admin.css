@@ -219,6 +219,8 @@
     #edit-modal.store-modal .order-fee-grid > div:nth-child(8){grid-column:span 2}
     #edit-modal.store-modal .order-fee-grid > div:nth-child(7) .section-label,
     #edit-modal.store-modal .order-fee-grid > div:nth-child(8) .section-label{white-space:nowrap}
+    #edit-modal.store-modal .order-fee-grid > div:nth-child(7) .input-field,
+    #edit-modal.store-modal .order-fee-grid > div:nth-child(8) .input-field{width:190px;max-width:100%}
     #edit-modal.store-modal #e-store-actual-received{width:50%;min-width:180px}
   }
 
