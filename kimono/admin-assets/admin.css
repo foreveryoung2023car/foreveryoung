@@ -24,7 +24,9 @@
   .orders-filter-toolbar #f-day{min-width:5.5em}
   .recon-month-control{min-width:11.5em}
   .recon-day-control{min-width:6.5em}
-  .recon-store-control{min-width:9em}
+  .recon-store-filter-btn{display:inline-flex!important;align-items:center;justify-content:space-between;gap:12px;min-width:9em;max-width:18em}
+  .recon-store-filter-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .recon-store-filter-arrow{flex:0 0 auto;font-size:18px;line-height:1;color:#1A365D;margin-top:-2px}
   .orders-filter-toolbar #f-status{min-width:7em}
   .order-store-filter-btn{display:inline-flex!important;align-items:center;justify-content:space-between;gap:12px;min-width:7.5em;max-width:18em}
   .order-store-filter-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -301,6 +303,9 @@
   .recon-inline-save:disabled{opacity:.55;cursor:not-allowed}
   .recon-inline-input{width:94px;min-width:94px;border:1.5px solid #60A5FA;border-radius:7px;padding:6px 7px;background:#FFF;color:#1E3A5F;text-align:right;font:inherit;font-weight:700;font-variant-numeric:tabular-nums;outline:none}
   .recon-inline-input:focus{border-color:#1D4ED8;box-shadow:0 0 0 3px rgba(59,130,246,.16)}
+  .recon-bulk-advance-option{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid #BFDBFE;border-radius:9px;background:#EFF6FF;color:#1A365D;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+  .recon-bulk-advance-option input{width:16px;height:16px;accent-color:#1A365D;cursor:pointer}
+  .recon-bulk-advance-option small{color:#64748B;font-size:11px;font-weight:600}
   .recon-order-link{border:0;padding:0;background:transparent;color:#1A365D;font:inherit;font-weight:700;cursor:pointer}
   .recon-order-link:hover{text-decoration:underline;color:#1D4ED8}
 

@@ -696,6 +696,15 @@ export async function createWalkInOrder(raw: unknown, actor: AuthContext) {
 
 export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
   const input = updateOrderByStaffSchema.parse(raw);
+  const hasCheckoutPaymentField = [
+    input.kimonoPriceJpy,
+    input.hairFeeJpy,
+    input.makeupFeeJpy,
+    input.photoFeeJpy,
+    input.discountRefundAmountJpy,
+    input.overtimeDamageDeductionJpy,
+    input.storeActualReceivedJpy
+  ].some((value) => value !== undefined);
   if (isStoreOrderActor(actor)) {
     const hasRestrictedStoreField = [
       input.name,
@@ -718,18 +727,6 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
     ].some((value) => value !== undefined);
     if (hasRestrictedStoreField) {
       throw new HttpError(403, "Store users can only change guest count, hair, makeup, photo, and checkout payment data");
-    }
-    const hasCheckoutOnlyPaymentField = [
-      input.kimonoPriceJpy,
-      input.hairFeeJpy,
-      input.makeupFeeJpy,
-      input.photoFeeJpy,
-      input.discountRefundAmountJpy,
-      input.overtimeDamageDeductionJpy,
-      input.storeActualReceivedJpy
-    ].some((value) => value !== undefined);
-    if (hasCheckoutOnlyPaymentField && !input.checkout) {
-      throw new HttpError(403, "Store payment fields can only be changed during checkout");
     }
   }
   const result = await db.runTransaction(async (tx) => {
@@ -780,8 +777,11 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
     if (isStoreOrderActor(actor) && ["completed", "balance_due"].includes(beforeStatus) && !isStoreNoteOnlyUpdate) {
       throw new HttpError(403, "Completed or balance-due orders are read-only for store users");
     }
-    if (isStoreOrderActor(actor) && input.checkout && !["confirmed", "checked_in"].includes(beforeStatus)) {
+    if (input.checkout && !["confirmed", "checked_in"].includes(beforeStatus)) {
       throw new HttpError(400, `Only pending-arrival orders can be checked out (current: ${beforeStatus})`);
+    }
+    if (isStoreOrderActor(actor) && hasCheckoutPaymentField && !input.checkout && !["confirmed", "checked_in"].includes(beforeStatus)) {
+      throw new HttpError(403, "Store payment fields can only be changed for pending-arrival orders");
     }
     const patch: FirebaseFirestore.UpdateData<FirebaseFirestore.DocumentData> = {
       updatedBy: actor.uid,
@@ -895,7 +895,7 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
       patch.balanceDueJpy = calculatedBalanceDueJpy;
     }
 
-    if (isStoreOrderActor(actor) && input.checkout) {
+    if (input.checkout) {
       patch.checkoutAt = FieldValue.serverTimestamp();
       patch.status = calculatedBalanceDueJpy === 0 ? "completed" : "balance_due";
     }

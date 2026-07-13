@@ -42,30 +42,110 @@ function getReconcileDayFilter() {
 }
 
 function initReconcileStoreFilter() {
-  const storeSel = document.getElementById('recon-store');
-  if (!storeSel) return;
-  const previous = storeSel.value || 'all';
+  const wrap = document.getElementById('recon-store-multi-wrap');
+  const menu = document.getElementById('recon-store-menu');
+  const button = document.getElementById('recon-store-menu-btn');
+  if (!wrap || !menu || !button) return;
   const keys = new Set();
-  allOrders.forEach(order => {
+  const visibleOrders = typeof filterOrdersForRole === 'function' ? filterOrdersForRole(allOrders.slice()) : allOrders;
+  visibleOrders.forEach(order => {
     const direct = String(order && (order.storeKey || order.storeId) || '').trim().toLowerCase();
     if (direct) keys.add(direct);
   });
   if (typeof ORDER_STORE_LABELS !== 'undefined' && typeof orderBelongsToStore === 'function') {
     Object.keys(ORDER_STORE_LABELS).forEach(key => {
-      if (allOrders.some(order => orderBelongsToStore(order, key))) keys.add(key);
+      if (visibleOrders.some(order => orderBelongsToStore(order, key))) keys.add(key);
     });
   }
-  const sortedKeys = [...keys].sort();
-  storeSel.innerHTML = '<option value="all">全部門市</option>' + sortedKeys.map(key => {
-    const label = typeof orderStoreLabel === 'function' ? orderStoreLabel(key) : key;
-    return '<option value="'+adminEsc(key)+'">'+adminEsc(label)+'</option>';
-  }).join('');
-  storeSel.value = sortedKeys.includes(previous) ? previous : 'all';
+  if (currentRole === 'store' && currentStoreKey) keys.add(String(currentStoreKey).toLowerCase());
+  const knownOrder = typeof ORDER_STORE_LABELS !== 'undefined' ? Object.keys(ORDER_STORE_LABELS) : [];
+  const stores = [...keys].sort((a, b) => {
+    const ia = knownOrder.indexOf(a);
+    const ib = knownOrder.indexOf(b);
+    if (ia >= 0 || ib >= 0) return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib);
+    return a.localeCompare(b);
+  });
+  window.__reconcileStoreFilterKeys = stores;
+  const previous = new Set(Array.isArray(window.__reconcileStoreFilterSelected) ? window.__reconcileStoreFilterSelected : stores);
+  const selected = stores.filter(key => previous.has(key));
+  window.__reconcileStoreFilterSelected = selected.length ? selected : stores.slice();
+  const disabled = stores.length <= 1;
+  button.disabled = disabled;
+  button.classList.toggle('opacity-60', disabled);
+  button.classList.toggle('cursor-not-allowed', disabled);
+  if (!window.__reconcileStoreFilterOutsideClickBound) {
+    window.__reconcileStoreFilterOutsideClickBound = true;
+    document.addEventListener('click', event => {
+      const currentWrap = document.getElementById('recon-store-multi-wrap');
+      const currentMenu = document.getElementById('recon-store-menu');
+      const currentButton = document.getElementById('recon-store-menu-btn');
+      if (!currentWrap || !currentMenu || currentMenu.classList.contains('hidden') || currentWrap.contains(event.target)) return;
+      currentMenu.classList.add('hidden');
+      if (currentButton) currentButton.setAttribute('aria-expanded', 'false');
+    });
+  }
+  menu.innerHTML =
+    '<div class="flex items-center justify-between gap-2 px-2 py-1 border-b border-slate-100 mb-1">' +
+      '<span class="text-xs font-bold text-slate-600">店鋪</span>' +
+      (disabled ? '' : '<button type="button" class="text-xs text-[#1A365D] font-bold" onclick="selectAllReconcileStores(event)">全選</button>') +
+    '</div>' +
+    stores.map(key => {
+      const label = typeof orderStoreLabel === 'function' ? orderStoreLabel(key) : key;
+      const checked = window.__reconcileStoreFilterSelected.indexOf(key) >= 0 ? ' checked' : '';
+      return '<label class="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-slate-50 text-sm font-semibold cursor-pointer">' +
+        '<input type="checkbox" data-reconcile-store-filter value="'+adminEsc(key)+'"'+checked+' '+(disabled ? 'disabled' : '')+' onchange="applyReconcileStoreFilter()">' +
+        '<span>'+adminEsc(label)+'</span>' +
+      '</label>';
+    }).join('');
+  syncReconcileStoreFilterLabel();
 }
 
-function getReconcileStoreFilter() {
-  const storeSel = document.getElementById('recon-store');
-  return storeSel ? (storeSel.value || 'all') : 'all';
+function toggleReconcileStoreMenu(event) {
+  if (event) event.stopPropagation();
+  const button = document.getElementById('recon-store-menu-btn');
+  const menu = document.getElementById('recon-store-menu');
+  if (!button || !menu || button.disabled) return;
+  menu.classList.toggle('hidden');
+  button.setAttribute('aria-expanded', menu.classList.contains('hidden') ? 'false' : 'true');
+}
+
+function selectAllReconcileStores(event) {
+  if (event) event.stopPropagation();
+  document.querySelectorAll('#recon-store-menu input[data-reconcile-store-filter]').forEach(checkbox => { checkbox.checked = true; });
+  applyReconcileStoreFilter();
+}
+
+function applyReconcileStoreFilter() {
+  const stores = Array.isArray(window.__reconcileStoreFilterKeys) ? window.__reconcileStoreFilterKeys : [];
+  const checked = Array.from(document.querySelectorAll('#recon-store-menu input[data-reconcile-store-filter]:checked')).map(checkbox => checkbox.value);
+  window.__reconcileStoreFilterSelected = checked.length ? checked : stores.slice();
+  if (!checked.length) {
+    document.querySelectorAll('#recon-store-menu input[data-reconcile-store-filter]').forEach(checkbox => { checkbox.checked = true; });
+  }
+  syncReconcileStoreFilterLabel();
+  renderReconcile();
+}
+
+function syncReconcileStoreFilterLabel() {
+  const button = document.getElementById('recon-store-menu-btn');
+  if (!button) return;
+  const label = button.querySelector('.recon-store-filter-label') || button;
+  const stores = Array.isArray(window.__reconcileStoreFilterKeys) ? window.__reconcileStoreFilterKeys : [];
+  const selected = Array.isArray(window.__reconcileStoreFilterSelected) ? window.__reconcileStoreFilterSelected : stores;
+  if (!stores.length || stores.length === 1 || !selected.length || selected.length === stores.length) {
+    label.textContent = stores.length === 1 && typeof orderStoreLabel === 'function' ? orderStoreLabel(stores[0]) : '全部店鋪';
+  } else if (selected.length === 1) {
+    label.textContent = typeof orderStoreLabel === 'function' ? orderStoreLabel(selected[0]) : selected[0];
+  } else {
+    label.textContent = selected.length + ' 家店鋪';
+  }
+}
+
+function selectedReconcileStoreKeysForFilter() {
+  const stores = Array.isArray(window.__reconcileStoreFilterKeys) ? window.__reconcileStoreFilterKeys : [];
+  const selected = Array.isArray(window.__reconcileStoreFilterSelected) ? window.__reconcileStoreFilterSelected : stores;
+  if (!stores.length || stores.length <= 1 || selected.length === stores.length) return [];
+  return selected;
 }
 
 function setReconcileMonthFilter(value) {
@@ -143,6 +223,10 @@ let isReconBulkEditing = false;
 
 function reconcileInlineCanEdit(o) {
   if (currentRole !== 'store') return true;
+  return ['confirmed', 'checked_in'].includes(orderStatusOf(o));
+}
+
+function reconcileInlineCanAdvance(o) {
   return ['confirmed', 'checked_in'].includes(orderStatusOf(o));
 }
 
@@ -225,13 +309,19 @@ function syncReconcileBulkEditActions() {
   const bulkActions = document.getElementById('recon-bulk-actions');
   if (editButton) editButton.classList.toggle('hidden', isReconBulkEditing);
   if (bulkActions) bulkActions.classList.toggle('hidden', !isReconBulkEditing);
-  ['recon-month', 'recon-day', 'recon-store', 'recon-sort', 'recon-status', 'recon-brand', 'recon-export'].forEach(id => {
+  ['recon-month', 'recon-day', 'recon-store-menu-btn', 'recon-sort', 'recon-status', 'recon-brand', 'recon-export'].forEach(id => {
     const control = document.getElementById(id);
-    if (control) control.disabled = isReconBulkEditing;
+    if (control) control.disabled = isReconBulkEditing || (id === 'recon-store-menu-btn' && (window.__reconcileStoreFilterKeys || []).length <= 1);
   });
+  if (isReconBulkEditing) {
+    const storeMenu = document.getElementById('recon-store-menu');
+    if (storeMenu) storeMenu.classList.add('hidden');
+  }
 }
 
 function startReconcileBulkEdit() {
+  const advanceAndEmail = document.getElementById('recon-advance-and-email');
+  if (advanceAndEmail) advanceAndEmail.checked = false;
   isReconBulkEditing = true;
   renderReconcile();
   const firstInput = document.querySelector('.recon-inline-input');
@@ -239,12 +329,15 @@ function startReconcileBulkEdit() {
 }
 
 function cancelReconcileBulkEdit() {
+  const advanceAndEmail = document.getElementById('recon-advance-and-email');
+  if (advanceAndEmail) advanceAndEmail.checked = false;
   isReconBulkEditing = false;
   renderReconcile();
 }
 
-async function persistReconcileDraft(order, draft) {
+async function persistReconcileDraft(order, draft, options) {
   const values = reconcileDraftValues(draft);
+  const advanceStatus = !!(options && options.advanceStatus);
   if (useFirebaseAdmin()) {
     const token = await getFreshAdminToken();
     const apiBaseUrl = (KIMONO_CONFIG.API_BASE_URL || '').replace(/\/$/, '');
@@ -257,7 +350,8 @@ async function persistReconcileDraft(order, draft) {
       discountRefundAmountJpy: values.discountRefundAmount,
       overtimeDamageDeductionJpy: values.overtimeDamageDeduction,
       storeActualReceivedJpy: values.storeActualReceived,
-      ...(currentRole === 'store' ? { checkout: true } : { depositJpy: values.deposit })
+      ...(currentRole === 'store' ? {} : { depositJpy: values.deposit }),
+      ...(advanceStatus ? { checkout: true } : {})
     };
     const res = await fetch(apiBaseUrl + '/updateOrderByStaff', {
       method: 'POST',
@@ -270,7 +364,16 @@ async function persistReconcileDraft(order, draft) {
       ? adminMutationOrderToLocal(data.order || {}, order)
       : Object.assign({}, order, draft);
     mergeOrderIntoLocalList(order.orderId, updatedOrder);
-    return;
+    if (advanceStatus) {
+      try {
+        await callFirebaseAdminFunction('/sendProofReceivedEmail', {
+          orderId: order.firebaseDocId || order.orderId
+        });
+      } catch (error) {
+        return { emailError: error.message || String(error) };
+      }
+    }
+    return {};
   }
   const payload = {
     action: 'adminUpdate', agent: currentAgent, token: adminToken, orderId: order.orderId,
@@ -292,28 +395,38 @@ async function persistReconcileDraft(order, draft) {
   if (data.status !== 'ok' && data.status !== 'success') throw new Error(data.message || '儲存失敗');
   const localPayload = Object.assign({}, payload, { deposit: values.deposit });
   mergeOrderIntoLocalList(order.orderId, adminOrderPatchFromFormPayload(localPayload));
+  return {};
 }
 
 async function saveReconcileBulkEdit() {
   const saveButton = document.getElementById('recon-bulk-save-btn');
+  const advanceAfterSave = document.getElementById('recon-advance-and-email')?.checked === true;
+  if (advanceAfterSave && !useFirebaseAdmin()) {
+    toast('目前的舊版資料服務不支援自動推進狀態與寄送憑證信', 'warning');
+    return;
+  }
   const orderIds = [...new Set([...document.querySelectorAll('.recon-inline-input[data-recon-order]')]
     .map(input => input.dataset.reconOrder).filter(Boolean))];
   const changes = orderIds.map(orderId => {
     const order = allOrders.find(item => item.orderId === orderId);
     const draft = reconcileInlineDraft(orderId);
-    return order && draft && reconcileDraftHasChanges(order, draft) ? { order, draft } : null;
+    const advanceStatus = !!(advanceAfterSave && order && reconcileInlineCanAdvance(order));
+    return order && draft && (reconcileDraftHasChanges(order, draft) || advanceStatus) ? { order, draft, advanceStatus } : null;
   }).filter(Boolean);
   if (!changes.length) {
     cancelReconcileBulkEdit();
     toast('沒有需要儲存的變更', 'warning');
     return;
   }
-  if (currentRole === 'store' && !confirm('確認提交 ' + changes.length + ' 筆消費與付款金額？\n儲存後，這些訂單會依尾款自動轉為「已完成」或「待付尾款」。')) return;
+  const advancingCount = changes.filter(change => change.advanceStatus).length;
+  if (advancingCount && !confirm('確認儲存 ' + changes.length + ' 筆對帳資料？\n其中 ' + advancingCount + ' 筆會依尾款更新為「已完成」或「待付尾款」，並寄送付款憑證信。')) return;
   if (saveButton) { saveButton.disabled = true; saveButton.textContent = '儲存中…'; }
   const failures = [];
+  const emailFailures = [];
   for (const change of changes) {
     try {
-      await persistReconcileDraft(change.order, change.draft);
+      const result = await persistReconcileDraft(change.order, change.draft, { advanceStatus: change.advanceStatus });
+      if (result && result.emailError) emailFailures.push(change.order.orderId + '：' + result.emailError);
     } catch (error) {
       failures.push(change.order.orderId + '：' + (error.message || error));
     }
@@ -321,7 +434,8 @@ async function saveReconcileBulkEdit() {
   isReconBulkEditing = false;
   renderReconcile();
   if (failures.length) toast('已儲存 ' + (changes.length - failures.length) + ' 筆；' + failures.length + ' 筆失敗：' + failures[0], 'error');
-  else toast('已儲存 ' + changes.length + ' 筆對帳變更', 'success');
+  else if (emailFailures.length) toast('已儲存 ' + changes.length + ' 筆；' + emailFailures.length + ' 封憑證信未寄出：' + emailFailures[0], 'warning');
+  else toast('已儲存 ' + changes.length + ' 筆對帳變更' + (advancingCount ? '，並已更新狀態及寄送憑證信' : ''), 'success');
   if (typeof scheduleQuietOrdersRefresh === 'function') scheduleQuietOrdersRefresh(700);
 }
 
@@ -441,7 +555,7 @@ function renderReconcile(){
   const month = getReconcileMonthFilter();
   const day = getReconcileDayFilter();
   const status = document.getElementById('recon-status').value;
-  const store = getReconcileStoreFilter();
+  const stores = selectedReconcileStoreKeysForFilter();
   const firebaseRole = localStorage.getItem('admin_firebaseRole') || '';
   const showStoreColumn = firebaseRole === 'head_store_manager';
   const brandEl = document.getElementById('recon-brand');
@@ -455,7 +569,7 @@ function renderReconcile(){
   if (currentRole === 'store' && firebaseRole !== 'head_store_manager' && currentStoreKey) {
     list = list.filter(o => orderBelongsToStore(o, currentStoreKey));
   }
-  if (store !== 'all') list = list.filter(o => orderBelongsToStore(o, store));
+  if (stores.length) list = list.filter(o => stores.some(store => orderBelongsToStore(o, store)));
   if(month && month!=='all') list = list.filter(o=>orderMatchesReconcileMonth(o, month, day));
   if(brand && brand!=='all') list = list.filter(o=>orderBrandPlatform(o)===brand);
 
@@ -596,12 +710,12 @@ function exportReconCSV(){
   const day = getReconcileDayFilter();
   const brandEl = document.getElementById('recon-brand');
   const brand = brandEl ? brandEl.value : 'all';
-  const store = getReconcileStoreFilter();
+  const stores = selectedReconcileStoreKeysForFilter();
   let list = allOrders.slice();
   if (currentRole === 'store' && currentStoreKey) {
     list = list.filter(o => orderBelongsToStore(o, currentStoreKey));
   }
-  if (store !== 'all') list = list.filter(o => orderBelongsToStore(o, store));
+  if (stores.length) list = list.filter(o => stores.some(store => orderBelongsToStore(o, store)));
   if(month && month!=='all') list = list.filter(o=>orderMatchesReconcileMonth(o, month, day));
   if(brand && brand!=='all') list = list.filter(o=>orderBrandPlatform(o)===brand);
   const headers = currentRole === 'store'
@@ -627,9 +741,9 @@ function exportReconCSV(){
 function renderFirebaseReconcilePreview(){
   const month = getReconcileMonthFilter();
   const day = getReconcileDayFilter();
-  const store = getReconcileStoreFilter();
+  const stores = selectedReconcileStoreKeysForFilter();
   let list = filterOrdersForRole(allOrders.slice());
-  if (store !== 'all') list = list.filter(o => orderBelongsToStore(o, store));
+  if (stores.length) list = list.filter(o => stores.some(store => orderBelongsToStore(o, store)));
   if(month && month!=='all') list = list.filter(o=>orderMatchesReconcileMonth(o, month, day));
   const rows = list.map(o=>{
     const expect = expectedDeposit(o);
