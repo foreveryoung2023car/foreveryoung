@@ -437,7 +437,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 .order-card-summary{ display:flex; flex-direction:column; gap:0.65rem; }
 .order-card-summary .summary-row{ display:grid; gap:0.75rem; align-items:start; }
 .order-card-summary .summary-row-main{ grid-template-columns: minmax(0, 1fr) minmax(4.5rem, 0.45fr); }
-.order-card-summary .summary-row-money{ grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.order-card-summary .summary-row-money{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
 @media (max-width: 640px){
   .order-card-summary .summary-row-money{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

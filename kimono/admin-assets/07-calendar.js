@@ -220,6 +220,9 @@ function customerOrderAmounts(o) {
   const hairFee = Number(o.hairFee || 0);
   const makeupFee = typeof orderMakeupFee === 'function' ? orderMakeupFee(o) : Number(o.makeupFee || 0);
   const photoFee = Number(o.photoFee || 0);
+  const couponDiscount = typeof orderCouponDiscount === 'function'
+    ? orderCouponDiscount(o, kimonoPrice)
+    : Math.max(0, Number(o.couponDiscount || o.couponDiscountJpy || 0));
   const discountRefund = Number(o.discountRefundAmount || 0);
   const total = typeof orderDisplayTotal === 'function'
     ? orderDisplayTotal(o)
@@ -227,7 +230,7 @@ function customerOrderAmounts(o) {
   const balance = typeof orderDisplayBalance === 'function'
     ? orderDisplayBalance(o)
     : Math.max(0, total - (typeof orderPaidDeposit === 'function' ? orderPaidDeposit(o) : Math.max(0, Number(o.deposit || 0) - Number(o.refundAmount || 0))) - Number(o.storeActualReceived || o.storeActualReceivedJpy || 0));
-  const platformFee = Math.max(0, kimonoPrice * 0.5);
+  const platformFee = Math.max(0, (kimonoPrice - couponDiscount) / 2);
   return {
     kimonoPrice,
     hairFee,

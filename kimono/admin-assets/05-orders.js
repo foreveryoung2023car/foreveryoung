@@ -1070,24 +1070,26 @@ function renderOrders(orders){
     el.className = '';
     const statusHeader = '<th class="p-2 text-center">狀態</th>';
     const brandHeader = canSeeMultipleBrandPlatforms() ? '<th class="p-2 text-left">平台</th>' : '';
-    el.innerHTML = '<div class="overflow-x-auto bg-white rounded-lg border border-slate-200"><table class="w-full text-sm"><thead class="bg-slate-50 text-xs"><tr><th class="p-2 text-left">編號</th><th class="p-2 text-left">姓名</th>' + brandHeader + '<th class="p-2 text-left">門市</th><th class="p-2 text-left">體驗日</th><th class="p-2 text-center">人</th><th class="p-2 text-center">加值</th><th class="p-2 text-right">總價</th><th class="p-2 text-right">優惠金額</th><th class="p-2 text-right">尾款</th>' + statusHeader + '<th class="p-2 text-right">動作</th></tr></thead><tbody>' + orders.map(o => {
+    el.innerHTML = '<div class="overflow-x-auto bg-white rounded-lg border border-slate-200"><table class="w-full text-sm"><thead class="bg-slate-50 text-xs"><tr><th class="p-2 text-left">編號</th><th class="p-2 text-left">姓名</th>' + brandHeader + '<th class="p-2 text-left">門市</th><th class="p-2 text-left">體驗日</th><th class="p-2 text-center">人</th><th class="p-2 text-center">加值</th><th class="p-2 text-right">和服原價</th><th class="p-2 text-right">優惠金額</th><th class="p-2 text-right">總價</th><th class="p-2 text-right">尾款</th>' + statusHeader + '<th class="p-2 text-right">動作</th></tr></thead><tbody>' + orders.map(o => {
       const bd = parseBookingDate(o.bookingDate);
       const bdStr = bd && !isNaN(bd) ? ((bd.getMonth()+1) + '/' + bd.getDate() + ' ' + String(bd.getHours()).padStart(2,'0') + ':' + String(bd.getMinutes()).padStart(2,'0')) : '—';
       const hair = orderHasHair(o) ? '💇' : '';
       const makeup = orderHasMakeup(o) ? '💄' : '';
       const photo = (o.photo===true||o.photo==='true'||o.photo==='是') ? '📷' : '';
       const total = orderDisplayTotal(o);
+      const kimonoPrice = Number(o.price || o.kimonoPrice || 0);
       const couponDiscount = orderCouponDiscount(o);
       const due = orderDisplayBalance(o);
       const hideMoney = shouldHideOrderMoney(o);
       const totalDisplay = hideMoney ? '—' : '¥' + total.toLocaleString();
+      const kimonoPriceDisplay = hideMoney ? '—' : (kimonoPrice > 0 ? '¥' + kimonoPrice.toLocaleString() : '—');
       const couponDiscountDisplay = hideMoney ? '—' : (couponDiscount > 0 ? '-¥' + couponDiscount.toLocaleString() : '—');
       const dueDisplay = hideMoney ? '—' : (due > 0 ? '¥' + due.toLocaleString() : '—');
       const statusCell = '<td class="p-2 text-center">' + renderOrderStatusControl(o, 'card') + '</td>';
       const visits = visitCountBadge(o, visitCounts, true);
       const brandCell = canSeeMultipleBrandPlatforms() ? '<td class="p-2">' + platformBadge(o) + '</td>' : '';
       const orderIdArg = typeof adminJsArg === 'function' ? adminJsArg(o.orderId || '') : String(o.orderId || '').replace(/'/g, "\\'");
-      return '<tr class="order-list-row border-t hover:bg-slate-50" role="button" tabindex="0" aria-label="開啟訂單 ' + (typeof adminEsc === 'function' ? adminEsc(o.orderId || '') : (o.orderId || '')) + '" onclick="openEdit(\'' + orderIdArg + '\')" onkeydown="if(event.target===this&&(event.key===\'Enter\'||event.key===\' \')){event.preventDefault();openEdit(\'' + orderIdArg + '\')}"><td class="p-2 font-mono text-xs">' + (o.orderId||'') + '</td><td class="p-2 font-bold">' + (o.name||'—') + (visits ? ' ' + visits : '') + '</td>' + brandCell + '<td class="p-2">' + (o.storeKey||'—') + '</td><td class="p-2 whitespace-nowrap">' + bdStr + '</td><td class="p-2 text-center">' + formatGuestCount(o) + '</td><td class="p-2 text-center">' + (hair+makeup+photo||'—') + '</td><td class="p-2 text-right font-bold">' + totalDisplay + '</td><td class="p-2 text-right text-pink-700 font-bold">' + couponDiscountDisplay + '</td><td class="p-2 text-right ' + (!hideMoney && due>0?'text-amber-700 font-bold':'text-slate-400') + '">' + dueDisplay + '</td>' + statusCell + '<td class="p-2 text-right whitespace-nowrap"><button onclick="event.stopPropagation();openEdit(\'' + orderIdArg + '\')" class="px-2 py-1 bg-[#1A365D] text-white text-xs rounded">✏️</button></td></tr>';
+      return '<tr class="order-list-row border-t hover:bg-slate-50" role="button" tabindex="0" aria-label="開啟訂單 ' + (typeof adminEsc === 'function' ? adminEsc(o.orderId || '') : (o.orderId || '')) + '" onclick="openEdit(\'' + orderIdArg + '\')" onkeydown="if(event.target===this&&(event.key===\'Enter\'||event.key===\' \')){event.preventDefault();openEdit(\'' + orderIdArg + '\')}"><td class="p-2 font-mono text-xs">' + (o.orderId||'') + '</td><td class="p-2 font-bold">' + (o.name||'—') + (visits ? ' ' + visits : '') + '</td>' + brandCell + '<td class="p-2">' + (o.storeKey||'—') + '</td><td class="p-2 whitespace-nowrap">' + bdStr + '</td><td class="p-2 text-center">' + formatGuestCount(o) + '</td><td class="p-2 text-center">' + (hair+makeup+photo||'—') + '</td><td class="p-2 text-right">' + kimonoPriceDisplay + '</td><td class="p-2 text-right text-pink-700 font-bold">' + couponDiscountDisplay + '</td><td class="p-2 text-right font-bold">' + totalDisplay + '</td><td class="p-2 text-right ' + (!hideMoney && due>0?'text-amber-700 font-bold':'text-slate-400') + '">' + dueDisplay + '</td>' + statusCell + '<td class="p-2 text-right whitespace-nowrap"><button onclick="event.stopPropagation();openEdit(\'' + orderIdArg + '\')" class="px-2 py-1 bg-[#1A365D] text-white text-xs rounded">✏️</button></td></tr>';
     }).join('') + '</tbody></table></div>';
     document.getElementById('showing-count').textContent = orders.length;
     return;
@@ -1147,6 +1149,7 @@ function renderOrders(orders){
     const photoTag = (o.photo === true || o.photo === 'true') ? '<span class="tag">📷 攝影</span>' : '';
 
     const total = orderDisplayTotal(o);
+    const kimonoPrice = Number(o.price || o.kimonoPrice || 0);
     const couponDiscount = orderCouponDiscount(o);
     const due = orderDisplayBalance(o);
     const hideMoney = shouldHideOrderMoney(o);
@@ -1181,8 +1184,9 @@ function renderOrders(orders){
             '</div>'+
             '<div class="summary-row summary-row-money">'+
               '<div class="summary-item"><div class="summary-label">已付定金</div><div class="summary-value">'+fmtY(orderPaidDeposit(o))+'</div></div>'+
-              '<div class="summary-item"><div class="summary-label">總價</div><div class="summary-value">'+(hideMoney?'—':fmtY(total))+'</div></div>'+
+              '<div class="summary-item"><div class="summary-label">和服原價</div><div class="summary-value">'+(hideMoney?'—':(kimonoPrice>0?fmtY(kimonoPrice):'—'))+'</div></div>'+
               '<div class="summary-item"><div class="summary-label">優惠金額</div><div class="summary-value text-pink-700">'+(hideMoney?'—':(couponDiscount>0?'-'+fmtY(couponDiscount):'—'))+'</div></div>'+
+              '<div class="summary-item"><div class="summary-label">總價</div><div class="summary-value">'+(hideMoney?'—':fmtY(total))+'</div></div>'+
               '<div class="summary-item"><div class="summary-label">待收尾款</div><div class="summary-value '+(!hideMoney && paidFull?'text-emerald-700 line-through':(!hideMoney && due>0?'text-amber-700':'text-emerald-700'))+'">'+(hideMoney?'—':(paidFull?'¥0 ✓':fmtY(due)))+'</div></div>'+
             '</div>'+
             (!storeRole ? '<div class="summary-row summary-row-contact">'+
