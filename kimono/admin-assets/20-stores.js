@@ -5,6 +5,7 @@ const STORE_TIME_OPTIONS = Array.from({ length: 48 }, (_, index) => {
 let storeScheduleRows = [];
 let canCreateStore = false;
 let creatingStore = false;
+let discountCouponRows = [];
 const DEFAULT_STORE_SLOT_CAPACITY = 10;
 const DEFAULT_STORE_SERVICE_OPTIONS = {
   hair: [
@@ -59,10 +60,136 @@ async function loadStoreSchedules(preferredStoreId) {
       if (storeScheduleRows.some(row => row.id === selectedEmployeeStore)) employeeStoreEl.value = selectedEmployeeStore;
     }
     renderSelectedStoreSchedule();
+    await loadDiscountCoupons();
     loading.classList.add('hidden');
     editor.classList.remove('hidden');
   } catch (err) {
     loading.textContent = '載入失敗：' + adminEsc(err.message);
+  }
+}
+
+function canManageDiscountCoupons() {
+  const role = localStorage.getItem('admin_firebaseRole') || '';
+  return role === 'owner' || role === 'admin';
+}
+
+async function loadDiscountCoupons() {
+  const panel = document.getElementById('discount-coupon-management');
+  if (!panel) return;
+  if (!canManageDiscountCoupons()) {
+    panel.classList.add('hidden');
+    return;
+  }
+  panel.classList.remove('hidden');
+  renderDiscountCouponStoreOptions([]);
+  try {
+    const data = await callFirebaseAdminFunction('/listDiscountCoupons', null, { method: 'GET' });
+    discountCouponRows = data.coupons || [];
+    renderDiscountCouponList();
+  } catch (err) {
+    document.getElementById('discount-coupon-list').innerHTML =
+      '<div class="text-sm text-red-600">优惠码载入失败：' + adminEsc(err.message) + '</div>';
+  }
+}
+
+function renderDiscountCouponList() {
+  const list = document.getElementById('discount-coupon-list');
+  if (!list) return;
+  if (!discountCouponRows.length) {
+    list.innerHTML = '<div class="text-sm text-slate-400">尚未设置优惠码。</div>';
+    return;
+  }
+  list.innerHTML = discountCouponRows.map(coupon => {
+    const stores = (coupon.storeIds || []).map(storeId => {
+      const store = storeScheduleRows.find(row => row.id === storeId);
+      return store ? store.name : storeId;
+    }).join('、');
+    return '<button type="button" onclick="editDiscountCoupon(\'' + adminJsArg(coupon.code) + '\')" ' +
+      'class="text-left rounded-xl border border-slate-200 bg-white p-3 hover:border-[#1A365D]">' +
+      '<div class="flex justify-between gap-2"><strong class="text-[#1A365D]">' + adminEsc(coupon.code) + '</strong>' +
+      '<span class="text-xs font-bold ' + (coupon.active ? 'text-emerald-600' : 'text-slate-400') + '">' +
+      (coupon.active ? '启用' : '停用') + '</span></div>' +
+      '<div class="text-sm font-bold text-pink-700 mt-1">' + Number(coupon.discountRate).toLocaleString() + ' 折</div>' +
+      '<div class="text-xs text-slate-500 mt-1">' + adminEsc(stores || '未指定店铺') + '</div></button>';
+  }).join('');
+}
+
+function renderDiscountCouponStoreOptions(selectedStoreIds) {
+  const wrap = document.getElementById('discount-coupon-store-options');
+  if (!wrap) return;
+  const selected = new Set(selectedStoreIds || []);
+  wrap.innerHTML = storeScheduleRows.map(store =>
+    '<label class="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm">' +
+    '<input type="checkbox" name="discount-coupon-store" value="' + adminEsc(store.id) + '"' +
+    (selected.has(store.id) ? ' checked' : '') + '>' +
+    '<span class="font-semibold">' + adminEsc(store.name) + '</span></label>'
+  ).join('');
+}
+
+function newDiscountCoupon() {
+  document.getElementById('discount-coupon-code').value = '';
+  document.getElementById('discount-coupon-code').disabled = false;
+  document.getElementById('discount-coupon-rate').value = '';
+  document.getElementById('discount-coupon-active').checked = true;
+  document.getElementById('discount-coupon-error').classList.add('hidden');
+  renderDiscountCouponStoreOptions([]);
+  document.getElementById('discount-coupon-code').focus();
+}
+
+function editDiscountCoupon(code) {
+  const coupon = discountCouponRows.find(item => item.code === code);
+  if (!coupon) return;
+  const codeEl = document.getElementById('discount-coupon-code');
+  codeEl.value = coupon.code;
+  codeEl.disabled = true;
+  document.getElementById('discount-coupon-rate').value = coupon.discountRate;
+  document.getElementById('discount-coupon-active').checked = coupon.active !== false;
+  document.getElementById('discount-coupon-error').classList.add('hidden');
+  renderDiscountCouponStoreOptions(coupon.storeIds || []);
+}
+
+async function saveDiscountCoupon() {
+  const code = document.getElementById('discount-coupon-code').value.trim().toUpperCase();
+  const discountRate = Number(document.getElementById('discount-coupon-rate').value);
+  const storeIds = Array.from(document.querySelectorAll('input[name="discount-coupon-store"]:checked')).map(input => input.value);
+  const error = document.getElementById('discount-coupon-error');
+  if (!/^[A-Z0-9][A-Z0-9_-]{1,31}$/.test(code)) {
+    error.textContent = '优惠码需为 2–32 位英文字母、数字、底线或连字号。';
+    error.classList.remove('hidden');
+    return;
+  }
+  if (!(discountRate > 0 && discountRate < 10)) {
+    error.textContent = '折数必须大于 0 且小于 10，例如 9 代表 9 折。';
+    error.classList.remove('hidden');
+    return;
+  }
+  if (!storeIds.length) {
+    error.textContent = '请至少选择一个适用店铺。';
+    error.classList.remove('hidden');
+    return;
+  }
+  const button = document.getElementById('save-discount-coupon-btn');
+  button.disabled = true;
+  error.classList.add('hidden');
+  try {
+    const data = await callFirebaseAdminFunction('/saveDiscountCoupon', {
+      code,
+      discountRate,
+      storeIds,
+      active: document.getElementById('discount-coupon-active').checked
+    });
+    const index = discountCouponRows.findIndex(item => item.code === code);
+    if (index >= 0) discountCouponRows[index] = data.coupon;
+    else discountCouponRows.push(data.coupon);
+    discountCouponRows.sort((a, b) => a.code.localeCompare(b.code));
+    renderDiscountCouponList();
+    editDiscountCoupon(code);
+    toast('优惠码已储存');
+  } catch (err) {
+    error.textContent = '储存失败：' + err.message;
+    error.classList.remove('hidden');
+  } finally {
+    button.disabled = false;
   }
 }
 

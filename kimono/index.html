@@ -1513,7 +1513,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                                         maxlength="20"
                                         oninput="this.value=this.value.toUpperCase(); validateCoupon(this.value)"
                                         class="flex-1 py-2 mt-1 outline-none font-bold text-lg bg-transparent font-sans tracking-widest uppercase">
-                                    <div id="coupon-status" class="text-xs font-bold font-sans shrink-0 w-16 text-right"></div>
+                                    <div id="coupon-status" class="text-xs font-bold font-sans shrink-0 w-32 text-right"></div>
                                 </div>
                                 <p id="coupon-help-text" class="text-[10px] text-slate-300 mt-1 font-sans normal-case tracking-normal">若有活動優惠碼請填寫，無則留空</p>
                             </label>
@@ -2174,34 +2174,44 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             renderBookingSlotList();
         }
         // ── 折扣碼即時驗證
+        let couponValidationRequestId = 0;
+        let appliedCoupon = null;
         async function validateCoupon(code) {
             const statusEl = document.getElementById('coupon-status');
-            if (!code || code.length < 2) { statusEl.textContent = ''; return; }
+            const normalizedCode = String(code || '').trim().toUpperCase();
+            const storeId = document.getElementById('input-store').value;
+            const requestId = ++couponValidationRequestId;
+            appliedCoupon = null;
+            if (!normalizedCode) { statusEl.textContent = ''; return true; }
+            if (normalizedCode.length < 2 || !storeId) {
+                statusEl.textContent = storeId ? t('無法使用') : t('請先選擇門市');
+                statusEl.style.color = '#ef4444';
+                return false;
+            }
             statusEl.textContent = t('驗證中...');
             statusEl.style.color = '#94a3b8';
-            fetch(APPS_SCRIPT_URL, {
-                method : 'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body   : JSON.stringify({
-                    action    : 'validateCoupon',
-                    couponCode: code,
-                    checkDate : document.getElementById('input-date').value || ''
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
+            try {
+                const apiBaseUrl = String(KIMONO_CONFIG.API_BASE_URL || '').replace(/\/$/, '');
+                const res = await fetch(apiBaseUrl + '/validateDiscountCoupon?code=' +
+                    encodeURIComponent(normalizedCode) + '&storeId=' + encodeURIComponent(storeId));
+                const data = await res.json().catch(() => ({}));
+                if (requestId !== couponValidationRequestId) return false;
                 if (data.valid === true) {
-                    statusEl.textContent = t('✓ 已套用');
+                    appliedCoupon = { code: data.code, discountRate: Number(data.discountRate) };
+                    statusEl.textContent = t('✓ 已套用') + ' ' + Number(data.discountRate).toLocaleString() + t('折');
                     statusEl.style.color = '#22c55e';
+                    return true;
                 } else {
                     statusEl.textContent = t('無法使用');
                     statusEl.style.color = '#ef4444';
+                    return false;
                 }
-            })
-            .catch(() => {
+            } catch (err) {
+                if (requestId !== couponValidationRequestId) return false;
                 statusEl.textContent = t('無法驗證');
                 statusEl.style.color = '#94a3b8';
-            });
+                return false;
+            }
         }
         function validateLast5(input) {
             const hint = document.getElementById('last5-hint');
@@ -2594,6 +2604,13 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             e.preventDefault();
             if (adultCount() + guestData.children <= 0) { alert(t('請在所選時段內選擇預約人數')); return; }
             if (!enforceGuestCapacity(true)) return;
+            const enteredCoupon = document.getElementById('input-coupon').value.trim().toUpperCase();
+            if (enteredCoupon && (!appliedCoupon || appliedCoupon.code !== enteredCoupon)) {
+                if (!await validateCoupon(enteredCoupon)) {
+                    alert(t('優惠碼無法使用，請確認優惠碼與所選門市。'));
+                    return;
+                }
+            }
             const btn = document.getElementById('finalSubmitBtn');
             btn.innerHTML = t('鎖定編號中...'); btn.disabled = true;
             let lastTime = null;
@@ -2698,7 +2715,10 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             updateDepositDisplay();
             renderPersonKimonoSelects();
             document.getElementById('input-date').setAttribute('min', todayStr);
-            document.getElementById('input-store').addEventListener('change', refreshBookingTimeSlots);
+            document.getElementById('input-store').addEventListener('change', () => {
+                refreshBookingTimeSlots();
+                validateCoupon(document.getElementById('input-coupon').value);
+            });
             document.getElementById('input-date').addEventListener('change', () => {
                 updateLocalizedDatePlaceholder();
                 refreshBookingTimeSlots();

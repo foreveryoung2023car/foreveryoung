@@ -293,6 +293,14 @@ function openEdit(orderId) {
   document.getElementById('e-makeup-fee').value = orderMakeupFee(o) || '';
   document.getElementById('e-photo-fee').value = o.photoFee || '';
   document.getElementById('e-coupon').value = o.coupon || '';
+  const couponRate = Number(o.rate || 0);
+  document.getElementById('e-rate').value = o.coupon && couponRate > 0 && couponRate < 10
+    ? couponRate
+    : '';
+  const couponDiscount = o.coupon && couponRate > 0 && couponRate < 10
+    ? Math.max(0, Number(o.price || o.kimonoPrice || 0) - Math.round(Number(o.price || o.kimonoPrice || 0) * couponRate / 10))
+    : 0;
+  document.getElementById('e-coupon-discount').value = couponDiscount || '';
   document.getElementById('e-discount-refund-amount').value = Number(o.discountRefundAmount || 0) || '';
   const overtimeDamageDeduction = orderFinancialValue(o, 'overtimeDamageDeduction', 'overtimeDamageDeductionJpy');
   document.getElementById('e-overtime-damage-deduction').value = overtimeDamageDeduction || '';
@@ -306,6 +314,7 @@ function openEdit(orderId) {
     + orderMakeupFee(o)
     + Number(o.photoFee || 0)
     + overtimeDamageDeduction
+    - couponDiscount
     - Number(o.discountRefundAmount || 0)
     - paidDeposit
   );
@@ -321,6 +330,7 @@ function openEdit(orderId) {
     paidDeposit,
     Number(o.refundAmount || 0),
     Number(o.discountRefundAmount || 0),
+    couponDiscount,
     overtimeDamageDeduction,
     storeActualReceived
   ].join('|');
@@ -664,9 +674,14 @@ function updateCalc() {
   const paidDeposit = Number(document.getElementById('e-deposit').value) || 0;
   const refundAmount = Number(document.getElementById('e-refund-amt').value) || 0;
   const discountRefund = Number(document.getElementById('e-discount-refund-amount').value) || 0;
+  const couponRate = editingOrder && editingOrder.coupon ? Number(editingOrder.rate || 0) : 10;
+  const couponDiscount = couponRate > 0 && couponRate < 10
+    ? Math.max(0, price - Math.round(price * couponRate / 10))
+    : 0;
+  document.getElementById('e-coupon-discount').value = couponDiscount || '';
   const overtimeDamageDeduction = Number(document.getElementById('e-overtime-damage-deduction').value) || 0;
   const storeActualInput = document.getElementById('e-store-actual-received');
-  const onsite = Math.max(0, price + hair + makeup + photo + overtimeDamageDeduction - discountRefund);
+  const onsite = Math.max(0, price - couponDiscount + hair + makeup + photo + overtimeDamageDeduction - discountRefund);
   const afterDep = Math.max(0, onsite - paidDeposit);
   if (storeActualInput && storeActualInput.dataset.autoMode === 'true') {
     storeActualInput.value = String(afterDep);

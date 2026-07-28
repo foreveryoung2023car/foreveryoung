@@ -460,6 +460,8 @@ function adminMutationOrderToLocal(raw, fallback) {
     onsiteDueJpy: raw.onsiteDueJpy !== undefined ? Number(raw.onsiteDueJpy || 0) : fallback.onsiteDueJpy,
     coupon: raw.couponCode !== undefined ? raw.couponCode : fallback.coupon,
     rate: raw.discountRate !== undefined ? raw.discountRate : fallback.rate,
+    couponDiscount: raw.couponDiscountJpy !== undefined ? Number(raw.couponDiscountJpy || 0) : fallback.couponDiscount,
+    couponDiscountJpy: raw.couponDiscountJpy !== undefined ? Number(raw.couponDiscountJpy || 0) : fallback.couponDiscountJpy,
     discountRefundAmount: raw.discountRefundAmountJpy !== undefined ? Number(raw.discountRefundAmountJpy || 0) : fallback.discountRefundAmount,
     overtimeDamageDeduction: raw.overtimeDamageDeductionJpy !== undefined ? Number(raw.overtimeDamageDeductionJpy || 0) : fallback.overtimeDamageDeduction,
     overtimeDamageDeductionJpy: raw.overtimeDamageDeductionJpy !== undefined ? Number(raw.overtimeDamageDeductionJpy || 0) : fallback.overtimeDamageDeductionJpy,

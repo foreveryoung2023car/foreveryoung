@@ -300,6 +300,41 @@
         </label>
       </div>
     </div>
+    <div id="discount-coupon-management" class="panel mb-4 hidden">
+      <div class="flex justify-between items-start gap-3 flex-wrap mb-4">
+        <div>
+          <h3 class="text-lg font-bold text-[#1A365D]">🎟 优惠码设置</h3>
+          <p class="text-xs text-slate-500 mt-1">一个优惠码可指定一个或多个店铺；折扣仅用于和服原价。</p>
+        </div>
+        <button type="button" onclick="newDiscountCoupon()" class="btn-outline px-3 py-2 rounded-lg text-sm">+ 新增优惠码</button>
+      </div>
+      <div id="discount-coupon-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mb-5"></div>
+      <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+        <div class="grid grid-cols-1 md:grid-cols-[1fr_160px_120px] gap-3">
+          <label>
+            <span class="section-label block mb-1">优惠码</span>
+            <input id="discount-coupon-code" class="input-field w-full uppercase" maxlength="32" placeholder="例：SUMMER90">
+          </label>
+          <label>
+            <span class="section-label block mb-1">折数</span>
+            <input id="discount-coupon-rate" class="input-field w-full" type="number" min="0.1" max="9.9" step="0.1" placeholder="例：9">
+            <span class="text-[10px] text-slate-500">9 = 和服原价 9 折</span>
+          </label>
+          <label class="flex items-center gap-2 pt-6">
+            <input id="discount-coupon-active" type="checkbox" checked class="w-4 h-4">
+            <span class="font-bold text-sm text-slate-700">启用</span>
+          </label>
+        </div>
+        <div class="mt-4">
+          <span class="section-label block mb-2">适用店铺（可多选）</span>
+          <div id="discount-coupon-store-options" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2"></div>
+        </div>
+        <div id="discount-coupon-error" class="hidden text-red-600 text-sm mt-3"></div>
+        <div class="flex justify-end mt-4">
+          <button id="save-discount-coupon-btn" type="button" onclick="saveDiscountCoupon()" class="btn-navy px-5 py-2.5 rounded-xl text-sm">储存优惠码</button>
+        </div>
+      </div>
+    </div>
     <div id="store-schedule-loading" class="panel text-center py-10 text-slate-400">請選擇日期</div>
     <div id="store-schedule-editor" class="hidden">
       <button id="store-info-display" type="button" onclick="openStoreEditor(false)" class="store-info-display" aria-label="編輯店鋪信息">
@@ -901,7 +936,9 @@
           <div><div class="section-label">髮型費 JPY</div><input id="e-hair-fee" class="input-field" type="number" placeholder="0" oninput="updateCalc()"></div>
           <div><div class="section-label">化妝費 JPY</div><input id="e-makeup-fee" class="input-field" type="number" placeholder="0" oninput="updateCalc()"></div>
           <div><div class="section-label">攝影費 JPY</div><input id="e-photo-fee" class="input-field" type="number" placeholder="0" oninput="updateCalc()"></div>
-          <div><div class="section-label">折扣碼</div><input id="e-coupon" class="input-field" placeholder="留空=無折扣"></div>
+          <div><div class="section-label">折扣码</div><input id="e-coupon" class="input-field" readonly placeholder="无"></div>
+          <div><div class="section-label">折扣比例（折）</div><input id="e-rate" class="input-field" readonly placeholder="—"></div>
+          <div><div class="section-label">优惠金额 JPY</div><input id="e-coupon-discount" class="input-field" readonly placeholder="0"></div>
           <div class="order-fee-long"><div class="section-label">折扣與退款金額 JPY</div><input id="e-discount-refund-amount" class="input-field" type="number" min="0" step="1" placeholder="0" oninput="updateCalc()"></div>
           <div class="order-fee-long"><div class="section-label">超時與污損扣款 JPY</div><input id="e-overtime-damage-deduction" class="input-field" type="number" min="0" step="1" placeholder="0" oninput="updateCalc()"></div>
         </div>
@@ -1104,17 +1141,17 @@
 
 <script src="./admin-assets/00-gas-guard.js?v=20260605-14"></script>
 <script src="./admin-assets/01-state.js?v=20260709-1"></script>
-<script src="./admin-assets/02-firebase-api.js?v=20260710-1"></script>
-<script src="./admin-assets/03-ui-utils.js?v=20260713-2"></script>
+<script src="./admin-assets/02-firebase-api.js?v=20260728-1"></script>
+<script src="./admin-assets/03-ui-utils.js?v=20260728-1"></script>
 <script src="./admin-assets/04-refunds.js?v=20260626-6"></script>
 <script src="./admin-assets/05-orders.js?v=20260709-5"></script>
 <script src="./admin-assets/06-checkin-actions.js?v=20260610-1"></script>
 <script src="./admin-assets/07-calendar.js?v=20260713-2"></script>
 <script src="./admin-assets/08-finance.js?v=20260612-2"></script>
 <script src="./admin-assets/09-reconcile.js?v=20260713-6"></script>
-<script src="./admin-assets/10-orders-edit.js?v=20260710-2"></script>
+<script src="./admin-assets/10-orders-edit.js?v=20260728-1"></script>
 <script src="./admin-assets/11-refunds-edit.js?v=20260605-14"></script>
-<script src="./admin-assets/12-ui-admin-tools.js?v=20260710-1"></script>
+<script src="./admin-assets/12-ui-admin-tools.js?v=20260728-1"></script>
 <script src="./admin-assets/13-weather.js?v=20260605-14"></script>
 <script src="./admin-assets/15-walkin-reconcile.js?v=20260605-14"></script>
 <script src="./admin-assets/16-audit-email.js?v=20260605-14"></script>
@@ -1122,7 +1159,7 @@
 <script src="./admin-assets/18-employees.js?v=20260713-1"></script>
 <script src="./admin-assets/19-tour.js?v=20260713-1"></script>
 <script src="./admin-assets/21-payment-settings.js?v=20260622-1"></script>
-<script src="./admin-assets/20-stores.js?v=20260709-2"></script>
+<script src="./admin-assets/20-stores.js?v=20260728-1"></script>
 
 <!-- v2.4: 新增現場訂單 FAB -->
 <button id="walkInFab" onclick="openWalkInModal()" class="hidden fixed bottom-6 right-6 z-40 bg-[#1A365D] text-white px-5 py-4 rounded-full shadow-2xl font-bold text-base flex items-center gap-2 hover:bg-blue-900 active:scale-95 transition-transform" style="box-shadow:0 8px 24px rgba(26,54,93,0.35)">

@@ -227,6 +227,8 @@ function firestoreOrderToAdminOrder(doc) {
     onsiteDueJpy: Number(data.onsiteDueJpy || 0),
     coupon: data.couponCode || '',
     rate: data.discountRate || '',
+    couponDiscount: Number(data.couponDiscountJpy || 0),
+    couponDiscountJpy: Number(data.couponDiscountJpy || 0),
     discountRefundAmount: Number(data.discountRefundAmountJpy || 0),
     overtimeDamageDeduction: Number(data.overtimeDamageDeductionJpy || 0),
     overtimeDamageDeductionJpy: Number(data.overtimeDamageDeductionJpy || 0),

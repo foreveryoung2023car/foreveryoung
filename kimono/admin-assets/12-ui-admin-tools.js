@@ -568,6 +568,7 @@ async function saveOrder() {
       + Number(document.getElementById('e-makeup-fee').value || 0)
       + Number(document.getElementById('e-photo-fee').value || 0)
       + Number(document.getElementById('e-overtime-damage-deduction').value || 0)
+      - Number(document.getElementById('e-coupon-discount').value || 0)
       - Number(document.getElementById('e-discount-refund-amount').value || 0)
     );
     const paidDeposit = Number(document.getElementById('e-deposit').value || 0);
@@ -641,8 +642,6 @@ async function saveOrder() {
           makeupPlan: payload.makeup,
           photoPlan: payload.photoPlan,
           photoFeeJpy: Number(payload.photoFee || 0),
-          couponCode: payload.coupon,
-          discountRate: Number(payload.rate || 0),
           discountRefundAmountJpy: Number(payload.discountRefundAmount || 0),
           overtimeDamageDeductionJpy: Number(payload.overtimeDamageDeduction || 0),
           storeActualReceivedJpy: Number(payload.storeActualReceived || 0),

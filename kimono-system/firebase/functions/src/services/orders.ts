@@ -20,6 +20,7 @@ import { calculateOrderTotal } from "../lib/money.js";
 import { assertStoreSlotAvailable, assertStoreSlotCapacityAvailable, resolveStoreServiceSelection } from "./stores.js";
 import { nextOrderNo } from "./orderNumber.js";
 import { calculateBookingDepositJpy } from "./paymentSettings.js";
+import { resolveDiscountCoupon } from "./coupons.js";
 
 export const createPublicOrderSchema = z.object({
   clientRequestId: z.string().optional(),
@@ -336,6 +337,7 @@ function toPublicOrderResponse(orderId: string, order: FirebaseFirestore.Documen
     onsiteDue: Number(order.onsiteDueJpy || 0),
     couponCode: order.couponCode || "",
     discount,
+    couponDiscountJpy: Number(order.couponDiscountJpy || Math.max(0, planPrice - planActual)),
     paymentProofSubmitted: Boolean(order.proofUrl || order.proofNote || order.last5),
     last5: fullyVerified ? order.last5 || "" : "",
     canRefund: fullyVerified && status === "confirmed",
@@ -389,6 +391,8 @@ function toAdminOrderResponse(orderId: string, order: FirebaseFirestore.Document
     onsiteDueJpy: Number(order.onsiteDueJpy || 0),
     coupon: order.couponCode || "",
     rate: order.discountRate || "",
+    couponDiscount: Number(order.couponDiscountJpy || 0),
+    couponDiscountJpy: Number(order.couponDiscountJpy || 0),
     discountRefundAmount: Number(order.discountRefundAmountJpy || 0),
     overtimeDamageDeduction: Number(order.overtimeDamageDeductionJpy || 0),
     overtimeDamageDeductionJpy: Number(order.overtimeDamageDeductionJpy || 0),
@@ -502,6 +506,10 @@ export async function createPublicOrder(raw: unknown) {
   const cached = await getIdempotentResponse(input.clientRequestId);
   if (cached) return cached;
   const brandPlatform = normalizeBrandPlatform(input.brandPlatform || defaultBrandPlatform);
+  const coupon = await resolveDiscountCoupon(input.couponCode, input.storeCode);
+  if (input.couponCode && !coupon.valid) {
+    throw new HttpError(400, "This discount coupon is not available for the selected store");
+  }
   const depositJpy = await calculateBookingDepositJpy(brandPlatform, {
     maleAdults: input.maleAdults,
     femaleAdults: input.femaleAdults,
@@ -543,7 +551,7 @@ export async function createPublicOrder(raw: unknown) {
       hairFeeJpy: serviceSelection.hairFeeJpy,
       makeupFeeJpy: serviceSelection.makeupFeeJpy,
       photoFeeJpy: serviceSelection.photoFeeJpy,
-      discountRate: input.discountRate || 10
+      discountRate: coupon.discountRate
     });
     tx.set(customerRef, {
       name: input.name,
@@ -575,8 +583,9 @@ export async function createPublicOrder(raw: unknown) {
       source: input.source || "web",
       platform: input.platform || "LINE",
       brandPlatform,
-      couponCode: input.couponCode || "",
-      discountRate: input.discountRate || 10,
+      couponCode: coupon.valid ? coupon.code : "",
+      discountRate: coupon.discountRate,
+      couponDiscountJpy: total.couponDiscountJpy,
       depositJpy,
       kimonoPriceJpy: input.kimonoPriceJpy || 0,
       hairFeeJpy: serviceSelection.hairFeeJpy,
@@ -871,6 +880,7 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
       input.hairFeeJpy,
       input.makeupFeeJpy,
       input.photoFeeJpy,
+      input.discountRate,
       input.discountRefundAmountJpy,
       input.overtimeDamageDeductionJpy,
       input.storeActualReceivedJpy
@@ -878,9 +888,15 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
 
     let calculatedBalanceDueJpy = Number(before.balanceDueJpy || 0);
     if (hasPaymentUpdate) {
+      const kimonoPriceJpy = input.kimonoPriceJpy ?? Number(before.kimonoPriceJpy || 0);
+      const discountRate = input.discountRate ?? Number(before.discountRate || 10);
+      const couponDiscountJpy = String(input.couponCode ?? before.couponCode ?? "").trim()
+        ? Math.max(0, kimonoPriceJpy - Math.round(kimonoPriceJpy * (discountRate > 0 && discountRate < 10 ? discountRate : 10) / 10))
+        : 0;
       const consumptionJpy = Math.max(
         0,
-        (input.kimonoPriceJpy ?? Number(before.kimonoPriceJpy || 0))
+        kimonoPriceJpy
+          - couponDiscountJpy
           + (input.hairFeeJpy ?? Number(before.hairFeeJpy || 0))
           + (input.makeupFeeJpy ?? Number(before.makeupFeeJpy || 0))
           + (input.photoFeeJpy ?? Number(before.photoFeeJpy || 0))
@@ -890,6 +906,7 @@ export async function updateOrderByStaff(raw: unknown, actor: AuthContext) {
       const depositJpy = input.depositJpy ?? Number(before.depositJpy || 0);
       const storeActualReceivedJpy = input.storeActualReceivedJpy ?? Number(before.storeActualReceivedJpy || 0);
       calculatedBalanceDueJpy = Math.max(0, consumptionJpy - depositJpy - storeActualReceivedJpy);
+      patch.couponDiscountJpy = couponDiscountJpy;
       patch.totalJpy = consumptionJpy;
       patch.onsiteDueJpy = Math.max(0, consumptionJpy - depositJpy);
       patch.balanceDueJpy = calculatedBalanceDueJpy;
