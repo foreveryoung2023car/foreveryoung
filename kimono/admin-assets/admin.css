@@ -158,10 +158,10 @@
   .modal-floating-close:hover,.custom-modal-close:hover { color:#DBEAFE;transform:scale(1.04);text-shadow:0 3px 12px rgba(15,23,42,.6) }
   .modal-floating-close:focus-visible,.custom-modal-close:focus-visible { outline:3px solid rgba(59,130,246,.45);outline-offset:3px;border-radius:8px }
   @media (min-width: 768px) { .modal-box { padding:28px; border-radius:20px; height:80vh; max-height:80vh } }
-  .modal-overlay.store-modal .modal-frame{max-width:1120px;height:auto;max-height:90vh}
-  .modal-overlay.store-modal .modal-box{max-width:1120px;height:auto;max-height:90vh;background:#F8FAFC}
+  .modal-overlay.store-modal .modal-frame{max-width:1040px;height:auto;max-height:90vh}
+  .modal-overlay.store-modal .modal-box{max-width:1040px;height:auto;max-height:90vh;background:#F8FAFC}
   .modal-overlay.store-modal .edit-panel{background:transparent;border:0;padding:0}
-  .modal-overlay.store-modal h2{font-size:30px;line-height:1.2;color:#0F172A}
+  .modal-overlay.store-modal h2{font-size:24px;line-height:1.2;color:#0F172A}
   .modal-overlay.store-modal #modal-order-id{font-size:20px;letter-spacing:.08em;color:#475569}
   .modal-overlay.store-modal #modal-order-status .order-status-control{background:#FFF7ED;color:#C2410C;border-radius:999px;box-shadow:none}
   .modal-overlay.store-modal #modal-order-status .order-status-icon{display:none}
@@ -191,7 +191,7 @@
     #edit-modal .order-modal-actions{gap:8px;margin-top:10px;padding-top:10px}
     #edit-modal .order-modal-actions button{padding-top:9px;padding-bottom:9px}
     #edit-modal.store-modal #save-btn{flex:0 0 260px}
-    #edit-modal.store-modal .modal-frame{width:min(1120px,calc(100vw - 116px));max-width:min(1120px,calc(100vw - 116px));height:auto;max-height:calc(100vh - 20px)}
+    #edit-modal.store-modal .modal-frame{width:min(1040px,calc(100vw - 116px));max-width:min(1040px,calc(100vw - 116px));height:auto;max-height:calc(100vh - 20px)}
     #edit-modal.store-modal .modal-box{width:100%;max-width:none;height:auto;max-height:calc(100vh - 20px)}
     #edit-modal.store-modal .edit-panel{padding:0}
     #edit-modal.store-modal .order-modal-header{align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #E2E8F0}
@@ -213,12 +213,12 @@
     #edit-modal.store-modal .store-summary-label{margin-right:8px}
     #edit-modal.store-modal .store-summary-value{font-size:24px}
     #edit-modal.store-modal .store-summary-booking-value{font-size:28px}
-    #edit-modal.store-modal .store-summary-inline-value{font-size:22px}
+    #edit-modal.store-modal .store-summary-inline-value{font-size:18px}
     #edit-modal.store-modal .store-summary-inline-value{margin-left:8px}
     #edit-modal.store-modal .store-summary-money{margin-left:10px}
     #edit-modal.store-modal .store-summary-note-value{margin-top:4px;min-height:20px}
-    #edit-modal.store-modal .order-fee-grid{grid-template-columns:repeat(10,minmax(0,1fr))}
-    #edit-modal.store-modal .order-fee-grid > .order-fee-long{grid-column:span 2;justify-self:start}
+    #edit-modal.store-modal .order-fee-grid{grid-template-columns:repeat(7,minmax(0,1fr)) repeat(2,120px)}
+    #edit-modal.store-modal .order-fee-grid > .order-fee-long{grid-column:span 1;justify-self:start}
     #edit-modal.store-modal .order-fee-grid > .order-fee-long .section-label{white-space:nowrap}
     #edit-modal.store-modal .order-fee-grid > .order-fee-long .input-field{display:block;width:120px!important;max-width:120px!important}
     #edit-modal.store-modal #e-store-actual-received{width:50%;min-width:180px}

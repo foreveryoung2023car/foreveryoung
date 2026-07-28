@@ -667,7 +667,10 @@ function switchTab(name, btn) {
   if (btn) btn.classList.add('active');
 }
 function updateCalc() {
-  const price = Number(document.getElementById('e-price').value) || 0;
+  const priceInput = document.getElementById('e-price');
+  const priceValue = priceInput.value.trim();
+  const price = Number(priceValue) || 0;
+  const hasKimonoPrice = priceValue !== '' && Number.isFinite(Number(priceValue)) && price > 0;
   const hair = Number(document.getElementById('e-hair-fee').value) || 0;
   const makeup = Number(document.getElementById('e-makeup-fee').value) || 0;
   const photo = Number(document.getElementById('e-photo-fee').value) || 0;
@@ -690,8 +693,8 @@ function updateCalc() {
   const storeBalance = Math.max(0, afterDep - storeActualReceived);
   const hideMoney = typeof shouldHideOrderMoney === 'function' && shouldHideOrderMoney(editingOrder);
   document.getElementById('e-deposit-display').textContent = '¥' + paidDeposit.toLocaleString();
-  document.getElementById('calc-due').textContent = hideMoney ? '—' : (onsite ? fmtY0(onsite) : '—');
-  document.getElementById('calc-net').textContent = onsite ? fmtY0(afterDep) : '—';
+  document.getElementById('calc-due').textContent = hasKimonoPrice ? fmtY0(onsite) : '—';
+  document.getElementById('calc-net').textContent = hasKimonoPrice ? fmtY0(afterDep) : '—';
   document.getElementById('calc-store-balance').textContent = hideMoney ? '—' : fmtY0(storeBalance);
 }
 
