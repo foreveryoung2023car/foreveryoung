@@ -181,6 +181,9 @@ function reconcileAmounts(o) {
   const hairFee = Number(o.hairFee || 0);
   const makeupFee = typeof orderMakeupFee === 'function' ? orderMakeupFee(o) : Number(o.makeupFee || 0);
   const photoFee = Number(o.photoFee || 0);
+  const couponDiscount = typeof orderCouponDiscount === 'function'
+    ? orderCouponDiscount(o, kimonoPrice)
+    : Math.max(0, Number(o.couponDiscount || o.couponDiscountJpy || 0));
   const discountRefund = Number(o.discountRefundAmount || 0);
   const overtimeDamageDeduction = Number(o.overtimeDamageDeduction || o.overtimeDamageDeductionJpy || 0);
   const deposit = reconcileDeposit(o);
@@ -189,7 +192,7 @@ function reconcileAmounts(o) {
   ) || 0;
   const total = typeof orderDisplayTotal === 'function'
     ? orderDisplayTotal(o)
-    : Math.max(0, kimonoPrice + hairFee + makeupFee + photoFee + overtimeDamageDeduction - discountRefund);
+    : Math.max(0, kimonoPrice - couponDiscount + hairFee + makeupFee + photoFee + overtimeDamageDeduction - discountRefund);
   const balance = Math.max(0, total - deposit - actualReceived);
   const platformFee = kimonoPrice * 0.5;
   const storeBalance = total - platformFee;
@@ -200,6 +203,7 @@ function reconcileAmounts(o) {
     hairFee,
     makeupFee,
     photoFee,
+    couponDiscount,
     discountRefund,
     overtimeDamageDeduction,
     total,
@@ -272,6 +276,7 @@ function updateReconcileInlinePreview(orderId) {
   const amount = reconcileAmounts(draft);
   const values = {
     total: fmtY0(amount.total),
+    couponDiscount: amount.couponDiscount > 0 ? '-' + fmtY0(amount.couponDiscount) : '—',
     balance: fmtY0(amount.balance),
     platformFee: fmtY0(amount.platformFee),
     storeBalance: fmtY0(amount.storeBalance),
@@ -643,11 +648,11 @@ function renderReconcile(){
     (currentRole === 'store'
       ? '<th>狀態</th>' + (showStoreColumn ? '<th>門市</th>' : '') + '<th>訂單號</th>' + brandHeader + '<th>客戶</th><th>體驗日期</th>'+
         '<th class="num">已收訂金</th><th class="num">髮型費</th><th class="num">化妝費</th><th class="num">攝影費</th>'+
-        '<th class="num">折扣與退款</th><th class="num">超時污損費</th><th class="num">和服原價</th><th class="num">總價</th>'+
+        '<th class="num">折扣與退款</th><th class="num">超時污損費</th><th class="num">和服原價</th><th class="num">總價</th><th class="num">優惠金額</th>'+
         '<th class="num">實際收款</th><th class="num">平台費</th>'+
         '<th class="num">店鋪利潤</th><th class="num">需付平台</th>'
       : '<th>狀態</th><th>訂單號</th>' + brandHeader + '<th>客戶</th><th>體驗日期</th>'+
-        '<th class="num">已收訂金</th><th class="num">折扣與退款</th><th class="num">超時污損費</th><th class="num">和服原價</th><th class="num">總價</th>'+
+        '<th class="num">已收訂金</th><th class="num">折扣與退款</th><th class="num">超時污損費</th><th class="num">和服原價</th><th class="num">總價</th><th class="num">優惠金額</th>'+
         '<th class="num">店鋪實收</th><th class="num">尾款</th>'+
         '<th class="num">平台費</th><th class="num">需收店鋪</th>')+
     '<th class="recon-action-cell">詳情</th>'+
@@ -682,6 +687,7 @@ function renderReconcile(){
           amountCell('overtimeDamageDeduction', amount.overtimeDamageDeduction, true)+
           amountCell('kimonoPrice', amount.kimonoPrice, true)+
           previewCell('total', fmtY0(amount.total), 'font-bold')+
+          previewCell('couponDiscount', amount.couponDiscount > 0 ? '-' + fmtY0(amount.couponDiscount) : '—', 'font-bold text-pink-700')+
           amountCell('storeActualReceived', amount.actualReceived, true)+
           previewCell('platformFee', fmtY0(amount.platformFee))+
           previewCell('storeBalance', fmtY0(amount.storeBalance), 'font-bold text-[#C9A961]')+
@@ -691,6 +697,7 @@ function renderReconcile(){
           amountCell('overtimeDamageDeduction', amount.overtimeDamageDeduction, true)+
           amountCell('kimonoPrice', amount.kimonoPrice, true)+
           previewCell('total', fmtY0(amount.total), 'font-bold')+
+          previewCell('couponDiscount', amount.couponDiscount > 0 ? '-' + fmtY0(amount.couponDiscount) : '—', 'font-bold text-pink-700')+
           amountCell('storeActualReceived', amount.actualReceived, true)+
           previewCell('balance', fmtY0(amount.balance), 'font-bold')+
           previewCell('platformFee', fmtY0(amount.platformFee), 'font-bold text-[#C9A961]')+
@@ -719,14 +726,14 @@ function exportReconCSV(){
   if(month && month!=='all') list = list.filter(o=>orderMatchesReconcileMonth(o, month, day));
   if(brand && brand!=='all') list = list.filter(o=>orderBrandPlatform(o)===brand);
   const headers = currentRole === 'store'
-    ? ['平台','狀態','訂單號','客戶','體驗日期','已收訂金','髮型費','化妝費','攝影費','折扣與退款','超時污損費','和服原價','總價','實際收款','平台費','店鋪利潤','需付平台']
-    : ['平台','狀態','訂單號','客戶','體驗日期','已收訂金','折扣與退款','超時污損費','和服原價','總價','店鋪實收','尾款','平台費','需收店鋪'];
+    ? ['平台','狀態','訂單號','客戶','體驗日期','已收訂金','髮型費','化妝費','攝影費','折扣與退款','超時污損費','和服原價','總價','優惠金額','實際收款','平台費','店鋪利潤','需付平台']
+    : ['平台','狀態','訂單號','客戶','體驗日期','已收訂金','折扣與退款','超時污損費','和服原價','總價','優惠金額','店鋪實收','尾款','平台費','需收店鋪'];
   const rows = list.map(o=>{
     const st = reconcileOrderStatusLabel(o);
     const amount = reconcileAmounts(o);
     return currentRole === 'store'
-      ? [platformLabel(orderBrandPlatform(o)), st, o.orderId, o.name, fmtDate(o.bookingDate), amount.deposit, amount.hairFee, amount.makeupFee, amount.photoFee, amount.discountRefund, amount.overtimeDamageDeduction, amount.kimonoPrice, amount.total, amount.actualReceived, amount.platformFee, amount.storeBalance, amount.platformPayable]
-      : [platformLabel(orderBrandPlatform(o)), st, o.orderId, o.name, fmtDate(o.bookingDate), amount.deposit, amount.discountRefund, amount.overtimeDamageDeduction, amount.kimonoPrice, amount.total, amount.actualReceived, amount.balance, amount.platformFee, shouldShowStoreReceivable(o) ? amount.storeReceivable : ''];
+      ? [platformLabel(orderBrandPlatform(o)), st, o.orderId, o.name, fmtDate(o.bookingDate), amount.deposit, amount.hairFee, amount.makeupFee, amount.photoFee, amount.discountRefund, amount.overtimeDamageDeduction, amount.kimonoPrice, amount.total, amount.couponDiscount, amount.actualReceived, amount.platformFee, amount.storeBalance, amount.platformPayable]
+      : [platformLabel(orderBrandPlatform(o)), st, o.orderId, o.name, fmtDate(o.bookingDate), amount.deposit, amount.discountRefund, amount.overtimeDamageDeduction, amount.kimonoPrice, amount.total, amount.couponDiscount, amount.actualReceived, amount.balance, amount.platformFee, shouldShowStoreReceivable(o) ? amount.storeReceivable : ''];
   });
   const csv = [headers, ...rows].map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\n');
   const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
