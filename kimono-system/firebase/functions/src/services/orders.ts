@@ -506,7 +506,7 @@ export async function createPublicOrder(raw: unknown) {
   const cached = await getIdempotentResponse(input.clientRequestId);
   if (cached) return cached;
   const brandPlatform = normalizeBrandPlatform(input.brandPlatform || defaultBrandPlatform);
-  const coupon = await resolveDiscountCoupon(input.couponCode, input.storeCode);
+  const coupon = await resolveDiscountCoupon(input.couponCode, input.storeCode, input.bookingAt);
   if (input.couponCode && !coupon.valid) {
     throw new HttpError(400, "This discount coupon is not available for the selected store");
   }

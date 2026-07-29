@@ -7,4 +7,4 @@ export { createAdminUser, listAdminUsers, resetAdminUserPassword, setAdminUserAc
 export { sendBookingReminderEmail, sendConfirmEmail, sendDailyBookingReminderEmails, sendProofReceivedEmail, sendRefundConfirmEmail } from "./http/emails.js";
 export { getStoreAvailability, listStoreSchedules, saveStore, saveStoreSchedule } from "./http/stores.js";
 export { getPaymentSettings, savePaymentSettings } from "./http/paymentSettings.js";
-export { listDiscountCoupons, saveDiscountCoupon, validateDiscountCoupon } from "./http/coupons.js";
+export { deleteDiscountCoupon, listDiscountCoupons, saveDiscountCoupon, setDiscountCouponActive, validateDiscountCoupon } from "./http/coupons.js";

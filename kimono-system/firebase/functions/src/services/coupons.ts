@@ -5,12 +5,26 @@ import type { AuthContext } from "../lib/auth.js";
 import { writeAuditLog } from "../lib/audit.js";
 
 const couponCodePattern = /^[A-Z0-9][A-Z0-9_-]{1,31}$/;
+const datePattern = /^\d{4}-\d{2}-\d{2}$/;
 
 const saveDiscountCouponSchema = z.object({
   code: z.string().trim().min(2).max(32),
   discountRate: z.coerce.number().min(0.1).max(9.9),
   storeIds: z.array(z.string().trim().min(1)).min(1).max(100),
+  startDate: z.string().regex(datePattern),
+  endDate: z.string().regex(datePattern),
   active: z.boolean().default(true)
+}).refine((value) => value.startDate <= value.endDate, {
+  message: "Start date must not be after end date",
+  path: ["endDate"]
+});
+
+const deleteDiscountCouponSchema = z.object({
+  code: z.string().trim().min(2).max(32)
+});
+
+const setDiscountCouponActiveSchema = deleteDiscountCouponSchema.extend({
+  active: z.boolean()
 });
 
 function normalizeCouponCode(value: unknown) {
@@ -29,6 +43,8 @@ function couponResponse(id: string, data: FirebaseFirestore.DocumentData) {
     code: String(data.code || id),
     discountRate: Number(data.discountRate || 10),
     storeIds: Array.isArray(data.storeIds) ? data.storeIds.map(String) : [],
+    startDate: String(data.startDate || ""),
+    endDate: String(data.endDate || ""),
     active: data.active !== false
   };
 }
@@ -63,6 +79,8 @@ export async function saveDiscountCoupon(raw: unknown, actor: AuthContext) {
     code,
     discountRate: Math.round(parsed.discountRate * 10) / 10,
     storeIds,
+    startDate: parsed.startDate,
+    endDate: parsed.endDate,
     active: parsed.active
   };
   await ref.set({
@@ -81,9 +99,59 @@ export async function saveDiscountCoupon(raw: unknown, actor: AuthContext) {
   return { status: "success", coupon };
 }
 
-export async function resolveDiscountCoupon(codeValue: unknown, storeIdValue: unknown) {
+export async function deleteDiscountCoupon(raw: unknown, actor: AuthContext) {
+  assertPlatformCouponManager(actor);
+  const input = deleteDiscountCouponSchema.parse(raw);
+  const code = normalizeCouponCode(input.code);
+  if (!couponCodePattern.test(code)) throw new HttpError(400, "Invalid coupon code");
+  const ref = db.collection("discountCoupons").doc(code);
+  const snap = await ref.get();
+  if (!snap.exists) throw new HttpError(404, "Discount coupon not found");
+  const before = snap.data() || null;
+  await ref.delete();
+  await writeAuditLog({
+    actor,
+    action: "discount_coupon_deleted",
+    beforeData: before,
+    afterData: null,
+    metadata: { couponCode: code }
+  });
+  return { status: "success", code };
+}
+
+export async function setDiscountCouponActive(raw: unknown, actor: AuthContext) {
+  assertPlatformCouponManager(actor);
+  const input = setDiscountCouponActiveSchema.parse(raw);
+  const code = normalizeCouponCode(input.code);
+  if (!couponCodePattern.test(code)) throw new HttpError(400, "Invalid coupon code");
+  const ref = db.collection("discountCoupons").doc(code);
+  const snap = await ref.get();
+  if (!snap.exists) throw new HttpError(404, "Discount coupon not found");
+  const before = snap.data() || {};
+  await ref.update({
+    active: input.active,
+    updatedBy: actor.uid,
+    updatedAt: FieldValue.serverTimestamp()
+  });
+  await writeAuditLog({
+    actor,
+    action: input.active ? "discount_coupon_enabled" : "discount_coupon_disabled",
+    beforeData: before,
+    afterData: { ...before, active: input.active },
+    metadata: { couponCode: code }
+  });
+  return { status: "success", coupon: couponResponse(code, { ...before, active: input.active }) };
+}
+
+function currentJstDate() {
+  return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+export async function resolveDiscountCoupon(codeValue: unknown, storeIdValue: unknown, bookingDateValue?: unknown) {
   const code = normalizeCouponCode(codeValue);
   const storeId = String(storeIdValue || "").trim();
+  const requestedDate = String(bookingDateValue || "").slice(0, 10);
+  const bookingDate = datePattern.test(requestedDate) ? requestedDate : currentJstDate();
   if (!code) return { valid: false as const, code: "", discountRate: 10, reason: "empty" };
   if (!storeId) return { valid: false as const, code, discountRate: 10, reason: "store_required" };
   if (!couponCodePattern.test(code)) return { valid: false as const, code, discountRate: 10, reason: "invalid" };
@@ -92,7 +160,17 @@ export async function resolveDiscountCoupon(codeValue: unknown, storeIdValue: un
   const data = snap.data() || {};
   const storeIds = Array.isArray(data.storeIds) ? data.storeIds.map(String) : [];
   const discountRate = Number(data.discountRate || 10);
-  const valid = data.active !== false && storeIds.includes(storeId) && discountRate > 0 && discountRate < 10;
+  const startDate = String(data.startDate || "");
+  const endDate = String(data.endDate || "");
+  const withinDateRange = datePattern.test(startDate) &&
+    datePattern.test(endDate) &&
+    bookingDate >= startDate &&
+    bookingDate <= endDate;
+  const valid = data.active !== false &&
+    storeIds.includes(storeId) &&
+    discountRate > 0 &&
+    discountRate < 10 &&
+    withinDateRange;
   return {
     valid,
     code,
@@ -101,8 +179,8 @@ export async function resolveDiscountCoupon(codeValue: unknown, storeIdValue: un
   };
 }
 
-export async function validateDiscountCoupon(code: unknown, storeId: unknown) {
-  const result = await resolveDiscountCoupon(code, storeId);
+export async function validateDiscountCoupon(code: unknown, storeId: unknown, bookingDate?: unknown) {
+  const result = await resolveDiscountCoupon(code, storeId, bookingDate);
   return {
     status: "success",
     valid: result.valid,

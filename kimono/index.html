@@ -2180,11 +2180,12 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             const statusEl = document.getElementById('coupon-status');
             const normalizedCode = String(code || '').trim().toUpperCase();
             const storeId = document.getElementById('input-store').value;
+            const bookingDate = document.getElementById('input-date').value;
             const requestId = ++couponValidationRequestId;
             appliedCoupon = null;
             if (!normalizedCode) { statusEl.textContent = ''; return true; }
-            if (normalizedCode.length < 2 || !storeId) {
-                statusEl.textContent = storeId ? t('無法使用') : t('請先選擇門市');
+            if (normalizedCode.length < 2 || !storeId || !bookingDate) {
+                statusEl.textContent = !storeId ? t('請先選擇門市') : (!bookingDate ? t('請先選擇預約日期') : t('無法使用'));
                 statusEl.style.color = '#ef4444';
                 return false;
             }
@@ -2193,7 +2194,8 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             try {
                 const apiBaseUrl = String(KIMONO_CONFIG.API_BASE_URL || '').replace(/\/$/, '');
                 const res = await fetch(apiBaseUrl + '/validateDiscountCoupon?code=' +
-                    encodeURIComponent(normalizedCode) + '&storeId=' + encodeURIComponent(storeId));
+                    encodeURIComponent(normalizedCode) + '&storeId=' + encodeURIComponent(storeId) +
+                    '&bookingDate=' + encodeURIComponent(bookingDate));
                 const data = await res.json().catch(() => ({}));
                 if (requestId !== couponValidationRequestId) return false;
                 if (data.valid === true) {
@@ -2722,6 +2724,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             document.getElementById('input-date').addEventListener('change', () => {
                 updateLocalizedDatePlaceholder();
                 refreshBookingTimeSlots();
+                validateCoupon(document.getElementById('input-coupon').value);
             });
             document.getElementById('input-date').addEventListener('focus', updateLocalizedDatePlaceholder);
             document.getElementById('input-date').addEventListener('blur', updateLocalizedDatePlaceholder);

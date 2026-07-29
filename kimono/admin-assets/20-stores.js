@@ -104,13 +104,28 @@ function renderDiscountCouponList() {
       const store = storeScheduleRows.find(row => row.id === storeId);
       return store ? store.name : storeId;
     }).join('、');
-    return '<button type="button" onclick="editDiscountCoupon(\'' + adminJsArg(coupon.code) + '\')" ' +
-      'class="text-left rounded-xl border border-slate-200 bg-white p-3 hover:border-[#1A365D]">' +
+    const dateRange = coupon.startDate && coupon.endDate
+      ? coupon.startDate + ' ～ ' + coupon.endDate
+      : '尚未设置起讫日期';
+    const statusLabel = !coupon.startDate || !coupon.endDate
+      ? '待补日期'
+      : (coupon.active ? '启用' : '停用');
+    const statusClass = !coupon.startDate || !coupon.endDate
+      ? 'text-amber-600'
+      : (coupon.active ? 'text-emerald-600' : 'text-slate-400');
+    return '<div class="rounded-xl border border-slate-200 bg-white p-3">' +
+      '<button type="button" onclick="editDiscountCoupon(\'' + adminJsArg(coupon.code) + '\')" class="w-full text-left hover:opacity-80">' +
       '<div class="flex justify-between gap-2"><strong class="text-[#1A365D]">' + adminEsc(coupon.code) + '</strong>' +
-      '<span class="text-xs font-bold ' + (coupon.active ? 'text-emerald-600' : 'text-slate-400') + '">' +
-      (coupon.active ? '启用' : '停用') + '</span></div>' +
+      '<span class="text-xs font-bold ' + statusClass + '">' + statusLabel + '</span></div>' +
       '<div class="text-sm font-bold text-pink-700 mt-1">' + Number(coupon.discountRate).toLocaleString() + ' 折</div>' +
-      '<div class="text-xs text-slate-500 mt-1">' + adminEsc(stores || '未指定店铺') + '</div></button>';
+      '<div class="text-xs text-slate-500 mt-1">' + adminEsc(stores || '未指定店铺') + '</div>' +
+      '<div class="text-xs text-slate-500 mt-1">📅 ' + adminEsc(dateRange) + '</div></button>' +
+      '<div class="flex gap-2 mt-3 pt-3 border-t border-slate-100">' +
+      '<button type="button" onclick="setDiscountCouponActive(\'' + adminJsArg(coupon.code) + '\',' + (!coupon.active) + ')" ' +
+      'class="flex-1 px-2 py-1.5 rounded-lg text-xs font-bold ' + (coupon.active ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700') + '">' +
+      (coupon.active ? '停用' : '启用') + '</button>' +
+      '<button type="button" onclick="deleteDiscountCoupon(\'' + adminJsArg(coupon.code) + '\')" ' +
+      'class="px-3 py-1.5 rounded-lg bg-red-50 text-red-700 text-xs font-bold">删除</button></div></div>';
   }).join('');
 }
 
@@ -130,6 +145,8 @@ function newDiscountCoupon() {
   document.getElementById('discount-coupon-code').value = '';
   document.getElementById('discount-coupon-code').disabled = false;
   document.getElementById('discount-coupon-rate').value = '';
+  document.getElementById('discount-coupon-start-date').value = storeTodayJst();
+  document.getElementById('discount-coupon-end-date').value = '';
   document.getElementById('discount-coupon-active').checked = true;
   document.getElementById('discount-coupon-error').classList.add('hidden');
   renderDiscountCouponStoreOptions([]);
@@ -143,6 +160,8 @@ function editDiscountCoupon(code) {
   codeEl.value = coupon.code;
   codeEl.disabled = true;
   document.getElementById('discount-coupon-rate').value = coupon.discountRate;
+  document.getElementById('discount-coupon-start-date').value = coupon.startDate || '';
+  document.getElementById('discount-coupon-end-date').value = coupon.endDate || '';
   document.getElementById('discount-coupon-active').checked = coupon.active !== false;
   document.getElementById('discount-coupon-error').classList.add('hidden');
   renderDiscountCouponStoreOptions(coupon.storeIds || []);
@@ -151,6 +170,8 @@ function editDiscountCoupon(code) {
 async function saveDiscountCoupon() {
   const code = document.getElementById('discount-coupon-code').value.trim().toUpperCase();
   const discountRate = Number(document.getElementById('discount-coupon-rate').value);
+  const startDate = document.getElementById('discount-coupon-start-date').value;
+  const endDate = document.getElementById('discount-coupon-end-date').value;
   const storeIds = Array.from(document.querySelectorAll('input[name="discount-coupon-store"]:checked')).map(input => input.value);
   const error = document.getElementById('discount-coupon-error');
   if (!/^[A-Z0-9][A-Z0-9_-]{1,31}$/.test(code)) {
@@ -160,6 +181,16 @@ async function saveDiscountCoupon() {
   }
   if (!(discountRate > 0 && discountRate < 10)) {
     error.textContent = '折数必须大于 0 且小于 10，例如 9 代表 9 折。';
+    error.classList.remove('hidden');
+    return;
+  }
+  if (!startDate || !endDate) {
+    error.textContent = '请设置优惠码的开始日期与结束日期。';
+    error.classList.remove('hidden');
+    return;
+  }
+  if (startDate > endDate) {
+    error.textContent = '结束日期不能早于开始日期。';
     error.classList.remove('hidden');
     return;
   }
@@ -176,6 +207,8 @@ async function saveDiscountCoupon() {
       code,
       discountRate,
       storeIds,
+      startDate,
+      endDate,
       active: document.getElementById('discount-coupon-active').checked
     });
     const index = discountCouponRows.findIndex(item => item.code === code);
@@ -190,6 +223,32 @@ async function saveDiscountCoupon() {
     error.classList.remove('hidden');
   } finally {
     button.disabled = false;
+  }
+}
+
+async function setDiscountCouponActive(code, active) {
+  try {
+    const data = await callFirebaseAdminFunction('/setDiscountCouponActive', { code, active });
+    const index = discountCouponRows.findIndex(item => item.code === code);
+    if (index >= 0) discountCouponRows[index] = data.coupon;
+    renderDiscountCouponList();
+    if (document.getElementById('discount-coupon-code').value === code) editDiscountCoupon(code);
+    toast(active ? '优惠码已启用' : '优惠码已停用');
+  } catch (err) {
+    alert((active ? '启用' : '停用') + '失败：' + err.message);
+  }
+}
+
+async function deleteDiscountCoupon(code) {
+  if (!confirm('确定删除优惠码「' + code + '」？删除后无法恢复。')) return;
+  try {
+    await callFirebaseAdminFunction('/deleteDiscountCoupon', { code });
+    discountCouponRows = discountCouponRows.filter(item => item.code !== code);
+    renderDiscountCouponList();
+    if (document.getElementById('discount-coupon-code').value === code) newDiscountCoupon();
+    toast('优惠码已删除');
+  } catch (err) {
+    alert('删除失败：' + err.message);
   }
 }
 

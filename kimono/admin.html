@@ -310,7 +310,7 @@
       </div>
       <div id="discount-coupon-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mb-5"></div>
       <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
-        <div class="grid grid-cols-1 md:grid-cols-[1fr_160px_120px] gap-3">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-[1fr_150px_180px_180px_100px] gap-3">
           <label>
             <span class="section-label block mb-1">优惠码</span>
             <input id="discount-coupon-code" class="input-field w-full uppercase" maxlength="32" placeholder="例：SUMMER90">
@@ -319,6 +319,14 @@
             <span class="section-label block mb-1">折数</span>
             <input id="discount-coupon-rate" class="input-field w-full" type="number" min="0.1" max="9.9" step="0.1" placeholder="例：9">
             <span class="text-[10px] text-slate-500">9 = 和服原价 9 折</span>
+          </label>
+          <label>
+            <span class="section-label block mb-1">开始日期</span>
+            <input id="discount-coupon-start-date" class="input-field w-full" type="date" required>
+          </label>
+          <label>
+            <span class="section-label block mb-1">结束日期</span>
+            <input id="discount-coupon-end-date" class="input-field w-full" type="date" required>
           </label>
           <label class="flex items-center gap-2 pt-6">
             <input id="discount-coupon-active" type="checkbox" checked class="w-4 h-4">
@@ -1159,7 +1167,7 @@
 <script src="./admin-assets/18-employees.js?v=20260713-1"></script>
 <script src="./admin-assets/19-tour.js?v=20260713-1"></script>
 <script src="./admin-assets/21-payment-settings.js?v=20260622-1"></script>
-<script src="./admin-assets/20-stores.js?v=20260728-1"></script>
+<script src="./admin-assets/20-stores.js?v=20260729-1"></script>
 
 <!-- v2.4: 新增現場訂單 FAB -->
 <button id="walkInFab" onclick="openWalkInModal()" class="hidden fixed bottom-6 right-6 z-40 bg-[#1A365D] text-white px-5 py-4 rounded-full shadow-2xl font-bold text-base flex items-center gap-2 hover:bg-blue-900 active:scale-95 transition-transform" style="box-shadow:0 8px 24px rgba(26,54,93,0.35)">
