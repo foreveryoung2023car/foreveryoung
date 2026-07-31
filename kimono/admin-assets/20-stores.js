@@ -109,7 +109,7 @@ function renderDiscountCouponList() {
       : '尚未设置起讫日期';
     const statusLabel = !coupon.startDate || !coupon.endDate
       ? '待补日期'
-      : (coupon.active ? '启用' : '停用');
+      : (coupon.active ? '启用中' : '已停用');
     const statusClass = !coupon.startDate || !coupon.endDate
       ? 'text-amber-600'
       : (coupon.active ? 'text-emerald-600' : 'text-slate-400');
