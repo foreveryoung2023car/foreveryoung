@@ -331,7 +331,7 @@
         </div>
       </div>
     </div>
-    <div class="panel mb-4">
+    <div id="store-management-module" class="panel mb-4">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <label>
           <span class="section-label block">店鋪</span>
@@ -342,9 +342,8 @@
           <input id="store-manage-date" type="date" class="input-field" onchange="loadStoreSchedules()">
         </label>
       </div>
-    </div>
-    <div id="store-schedule-loading" class="panel text-center py-10 text-slate-400">請選擇日期</div>
-    <div id="store-schedule-editor" class="hidden">
+      <div id="store-schedule-loading" class="mt-5 pt-8 pb-3 border-t border-slate-100 text-center text-slate-400">請選擇日期</div>
+      <div id="store-schedule-editor" class="hidden mt-5 pt-5 border-t border-slate-100">
       <button id="store-info-display" type="button" onclick="openStoreEditor(false)" class="store-info-display" aria-label="編輯店鋪信息">
         <span class="store-info-edit" aria-hidden="true">✎</span>
         <span>
@@ -358,7 +357,7 @@
           <span id="store-info-services"></span>
         </span>
       </button>
-      <div class="panel">
+      <div class="mt-4 pt-5 border-t border-slate-100">
       <div class="flex justify-between items-start gap-3 flex-wrap mb-4">
         <div>
           <h3 id="store-schedule-title" class="text-lg font-bold text-[#1A365D]"></h3>
@@ -375,6 +374,7 @@
         <button id="save-store-date-btn" onclick="saveStoreSlots('date')" class="btn-navy px-5 py-2.5 rounded-xl text-sm">儲存此日期</button>
         <button id="save-store-default-btn" onclick="saveStoreSlots('default')" class="btn-outline px-5 py-2.5 rounded-xl text-sm">設為此店預設</button>
         <span class="text-xs text-slate-500">修改預設後，尚未個別設定的日期會自動套用新預設。</span>
+      </div>
       </div>
       </div>
     </div>
