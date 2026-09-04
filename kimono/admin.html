@@ -53,9 +53,9 @@
       <div class="nav-tab" data-sec="customers" onclick="switchSection('customers',this)">👥 客戶名單 <span id="tab-count-customers" class="bg-white/25 px-1.5 rounded text-[11px]">0</span></div>
       <div class="nav-tab" data-sec="finance" onclick="switchSection('finance',this)">💰 財務報表</div>
       <div class="nav-tab" data-sec="reconcile" onclick="switchSection('reconcile',this)">🧾 對帳</div>
-      <div class="nav-tab" data-sec="walkin" onclick="switchSection('walkin',this)">💴 店家月結</div>
-      <div class="nav-tab" data-sec="archive" onclick="switchSection('archive',this)">📁 歷史檔案</div>
-      <div class="nav-tab" data-sec="permissions" onclick="switchSection('permissions',this)">🔐 權限總表</div>
+      <div class="nav-tab" data-sec="walkin" data-owner-only="1" onclick="switchSection('walkin',this)" style="display:none">💴 店家月結</div>
+      <div class="nav-tab" data-sec="archive" data-owner-only="1" onclick="switchSection('archive',this)" style="display:none">📁 歷史檔案</div>
+      <div class="nav-tab" data-sec="permissions" data-owner-only="1" onclick="switchSection('permissions',this)" style="display:none">🔐 權限總表</div>
       <div class="nav-tab" data-sec="audit" data-jun-only="1" onclick="switchSection('audit',this)" style="display:none">📜 操作紀錄</div>
     </div>
   </div>
@@ -1150,7 +1150,7 @@
 <script src="./admin-assets/00-gas-guard.js?v=20260605-14"></script>
 <script src="./admin-assets/01-state.js?v=20260709-1"></script>
 <script src="./admin-assets/02-firebase-api.js?v=20260728-1"></script>
-<script src="./admin-assets/03-ui-utils.js?v=20260904-platform"></script>
+<script src="./admin-assets/03-ui-utils.js?v=20260904-owner-tabs"></script>
 <script src="./admin-assets/04-refunds.js?v=20260626-6"></script>
 <script src="./admin-assets/05-orders.js?v=20260728-1"></script>
 <script src="./admin-assets/06-checkin-actions.js?v=20260610-1"></script>

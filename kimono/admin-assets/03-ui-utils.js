@@ -165,6 +165,10 @@ function isOwnerRole() {
   return (localStorage.getItem('admin_firebaseRole') || '') === 'owner';
 }
 
+function isOwnerOnlySection(sec) {
+  return ['platform-management', 'walkin', 'archive', 'permissions'].indexOf(sec) >= 0;
+}
+
 function canManageEmployeeAccounts() {
   if (!useFirebaseAdmin()) {
     const isStore = currentRole === 'store';
@@ -236,7 +240,7 @@ function applyRolePermissions() {
   const gs = document.getElementById('global-search-wrap');
   if (gs) gs.style.display = isStore ? 'none' : '';
   // If store currently sits on a hidden section, kick to dashboard
-  if (storeHiddenSections.indexOf(currentSection) >= 0 || (currentSection === 'platform-management' && !isOwnerRole())) {
+  if (storeHiddenSections.indexOf(currentSection) >= 0 || (isOwnerOnlySection(currentSection) && !isOwnerRole())) {
     const dashTab = document.querySelector('[data-sec="dashboard"]');
     if (dashTab && typeof switchSection === 'function') switchSection('dashboard', dashTab);
   }
@@ -328,8 +332,8 @@ window.addEventListener('load', () => {
 
 function switchSection(sec, el){
   if (sec === 'payment-settings') sec = 'platform-management';
-  if (sec === 'platform-management' && !isOwnerRole()) {
-    if (typeof toast === 'function') toast('只有 owner 可查看平台管理', 'warning');
+  if (isOwnerOnlySection(sec) && !isOwnerRole()) {
+    if (typeof toast === 'function') toast('只有 owner 可查看此頁面', 'warning');
     sec = 'dashboard';
     el = document.querySelector('[data-sec="dashboard"]');
   }
