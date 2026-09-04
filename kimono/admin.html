@@ -48,7 +48,7 @@
       <div class="nav-tab" data-sec="orders" onclick="switchSection('orders',this)">📋 訂單管理 <span id="tab-count-orders" class="bg-white/25 px-1.5 rounded text-[11px]">0</span></div>
       <div class="nav-tab" data-sec="stores" onclick="switchSection('stores',this)" style="display:none">🏪 店鋪管理</div>
       <div class="nav-tab" data-sec="employees" data-store-admin-only="1" onclick="switchSection('employees',this)" style="display:none">👥 員工管理</div>
-      <div class="nav-tab" data-sec="payment-settings" data-owner-only="1" onclick="switchSection('payment-settings',this)" style="display:none">🏦 匯款設定</div>
+      <div class="nav-tab" data-sec="platform-management" data-owner-only="1" onclick="switchSection('platform-management',this)" style="display:none">🏦 平台管理</div>
       <div class="nav-tab" data-sec="calendar" onclick="switchSection('calendar',this)">📅 行事曆</div>
       <div class="nav-tab" data-sec="customers" onclick="switchSection('customers',this)">👥 客戶名單 <span id="tab-count-customers" class="bg-white/25 px-1.5 rounded text-[11px]">0</span></div>
       <div class="nav-tab" data-sec="finance" onclick="switchSection('finance',this)">💰 財務報表</div>
@@ -461,11 +461,11 @@
     </div>
   </section>
 
-  <section id="sec-payment-settings" class="section">
+  <section id="sec-platform-management" class="section">
     <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
       <div>
-        <h2 class="text-2xl font-bold text-[#1A365D] title-serif">🏦 匯款設定</h2>
-        <p class="text-sm text-slate-600 mt-1 font-semibold">設定用戶端顯示的匯款帳戶與預約訂金，僅 owner 可修改</p>
+        <h2 class="text-2xl font-bold text-[#1A365D] title-serif">🏦 平台管理</h2>
+        <p class="text-sm text-slate-600 mt-1 font-semibold">依平台設定用戶端顯示的匯款帳戶、付款說明與預約訂金，僅 owner 可查看及修改</p>
       </div>
       <div class="flex gap-2 items-center">
         <select id="payset-platform" class="input-field !w-auto" onchange="loadPaymentSettings()">
@@ -479,7 +479,7 @@
     <div class="panel">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div class="space-y-3">
-          <h3 class="text-[#1A365D] font-bold title-serif">收款帳戶</h3>
+          <h3 class="text-[#1A365D] font-bold title-serif">匯款設定 · 收款帳戶</h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div><div class="section-label">銀行代碼</div><input id="payset-bank-code" class="input-field" placeholder="例：008"></div>
             <div><div class="section-label">銀行名稱</div><input id="payset-bank-name" class="input-field" placeholder="例：華南銀行"></div>
@@ -1150,7 +1150,7 @@
 <script src="./admin-assets/00-gas-guard.js?v=20260605-14"></script>
 <script src="./admin-assets/01-state.js?v=20260709-1"></script>
 <script src="./admin-assets/02-firebase-api.js?v=20260728-1"></script>
-<script src="./admin-assets/03-ui-utils.js?v=20260728-1"></script>
+<script src="./admin-assets/03-ui-utils.js?v=20260904-platform"></script>
 <script src="./admin-assets/04-refunds.js?v=20260626-6"></script>
 <script src="./admin-assets/05-orders.js?v=20260728-1"></script>
 <script src="./admin-assets/06-checkin-actions.js?v=20260610-1"></script>
@@ -1166,7 +1166,7 @@
 <script src="./admin-assets/17-walkin-orders.js?v=20260709-1"></script>
 <script src="./admin-assets/18-employees.js?v=20260713-1"></script>
 <script src="./admin-assets/19-tour.js?v=20260713-1"></script>
-<script src="./admin-assets/21-payment-settings.js?v=20260622-1"></script>
+<script src="./admin-assets/21-payment-settings.js?v=20260904-platform"></script>
 <script src="./admin-assets/20-stores.js?v=20260731-1"></script>
 
 <!-- v2.4: 新增現場訂單 FAB -->

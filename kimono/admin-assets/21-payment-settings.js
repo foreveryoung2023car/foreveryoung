@@ -1,3 +1,13 @@
+let paymentSettingsRequest = 0;
+let paymentSettingsLoadedPlatform = '';
+let paymentSettingsSaving = false;
+
+function setPaymentSettingsBusy(busy) {
+  document.querySelectorAll('#sec-platform-management input, #sec-platform-management textarea, #sec-platform-management button').forEach(el => { el.disabled = busy; });
+  const select = document.getElementById('payset-platform');
+  if (select) select.disabled = paymentSettingsSaving;
+}
+
 function paysetNumber(id) {
   return Math.max(0, Math.round(Number(document.getElementById(id)?.value || 0)));
 }
@@ -55,19 +65,32 @@ function renderPaymentSettingsPreview() {
 async function loadPaymentSettings() {
   const err = document.getElementById('payset-error');
   if (err) err.classList.add('hidden');
+  if (paymentSettingsSaving) return;
   if (!useFirebaseAdmin()) return;
   if (!canManagePaymentSettings()) {
     if (typeof switchSection === 'function') switchSection('dashboard', document.querySelector('[data-sec="dashboard"]'));
     return;
   }
   const platform = document.getElementById('payset-platform')?.value || currentBrandPlatform();
+  const request = ++paymentSettingsRequest;
+  paymentSettingsLoadedPlatform = '';
+  setPaymentSettingsBusy(true);
   try {
     const res = await callFirebaseAdminFunction('/getPaymentSettings?platform=' + encodeURIComponent(platform), null, { method: 'GET' });
-    fillPaymentSettingsForm(res.profile || {});
+    if (request !== paymentSettingsRequest) return;
+    if (!res.profile || res.profile.brandPlatform !== platform) throw new Error('平台匯款設定不符，請重新載入');
+    fillPaymentSettingsForm(res.profile);
+    paymentSettingsLoadedPlatform = platform;
   } catch (e) {
+    if (request !== paymentSettingsRequest) return;
     if (err) {
       err.textContent = e.message || '載入匯款設定失敗';
       err.classList.remove('hidden');
+    }
+  } finally {
+    if (request === paymentSettingsRequest) {
+      setPaymentSettingsBusy(false);
+      document.getElementById('payset-save-btn').disabled = paymentSettingsLoadedPlatform !== platform;
     }
   }
 }
@@ -83,7 +106,12 @@ async function savePaymentSettings() {
     }
     return;
   }
+  if (paymentSettingsSaving) return;
   const payload = paymentSettingsPayload();
+  if (paymentSettingsLoadedPlatform !== payload.brandPlatform) {
+    if (err) { err.textContent = '請先成功載入此平台的匯款設定'; err.classList.remove('hidden'); }
+    return;
+  }
   if (!payload.bankCode || !payload.bankName || !payload.bankAccount || !payload.bankHolder) {
     if (err) {
       err.textContent = '請填完整銀行代碼、銀行名稱、匯款帳號與戶名';
@@ -92,6 +120,8 @@ async function savePaymentSettings() {
     return;
   }
   try {
+    paymentSettingsSaving = true;
+    setPaymentSettingsBusy(true);
     if (btn) { btn.disabled = true; btn.textContent = '儲存中…'; }
     const res = await callFirebaseAdminFunction('/savePaymentSettings', payload);
     fillPaymentSettingsForm(res.profile || payload);
@@ -102,6 +132,8 @@ async function savePaymentSettings() {
       err.classList.remove('hidden');
     }
   } finally {
+    paymentSettingsSaving = false;
+    setPaymentSettingsBusy(false);
     if (btn) { btn.disabled = false; btn.textContent = '儲存設定'; }
   }
 }

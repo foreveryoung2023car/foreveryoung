@@ -1468,6 +1468,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                             <p class="text-sm opacity-70">戶名：<span class="text-lg opacity-100 ml-2" id="bank-info-holder"></span></p>
                             <p class="text-sm opacity-70 break-all">匯款帳號：<span class="text-2xl italic opacity-100 ml-2" id="bank-info-account" style="font-family:'Noto Sans TC',sans-serif; letter-spacing:0.04em; font-weight:700; overflow-wrap:anywhere;"></span></p>
                             <p class="text-3xl text-pink-400 font-bold pt-4 mt-2" id="bank-info-amount"></p>
+                            <p id="bank-info-note" class="text-sm mt-3 whitespace-pre-line"></p>
                         </div>
                     </div>
                     <form id="booking-form-2" class="space-y-10">
@@ -2136,16 +2137,47 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
         function serviceOptionIsSelected(option) {
             return option && !/^no$/i.test(String(option.value || '')) && Number(option.feeJpy || 0) >= 0;
         }
+        let paymentProfile = {
+            bankCode: '',
+            bankName: '',
+            bankBranch: '',
+            bankAccount: '',
+            bankHolder: '',
+            depositMaleTwd: Number(KIMONO_CONFIG.DEPOSIT_TWD || 220),
+            depositFemaleTwd: Number(KIMONO_CONFIG.DEPOSIT_TWD || 220),
+            depositChildTwd: Number(KIMONO_CONFIG.DEPOSIT_TWD || 220),
+            depositMaleJpy: Number(KIMONO_CONFIG.DEPOSIT_JPY || 1000),
+            depositFemaleJpy: Number(KIMONO_CONFIG.DEPOSIT_JPY || 1000),
+            depositChildJpy: Number(KIMONO_CONFIG.DEPOSIT_JPY || 1000),
+            paymentNote: ''
+        };
         function adultCount() {
             return guestData.maleAdults + guestData.femaleAdults;
         }
+        function bookingDepositTwd() {
+            return (guestData.maleAdults * Number(paymentProfile.depositMaleTwd || 0)) +
+                (guestData.femaleAdults * Number(paymentProfile.depositFemaleTwd || 0)) +
+                (guestData.children * Number(paymentProfile.depositChildTwd || 0));
+        }
+        function bookingDepositJpy() {
+            return (guestData.maleAdults * Number(paymentProfile.depositMaleJpy || 0)) +
+                (guestData.femaleAdults * Number(paymentProfile.depositFemaleJpy || 0)) +
+                (guestData.children * Number(paymentProfile.depositChildJpy || 0));
+        }
+        function depositDetailText() {
+            const parts = [];
+            if (guestData.maleAdults) parts.push(`男性 NT$${Number(paymentProfile.depositMaleTwd || 0).toLocaleString()} × ${guestData.maleAdults}`);
+            if (guestData.femaleAdults) parts.push(`女性 NT$${Number(paymentProfile.depositFemaleTwd || 0).toLocaleString()} × ${guestData.femaleAdults}`);
+            if (guestData.children) parts.push(`小孩 NT$${Number(paymentProfile.depositChildTwd || 0).toLocaleString()} × ${guestData.children}`);
+            return parts.length ? parts.join(' + ') : '請選擇預約人數';
+        }
         function updateDepositDisplay() {
             const total = adultCount() + guestData.children;
-            const twd = Math.round(total * 1000 * 0.22);
+            const twd = bookingDepositTwd();
             const el = document.getElementById('deposit-display');
             const detail = document.getElementById('deposit-detail');
             if (el) el.textContent = `NT$ ${twd.toLocaleString()} ${t('元')}`;
-            if (detail) detail.textContent = t('每人') + ` 1,000 JPY × ${total} ` + t('人') + ` ≈ NT$ ${twd.toLocaleString()}` + t('（依即時匯率）');
+            if (detail) detail.textContent = `${depositDetailText()}；到店折抵 ¥${bookingDepositJpy().toLocaleString()}`;
             const amtEl = document.getElementById('bank-info-amount');
             if (amtEl) amtEl.textContent = t('需付金額：') + `NT$ ${twd.toLocaleString()}`;
         
@@ -2576,7 +2608,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 platform: payload.platform || 'LINE',
                 brandPlatform: (KIMONO_CONFIG && KIMONO_CONFIG.BRAND_PLATFORM) || 'foreveryoung',
                 couponCode: payload.couponCode || '',
-                depositJpy: (Number(payload.adults || 0) + Number(payload.children || 0)) * 1000,
+                depositJpy: bookingDepositJpy(),
                 proofUrl,
                 proofNote,
                 last5: payload.last5 || ''
@@ -2593,12 +2625,17 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             return data.order.orderNo || data.order.order_no || data.order.id;
         }
 
-        document.getElementById('booking-form-1').onsubmit = (e) => {
+        document.getElementById('booking-form-1').onsubmit = async (e) => {
             e.preventDefault();
             if (!document.getElementById('input-time').value) { alert(t('請選擇預約時段')); return; }
             if (!document.getElementById('input-store').value) { alert(t('請選擇體驗門市')); return; }
             if (adultCount() + guestData.children <= 0) { alert(t('請在所選時段內選擇預約人數')); return; }
             if (!enforceGuestCapacity(true)) return;
+            await loadPaymentProfile();
+            if (!paymentProfileLoaded || paymentProfile.enabled === false || !paymentProfile.bankAccount || !paymentProfile.bankName || !paymentProfile.bankHolder) {
+                alert('匯款資訊暫時無法使用，請稍後重試或聯繫客服。');
+                return;
+            }
             setStep(2); scrollToId('booking');
         };
 
@@ -2707,14 +2744,55 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             }
         };
 
-        window.onload = () => {
-            const cfg = KIMONO_CONFIG;
+        let paymentProfileLoaded = false;
+        let paymentProfileLoading = null;
+        function renderPaymentProfile() {
             const fillEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-            fillEl('bank-info-code', `${cfg.BANK_CODE} (${cfg.BANK_NAME})`);
-            fillEl('bank-info-branch', cfg.BANK_BRANCH);
-            fillEl('bank-info-holder', cfg.BANK_HOLDER);
-            fillEl('bank-info-account', cfg.BANK_ACCOUNT);
+            if (!paymentProfileLoaded || paymentProfile.enabled === false) {
+                ['bank-info-code', 'bank-info-branch', 'bank-info-holder', 'bank-info-account', 'bank-info-amount'].forEach(id => fillEl(id, ''));
+                fillEl('bank-info-note', '匯款資訊暫時無法使用，請稍後重試或聯繫客服。');
+                return;
+            }
+            const bankParts = [paymentProfile.bankCode, paymentProfile.bankName].filter(Boolean);
+            fillEl('bank-info-code', bankParts.length ? bankParts.join(' ') : '');
+            fillEl('bank-info-branch', paymentProfile.bankBranch || '');
+            fillEl('bank-info-holder', paymentProfile.bankHolder || '');
+            fillEl('bank-info-account', paymentProfile.bankAccount || '');
+            fillEl('bank-info-note', paymentProfile.paymentNote || '提交後客服會進行人工核對。收到「預約確認通知」才代表名額正式保留，訂金可於體驗當日全額折抵。');
             updateDepositDisplay();
+        }
+
+        async function loadPaymentProfile(force = false) {
+            const cfg = KIMONO_CONFIG;
+            if (paymentProfileLoaded && !force) {
+                renderPaymentProfile();
+                return paymentProfile;
+            }
+            if (paymentProfileLoading && !force) return paymentProfileLoading;
+            paymentProfileLoading = (async () => {
+            try {
+                if (API_BASE_URL) {
+                    const platform = (cfg && cfg.BRAND_PLATFORM) || 'foreveryoung';
+                    const res = await fetch(`${API_BASE_URL}/getPaymentSettings?platform=${encodeURIComponent(platform)}`);
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok || data.status !== 'success' || !data.profile) throw new Error('匯款設定載入失敗');
+                    paymentProfile = data.profile;
+                    paymentProfileLoaded = true;
+                }
+            } catch (e) {
+                paymentProfileLoaded = false;
+                console.warn('付款設定載入失敗', e);
+            } finally {
+                paymentProfileLoading = null;
+                renderPaymentProfile();
+            }
+            return paymentProfile;
+            })();
+            return paymentProfileLoading;
+        }
+
+        window.onload = async () => {
+            await loadPaymentProfile();
             renderPersonKimonoSelects();
             document.getElementById('input-date').setAttribute('min', todayStr);
             document.getElementById('input-store').addEventListener('change', () => {

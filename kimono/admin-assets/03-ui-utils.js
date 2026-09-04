@@ -236,7 +236,7 @@ function applyRolePermissions() {
   const gs = document.getElementById('global-search-wrap');
   if (gs) gs.style.display = isStore ? 'none' : '';
   // If store currently sits on a hidden section, kick to dashboard
-  if (storeHiddenSections.indexOf(currentSection) >= 0 || (currentSection === 'payment-settings' && !isOwnerRole())) {
+  if (storeHiddenSections.indexOf(currentSection) >= 0 || (currentSection === 'platform-management' && !isOwnerRole())) {
     const dashTab = document.querySelector('[data-sec="dashboard"]');
     if (dashTab && typeof switchSection === 'function') switchSection('dashboard', dashTab);
   }
@@ -327,8 +327,9 @@ window.addEventListener('load', () => {
 });
 
 function switchSection(sec, el){
-  if (sec === 'payment-settings' && !isOwnerRole()) {
-    if (typeof toast === 'function') toast('只有 owner 可查看匯款設定', 'warning');
+  if (sec === 'payment-settings') sec = 'platform-management';
+  if (sec === 'platform-management' && !isOwnerRole()) {
+    if (typeof toast === 'function') toast('只有 owner 可查看平台管理', 'warning');
     sec = 'dashboard';
     el = document.querySelector('[data-sec="dashboard"]');
   }
@@ -353,7 +354,7 @@ function switchSection(sec, el){
   else if(sec==='calendar') renderCalendar();
   else if(sec==='customers') renderCustomers();
   else if(sec==='finance') renderFinance();
-  else if(sec==='payment-settings') loadPaymentSettings();
+  else if(sec==='platform-management') loadPaymentSettings();
   else if(sec==='reconcile') {
     // 每次進對帳都同步年月與日期選項。
     initReconMonths();
