@@ -19,6 +19,9 @@ function canManagePaymentSettings() {
 function paymentSettingsPayload() {
   return {
     brandPlatform: document.getElementById('payset-platform')?.value || currentBrandPlatform(),
+    lineUrl: document.getElementById('payset-line-url')?.value.trim() || '',
+    messengerUrl: document.getElementById('payset-messenger-url')?.value.trim() || '',
+    phone: document.getElementById('payset-phone')?.value.trim() || '',
     bankCode: document.getElementById('payset-bank-code')?.value.trim() || '',
     bankName: document.getElementById('payset-bank-name')?.value.trim() || '',
     bankBranch: document.getElementById('payset-bank-branch')?.value.trim() || '',
@@ -37,6 +40,9 @@ function paymentSettingsPayload() {
 
 function fillPaymentSettingsForm(profile) {
   const set = (id, value) => { const el = document.getElementById(id); if (el) el.value = value == null ? '' : value; };
+  set('payset-line-url', profile.lineUrl ?? (profile.brandPlatform === 'foreveryoung' ? 'https://lin.ee/TgFCvYQ' : ''));
+  set('payset-messenger-url', profile.messengerUrl ?? (profile.brandPlatform === 'foreveryoung' ? 'https://m.me/foreveryoung2023car' : 'https://m.me/japan-go'));
+  set('payset-phone', profile.phone ?? '+81 80-3705-5176');
   set('payset-bank-code', profile.bankCode || '');
   set('payset-bank-name', profile.bankName || '');
   set('payset-bank-branch', profile.bankBranch || '');
@@ -78,13 +84,13 @@ async function loadPaymentSettings() {
   try {
     const res = await callFirebaseAdminFunction('/getPaymentSettings?platform=' + encodeURIComponent(platform), null, { method: 'GET' });
     if (request !== paymentSettingsRequest) return;
-    if (!res.profile || res.profile.brandPlatform !== platform) throw new Error('平台匯款設定不符，請重新載入');
+    if (!res.profile || res.profile.brandPlatform !== platform) throw new Error('平台設定不符，請重新載入');
     fillPaymentSettingsForm(res.profile);
     paymentSettingsLoadedPlatform = platform;
   } catch (e) {
     if (request !== paymentSettingsRequest) return;
     if (err) {
-      err.textContent = e.message || '載入匯款設定失敗';
+      err.textContent = e.message || '載入平台設定失敗';
       err.classList.remove('hidden');
     }
   } finally {
@@ -101,7 +107,7 @@ async function savePaymentSettings() {
   if (err) err.classList.add('hidden');
   if (!canManagePaymentSettings()) {
     if (err) {
-      err.textContent = '只有 owner 可修改匯款設定';
+      err.textContent = '只有 owner 可修改平台設定';
       err.classList.remove('hidden');
     }
     return;
@@ -109,14 +115,11 @@ async function savePaymentSettings() {
   if (paymentSettingsSaving) return;
   const payload = paymentSettingsPayload();
   if (paymentSettingsLoadedPlatform !== payload.brandPlatform) {
-    if (err) { err.textContent = '請先成功載入此平台的匯款設定'; err.classList.remove('hidden'); }
+    if (err) { err.textContent = '請先成功載入此平台的平台設定'; err.classList.remove('hidden'); }
     return;
   }
-  if (!payload.bankCode || !payload.bankName || !payload.bankAccount || !payload.bankHolder) {
-    if (err) {
-      err.textContent = '請填完整銀行代碼、銀行名稱、匯款帳號與戶名';
-      err.classList.remove('hidden');
-    }
+  if ([payload.lineUrl, payload.messengerUrl].some(value => value && !/^https?:\/\/[^\s]+$/i.test(value))) {
+    if (err) { err.textContent = '請輸入有效的 http:// 或 https:// 聯絡連結'; err.classList.remove('hidden'); }
     return;
   }
   try {
@@ -125,10 +128,10 @@ async function savePaymentSettings() {
     if (btn) { btn.disabled = true; btn.textContent = '儲存中…'; }
     const res = await callFirebaseAdminFunction('/savePaymentSettings', payload);
     fillPaymentSettingsForm(res.profile || payload);
-    toast('匯款設定已儲存');
+    toast('平台設定已儲存');
   } catch (e) {
     if (err) {
-      err.textContent = e.message || '儲存匯款設定失敗';
+      err.textContent = e.message || '儲存平台設定失敗';
       err.classList.remove('hidden');
     }
   } finally {

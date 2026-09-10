@@ -465,7 +465,7 @@
     <div class="flex justify-between items-end mb-4 flex-wrap gap-2">
       <div>
         <h2 class="text-2xl font-bold text-[#1A365D] title-serif">🏦 平台管理</h2>
-        <p class="text-sm text-slate-600 mt-1 font-semibold">依平台設定用戶端顯示的匯款帳戶、付款說明與預約訂金，僅 owner 可查看及修改</p>
+        <p class="text-sm text-slate-600 mt-1 font-semibold">依平台設定用戶端顯示的聯絡方式、匯款帳戶、付款說明與預約訂金，僅 owner 可查看及修改</p>
       </div>
       <div class="flex gap-2 items-center">
         <select id="payset-platform" class="input-field !w-auto" onchange="loadPaymentSettings()">
@@ -479,6 +479,11 @@
     <div class="panel">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div class="space-y-3">
+          <h3 class="text-[#1A365D] font-bold title-serif">客服聯絡方式</h3>
+          <div><label for="payset-line-url" class="section-label">LINE 連結</label><input id="payset-line-url" type="url" class="input-field" placeholder="https://lin.ee/…"></div>
+          <div><label for="payset-messenger-url" class="section-label">Facebook / Messenger 連結</label><input id="payset-messenger-url" type="url" class="input-field" placeholder="https://m.me/…"></div>
+          <div><label for="payset-phone" class="section-label">客服電話</label><input id="payset-phone" type="tel" maxlength="60" class="input-field" placeholder="+81 80-3705-5176"></div>
+          <p class="text-xs text-slate-500">依平台獨立設定；留空會隱藏該聯絡方式。</p>
           <h3 class="text-[#1A365D] font-bold title-serif">匯款設定 · 收款帳戶</h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div><div class="section-label">銀行代碼</div><input id="payset-bank-code" class="input-field" placeholder="例：008"></div>
@@ -1166,7 +1171,7 @@
 <script src="./admin-assets/17-walkin-orders.js?v=20260709-1"></script>
 <script src="./admin-assets/18-employees.js?v=20260713-1"></script>
 <script src="./admin-assets/19-tour.js?v=20260713-1"></script>
-<script src="./admin-assets/21-payment-settings.js?v=20260904-platform"></script>
+<script src="./admin-assets/21-payment-settings.js?v=20260910-contacts"></script>
 <script src="./admin-assets/20-stores.js?v=20260731-1"></script>
 
 <!-- v2.4: 新增現場訂單 FAB -->

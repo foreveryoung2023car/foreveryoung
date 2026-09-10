@@ -6,6 +6,9 @@ import { writeAuditLog } from "../lib/audit.js";
 
 export type PaymentProfile = {
   brandPlatform: BrandPlatform;
+  lineUrl: string;
+  messengerUrl: string;
+  phone: string;
   bankCode: string;
   bankName: string;
   bankBranch: string;
@@ -24,6 +27,9 @@ export type PaymentProfile = {
 const defaultProfiles: Record<BrandPlatform, PaymentProfile> = {
   foreveryoung: {
     brandPlatform: "foreveryoung",
+    lineUrl: "https://lin.ee/TgFCvYQ",
+    messengerUrl: "https://m.me/foreveryoung2023car",
+    phone: "+81 80-3705-5176",
     bankCode: "008",
     bankName: "華南銀行",
     bankBranch: "營業部",
@@ -40,6 +46,9 @@ const defaultProfiles: Record<BrandPlatform, PaymentProfile> = {
   },
   "japan-go": {
     brandPlatform: "japan-go",
+    lineUrl: "",
+    messengerUrl: "https://m.me/japan-go",
+    phone: "+81 80-3705-5176",
     bankCode: "008",
     bankName: "",
     bankBranch: "",
@@ -56,8 +65,13 @@ const defaultProfiles: Record<BrandPlatform, PaymentProfile> = {
   }
 };
 
+const contactUrlSchema = z.string().trim().max(2000).refine(value => !value || /^https?:\/\/[^\s]+$/i.test(value), "Invalid contact URL");
+
 const paymentProfileSchema = z.object({
   brandPlatform: z.enum(["foreveryoung", "japan-go"]),
+  lineUrl: contactUrlSchema.optional(),
+  messengerUrl: contactUrlSchema.optional(),
+  phone: z.string().trim().max(60).optional(),
   bankCode: z.string().trim().max(20).default(""),
   bankName: z.string().trim().max(80).default(""),
   bankBranch: z.string().trim().max(80).default(""),
@@ -80,9 +94,9 @@ function cleanProfile(raw: unknown, platform: BrandPlatform): PaymentProfile {
   const data = raw && typeof raw === "object" ? raw as Record<string, unknown> : {};
   return paymentProfileSchema.parse({
     ...base,
-    ...data,
+    ...Object.fromEntries(Object.entries(data).filter(([, value]) => value !== undefined)),
     brandPlatform: platform
-  });
+  }) as PaymentProfile;
 }
 
 export async function getPaymentProfile(platformRaw: unknown) {
@@ -97,7 +111,7 @@ export async function savePaymentProfile(raw: unknown, actor: AuthContext) {
   const parsed = paymentProfileSchema.parse(raw);
   const platform = normalizeBrandPlatform(parsed.brandPlatform);
   const before = (await getPaymentProfile(platform)).profile;
-  const profile = cleanProfile(parsed, platform);
+  const profile = cleanProfile({ ...before, ...Object.fromEntries(Object.entries(parsed).filter(([, value]) => value !== undefined)) }, platform);
   await paymentDocRef.set({
     [platform]: {
       ...profile,
