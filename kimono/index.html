@@ -934,6 +934,27 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 .date-input-empty { color: transparent !important; }
 .date-input-empty::-webkit-datetime-edit { color: transparent; }
 .date-input-empty::-webkit-calendar-picker-indicator { opacity: 1; }
+        /* Store identity above the booking form. */
+        #booking .booking-store-brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 28px;
+        }
+        #booking .booking-store-brand img {
+            display: block;
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            border-radius: 12px;
+        }
+        #booking .booking-store-brand span {
+            font-size: clamp(20px, 4vw, 24px);
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            color: inherit;
+        }
 </style>
 </head>
 <body class="bg-[#FDFCF8] text-[#1A365D] selection:bg-pink-100 overflow-x-hidden">
@@ -1391,6 +1412,10 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                     填寫預約資料 → 匯款訂金 → 客服核對確認<br>
                     <span class="text-xs text-slate-300">全程線上完成，訂金體驗當日全額折抵</span>
                 </p>
+                <div class="booking-store-brand" translate="no">
+                    <img src="img/email/ouka-kimono-logo.jpg" alt="櫻花和服 logo" width="80" height="80" loading="lazy">
+                    <span>櫻花和服</span>
+                </div>
             </div>
 
             <div class="max-w-4xl mx-auto bg-white p-8 md:p-20 shadow-2xl relative rounded-sm border border-[#1A365D]/5 text-center">
