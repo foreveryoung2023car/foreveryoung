@@ -45,9 +45,7 @@ function composeRefundReason(){
 function markRefundDone(){
   const el = document.getElementById('e-refund-date');
   if (!el) return;
-  const now = new Date();
-  const offset = now.getTimezoneOffset() * 60000;
-  const local = new Date(now.getTime() - offset).toISOString().slice(0, 16);
+  const local = dateTimeLocalValueJST(new Date().toISOString());
   el.value = local;
   toast('已填入退款時間：' + local.replace('T', ' '), 'success');
 }

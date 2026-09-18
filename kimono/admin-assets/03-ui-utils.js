@@ -790,13 +790,13 @@ function parseBookingDate(s){
     if (typeof s._seconds === 'number') return dateWithJstClock(new Date(s._seconds * 1000));
     if (typeof s.seconds === 'number') return dateWithJstClock(new Date(s.seconds * 1000));
   }
-  const str = String(s);
-  if (str.indexOf('T') >= 0 && hasExplicitTimeZone(str)) {
+  const str = String(s).trim();
+  if (hasExplicitTimeZone(str)) {
     const z = new Date(str);
     return isNaN(z) ? null : dateWithJstClock(z);
   }
   // Chinese 12h: 2026/06/30 上午 10:00 or 2026-05-15 下午1:30
-  const m = str.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})\s*(上午|下午|中午)?\s*(\d{1,2}):(\d{2})/);
+  const m = str.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})[T\s]*(上午|下午|中午)?\s*(\d{1,2}):(\d{2})/);
   if(m){
     let h = parseInt(m[5]);
     if(m[4]==='下午' && h<12) h+=12;

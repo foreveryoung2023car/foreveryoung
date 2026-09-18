@@ -35,7 +35,7 @@ async function renderEmployees() {
       let html = '<table class="w-full text-sm"><thead><tr class="bg-slate-100 text-slate-600">';
       html += '<th class="p-2 text-left">Email</th><th class="p-2 text-left">姓名</th><th class="p-2 text-left">角色</th><th class="p-2 text-left">平台</th><th class="p-2 text-left">門市</th><th class="p-2 text-left">狀態</th><th class="p-2 text-left">最後登入</th><th class="p-2 text-right">操作</th></tr></thead><tbody>';
       emps.forEach(e => {
-        const lastLogin = e.lastSignInAt ? new Date(e.lastSignInAt).toLocaleString('zh-TW', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
+        const lastLogin = e.lastSignInAt ? new Date(e.lastSignInAt).toLocaleString('zh-TW', {timeZone:'Asia/Tokyo',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
         const statusLabel = e.active ? '<span class="text-emerald-600 font-bold">啟用</span>' : '<span class="text-slate-400">已停用</span>';
         const toggleBtn = e.active
           ? '<button onclick="disableEmployee(\'' + adminJsArg(e.uid) + '\',\'' + adminJsArg(e.displayName || e.email) + '\')" class="text-red-600 hover:underline text-xs">停用</button>'
@@ -86,7 +86,7 @@ async function renderEmployees() {
     let html = '<table class="w-full text-sm"><thead><tr class="bg-slate-100 text-slate-600">';
     html += '<th class="p-2 text-left">員工 ID</th><th class="p-2 text-left">門市</th><th class="p-2 text-left">姓名</th><th class="p-2 text-left">角色</th><th class="p-2 text-left">狀態</th><th class="p-2 text-left">最後登入</th><th class="p-2 text-right">操作</th></tr></thead><tbody>';
     emps.forEach(e => {
-      const lastLogin = e.lastLogin ? new Date(e.lastLogin).toLocaleString('zh-TW', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
+      const lastLogin = e.lastLogin ? new Date(e.lastLogin).toLocaleString('zh-TW', {timeZone:'Asia/Tokyo',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
       const roleLabel = e.role === 'admin' ? '<span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-bold">管理者</span>' : '<span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs">店員</span>';
       const statusLabel = e.active ? '<span class="text-emerald-600 font-bold">啟用</span>' : '<span class="text-slate-400">已停用</span>';
       const toggleBtn = e.active

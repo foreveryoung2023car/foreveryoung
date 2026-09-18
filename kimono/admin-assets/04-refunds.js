@@ -8,7 +8,7 @@ async function markRefundPaid(orderId, name){
     return openEdit(orderId);
   }
   if(!confirm('確認已完成退款給「'+name+'」的匯款？\n退款原因：'+o.refundReason)) return;
-  const today = new Date();
+  const today = nowAsJstLocalDate();
   const refundDate = today.getFullYear()+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+String(today.getDate()).padStart(2,'0');
   try {
     await saveOrderQuick(o, {refundDate: refundDate});
@@ -90,7 +90,7 @@ async function markPaidFull(orderId, name){
       return;
     }
   }
-  const today = new Date();
+  const today = nowAsJstLocalDate();
   const tag = '[PAID-'+today.getFullYear()+String(today.getMonth()+1).padStart(2,'0')+String(today.getDate()).padStart(2,'0')+']';
   const newNote = (o.note||'') + (o.note?' ':'') + tag;
   try {

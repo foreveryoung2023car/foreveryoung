@@ -282,7 +282,7 @@ function renderTrendChart(){
   if (!canvas) return;
   // 過去 6 個月
   const months = [];
-  const now = new Date();
+  const now = nowAsJstLocalDate();
   for (let i = 5; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     months.push({ key: d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'), label: (d.getMonth()+1)+'月' });
@@ -320,7 +320,7 @@ async function quickPreCheckClose(){
   if (useFirebaseAdmin()) { toast('Firebase 模式下月度關帳尚未遷移；舊 GAS 僅保留只讀備份', 'warning'); return; }
   if (currentAgent !== 'Jun') { toast('只有 Jun 可以執行', 'error'); return; }
   // 找上月份
-  const now = new Date();
+  const now = nowAsJstLocalDate();
   const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const month = prev.getFullYear() + '-' + String(prev.getMonth()+1).padStart(2,'0');
   toast('正在預檢 ' + month + '…', 'info');
@@ -416,7 +416,7 @@ async function openCloseMonthDialog() {
   const month = typeof getReconcileMonthFilter === 'function' ? getReconcileMonthFilter() : document.getElementById('recon-month').value;
   if (!month || month === 'all') { toast('請先選擇一個月份', 'warning'); return; }
   // v2.4.20: 防呆（理論上下拉已 disable，這裡僅 safety net）
-  const now = new Date();
+  const now = nowAsJstLocalDate();
   const currentMonth = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
   if (month >= currentMonth) { toast('未到月份不能關帳', 'error'); return; }
   toast('正在預檢 ' + month + '…', 'info');

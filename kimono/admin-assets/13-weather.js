@@ -77,13 +77,13 @@ function renderWeather(results){
   // Update fetch timestamp
   try {
     const cached = JSON.parse(localStorage.getItem(WX_CACHE_KEY)||'null');
-    const ts = cached && cached.ts ? new Date(cached.ts) : new Date();
+    const ts = dateWithJstClock(cached && cached.ts ? new Date(cached.ts) : new Date());
     const m = String(ts.getMonth()+1).padStart(2,'0');
     const d = String(ts.getDate()).padStart(2,'0');
     const hh = String(ts.getHours()).padStart(2,'0');
     const mm = String(ts.getMinutes()).padStart(2,'0');
     const fetchedEl = document.getElementById('weather-fetched-at');
-    if (fetchedEl) fetchedEl.textContent = m + '/' + d + ' ' + hh + ':' + mm + ' (本地時間)';
+    if (fetchedEl) fetchedEl.textContent = m + '/' + d + ' ' + hh + ':' + mm + ' (JST)';
   } catch(_){}
 
   // v2.4.26: 氣象台風格 — 日期 column 共用，各城市一 row
@@ -102,7 +102,7 @@ function renderWeather(results){
   html += '<thead><tr>';
   html += '<th class="text-left px-3 py-2 bg-slate-50 sticky left-0 text-[11px] font-bold text-slate-500 uppercase tracking-wider" style="min-width:60px">地點</th>';
   dates.forEach((iso, i) => {
-    const dt = new Date(iso);
+    const dt = parseBookingDate(iso);
     const isToday = i === 0;
     const md = mdLabels[(dt.getDay()+6)%7];
     html += '<th class="text-center px-2 py-2 ' + (isToday?'bg-amber-50':'bg-slate-50') + '" style="min-width:54px">';

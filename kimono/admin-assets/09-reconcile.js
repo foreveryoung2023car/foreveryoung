@@ -943,7 +943,7 @@ function orderExportTableData(list){
 }
 function orderExportHtml(list, title){
   const { headers, rows } = orderExportTableData(list);
-  const generatedAt = new Date().toLocaleString('zh-TW', { hour12:false });
+  const generatedAt = new Date().toLocaleString('zh-TW', { timeZone:'Asia/Tokyo', hour12:false });
   const colClasses = ['col-id','col-name','col-phone','col-time','col-count','col-small','col-makeup','col-small','col-note','col-money','col-money','col-remark'];
   return '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">'+
     '<head><meta charset="utf-8"><title>'+csvHtml(title)+'</title>'+
@@ -977,7 +977,7 @@ function ordersToA4Excel(list, title){
   const blob = new Blob(['\ufeff'+html], {type:'application/vnd.ms-excel;charset=utf-8'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'kimono-orders-table-'+new Date().toISOString().slice(0,10)+'.xls';
+  a.href = url; a.download = 'kimono-orders-table-'+jstDateKey(nowAsJstLocalDate())+'.xls';
   a.click();
   URL.revokeObjectURL(url);
 }
