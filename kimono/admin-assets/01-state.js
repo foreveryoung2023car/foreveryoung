@@ -1,4 +1,4 @@
-const DEPOSIT_JPY = (typeof KIMONO_CONFIG !== 'undefined' && KIMONO_CONFIG.DEPOSIT_JPY) ? Number(KIMONO_CONFIG.DEPOSIT_JPY) : 1000;
+const DEPOSIT_JPY = (typeof KIMONO_CONFIG !== 'undefined' && KIMONO_CONFIG.DEPOSIT_JPY) ? Number(KIMONO_CONFIG.DEPOSIT_JPY) : 2000;
 let currentAgent = '';
 let adminToken = '';
 let currentRole = 'agent';      // v2.5: 'agent' (客服) | 'store' (店家)

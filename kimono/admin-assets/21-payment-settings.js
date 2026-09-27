@@ -27,12 +27,7 @@ function paymentSettingsPayload() {
     bankBranch: document.getElementById('payset-bank-branch')?.value.trim() || '',
     bankAccount: document.getElementById('payset-bank-account')?.value.trim() || '',
     bankHolder: document.getElementById('payset-bank-holder')?.value.trim() || '',
-    depositMaleTwd: paysetNumber('payset-male-twd'),
-    depositFemaleTwd: paysetNumber('payset-female-twd'),
-    depositChildTwd: paysetNumber('payset-child-twd'),
-    depositMaleJpy: paysetNumber('payset-male-jpy'),
-    depositFemaleJpy: paysetNumber('payset-female-jpy'),
-    depositChildJpy: paysetNumber('payset-child-jpy'),
+    depositBookingTwd: paysetNumber('payset-booking-twd'),
     paymentNote: document.getElementById('payset-note')?.value.trim() || '',
     enabled: !!document.getElementById('payset-enabled')?.checked
   };
@@ -49,12 +44,7 @@ function fillPaymentSettingsForm(profile) {
   set('payset-bank-account', profile.bankAccount || '');
   set('payset-bank-holder', profile.bankHolder || '');
   set('payset-note', profile.paymentNote || '');
-  set('payset-male-twd', Number(profile.depositMaleTwd || 0));
-  set('payset-female-twd', Number(profile.depositFemaleTwd || 0));
-  set('payset-child-twd', Number(profile.depositChildTwd || 0));
-  set('payset-male-jpy', Number(profile.depositMaleJpy || 0));
-  set('payset-female-jpy', Number(profile.depositFemaleJpy || 0));
-  set('payset-child-jpy', Number(profile.depositChildJpy || 0));
+  set('payset-booking-twd', Number(profile.depositBookingTwd ?? 440));
   const enabled = document.getElementById('payset-enabled');
   if (enabled) enabled.checked = profile.enabled !== false;
   renderPaymentSettingsPreview();
@@ -64,8 +54,8 @@ function renderPaymentSettingsPreview() {
   const p = paymentSettingsPayload();
   const preview = document.getElementById('payset-preview');
   if (!preview) return;
-  preview.textContent = '男性 NT$' + p.depositMaleTwd.toLocaleString() + ' / 女性 NT$' + p.depositFemaleTwd.toLocaleString() + ' / 小孩 NT$' + p.depositChildTwd.toLocaleString() +
-    '；日幣折抵：男 ¥' + p.depositMaleJpy.toLocaleString() + '、女 ¥' + p.depositFemaleJpy.toLocaleString() + '、小孩 ¥' + p.depositChildJpy.toLocaleString();
+  preview.textContent = '每組預約 NT$' + p.depositBookingTwd.toLocaleString() +
+    '；日幣折抵：每組預約 ¥2,000';
 }
 
 async function loadPaymentSettings() {

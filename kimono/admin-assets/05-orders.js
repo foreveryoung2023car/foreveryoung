@@ -5,7 +5,7 @@ function renderDashboard(){
   const range = document.getElementById('dash-range').value;
   const filtered = visible.filter(o => isInRange(o, range));
   const now = nowAsJstLocalDate();
-  document.getElementById('dash-date').textContent = now.toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'long'}) + ' · ' + (currentAgent||'');
+  document.getElementById('dash-date').textContent = new Date().toLocaleDateString(AdminI18n.locale,{timeZone:'Asia/Tokyo',year:'numeric',month:'long',day:'numeric',weekday:'long'}) + ' · ' + (currentAgent||'');
 
   const total = filtered.length;
   let pending = 0, confirmed = 0, deposit = 0, due = 0, refund = 0, refundCount = 0;
@@ -1017,7 +1017,7 @@ async function changeOrderStatus(orderId, nextStatus, selectEl) {
   if (nextStatus === previousStatus) return;
   if (!orderNextStatusOptions(previousStatus).includes(nextStatus)) {
     selectEl.value = previousStatus;
-    alert('此狀態不可切換到「'+orderStatusMeta(nextStatus).label+'」。');
+    adminAlert('此狀態不可切換到「'+orderStatusMeta(nextStatus).label+'」。');
     return;
   }
   const nextMeta = orderStatusMeta(nextStatus);
@@ -1026,7 +1026,7 @@ async function changeOrderStatus(orderId, nextStatus, selectEl) {
     : previousStatus === 'cancelled'
       ? '確認恢復已取消訂單「'+orderId+'」為「'+nextMeta.label+'」？\n\n此操作僅 owner 可執行，請確認訂單需要重新進入流程。'
       : '確認將訂單「'+orderId+'」改為「'+nextMeta.label+'」？';
-  if (!confirm(confirmMessage)) {
+  if (!adminConfirm(confirmMessage)) {
     selectEl.value = previousStatus;
     return;
   }
@@ -1054,7 +1054,7 @@ async function changeOrderStatus(orderId, nextStatus, selectEl) {
   } catch (e) {
     selectEl.disabled = false;
     selectEl.value = previousStatus;
-    alert('狀態更新失敗：'+e.message);
+    adminAlert('狀態更新失敗：'+e.message);
   }
 }
 

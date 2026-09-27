@@ -513,3 +513,43 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
 #tour-tooltip[data-position="left"]::before   { right: -16px; top: 24px; border-left-color: #FFFFFF; }
 #tour-tooltip[data-position="right"]::before  { left: -16px; top: 24px; border-right-color: #FFFFFF; }
 #tour-tooltip[data-position="center"]::before { display: none; }
+
+/* Four-language admin header; long translated labels can wrap inside panels. */
+.admin-language-picker {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 2rem;
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.admin-language-picker > button { display:flex; align-items:center; justify-content:center; width:100%; height:100%; padding:0; border:0; background:transparent; cursor:pointer; }
+.admin-language-picker:hover { filter: brightness(1.2); }
+.admin-language-picker svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  color: #fff;
+  pointer-events: none;
+}
+.admin-language-menu { position:absolute; top:calc(100% + 6px); right:0; z-index:100; min-width:8.5rem; padding:.3rem; border-radius:.55rem; background:#fff; box-shadow:0 8px 24px rgba(15,23,42,.24); }
+.admin-language-menu button { display:block; width:100%; padding:.5rem .65rem; border:0; border-radius:.35rem; background:transparent; color:#1a365d; text-align:left; font-size:.8rem; font-weight:700; white-space:nowrap; cursor:pointer; }
+.admin-language-menu button:hover { background:#eef2ff; }
+.admin-language-picker:focus-within { outline: 2px solid #f5d589; outline-offset: 2px; border-radius: .25rem; }
+html[lang="en"] .nav-tab, html[lang="ja"] .nav-tab { flex-shrink: 0; }
+html[lang="en"] .section-label { overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+  .admin-nav > div:first-child { flex-wrap: wrap; }
+  .admin-nav > div:first-child > div:last-child { gap: .35rem; max-width: 100%; flex-wrap: wrap; }
+  .admin-language-picker { width: 1.65rem; height: 1.85rem; }
+}
+
+.admin-training-source { margin-top: 1rem; font-size: .85rem; }
+.admin-training-source summary { cursor: pointer; font-weight: 600; }
+.admin-training-source [data-i18n-ignore] { max-height: 32vh; overflow: auto; padding: .75rem; border: 1px solid #cbd5e1; }

@@ -248,6 +248,19 @@ function syncMakeupFeeFromPlan() {
   if (typeof updateCalc === 'function') updateCalc();
 }
 
+function syncMakeupPlanFromFee() {
+  const fee = Number(document.getElementById('e-makeup-fee')?.value || 0);
+  const plan = ({ 0: 'No', 3000: 'Basic', 5000: 'Standard', 8000: 'Premium' })[fee];
+  const select = document.getElementById('e-makeup');
+  if (select && plan) select.value = plan;
+  if (typeof updateCalc === 'function') updateCalc();
+}
+
+function orderCouponInputValue(value) {
+  const couponCode = String(value || '').trim();
+  return ['無', '无', 'なし', 'None', '—', '-'].includes(couponCode) ? '' : couponCode;
+}
+
 function openEdit(orderId) {
   const o = allOrders.find(x => x.orderId === orderId);
   if (!o) return;
@@ -292,12 +305,15 @@ function openEdit(orderId) {
   document.getElementById('e-hair-fee').value = o.hairFee || '';
   document.getElementById('e-makeup-fee').value = orderMakeupFee(o) || '';
   document.getElementById('e-photo-fee').value = o.photoFee || '';
-  document.getElementById('e-coupon').value = o.coupon || '';
+  // Historical orders may store a localized "none" marker. Render those as
+  // an empty readonly field so its localized placeholder is shown instead.
+  const couponCode = orderCouponInputValue(o.coupon);
+  document.getElementById('e-coupon').value = couponCode;
   const couponRate = Number(o.rate || 0);
-  document.getElementById('e-rate').value = o.coupon && couponRate > 0 && couponRate < 10
+  document.getElementById('e-rate').value = couponCode && couponRate > 0 && couponRate < 10
     ? couponRate
     : '';
-  const couponDiscount = o.coupon && couponRate > 0 && couponRate < 10
+  const couponDiscount = couponCode && couponRate > 0 && couponRate < 10
     ? Math.max(0, Number(o.price || o.kimonoPrice || 0) - Math.round(Number(o.price || o.kimonoPrice || 0) * couponRate / 10))
     : 0;
   document.getElementById('e-coupon-discount').value = couponDiscount || '';

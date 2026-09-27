@@ -235,12 +235,12 @@ async function setDiscountCouponActive(code, active) {
     if (document.getElementById('discount-coupon-code').value === code) editDiscountCoupon(code);
     toast(active ? '優惠碼已啟用' : '優惠碼已停用');
   } catch (err) {
-    alert((active ? '啟用' : '停用') + '失敗：' + err.message);
+    adminAlert((active ? '啟用' : '停用') + '失敗：' + err.message);
   }
 }
 
 async function deleteDiscountCoupon(code) {
-  if (!confirm('確定刪除優惠碼「' + code + '」？刪除後無法復原。')) return;
+  if (!adminConfirm('確定刪除優惠碼「' + code + '」？刪除後無法復原。')) return;
   try {
     await callFirebaseAdminFunction('/deleteDiscountCoupon', { code });
     discountCouponRows = discountCouponRows.filter(item => item.code !== code);
@@ -248,7 +248,7 @@ async function deleteDiscountCoupon(code) {
     if (document.getElementById('discount-coupon-code').value === code) newDiscountCoupon();
     toast('優惠碼已刪除');
   } catch (err) {
-    alert('刪除失敗：' + err.message);
+    adminAlert('刪除失敗：' + err.message);
   }
 }
 
@@ -260,10 +260,14 @@ function selectedStoreRow() {
 function renderSelectedStoreSchedule() {
   const row = selectedStoreRow();
   if (!row) return;
-  document.getElementById('store-info-name').textContent = row.name || row.id;
   document.getElementById('store-info-id').textContent = row.id;
-  document.getElementById('store-info-address').textContent = row.address || '尚未設定地址';
-  document.getElementById('store-info-phone').textContent = row.phone || '尚未設定電話';
+  [['store-info-name', row.name || row.id, ''],
+   ['store-info-address', row.address, '尚未設定地址'],
+   ['store-info-phone', row.phone, '尚未設定電話']].forEach(([id, value, empty]) => {
+    const field = document.getElementById(id);
+    field.toggleAttribute('data-i18n-ignore', !!value);
+    field.textContent = value || empty;
+  });
   const serviceSummary = document.getElementById('store-info-services');
   if (serviceSummary) serviceSummary.textContent = storeServiceOptionsSummary(row.serviceOptions);
   document.getElementById('store-schedule-title').textContent = row.name + ' · ' + row.date;
@@ -566,6 +570,36 @@ function restoreDefaultStoreSlots() {
   });
 }
 
+async function saveStoreServiceAvailability(kind) {
+  if (kind !== 'makeup' && kind !== 'hair') return;
+  const row = selectedStoreRow();
+  const date = document.getElementById('store-manage-date').value;
+  if (!row || !date || row.date !== date) return;
+  const button = document.getElementById('save-store-' + kind + '-btn');
+  const checked = document.getElementById('store-date-no-' + kind).checked;
+  const unavailableServices = {
+    hair: row.unavailableServices?.hair === true,
+    makeup: row.unavailableServices?.makeup === true,
+    [kind]: checked
+  };
+  button.disabled = true;
+  try {
+    await callFirebaseAdminFunction('/saveStoreSchedule', {
+      storeId: row.id,
+      mode: 'services',
+      date,
+      slots: [],
+      unavailableServices
+    });
+    row.unavailableServices = unavailableServices;
+    toast((kind === 'makeup' ? '化妝' : '髮型設計') + '日期設定已儲存');
+  } catch (err) {
+    adminAlert('儲存失敗：' + err.message);
+  } finally {
+    button.disabled = false;
+  }
+}
+
 async function saveStoreSlots(mode) {
   const storeId = document.getElementById('store-manage-store').value;
   const date = document.getElementById('store-manage-date').value;
@@ -573,7 +607,7 @@ async function saveStoreSlots(mode) {
   const message = mode === 'default'
     ? '確定更新此店預設時段？未個別設定的日期都會套用。'
     : '確定儲存 ' + date + ' 的營業時段？';
-  if (!confirm(message)) return;
+  if (!adminConfirm(message)) return;
   button.disabled = true;
   try {
     await callFirebaseAdminFunction('/saveStoreSchedule', {
@@ -590,7 +624,7 @@ async function saveStoreSlots(mode) {
     toast(mode === 'default' ? '店鋪預設時段已更新' : '指定日期時段已更新');
     setTimeout(() => loadStoreSchedules(storeId), 500);
   } catch (err) {
-    alert('儲存失敗：' + err.message);
+    adminAlert('儲存失敗：' + err.message);
   } finally {
     button.disabled = false;
   }

@@ -94,9 +94,9 @@ const TRAINING_SCENARIOS = [
               '<li><b>訂金已收到</b>（看訂金欄 ≥ 預期）</li></ol>' +
               '<div class="danger-box">❌ 任一項不對 <b>不要確認</b>。可點「📝 編輯」補上或寄信問客人。</div>' },
       { center: true, title: '訂金金額怎麼算',
-        body: '<h4>訂金公式</h4><div class="formula">訂金 (NT$) = 人數 × 1000</div>' +
+        body: '<h4>訂金公式</h4><div class="formula">每組預約訂金 NT$440（到店折抵 ¥2,000）</div>' +
               '<h4>範例</h4>' +
-              '<ul><li>1 大人 = NT$1,000</li><li>2 大 + 1 小 = NT$3,000</li><li>5 人團 = NT$5,000</li></ul>' +
+              '<ul><li>1 大人 = NT$440</li><li>2 大 + 1 小 = NT$440</li><li>5 人團 = NT$440</li></ul>' +
               '<div class="info-box">💡 訂金 = 確認預約意願。剩下尾款（妝髮、攝影、和服費差額）<b>客人到店現場結算</b>。</div>' },
       { center: true, title: '折扣碼怎麼套用',
         body: '客人在 inquiry 表單填了「折扣碼」如 <code>EARLY8</code>：' +
@@ -1313,7 +1313,7 @@ const TRAINING_SCENARIOS = [
 function openScenarioPicker(isAuto) {
   const isJun = currentAgent === 'Jun';
   const role = isJun ? 'jun' : currentRole;
-  const available = TRAINING_SCENARIOS.filter(s => s.roles.indexOf(role) >= 0);
+  const available = TRAINING_SCENARIOS.filter(s => s.roles.indexOf(role) >= 0).map(adminTrainingScenario);
   // v2.5r: 進度條
   const seenForProgress = (function(){ try { return JSON.parse(localStorage.getItem('admin_seen_scenarios') || '[]'); } catch(e){ return []; } })();
   const seenCount = available.filter(s => seenForProgress.indexOf(s.id) >= 0).length;
@@ -1390,7 +1390,7 @@ function startScenario(id) {
   const scenario = TRAINING_SCENARIOS.find(s => s.id === id);
   if (!scenario) return;
   document.getElementById('scenario-picker').classList.add('hidden');
-  _activeTourSteps = scenario.steps;
+  _activeTourSteps = adminTrainingScenario(scenario).steps;
   _tourStep = 0;
   _tourActive = true;
   _currentScenarioId = id;  // v2.5q: 紀錄目前場景
@@ -1500,7 +1500,9 @@ function startAdminTour(forceManual) {
   _tourStep = 0;
   _tourActive = true;
   // v2.5i: 依角色選擇導覽內容 — 店家用簡化版 (約 5-6 步)，agent 用完整版 (16 步)
-  _activeTourSteps = (currentRole === 'store') ? STORE_TOUR_STEPS : TOUR_STEPS;
+  _currentScenarioId = null;
+  const overviewIds = currentRole === 'store' ? ['checkin', 'walkin', 'calendar'] : ['dashboard', 'new_booking', 'reconcile', 'customers'];
+  _activeTourSteps = overviewIds.map(id => TRAINING_SCENARIOS.find(s => s.id === id)).filter(Boolean).map(s => adminTrainingScenario(s).steps[0]);
   document.getElementById('tour-overlay').classList.remove('hidden');
   renderTourStep();
 }

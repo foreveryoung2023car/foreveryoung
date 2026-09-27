@@ -247,6 +247,9 @@ function generateInvoice(storeName, monthYM) {
 
   const w = window.open('', '_blank');
   w.document.write(invHtml);
+  w.document.documentElement.lang = AdminI18n.language;
+  w.document.title = adminT(w.document.title);
+  AdminI18n.translate(w.document.body);
   w.document.close();
 }
 

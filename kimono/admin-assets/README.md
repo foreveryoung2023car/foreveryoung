@@ -26,3 +26,38 @@ Load order matters:
 - `17-walkin-orders.js`: walk-in order creation modal
 - `18-employees.js`: Firebase/GAS employee management
 - `19-tour.js`: admin training and guided tour
+
+
+## Admin localization (2026-09-16)
+
+Both Japan Go and Foreveryoung admin portals support `zh-Hant`, `zh-Hans`,
+`ja`, and `en`. The selector is available before sign-in and remembers the
+preference in `kimono_admin_lang`; on first use, a supported `kimono_lang`
+preference from the public site is reused. Otherwise the default is Traditional Chinese.
+
+Load `i18n-catalog.js`, `i18n-extra.js`, `i18n-training.js`, then `i18n.js`
+before the numbered scripts. Keep these four files identical in both brands.
+The runtime translates UI text and accessibility attributes, observes dynamic
+updates, and retains source text so switching back restores the latest copy.
+Use `adminT()` for non-DOM copy and `adminAlert` / `adminConfirm` / `adminPrompt`
+for native dialogs. New UI copy belongs in the catalogs; unknown copy keeps its
+source text. Dates use the selected locale while money and stored values retain
+their original units and semantics.
+
+Inputs and textarea values, explicit option values, backend status codes and
+customer records are not translated. Mark new customer-generated display
+containers with `data-i18n-ignore` (or `translate="no"`). Options without explicit
+values have their original value preserved before their label is translated.
+
+Training scenarios have four-language operational summaries. The complete
+original Traditional Chinese training documents are available in collapsed,
+explicitly labeled reference sections because they include legacy GAS / Sheet
+instructions. Existing scenario IDs, role filtering and completion records are
+retained. Outgoing customer message drafts remain in their original language.
+
+Regression tests: from the site directory run `npm install --prefix tests`, then
+`npm test --prefix tests` (Node 22.13+ or Node 24). Tests cover language roundtrips,
+updated text and attributes, input/option preservation, private data, native
+dialogs, dates and all training summaries. The neighboring brand is tested too
+when it is present in the usual workspace layout. Browser checks use synthetic
+pages and do not sign in, update real orders or send emails.

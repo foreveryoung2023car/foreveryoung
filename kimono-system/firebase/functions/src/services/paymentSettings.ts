@@ -14,6 +14,7 @@ export type PaymentProfile = {
   bankBranch: string;
   bankAccount: string;
   bankHolder: string;
+  depositBookingTwd: number;
   depositMaleTwd: number;
   depositFemaleTwd: number;
   depositChildTwd: number;
@@ -35,6 +36,7 @@ const defaultProfiles: Record<BrandPlatform, PaymentProfile> = {
     bankBranch: "營業部",
     bankAccount: "100100344320",
     bankHolder: "佳遊國際旅行社有限公司",
+    depositBookingTwd: 440,
     depositMaleTwd: 220,
     depositFemaleTwd: 220,
     depositChildTwd: 220,
@@ -54,6 +56,7 @@ const defaultProfiles: Record<BrandPlatform, PaymentProfile> = {
     bankBranch: "",
     bankAccount: "",
     bankHolder: "",
+    depositBookingTwd: 440,
     depositMaleTwd: 220,
     depositFemaleTwd: 220,
     depositChildTwd: 220,
@@ -77,6 +80,7 @@ const paymentProfileSchema = z.object({
   bankBranch: z.string().trim().max(80).default(""),
   bankAccount: z.string().trim().max(80).default(""),
   bankHolder: z.string().trim().max(120).default(""),
+  depositBookingTwd: z.number().int().min(0).max(100000).default(440),
   depositMaleTwd: z.number().int().min(0).max(100000).default(220),
   depositFemaleTwd: z.number().int().min(0).max(100000).default(220),
   depositChildTwd: z.number().int().min(0).max(100000).default(220),
@@ -130,15 +134,7 @@ export async function savePaymentProfile(raw: unknown, actor: AuthContext) {
   return { status: "success", profile };
 }
 
-export async function calculateBookingDepositJpy(platformRaw: unknown, counts: { maleAdults?: unknown; femaleAdults?: unknown; adults?: unknown; children?: unknown }) {
-  const profile = (await getPaymentProfile(platformRaw)).profile;
-  const maleAdults = Math.max(0, Number(counts.maleAdults || 0));
-  const femaleAdults = Math.max(0, Number(counts.femaleAdults || 0));
-  const fallbackAdults = Math.max(0, Number(counts.adults || 0));
-  const knownAdults = maleAdults + femaleAdults;
-  const effectiveFemaleAdults = knownAdults > 0 ? femaleAdults : fallbackAdults;
-  const children = Math.max(0, Number(counts.children || 0));
-  return maleAdults * profile.depositMaleJpy +
-    effectiveFemaleAdults * profile.depositFemaleJpy +
-    children * profile.depositChildJpy;
+// The store credits one fixed JPY deposit per booking, regardless of party size.
+export async function calculateBookingDepositJpy(_platformRaw: unknown, _counts: { maleAdults?: unknown; femaleAdults?: unknown; adults?: unknown; children?: unknown }) {
+  return 2000;
 }

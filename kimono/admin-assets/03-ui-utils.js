@@ -99,6 +99,8 @@ function enterDashboard(name, token, role, storeKey) {
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('dashboard').classList.remove('hidden');
   document.getElementById('logout-btn').classList.remove('hidden');
+  const languagePicker = document.getElementById('admin-language-picker');
+  if (languagePicker) languagePicker.style.display = 'inline-flex';
   // v2.5p: 登入後才顯示「?」訓練教室按鈕
   const tbtn = document.getElementById('tour-btn'); if (tbtn) tbtn.classList.remove('hidden');
   // v2.4.41: 員工帳號才顯示改密碼按鈕

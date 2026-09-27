@@ -5,23 +5,23 @@ async function checkInOrder(id){
   // 預設 storeKey：店家身份用 currentStoreKey；Jun/Ren 客服可手動輸入
   let storeKey = currentStoreKey;
   if (!storeKey) {
-    storeKey = prompt('請輸入報到門市代號 (kyoto1 / kyoto2 / osaka1 / tokyo1)：', o.storeKey || '');
+    storeKey = adminPrompt('請輸入報到門市代號 (kyoto1 / kyoto2 / osaka1 / tokyo1)：', o.storeKey || '');
     if (!storeKey) return;
     storeKey = String(storeKey).trim().toLowerCase();
-    if (!['kyoto1','kyoto2','osaka1','tokyo1'].includes(storeKey)) { alert('門市代號錯誤'); return; }
+    if (!['kyoto1','kyoto2','osaka1','tokyo1'].includes(storeKey)) { adminAlert('門市代號錯誤'); return; }
   }
-  const phoneLast3 = prompt('請輸入客人手機末 3 碼（驗證身份）：');
+  const phoneLast3 = adminPrompt('請輸入客人手機末 3 碼（驗證身份）：');
   if (phoneLast3 === null) return;
   const phone = String(o.phone||'').replace(/[^0-9]/g,'');
   const phoneLast3Clean = String(phoneLast3||'').replace(/\D/g,'').slice(-3);
   if (!/^\d{3}$/.test(phoneLast3Clean)) {
-    alert('請輸入客人手機末 3 碼，必須是 3 位數字。');
+    adminAlert('請輸入客人手機末 3 碼，必須是 3 位數字。');
     return;
   }
   if (!phone.endsWith(phoneLast3Clean)) {
-    if (!confirm('手機末 3 碼不符（客人輸入：'+phoneLast3Clean+'，記錄：'+phone.slice(-3)+'）。仍要報到？')) return;
+    if (!adminConfirm('手機末 3 碼不符（客人輸入：'+phoneLast3Clean+'，記錄：'+phone.slice(-3)+'）。仍要報到？')) return;
   }
-  if (!confirm('確定為「'+(o.name||id)+'」辦理報到？\n門市：'+storeKey+'\n體驗日：'+(o.bookingDate||'—'))) return;
+  if (!adminConfirm('確定為「'+(o.name||id)+'」辦理報到？\n門市：'+storeKey+'\n體驗日：'+(o.bookingDate||'—'))) return;
   try {
     if (useFirebaseAdmin()) {
       const token = await getFreshAdminToken();
@@ -55,10 +55,10 @@ async function checkInOrder(id){
       filterOrders();
       toast('已報到：'+(o.name||id)+' @ '+storeKey);
     } else {
-      alert('報到失敗：'+(data.message||'未知錯誤'));
+      adminAlert('報到失敗：'+(data.message||'未知錯誤'));
     }
   } catch(e){
-    alert('網路異常：'+e.message);
+    adminAlert('網路異常：'+e.message);
   }
 }
 
@@ -68,8 +68,8 @@ async function batchConfirm(){
     const o = allOrders.find(x=>x.orderId===id);
     return o && orderStatusOf(o) === 'pending_review';
   });
-  if(!eligibleIds.length) return alert('選取的訂單中沒有可推進到「待到店」的待確認訂單。');
-  if(!confirm('確定將 '+eligibleIds.length+' 筆待確認訂單推進為「待到店」嗎？')) return;
+  if(!eligibleIds.length) return adminAlert('選取的訂單中沒有可推進到「待到店」的待確認訂單。');
+  if(!adminConfirm('確定將 '+eligibleIds.length+' 筆待確認訂單推進為「待到店」嗎？')) return;
   let ok=0, fail=0;
   for(const id of eligibleIds){
     const o = allOrders.find(x=>x.orderId===id);

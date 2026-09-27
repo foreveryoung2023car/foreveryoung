@@ -3,7 +3,7 @@
 // ============================================================
 async function loadAuditLog() {
   if (!useFirebaseAdmin() && currentAgent !== 'Jun') {
-    alert('只有 Jun 可以查看操作紀錄');
+    adminAlert('只有 Jun 可以查看操作紀錄');
     return;
   }
   const tbody = document.getElementById('audit-tbody');
@@ -110,16 +110,16 @@ const ADMIN_EMAIL_ACTIONS = {
 async function sendOrderEmailFromModal(kind) {
   const action = ADMIN_EMAIL_ACTIONS[kind] || ADMIN_EMAIL_ACTIONS.confirm;
   if (!(editingOrder && editingOrder.orderId)) {
-    alert('請先選一筆訂單');
+    adminAlert('請先選一筆訂單');
     return;
   }
   const emailEl = document.getElementById('e-email');
   const email = emailEl ? (emailEl.value || '').trim() : '';
   if (!email) {
-    alert('該訂單沒有 email，無法寄送。請先填入 email 並儲存。');
+    adminAlert('該訂單沒有 email，無法寄送。請先填入 email 並儲存。');
     return;
   }
-  if (!confirm('確定寄出' + action.confirmLabel + '到 ' + email + ' 嗎？')) return;
+  if (!adminConfirm('確定寄出' + action.confirmLabel + '到 ' + email + ' 嗎？')) return;
   const btn = document.getElementById(action.buttonId);
   if (btn) { btn.disabled = true; btn.textContent = '寄送中…'; }
   if (useFirebaseAdmin()) {
@@ -128,16 +128,16 @@ async function sendOrderEmailFromModal(kind) {
         orderId: editingOrder.firebaseDocId || editingOrder.orderId,
         email: email
       });
-      alert('✅ ' + (data.message || action.confirmLabel + '已寄出'));
+      adminAlert('✅ ' + (data.message || action.confirmLabel + '已寄出'));
     } catch (e) {
-      alert('❌ 寄送失敗：' + e.message);
+      adminAlert('❌ 寄送失敗：' + e.message);
     } finally {
       if (btn) { btn.disabled = false; btn.textContent = action.label; }
     }
     return;
   }
   if (kind !== 'confirm') {
-    alert('此信件功能已改用 Firebase，請先登入 Firebase 後台。');
+    adminAlert('此信件功能已改用 Firebase，請先登入 Firebase 後台。');
     if (btn) { btn.disabled = false; btn.textContent = action.label; }
     return;
   }
@@ -148,12 +148,12 @@ async function sendOrderEmailFromModal(kind) {
     });
     const data = await r.json();
     if (data.status === 'ok') {
-      alert('✅ ' + (data.message || '已寄出確認信'));
+      adminAlert('✅ ' + (data.message || '已寄出確認信'));
     } else {
-      alert('❌ ' + (data.message || '寄送失敗'));
+      adminAlert('❌ ' + (data.message || '寄送失敗'));
     }
   } catch (e) {
-    alert('❌ 網路錯誤：' + e.message);
+    adminAlert('❌ 網路錯誤：' + e.message);
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = action.label; }
   }

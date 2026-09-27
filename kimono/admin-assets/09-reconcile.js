@@ -424,7 +424,7 @@ async function saveReconcileBulkEdit() {
     return;
   }
   const advancingCount = changes.filter(change => change.advanceStatus).length;
-  if (advancingCount && !confirm('確認儲存 ' + changes.length + ' 筆對帳資料？\n其中 ' + advancingCount + ' 筆會依尾款更新為「已完成」或「待付尾款」，並寄送付款憑證信。')) return;
+  if (advancingCount && !adminConfirm('確認儲存 ' + changes.length + ' 筆對帳資料？\n其中 ' + advancingCount + ' 筆會依尾款更新為「已完成」或「待付尾款」，並寄送付款憑證信。')) return;
   if (saveButton) { saveButton.disabled = true; saveButton.textContent = '儲存中…'; }
   const failures = [];
   const emailFailures = [];
@@ -735,7 +735,7 @@ function exportReconCSV(){
       ? [platformLabel(orderBrandPlatform(o)), st, o.orderId, o.name, fmtDate(o.bookingDate), amount.deposit, amount.hairFee, amount.makeupFee, amount.photoFee, amount.discountRefund, amount.overtimeDamageDeduction, amount.kimonoPrice, amount.couponDiscount, amount.total, amount.actualReceived, amount.platformFee, amount.storeBalance, amount.platformPayable]
       : [platformLabel(orderBrandPlatform(o)), st, o.orderId, o.name, fmtDate(o.bookingDate), amount.deposit, amount.discountRefund, amount.overtimeDamageDeduction, amount.kimonoPrice, amount.couponDiscount, amount.total, amount.actualReceived, amount.balance, amount.platformFee, shouldShowStoreReceivable(o) ? amount.storeReceivable : ''];
   });
-  const csv = [headers, ...rows].map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const csv = [headers.map(adminT), ...rows].map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\n');
   const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -884,7 +884,7 @@ function csvBookingDateTime(value){
     String(d.getMinutes()).padStart(2, '0');
 }
 function csvYesNo(value){
-  return value ? '有' : '無';
+  return adminT(value ? '有' : '無');
 }
 function csvMakeupLabel(o){
   const plan = typeof normalizeMakeupPlan === 'function' ? normalizeMakeupPlan(o) : String(o && o.makeupPlan || '').trim();
@@ -930,9 +930,9 @@ function orderExportTableData(list){
     o.name,
     o.phone,
     csvBookingDateTime(o.bookingDate),
-    formatGuestCount(o),
+    adminT(formatGuestCount(o)),
     csvYesNo(typeof orderHasHair === 'function' ? orderHasHair(o) : (o.hair === true || o.hair === 'true' || o.hair === '是')),
-    csvMakeupLabel(o),
+    adminT(csvMakeupLabel(o)),
     csvYesNo(typeof orderHasPhoto === 'function' ? orderHasPhoto(o) : (o.photo === true || o.photo === 'true' || o.photo === '是')),
     csvPlatformNote(o),
     typeof orderPaidDeposit === 'function' ? orderPaidDeposit(o) : reconcileDeposit(o),
@@ -943,10 +943,10 @@ function orderExportTableData(list){
 }
 function orderExportHtml(list, title){
   const { headers, rows } = orderExportTableData(list);
-  const generatedAt = new Date().toLocaleString('zh-TW', { timeZone:'Asia/Tokyo', hour12:false });
+  const generatedAt = new Date().toLocaleString(AdminI18n.locale, { timeZone:'Asia/Tokyo', hour12:false });
   const colClasses = ['col-id','col-name','col-phone','col-time','col-count','col-small','col-makeup','col-small','col-note','col-money','col-money','col-remark'];
   return '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">'+
-    '<head><meta charset="utf-8"><title>'+csvHtml(title)+'</title>'+
+    '<head><meta charset="utf-8"><title>'+csvHtml(adminT(title))+'</title>'+
     '<style>'+
     '@page Section1{size:11.69in 8.27in;margin:.25in .22in .25in .22in;mso-page-orientation:landscape}'+
     'div.Section1{page:Section1}'+
@@ -961,12 +961,12 @@ function orderExportHtml(list, title){
     '</style>'+
     '<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>訂單列印表</x:Name><x:WorksheetOptions><x:FitToPage/><x:Print><x:FitWidth>1</x:FitWidth><x:FitHeight>0</x:FitHeight><x:ValidPrinterInfo/><x:PaperSizeIndex>9</x:PaperSizeIndex><x:HorizontalResolution>600</x:HorizontalResolution><x:VerticalResolution>600</x:VerticalResolution></x:Print><x:Selected/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->'+
     '</head><body><div class="Section1">'+
-    '<div class="print-head"><h1>'+csvHtml(title)+'</h1><div class="meta">共 '+rows.length+' 筆 · '+csvHtml(generatedAt)+'</div></div>'+
+    '<div class="print-head"><h1>'+csvHtml(adminT(title))+'</h1><div class="meta">'+csvHtml(adminT('顯示'))+' '+rows.length+' '+csvHtml(adminT('筆'))+' · '+csvHtml(generatedAt)+'</div></div>'+
     '<table><colgroup>'+
     colClasses.map(cls => '<col class="'+cls+'">').join('')+
     '</colgroup><thead><tr>'+
     headers.map((h, i) => {
-      return '<th class="'+colClasses[i]+'">'+csvHtml(h)+'</th>';
+      return '<th class="'+colClasses[i]+'">'+csvHtml(adminT(h))+'</th>';
     }).join('')+
     '</tr></thead><tbody>'+
     rows.map(row => '<tr>'+row.map((c, i) => '<td class="'+colClasses[i]+' '+(i === 9 || i === 10 ? 'num' : '')+'">'+csvHtml(c)+'</td>').join('')+'</tr>').join('')+

@@ -216,7 +216,7 @@ function applyPermTemplate(tmpl){
   if (!window.__permPendingChanges) window.__permPendingChanges = {};
   const p = window.__permPendingChanges;
   if (tmpl === 'default') {
-    if (!confirm('確認重置所有自訂權限為系統預設？(這會清掉所有客製，但要按「儲存」才會生效)')) return;
+    if (!adminConfirm('確認重置所有自訂權限為系統預設？(這會清掉所有客製，但要按「儲存」才會生效)')) return;
     // 把所有 overrides 也清掉
     Object.keys(JSON.parse(localStorage.getItem('admin_permissions_overrides')||'{}')).forEach(k => p[k] = '_DELETE_');
   } else if (tmpl === 'agent_admin') {
@@ -255,7 +255,7 @@ function discardPermissionChanges(){
 }
 
 function resetPermissionOverrides(){
-  if (!confirm('確認重置所有權限自訂為系統預設？此動作不可復原')) return;
+  if (!adminConfirm('確認重置所有權限自訂為系統預設？此動作不可復原')) return;
   localStorage.removeItem('admin_permissions_overrides');
   toast('已重置為預設權限', 'success');
   // 移掉 controls 讓它重生
@@ -314,6 +314,7 @@ function renderTrendChart(){
       scales: { y: { beginAtZero: true, ticks: { callback: v => '¥' + v.toLocaleString() } } }
     }
   });
+  AdminI18n.updateCharts();
 }
 
 async function quickPreCheckClose(){
@@ -329,7 +330,7 @@ async function quickPreCheckClose(){
     const d = await r.json();
     if (d.status !== 'ok') { toast(d.message || '預檢失敗', 'error'); return; }
     if (d.count === 0) {
-      alert('📦 ' + month + '\n\n本月無訂單可關帳');
+      adminAlert('📦 ' + month + '\n\n本月無訂單可關帳');
       return;
     }
     const summary = '📦 ' + month + ' 預檢結果\n\n' +
@@ -341,12 +342,12 @@ async function quickPreCheckClose(){
         (d.blockers||[]).slice(0,5).map(b => '• ' + b.orderId + '：' + b.reason).join('\n') +
         (d.blockers && d.blockers.length > 5 ? '\n... 還有 ' + (d.blockers.length - 5) + ' 筆' : ''));
     if (d.canClose) {
-      if (confirm(summary)) {
+      if (adminConfirm(summary)) {
         switchSection('reconcile', document.querySelector('[data-sec=reconcile]'));
         setTimeout(() => { if (typeof setReconcileMonthFilter === 'function') setReconcileMonthFilter(month); else document.getElementById('recon-month').value = month; openCloseMonthDialog(); }, 500);
       }
     } else {
-      alert(summary);
+      adminAlert(summary);
     }
   } catch (e) {
     toast('連線失敗：' + e.message, 'error');
@@ -397,7 +398,7 @@ function openReconHelp(){
     '<div class="modal-box" style="max-width:600px;height:auto;max-height:80vh;padding-top:72px">' +
     '<h3 class="text-lg font-bold text-[#1A365D] mb-4 modal-title-block">📌 對帳說明</h3>' +
     '<div class="text-sm text-slate-700 space-y-2 font-medium">' +
-    '<div>• <b>應收訂金</b> = 每人 ¥1,000 × 預約人數</div>' +
+    '<div>• <b>應收訂金</b> = 每組預約 NT$440（到店折抵 ¥2,000）</div>' +
     '<div>• <b>已收訂金</b> = 客人實際匯款金額</div>' +
     '<div>• <span style="background:#ECFDF5;padding:2px 8px;border-radius:4px;color:#047857;font-weight:600">✓ 已對帳</span> = 已確認，金額正確</div>' +
     '<div>• <span style="background:#EFF6FF;padding:2px 8px;border-radius:4px;color:#1E40AF;font-weight:600">△ 待收尾款</span> = 已收 < 應收訂金（店家現場補齊即可，非異常）</div>' +
@@ -426,10 +427,10 @@ async function openCloseMonthDialog() {
     if (d.status !== 'ok') { toast(d.message || '預檢失敗', 'error'); return; }
     if (!d.canClose) {
       const reasons = (d.blockers || []).slice(0, 5).map(b => '• ' + b.orderId + '：' + b.reason).join('\n');
-      alert('❌ 無法關帳 ' + month + '\n\n以下訂單尚未對帳完成（共 ' + (d.blockers || []).length + ' 筆）：\n\n' + reasons + (d.blockers && d.blockers.length > 5 ? '\n... 還有 ' + (d.blockers.length - 5) + ' 筆' : ''));
+      adminAlert('❌ 無法關帳 ' + month + '\n\n以下訂單尚未對帳完成（共 ' + (d.blockers || []).length + ' 筆）：\n\n' + reasons + (d.blockers && d.blockers.length > 5 ? '\n... 還有 ' + (d.blockers.length - 5) + ' 筆' : ''));
       return;
     }
-    const ok = confirm('📦 確認關帳 ' + month + ' 嗎？\n\n' +
+    const ok = adminConfirm('📦 確認關帳 ' + month + ' 嗎？\n\n' +
       '• 將歸檔 ' + d.count + ' 筆訂單到「歷史檔案」\n' +
       '• 主表會少 ' + d.count + ' 列\n' +
       '• 訂金總額：¥' + (d.depositSum || 0).toLocaleString() + '\n' +
@@ -525,7 +526,7 @@ async function unlockArchivedMonth() {
   if (useFirebaseAdmin()) { toast('Firebase 模式下解凍舊歸檔尚未遷移；舊 GAS 僅保留只讀備份', 'warning'); return; }
   if (currentAgent !== 'Jun') { toast('只有 Jun 可以解凍', 'error'); return; }
   if (!currentArchiveMonth) return;
-  const ok = confirm('🔓 確認解凍 ' + currentArchiveMonth + ' 嗎？\n\n所有該月訂單會搬回主表，可以重新編輯。\n編輯完記得再次關帳。確定？');
+  const ok = adminConfirm('🔓 確認解凍 ' + currentArchiveMonth + ' 嗎？\n\n所有該月訂單會搬回主表，可以重新編輯。\n編輯完記得再次關帳。確定？');
   if (!ok) return;
   toast('解凍中…', 'info');
   try {
@@ -576,7 +577,7 @@ async function saveOrder() {
       + Number(document.getElementById('e-store-actual-received').value || 0);
     const balance = Math.max(0, consumption - paid);
     const nextLabel = balance === 0 ? '已完成' : '待付尾款（¥' + balance.toLocaleString() + '）';
-    if (!confirm('確認提交本次消費與付款金額？\n儲存後狀態將變為「' + nextLabel + '」，店鋪端不可再修改。')) return;
+    if (!adminConfirm('確認提交本次消費與付款金額？\n儲存後狀態將變為「' + nextLabel + '」，店鋪端不可再修改。')) return;
   }
   btn.textContent = '儲存中…'; btn.disabled = true;
   const guests = typeof syncEditPax === 'function'
@@ -586,7 +587,7 @@ async function saveOrder() {
   const refundAmountValue = Number(document.getElementById('e-refund-amt').value || 0);
   const rawDepositValue = Math.max(0, netDepositValue + refundAmountValue);
   const makeupPlanValue = document.getElementById('e-makeup').value || 'No';
-  const makeupFeeValue = ({ Basic: 3000, Standard: 5000, Premium: 8000 })[makeupPlanValue] || Number(document.getElementById('e-makeup-fee').value || 0);
+  const makeupFeeValue = Number(document.getElementById('e-makeup-fee').value || 0);
   const hairPlanValue = typeof selectedServiceLabelFromSelect === 'function' ? selectedServiceLabelFromSelect('e-hair') : '';
   const photoPlanValue = typeof selectedServiceLabelFromSelect === 'function' ? selectedServiceLabelFromSelect('e-photo') : '';
   const payload = {

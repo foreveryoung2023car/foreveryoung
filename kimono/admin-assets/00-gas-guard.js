@@ -90,6 +90,6 @@ function clearGoogleCookieAndReload() {
     document.cookie = name + '=' + expire;
     document.cookie = name + '=' + expire + ';domain=' + location.hostname;
   });
-  alert('Cookie 已清除，按確定後會重整\n如果還是卡住，請改用無痕視窗 (Ctrl+Shift+N)');
+  adminAlert('Cookie 已清除，按確定後會重整\n如果還是卡住，請改用無痕視窗 (Ctrl+Shift+N)');
   setTimeout(() => location.reload(true), 100);
 }

@@ -35,7 +35,7 @@ export const defaultStoreSlots = Array.from({ length: 18 }, (_, index) => {
 
 const saveStoreScheduleSchema = z.object({
   storeId: z.string().min(1),
-  mode: z.enum(["default", "date"]),
+  mode: z.enum(["default", "date", "services"]),
   date: z.string().regex(datePattern).optional(),
   slots: z.array(z.string().regex(slotPattern)).max(48),
   unavailableServices: z.object({ hair: z.boolean(), makeup: z.boolean() }).optional(),
@@ -428,7 +428,25 @@ export async function saveStoreSchedule(raw: unknown, actor: AuthContext) {
   const slots = normalizeSlots(input.slots);
   const slotCapacities = normalizeSlotCapacities(input.slotCapacities, slots);
 
-  if (input.mode === "default") {
+  if (input.mode === "services") {
+    if (!input.date || !input.unavailableServices) throw new HttpError(400, "Date and service availability are required");
+    const ref = db.collection("storeSchedules").doc(`${input.storeId}_${input.date}`);
+    const before = (await ref.get()).data() || null;
+    await ref.set({
+      storeId: input.storeId,
+      date: input.date,
+      unavailableServices: input.unavailableServices,
+      updatedBy: actor.uid,
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    await writeAuditLog({
+      actor,
+      action: "store_date_services_updated",
+      beforeData: before,
+      afterData: { storeId: input.storeId, date: input.date, unavailableServices: input.unavailableServices },
+      metadata: { storeId: input.storeId, date: input.date }
+    });
+  } else if (input.mode === "default") {
     const ref = db.collection("stores").doc(input.storeId);
     const before = (await ref.get()).data() || null;
     await ref.set({

@@ -42,7 +42,7 @@ async function renderEmployees() {
           : '<button onclick="enableEmployee(\'' + adminJsArg(e.uid) + '\')" class="text-emerald-600 hover:underline text-xs">啟用</button>';
         html += '<tr class="border-b border-slate-100">';
         html += '<td class="p-2"><div class="font-bold">' + adminEsc(e.email || '—') + '</div><div class="font-mono text-[10px] text-slate-400">' + adminEsc(e.uid) + '</div></td>';
-        html += '<td class="p-2 font-bold">' + adminEsc(e.displayName || '—') + '</td>';
+        html += '<td data-i18n-ignore class="p-2 font-bold">' + adminEsc(e.displayName || '—') + '</td>';
         html += '<td class="p-2"><span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-bold">' + adminEsc(roleLabel[e.role] || e.role || '—') + '</span></td>';
         html += '<td class="p-2 text-xs font-bold">' + adminEsc(normalizePlatformAccess(e.platformAccess).map(platformLabel).join(' / ')) + '</td>';
         html += '<td class="p-2">' + adminEsc(e.storeId || '—') + '</td>';
@@ -95,7 +95,7 @@ async function renderEmployees() {
       html += '<tr class="border-b border-slate-100">';
       html += '<td class="p-2 font-mono text-xs">' + e.id + '</td>';
       html += '<td class="p-2">' + e.storeKey + '</td>';
-      html += '<td class="p-2 font-bold">' + e.name + '</td>';
+      html += '<td data-i18n-ignore class="p-2 font-bold">' + e.name + '</td>';
       html += '<td class="p-2">' + roleLabel + '</td>';
       html += '<td class="p-2">' + statusLabel + '</td>';
       html += '<td class="p-2 text-xs text-slate-500">' + lastLogin + '</td>';
@@ -133,7 +133,7 @@ function openAddEmployeeModal() {
     const firebaseRole = localStorage.getItem('admin_firebaseRole') || 'readonly';
     const roleOptions = getAssignableFirebaseRoles(firebaseRole);
     if (!roleOptions.length) {
-      alert('目前角色沒有新增後台使用者的權限');
+      adminAlert('目前角色沒有新增後台使用者的權限');
       return;
     }
     roleEl.innerHTML = roleOptions.map(r => '<option value="' + r.value + '">' + r.label + '</option>').join('');
@@ -297,7 +297,7 @@ async function disableEmployee(empId, empName) {
     if (typeof toast === 'function') toast('目前帳號沒有員工管理權限', 'warning');
     return;
   }
-  if (!confirm('確定停用員工「' + empName + '」？\n停用後該員工無法登入。')) return;
+  if (!adminConfirm('確定停用員工「' + empName + '」？\n停用後該員工無法登入。')) return;
   try {
     if (useFirebaseAdmin()) {
       await callFirebaseAdminFunction('/setAdminUserActive', { uid: empId, active: false });
@@ -310,8 +310,8 @@ async function disableEmployee(empId, empName) {
     })});
     const data = await res.json();
     if (data.status === 'success') { toast('已停用 ' + empName); renderEmployees(); }
-    else alert(data.message || '操作失敗');
-  } catch(e) { alert('網路錯誤'); }
+    else adminAlert(data.message || '操作失敗');
+  } catch(e) { adminAlert('網路錯誤'); }
 }
 
 async function enableEmployee(empId) {
@@ -331,8 +331,8 @@ async function enableEmployee(empId) {
     })});
     const data = await res.json();
     if (data.status === 'success') { toast('已啟用'); renderEmployees(); }
-    else alert(data.message || '操作失敗');
-  } catch(e) { alert('網路錯誤'); }
+    else adminAlert(data.message || '操作失敗');
+  } catch(e) { adminAlert('網路錯誤'); }
 }
 
 async function resetEmployeePass(empId, empName) {
@@ -340,9 +340,9 @@ async function resetEmployeePass(empId, empName) {
     if (typeof toast === 'function') toast('目前帳號沒有員工管理權限', 'warning');
     return;
   }
-  const newPass = prompt('重設「' + empName + '」的新密碼（至少 6 碼）：');
+  const newPass = adminPrompt('重設「' + empName + '」的新密碼（至少 6 碼）：');
   if (!newPass) return;
-  if (newPass.length < 6) { alert('密碼至少 6 碼'); return; }
+  if (newPass.length < 6) { adminAlert('密碼至少 6 碼'); return; }
   try {
     if (useFirebaseAdmin()) {
       await callFirebaseAdminFunction('/resetAdminUserPassword', { uid: empId, password: newPass });
@@ -355,15 +355,15 @@ async function resetEmployeePass(empId, empName) {
     })});
     const data = await res.json();
     if (data.status === 'success') { toast('密碼已重設'); renderEmployees(); }
-    else alert(data.message || '操作失敗');
-  } catch(e) { alert('網路錯誤'); }
+    else adminAlert(data.message || '操作失敗');
+  } catch(e) { adminAlert('網路錯誤'); }
 }
 
 
 
 // v2.4.41: 員工自助改密碼
 function openChangePassword() {
-  if (useFirebaseAdmin()) { alert('Firebase 模式下請使用 Authentication 的重設密碼流程。'); return; }
+  if (useFirebaseAdmin()) { adminAlert('Firebase 模式下請使用 Authentication 的重設密碼流程。'); return; }
   document.getElementById('cpw-old').value = '';
   document.getElementById('cpw-new').value = '';
   document.getElementById('cpw-new2').value = '';
@@ -374,7 +374,7 @@ function closeChangePassword() {
   document.getElementById('change-pw-modal').classList.add('hidden');
 }
 async function submitChangePassword() {
-  if (useFirebaseAdmin()) { alert('Firebase 模式下請使用 Authentication 的重設密碼流程。'); return; }
+  if (useFirebaseAdmin()) { adminAlert('Firebase 模式下請使用 Authentication 的重設密碼流程。'); return; }
   const oldPw = document.getElementById('cpw-old').value;
   const newPw = document.getElementById('cpw-new').value;
   const newPw2 = document.getElementById('cpw-new2').value;

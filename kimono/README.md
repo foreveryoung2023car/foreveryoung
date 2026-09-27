@@ -140,7 +140,7 @@ kimono/
 
 **門市 4 間**：京都清水寺、大阪日本橋、京都祇園、東京淺草寺
 
-**訂金**：每人 NT$ 220 / JPY 1000
+**訂金**：台幣每組預約 NT$ 440；日幣到店折抵每組預約 ¥2,000
 
 **退費政策**：7 天前全額 / 2–6 天 50% / 前一日當日不退費
 
@@ -299,7 +299,7 @@ kimono/
 | 改門市資訊              | Sheets「門市」分頁 + `index.html` 的 `Locations` 區塊  |
 | 改首頁主視覺            | `img/header-bg.jpg`                                    |
 | 換 imgbb key            | GAS Script Properties → `IMGBB_KEY`                    |
-| 改訂金金額              | `config.js` 的 `DEPOSIT_TWD` / `DEPOSIT_JPY`           |
+| 改訂金金額              | 台幣見付款設定；日幣每組 ¥2,000 見前後端定金計算 |
 | 改 LINE / Messenger 連結| `config.js` 的 `LINE_URL` / `MESSENGER_URL`            |
 | 改銀行帳戶              | `config.js` 的 `BANK_*`                                |
 

@@ -1,19 +1,19 @@
 // v2.5n: 退款工作流 — 標記已匯款
 async function markRefundPaid(orderId, name){
   const o = allOrders.find(x=>x.orderId===orderId);
-  if(!o) return alert('找不到訂單');
+  if(!o) return adminAlert('找不到訂單');
   // v2.5o: 強制要先填退款原因
   if(!o.refundReason || !String(o.refundReason).trim()){
-    if(!confirm('「'+name+'」的退款原因尚未填寫，請先到編輯訂單填好原因再來標記匯款。\n\n要立即跳到編輯嗎？')) return;
+    if(!adminConfirm('「'+name+'」的退款原因尚未填寫，請先到編輯訂單填好原因再來標記匯款。\n\n要立即跳到編輯嗎？')) return;
     return openEdit(orderId);
   }
-  if(!confirm('確認已完成退款給「'+name+'」的匯款？\n退款原因：'+o.refundReason)) return;
+  if(!adminConfirm('確認已完成退款給「'+name+'」的匯款？\n退款原因：'+o.refundReason)) return;
   const today = nowAsJstLocalDate();
   const refundDate = today.getFullYear()+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+String(today.getDate()).padStart(2,'0');
   try {
     await saveOrderQuick(o, {refundDate: refundDate});
     toast('退款已標記為已匯出 ✓');
-  } catch(e){ alert('儲存失敗：'+e.message); }
+  } catch(e){ adminAlert('儲存失敗：'+e.message); }
 }
 
 // v2.5l: LINE 訊息範本
@@ -53,7 +53,7 @@ const MSG_TEMPLATES = {
 
 function openMsgTemplate(orderId){
   const o = allOrders.find(x=>x.orderId===orderId);
-  if(!o) return alert('找不到訂單');
+  if(!o) return adminAlert('找不到訂單');
   let html = '<div class="todo-modal-bg" onclick="if(event.target===this)closeMsgTemplate()"><div class="custom-modal-frame"><button onclick="closeMsgTemplate()" class="custom-modal-close" aria-label="關閉訊息範本">×</button><div class="todo-modal-card"><div class="todo-modal-head"><span class="font-bold text-base text-[#1A365D]">📨 訊息範本：'+(o.name||'')+' / '+orderId+'</span></div><div class="todo-modal-body" style="padding:14px 18px">';
   const titles = {confirm:'✅ 訂單確認', reminder:'⏰ 體驗前一日提醒', arrived:'🎌 已準備好和服', paid:'💰 收尾款 / 結帳完成', winback:'✨ 喚醒老客戶 (久未回訪)', refund:'↩ 退款已處理'};
   Object.keys(MSG_TEMPLATES).forEach(k=>{
@@ -71,9 +71,9 @@ function copyTemplate(id){ const t=document.getElementById(id); if(!t) return; n
 // v2.5k: 已收尾款 (用 note 欄位塞 [PAID-YYYYMMDD] tag, 免改 GAS schema)
 function isPaidFull(o){ return o.status === 'completed' || /\[PAID-\d{8}\]/.test(String(o.note||'')); }
 async function markPaidFull(orderId, name){
-  if(!confirm('確認「'+name+'」已收齊尾款？')) return;
+  if(!adminConfirm('確認「'+name+'」已收齊尾款？')) return;
   const o = allOrders.find(x=>x.orderId===orderId);
-  if(!o) return alert('找不到訂單');
+  if(!o) return adminAlert('找不到訂單');
   if (useFirebaseAdmin() && o.status === 'balance_due') {
     try {
       const data = await callFirebaseAdminFunction('/transitionOrder', {
@@ -86,7 +86,7 @@ async function markPaidFull(orderId, name){
       toast('已標記收齊尾款 ✓');
       return data;
     } catch(e) {
-      alert('儲存失敗：'+e.message);
+      adminAlert('儲存失敗：'+e.message);
       return;
     }
   }
@@ -96,19 +96,19 @@ async function markPaidFull(orderId, name){
   try {
     await saveOrderQuick(o, {note: newNote});
     toast('已標記收齊尾款 ✓');
-  } catch(e){ alert('儲存失敗：'+e.message); }
+  } catch(e){ adminAlert('儲存失敗：'+e.message); }
 }
 async function unmarkPaidFull(orderId, name){
-  if(!confirm('「'+name+'」標記為「未收齊」？')) return;
+  if(!adminConfirm('「'+name+'」標記為「未收齊」？')) return;
   const o = allOrders.find(x=>x.orderId===orderId);
   if(!o) return;
   if (useFirebaseAdmin() && o.status === 'completed') {
-    alert('已完成訂單不可還原。');
+    adminAlert('已完成訂單不可還原。');
     return;
   }
   const newNote = String(o.note||'').replace(/\s*\[PAID-\d{8}\]/g, '').trim();
   try { await saveOrderQuick(o, {note: newNote}); toast('已取消標記'); }
-  catch(e){ alert('失敗：'+e.message); }
+  catch(e){ adminAlert('失敗：'+e.message); }
 }
 
 function isStoreRole(){ return currentRole === 'store'; }
@@ -178,10 +178,7 @@ function parsePax(s){
   return total;
 }
 function expectedDeposit(o){
-  if (o && (o.adults !== undefined || o.children !== undefined)) {
-    return (Number(o.adults || 0) + Number(o.children || 0)) * DEPOSIT_JPY;
-  }
-  return parsePax(o && o.pax) * DEPOSIT_JPY;
+  return o ? DEPOSIT_JPY : 0;
 }
 
 function isInRange(o, range){

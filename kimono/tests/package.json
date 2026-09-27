@@ -1,0 +1,6 @@
+{
+  "name": "kimono-admin-i18n-tests",
+  "private": true,
+  "scripts": { "test": "node admin-timezone.cjs && node admin-i18n.cjs" },
+  "devDependencies": { "jsdom": "29.1.1" }
+}
