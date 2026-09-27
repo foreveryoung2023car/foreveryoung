@@ -1523,11 +1523,13 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                                 <select id="input-hair" class="w-full py-2 mt-1 outline-none font-bold text-base bg-transparent cursor-pointer font-sans">
                                     <option value="No">不需要髮型設計</option><option value="Yes">需要髮型設計 (+1500 JPY)</option>
                                 </select>
+                                <span id="input-hair-unavailable" class="hidden text-xs font-bold text-amber-700">此日期不開放髮型設計</span>
                             </label>
                             <label class="block border-b border-slate-100 pb-2"><span class="text-[10px] font-bold text-slate-400 uppercase font-sans">化妝造型（共用）</span>
                                 <select id="input-makeup" class="w-full py-2 mt-1 outline-none font-bold text-base bg-transparent cursor-pointer font-sans">
                                     <option value="No">不需要化妝</option><option value="Basic">基礎化妝 (+3000 JPY)</option><option value="Standard">精緻化妝 (+5000 JPY)</option><option value="Premium">高級化妝 (+8000 JPY)</option>
                                 </select>
+                                <span id="input-makeup-unavailable" class="hidden text-xs font-bold text-amber-700">此日期不開放化妝</span>
                             </label>
                             <label class="block border-b border-slate-100 pb-2"><span class="text-[10px] font-bold text-slate-400 uppercase font-sans">攝影方案（共用）</span>
                                 <select id="input-photo" class="w-full py-2 mt-1 outline-none font-bold text-base bg-transparent cursor-pointer font-sans">
@@ -2157,6 +2159,20 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
             renderBookingServiceOptions();
         }
 
+        function applyUnavailableBookingServices(unavailable) {
+            ['hair', 'makeup'].forEach(kind => {
+                const select = document.getElementById('input-' + kind);
+                if (!select) return;
+                const closed = unavailable?.[kind] === true;
+                Array.from(select.options).forEach(option => {
+                    option.disabled = closed && !/^no$/i.test(option.value);
+                });
+                if (closed) select.value = 'No';
+                select.title = closed ? t(kind === 'hair' ? '此日期不開放髮型設計' : '此日期不開放化妝') : '';
+                document.getElementById('input-' + kind + '-unavailable')?.classList.toggle('hidden', !closed);
+            });
+        }
+
         function selectedBookingServiceOption(kind) {
             const select = document.getElementById('input-' + kind);
             const options = bookingServiceOptions[kind] || [];
@@ -2570,6 +2586,7 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 bookingTimeSlots = [];
                 bookingSlotAvailability = {};
                 updateBookingServiceOptions();
+                applyUnavailableBookingServices({});
                 if (list) list.innerHTML = '<div class="md:col-span-2 p-6 rounded-xl bg-slate-50 text-center text-sm text-slate-400 font-bold font-sans">' + t('請先選擇門市與日期') + '</div>';
                 if (hint) hint.textContent = t('請先選擇門市與日期，下方會顯示各時段剩餘名額');
                 return;
@@ -2582,10 +2599,12 @@ input.input-field, textarea.input-field, select.input-field { font-size: 15px !i
                 if (!res.ok || data.status !== 'success') throw new Error(data.message || '時段載入失敗');
                 if (requestId !== timeSlotRequestId) return;
                 updateBookingServiceOptions(data.serviceOptions);
+                applyUnavailableBookingServices(data.unavailableServices);
                 renderBookingTimeSlots(data.slots || [], previousValue, data.slotAvailability || []);
             } catch (err) {
                 if (requestId !== timeSlotRequestId) return;
                 updateBookingServiceOptions();
+                applyUnavailableBookingServices({ hair: true, makeup: true });
                 renderBookingTimeSlots([], '');
                 if (hint) hint.textContent = t('暫時無法取得店鋪時段，請稍後重選門市或日期');
             }

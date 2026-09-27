@@ -358,6 +358,14 @@
         </span>
       </button>
       <div class="mt-4 pt-5 border-t border-slate-100">
+      <div class="mb-5 rounded-xl bg-amber-50 p-4">
+        <div class="font-bold text-[#1A365D]">此日期加購服務</div>
+        <p class="text-xs text-slate-600 mt-1">可只停用化妝或髮型設計；花火等特殊日期可同時停用。儲存此日期後生效。</p>
+        <div class="flex flex-wrap gap-5 mt-3 text-sm font-semibold">
+          <label><input id="store-date-no-makeup" type="checkbox" class="mr-1"> 此日期不開放化妝</label>
+          <label><input id="store-date-no-hair" type="checkbox" class="mr-1"> 此日期不開放髮型設計</label>
+        </div>
+      </div>
       <div class="flex justify-between items-start gap-3 flex-wrap mb-4">
         <div>
           <h3 id="store-schedule-title" class="text-lg font-bold text-[#1A365D]"></h3>
@@ -1172,7 +1180,7 @@
 <script src="./admin-assets/18-employees.js?v=20260918-jst-1"></script>
 <script src="./admin-assets/19-tour.js?v=20260713-1"></script>
 <script src="./admin-assets/21-payment-settings.js?v=20260910-contacts"></script>
-<script src="./admin-assets/20-stores.js?v=20260731-1"></script>
+<script src="./admin-assets/20-stores.js?v=20260927-service-dates-1"></script>
 
 <!-- v2.4: 新增現場訂單 FAB -->
 <button id="walkInFab" onclick="openWalkInModal()" class="hidden fixed bottom-6 right-6 z-40 bg-[#1A365D] text-white px-5 py-4 rounded-full shadow-2xl font-bold text-base flex items-center gap-2 hover:bg-blue-900 active:scale-95 transition-transform" style="box-shadow:0 8px 24px rgba(26,54,93,0.35)">

@@ -270,6 +270,8 @@ function renderSelectedStoreSchedule() {
   document.getElementById('store-schedule-status').textContent = row.hasOverride
     ? '此日期已有個別設定'
     : '此日期目前沿用店鋪預設';
+  document.getElementById('store-date-no-makeup').checked = row.unavailableServices?.makeup === true;
+  document.getElementById('store-date-no-hair').checked = row.unavailableServices?.hair === true;
   const selected = new Set(row.slots || []);
   const capacities = row.slotCapacities || row.defaultSlotCapacities || {};
   const usageBySlot = {};
@@ -579,7 +581,11 @@ async function saveStoreSlots(mode) {
       mode,
       date,
       slots: selectedStoreSlots(),
-      slotCapacities: selectedStoreSlotCapacities()
+      slotCapacities: selectedStoreSlotCapacities(),
+      ...(mode === 'date' ? { unavailableServices: {
+        makeup: document.getElementById('store-date-no-makeup').checked,
+        hair: document.getElementById('store-date-no-hair').checked
+      } } : {})
     });
     toast(mode === 'default' ? '店鋪預設時段已更新' : '指定日期時段已更新');
     setTimeout(() => loadStoreSchedules(storeId), 500);

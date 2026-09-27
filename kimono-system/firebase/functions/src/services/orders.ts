@@ -524,7 +524,7 @@ export async function createPublicOrder(raw: unknown) {
         makeupPlan: input.makeupPlan,
         photo: input.photo,
         photoOption: input.photoOption
-      })
+      }, input.bookingAt)
     : {
         hairPlan: "",
         hairFeeJpy: input.hairFeeJpy || 0,

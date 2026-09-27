@@ -38,6 +38,7 @@ const saveStoreScheduleSchema = z.object({
   mode: z.enum(["default", "date"]),
   date: z.string().regex(datePattern).optional(),
   slots: z.array(z.string().regex(slotPattern)).max(48),
+  unavailableServices: z.object({ hair: z.boolean(), makeup: z.boolean() }).optional(),
   slotCapacities: z.record(z.object({
     maleAdults: z.coerce.number().int().min(0).max(999).default(0),
     femaleAdults: z.coerce.number().int().min(0).max(999).default(0),
@@ -298,6 +299,10 @@ async function availabilityFromSnapshot(
     ? normalizeSlotCapacities(scheduleSnap.data()?.slotCapacities, slots, defaultSlotCapacities)
     : defaultSlotCapacities;
   const usage = await loadSlotUsage(store.id, date, tx, excludeOrderId);
+  const unavailableServices = {
+    hair: scheduleSnap.data()?.unavailableServices?.hair === true,
+    makeup: scheduleSnap.data()?.unavailableServices?.makeup === true
+  };
   return {
     status: "success",
     ...store,
@@ -309,6 +314,7 @@ async function availabilityFromSnapshot(
     defaultSlots,
     defaultSlotCapacities,
     serviceOptions: store.serviceOptions,
+    unavailableServices,
     hasOverride
   };
 }
@@ -343,8 +349,15 @@ export async function resolveStoreServiceSelection(storeId: string, input: {
   makeupPlan?: unknown;
   photo?: boolean;
   photoOption?: unknown;
-}) {
+}, bookingAt?: string) {
   const { store } = await loadStore(storeId);
+  if (bookingAt && (input.hair || input.makeup)) {
+    const match = bookingAt.match(/^(\d{4}-\d{2}-\d{2})T/);
+    if (!match) throw new HttpError(400, "Invalid booking time");
+    const availability = await getStoreAvailability(storeId, match[1]);
+    if (input.hair && availability.unavailableServices.hair) throw new HttpError(400, "Hair styling is unavailable on the selected date");
+    if (input.makeup && availability.unavailableServices.makeup) throw new HttpError(400, "Makeup is unavailable on the selected date");
+  }
   const hair = selectedServiceOption(store, "hair", input.hair, input.hairOption);
   const makeup = selectedServiceOption(store, "makeup", input.makeup, input.makeupPlan);
   const photo = selectedServiceOption(store, "photo", input.photo, input.photoOption);
@@ -441,6 +454,7 @@ export async function saveStoreSchedule(raw: unknown, actor: AuthContext) {
       date: input.date,
       slots,
       slotCapacities,
+      unavailableServices: input.unavailableServices || { hair: false, makeup: false },
       updatedBy: actor.uid,
       updatedAt: FieldValue.serverTimestamp()
     });
@@ -448,7 +462,7 @@ export async function saveStoreSchedule(raw: unknown, actor: AuthContext) {
       actor,
       action: "store_date_slots_updated",
       beforeData: before,
-      afterData: { storeId: input.storeId, date: input.date, slots, slotCapacities },
+      afterData: { storeId: input.storeId, date: input.date, slots, slotCapacities, unavailableServices: input.unavailableServices },
       metadata: { storeId: input.storeId, date: input.date }
     });
   }
