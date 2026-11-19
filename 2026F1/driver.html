@@ -103,6 +103,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 <div class="toast" id="toast"></div>
 
 <script src="config.js"></script>
+<script src="api.js"></script>
 <script>
 const qs   = new URLSearchParams(location.search);
 const CAR  = qs.get("car")  || "";
@@ -175,8 +176,8 @@ function updateTripUI() {
 async function load() {
   document.getElementById("main").innerHTML = '<div class="loading"><div class="spin"></div></div>';
   try {
-    const r = await fetch(API+"?action=getPassengers&car="+encodeURIComponent(CAR)+"&date="+DATE);
-    DATA = await r.json();
+    DATA = await staffRequest({action: "getPassengers", car: CAR, date: DATE});
+    if (DATA.error) throw new Error(DATA.error);
     render();
   } catch(e) {
     document.getElementById("main").innerHTML =
@@ -214,8 +215,8 @@ function render() {
   const pt = info ? simplePt(info.depPt || info.retPt || "") : "";
   const depKey = (isOut?"out_depart":"ret_depart")+"_"+CAR+"_"+DATE;
   const arrKey = (isOut?"out_arrive":"ret_arrive")+"_"+CAR+"_"+DATE;
-  const depT   = (isOut ? info?.outDepart : info?.retDepart) || localStorage.getItem(depKey) || "";
-  const arrT   = (isOut ? info?.outArrive : info?.retArrive) || localStorage.getItem(arrKey) || "";
+  const depT   = (isOut ? info?.outDepart : info?.retDepart) || (!USE_NEW_BACKEND && localStorage.getItem(depKey)) || "";
+  const arrT   = (isOut ? info?.outArrive : info?.retArrive) || (!USE_NEW_BACKEND && localStorage.getItem(arrKey)) || "";
 
   let h = '<div class="wrap">';
 
@@ -345,17 +346,17 @@ async function toggleDep() {
   const action = isOut ? "out_depart" : "ret_depart";
   const clrAct = isOut ? "out_depart_clr" : "ret_depart_clr";
   const key    = (isOut?"out_depart":"ret_depart")+"_"+CAR+"_"+DATE;
-  const cur    = (isOut ? DATA.depInfo?.outDepart : DATA.retInfo?.retDepart) || localStorage.getItem(key) || "";
+  const cur    = (isOut ? DATA.depInfo?.outDepart : DATA.retInfo?.retDepart) || (!USE_NEW_BACKEND && localStorage.getItem(key)) || "";
   const seg    = isOut ? "去程" : "回程";
 
   if (cur) {
-    await postAction({action: clrAct, car: CAR, date: DATE, segment: seg});
+    try { await postAction({action: clrAct, car: CAR, date: DATE, segment: seg}); } catch { return; }
     localStorage.removeItem(key);
     if (isOut && DATA.depInfo) DATA.depInfo.outDepart = "";
     else if (DATA.retInfo)     DATA.retInfo.retDepart = "";
   } else {
     const t = jstTime();
-    await postAction({action, car: CAR, date: DATE, segment: seg, time: t});
+    try { await postAction({action, car: CAR, date: DATE, segment: seg, time: t}); } catch { return; }
     localStorage.setItem(key, t);
     if (isOut && DATA.depInfo) DATA.depInfo.outDepart = t;
     else if (DATA.retInfo)     DATA.retInfo.retDepart = t;
@@ -368,17 +369,17 @@ async function toggleArr() {
   const action = isOut ? "out_arrive" : "ret_arrive";
   const clrAct = isOut ? "out_arrive_clr" : "ret_arrive_clr";
   const key    = (isOut?"out_arrive":"ret_arrive")+"_"+CAR+"_"+DATE;
-  const cur    = (isOut ? DATA.depInfo?.outArrive : DATA.retInfo?.retArrive) || localStorage.getItem(key) || "";
+  const cur    = (isOut ? DATA.depInfo?.outArrive : DATA.retInfo?.retArrive) || (!USE_NEW_BACKEND && localStorage.getItem(key)) || "";
   const seg    = isOut ? "去程" : "回程";
 
   if (cur) {
-    await postAction({action: clrAct, car: CAR, date: DATE, segment: seg});
+    try { await postAction({action: clrAct, car: CAR, date: DATE, segment: seg}); } catch { return; }
     localStorage.removeItem(key);
     if (isOut && DATA.depInfo) DATA.depInfo.outArrive = "";
     else if (DATA.retInfo)     DATA.retInfo.retArrive = "";
   } else {
     const t = jstTime();
-    await postAction({action, car: CAR, date: DATE, segment: seg, time: t});
+    try { await postAction({action, car: CAR, date: DATE, segment: seg, time: t}); } catch { return; }
     localStorage.setItem(key, t);
     if (isOut && DATA.depInfo) DATA.depInfo.outArrive = t;
     else if (DATA.retInfo)     DATA.retInfo.retArrive = t;
@@ -398,18 +399,9 @@ async function setPax(orderNo, action) {
                : (action==="absent"  && cur!=="❌") ? "absent"
                : "reset";
 
-  // 樂觀更新
-  const newVal = newSt==="confirm"?"✅" : newSt==="absent"?"❌" : "";
-  if (isOut) pax.outStatus = newVal;
-  else       pax.retStatus = newVal;
-  if (newSt==="confirm") {
-    if (isOut) DATA.summary.outConfirmed += pax.pax;
-    else       DATA.summary.retConfirmed += pax.pax;
-  }
-  render();
-
   try {
     await postAction({action: newSt, orderNo, date: DATE, trip});
+    await load();
     showToast(newSt==="confirm"?"✅ 已確認" : newSt==="absent"?"❌ 標記未到" : "↩️ 已重置");
   } catch(e) {
     showToast("⚠️ 更新失敗");
@@ -417,22 +409,30 @@ async function setPax(orderNo, action) {
 }
 
 async function confirmAll() {
-  const isOut  = TRIP === "outbound";
+  const isOut = TRIP === "outbound";
   const paxList = isOut ? DATA.depPassengers : DATA.retPassengers;
-  for (const p of paxList) {
-    if ((isOut ? p.outStatus : p.retStatus) === "✅") continue;
-    if (isOut) { p.outStatus = "✅"; DATA.summary.outConfirmed += p.pax; }
-    else       { p.retStatus = "✅"; DATA.summary.retConfirmed += p.pax; }
-    postAction({action:"confirm", orderNo:p.orderNo, date:DATE, trip: isOut?"outbound":"return"});
+  try {
+    for (const p of paxList) {
+      if ((isOut ? p.outStatus : p.retStatus) === "✅") continue;
+      await postAction({action:"confirm", orderNo:p.orderNo, date:DATE, trip: isOut?"outbound":"return"});
+    }
+    showToast("✅ 全部確認完成");
+  } catch(e) {
+    showToast("⚠️ 部分乘客可能尚未確認");
   }
-  render();
-  showToast("✅ 全部確認完成");
+  await load();
 }
 
 // ── API ──
 async function postAction(body) {
-  const r = await fetch(API, {method:"POST", body:JSON.stringify(body)});
-  return await r.json();
+  try {
+    const result = await staffRequest(body, true);
+    if (result.error || (USE_NEW_BACKEND && !result.success)) throw new Error(result.error);
+    return result;
+  } catch (error) {
+    showToast("⚠️ 更新失敗");
+    throw error;
+  }
 }
 
 function showNoCar() {

@@ -249,6 +249,7 @@ body {
 <div id="main"><div class="loading"><div class="spin"></div></div></div>
 
 <script src="config.js"></script>
+<script src="api.js"></script>
 <script>
 const qs   = new URLSearchParams(location.search);
 let DATE   = qs.get("date") || bestDate();
@@ -337,11 +338,11 @@ function toggleSound() {
 // ── 載入 ──
 async function load() {
   try {
-    const r = await fetch(`${API}?action=getDashboard&date=${DATE}`);
-    DATA = await r.json();
+    DATA = await staffRequest({action: "getDashboard", date: DATE});
+    if (DATA.error) throw new Error(DATA.error);
     render();
   } catch(e) {
-    if (!DATA) document.getElementById("main").innerHTML =
+    if (!DATA || DATA.error) document.getElementById("main").innerHTML =
       `<div class="loading" style="color:#e8002d">⚠️ 載入失敗，請重新整理</div>`;
   }
 }

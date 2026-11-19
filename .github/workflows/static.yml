@@ -40,6 +40,8 @@ jobs:
             --exclude '.git' \
             --exclude '.DS_Store' \
             kimono/ _site/
+          mkdir -p _site/2026F1
+          rsync -a --exclude '.DS_Store' 2026F1/ _site/2026F1/
           cp CNAME _site/CNAME
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

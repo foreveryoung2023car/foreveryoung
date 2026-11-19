@@ -72,6 +72,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 </div>
 
 <script src="config.js"></script>
+<script src="api.js"></script>
 <script>
 function simplePt(pt) {
   if (!pt) return "";
@@ -136,8 +137,7 @@ async function doSearch() {
 }
 
 async function searchDriver(num) {
-  const r = await fetch(`${API}?action=findCar&num=${encodeURIComponent(num)}`);
-  const d = await r.json();
+  const d = await staffRequest({action: "findCar", num});
   if (d.error) { showErr(d.error); return; }
 
   const { md: today } = jstNow();
@@ -178,8 +178,7 @@ function gotoDriver(car) {
 }
 
 async function searchPassenger(phone, name) {
-  const r = await fetch(`${API}?action=findPassenger&phone=${encodeURIComponent(phone)}&name=${encodeURIComponent(name)}`);
-  const d = await r.json();
+  const d = await passengerLookup(phone, name);
   if (d.error || !d.passengers || !d.passengers.length) {
     showErr("查無資料，請確認電話號碼與姓名是否正確");
     return;
@@ -312,8 +311,8 @@ async function searchPassenger(phone, name) {
         })()}
         ${isToday?`
         <button id="btn_${oid}_out"
-          onmousedown="startCheckin('${pax.orderNo}','${b.date}','${oid}_out','out')"
-          ontouchstart="startCheckin('${pax.orderNo}','${b.date}','${oid}_out','out')"
+          onmousedown="startCheckin('${pax.orderNo}','${b.date}','${oid}_out','outbound','${b.checkinToken || ""}')"
+          ontouchstart="startCheckin('${pax.orderNo}','${b.date}','${oid}_out','outbound','${b.checkinToken || ""}')"
           onmouseup="cancelCheckin('${oid}_out')" onmouseleave="cancelCheckin('${oid}_out')"
           ontouchend="cancelCheckin('${oid}_out')" ontouchcancel="cancelCheckin('${oid}_out')"
           style="width:100%;padding:16px;border-radius:12px;border:none;cursor:pointer;font-size:16px;font-weight:900;font-family:'Noto Sans TC',sans-serif;position:relative;overflow:hidden;transition:all .2s;margin-bottom:8px;
@@ -324,8 +323,8 @@ async function searchPassenger(phone, name) {
           <span style="position:relative;z-index:1">${outDone?"✅ 去程已完成報到":"長按 2 秒完成去程報到 🚌"}</span>
         </button>
         <button id="btn_${oid}_ret"
-          onmousedown="startCheckin('${pax.orderNo}','${b.date}','${oid}_ret','ret')"
-          ontouchstart="startCheckin('${pax.orderNo}','${b.date}','${oid}_ret','ret')"
+          onmousedown="startCheckin('${pax.orderNo}','${b.date}','${oid}_ret','return','${b.checkinToken || ""}')"
+          ontouchstart="startCheckin('${pax.orderNo}','${b.date}','${oid}_ret','return','${b.checkinToken || ""}')"
           onmouseup="cancelCheckin('${oid}_ret')" onmouseleave="cancelCheckin('${oid}_ret')"
           ontouchend="cancelCheckin('${oid}_ret')" ontouchcancel="cancelCheckin('${oid}_ret')"
           style="width:100%;padding:16px;border-radius:12px;border:none;cursor:pointer;font-size:16px;font-weight:900;font-family:'Noto Sans TC',sans-serif;position:relative;overflow:hidden;transition:all .2s;
@@ -387,12 +386,12 @@ function applyJoined(oid, joined) {
   }
 }
 
-function startCheckin(orderNo,dateStr,oid,trip){
+function startCheckin(orderNo,dateStr,oid,trip,checkinToken){
   if(holdTimer) return;
   holdOid=oid;
   const fill=document.getElementById("fill_"+oid);
   if(fill){fill.style.transition="width 2s linear";fill.style.width="100%";}
-  holdTimer=setTimeout(()=>{holdTimer=null;doSelfCheckin(orderNo,dateStr,oid,trip);},2000);
+  holdTimer=setTimeout(()=>{holdTimer=null;doSelfCheckin(orderNo,dateStr,oid,trip,checkinToken);},2000);
 }
 
 function cancelCheckin(oid){
@@ -402,7 +401,7 @@ function cancelCheckin(oid){
   if(fill){fill.style.transition="width 0.2s linear";fill.style.width="0";}
 }
 
-async function doSelfCheckin(orderNo,dateStr,oid,trip){
+async function doSelfCheckin(orderNo,dateStr,oid,trip,checkinToken){
   const btn=document.getElementById("btn_"+oid);
   const stEl=document.getElementById("st_"+oid);
   const fill=document.getElementById("fill_"+oid);
@@ -414,7 +413,7 @@ async function doSelfCheckin(orderNo,dateStr,oid,trip){
   const date=m?m[1]+m[2]:"";
   const isOut=trip==="outbound";
   try{
-    const r=await fetch(API,{method:"POST",body:JSON.stringify({action:"confirm",orderNo,date,trip})});
+    const r=await fetch(API,{method:"POST",body:JSON.stringify({action:"confirm",orderNo,date,trip,checkinToken})});
     const d=await r.json();
     if(d.success){
       if(fill) fill.style.width="0";
