@@ -230,7 +230,7 @@
 
         <div class="space-y-2">
           <input type="tel" v-model="queryPhone" placeholder="手機號碼 (如 0912345678)" class="w-full border border-slate-200 rounded-xl p-3 text-base outline-none focus:ring-2 focus:ring-red-500">
-          <input type="text" v-model="queryOrderId" placeholder="訂單編號 (如 #2027F1-0411-1234)" class="w-full border border-slate-200 rounded-xl p-3 text-base outline-none focus:ring-2 focus:ring-red-500 uppercase">
+          <input type="text" v-model="queryOrderId" placeholder="訂單編號 (如 F126112101)" class="w-full border border-slate-200 rounded-xl p-3 text-base outline-none focus:ring-2 focus:ring-red-500 uppercase">
           <button @click="handleQuery" :disabled="isQuerying" class="w-full bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white text-base font-bold py-2.5 rounded-xl transition-all">
             {{ isQuerying ? '查詢中...' : '查詢訂單明細' }}
           </button>
@@ -293,7 +293,7 @@
         <h3 class="text-lg font-black text-slate-800 mb-3">⚠️ 重要注意事項</h3>
         <ol class="list-decimal list-inside space-y-1.5">
           <li>當日採「準時到點即上車」方式，車輛抵達後將直接安排乘客上車。</li>
-          <li>車輛為 10 人座海獅，滿 9 人即發車。</li>
+          <li>車輛為 10 人座海獅以上車款，滿 7 人即發車。</li>
           <li>請務必準時抵達集合地點，共乘服務無法等候遲到乘客。</li>
           <template v-if="showAllNotices">
             <li>司機免費等候 10 分鐘，逾時未到視同放棄權益。</li>
@@ -328,19 +328,21 @@
                 </select>
               </div>
               <div>
-                <label class="block text-sm text-slate-500 mb-1">距搭乘日還有幾天</label>
-                <input type="number" min="0" v-model.number="feeCalcDays" placeholder="例如 10" class="w-full border border-slate-200 rounded-lg p-2 text-base outline-none">
+                <label class="block text-sm text-slate-500 mb-1">選擇搭乘日期</label>
+                <select v-model="feeCalcDate" class="w-full border border-slate-200 rounded-lg p-2 text-base bg-white outline-none">
+                  <option v-for="d in dates" :key="d.val" :value="d.val">{{ d.label }}</option>
+                </select>
               </div>
             </div>
             <div>
               <label class="block text-sm text-slate-500 mb-1">每人每日實付票價（NT$，選填）</label>
               <input type="number" min="0" v-model.number="feeCalcPrice" placeholder="例如 2200" class="w-full border border-slate-200 rounded-lg p-2 text-base outline-none">
             </div>
-            <div v-if="feeCalcDays !== ''" class="mt-3 pt-3 border-t border-amber-200 flex justify-between items-center">
-              <span class="text-slate-600">預估手續費</span>
+            <div class="mt-3 pt-3 border-t border-amber-200 flex justify-between items-center">
+              <span class="text-slate-600">距搭乘日 {{ feeCalcDaysLeft }} 天・預估手續費</span>
               <span class="font-black text-red-600 text-lg">{{ feeCalcResult.percent }}%<span v-if="feeCalcPrice"> ・ NT$ {{ feeCalcResult.amount.toLocaleString() }}</span></span>
             </div>
-            <p v-if="feeCalcDays !== '' && feeCalcResult.note" class="text-sm text-slate-400 mt-1">{{ feeCalcResult.note }}</p>
+            <p v-if="feeCalcResult.note" class="text-sm text-slate-400 mt-1">{{ feeCalcResult.note }}</p>
           </div>
 
           <p class="mb-3 text-slate-500">以下天數以「每一個搭乘日期」分別計算，自該搭乘日往前推算；手續費以當日票價（實際支付金額）之比例計算。</p>
@@ -386,7 +388,7 @@
 
     </section>
 
-    <footer class="mt-8 text-center text-base text-slate-400 space-y-1">
+    <footer class="mt-8 text-center text-xs text-slate-400 space-y-1">
       <p>旅乘日本自由行包車・Forever young 株式会社</p>
       <p>東京都知事登録旅行業第 3-6175 号 ｜ 全程日本合規營業綠牌車</p>
     </footer>
@@ -415,11 +417,18 @@
         const earlyBirdRemaining = computed(() => Math.max(0, 100 - earlyBirdBooked.value));
 
         const feeCalcType = ref('change');
-        const feeCalcDays = ref('');
+        const feeCalcDate = ref('04/11');
         const feeCalcPrice = ref(2200);
+        const feeCalcDaysLeft = computed(() => {
+          const [m, d] = feeCalcDate.value.split('/').map(Number);
+          const target = new Date(2027, m - 1, d);
+          target.setHours(0, 0, 0, 0);
+          const now = new Date();
+          now.setHours(0, 0, 0, 0);
+          return Math.round((target - now) / 86400000);
+        });
         const feeCalcResult = computed(() => {
-          const days = feeCalcDays.value;
-          if (days === '' || days === null || isNaN(days)) return { percent: 0, amount: 0, note: '' };
+          const days = feeCalcDaysLeft.value;
           let percent = 0;
           let note = '';
           if (feeCalcType.value === 'change') {
@@ -444,6 +453,15 @@
           if (btn) {
             btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
+        };
+
+        const generateOrderId = () => {
+          const now = new Date();
+          const yy = String(now.getFullYear()).slice(-2);
+          const mm = String(now.getMonth() + 1).padStart(2, '0');
+          const dd = String(now.getDate()).padStart(2, '0');
+          const seq = String(Math.floor(Math.random() * 100)).padStart(2, '0');
+          return `F1${yy}${mm}${dd}${seq}`;
         };
 
         const dates = [
@@ -519,10 +537,7 @@
 
           isSubmitting.value = true;
 
-          const firstDate = dates.find(d => form.value.dateDetails[d.val].selected);
-          const randomCode = Math.floor(1000 + Math.random() * 9000);
-          const firstDateStr = firstDate.val.replace('/', '');
-          const orderId = `#2027F1-${firstDateStr}-${randomCode}`;
+          const orderId = generateOrderId();
           const itineraryText = buildItineraryText();
 
           const payload = {
@@ -680,7 +695,8 @@
           earlyBirdBooked,
           earlyBirdRemaining,
           feeCalcType,
-          feeCalcDays,
+          feeCalcDate,
+          feeCalcDaysLeft,
           feeCalcPrice,
           feeCalcResult,
           scrollToSubmit,
