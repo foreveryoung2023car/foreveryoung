@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2027 F1 鈴鹿日本大獎賽・直達接駁預約系統 | 旅乘日本自由行包車</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <style>
+    [v-cloak] { display: none; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen">
+  <div id="app" v-cloak class="max-w-2xl mx-auto px-4 py-8">
+
+    <!-- 頂部品牌主視覺 -->
+    <header class="bg-gradient-to-r from-red-600 to-red-800 rounded-2xl p-6 text-white shadow-lg mb-6">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs tracking-wider bg-white/20 px-3 py-1 rounded-full font-semibold">旅乘 日本包車</span>
+        <span class="text-xs bg-emerald-500 text-white font-bold px-3 py-1 rounded-full">100% 合規綠牌營業車</span>
+      </div>
+      <h1 class="text-2xl font-black tracking-tight">2027 F1 鈴鹿日本大獎賽</h1>
+      <p class="text-red-100 text-sm mt-1">名古屋車站 / 榮站 ⇄ 鈴鹿賽道・直達共乘專車</p>
+      <div class="mt-4 pt-3 border-t border-red-500/50 flex flex-wrap gap-x-4 gap-y-1 text-xs text-red-100">
+        <div>✓ 滿 7 人保證出車</div>
+        <div>✓ 首波限量 100 席早鳥現折 NT$300</div>
+        <div>✓ 避開散場最嚴重車潮</div>
+      </div>
+    </header>
+
+    <!-- 分頁切換 -->
+    <div class="flex border-b border-slate-200 mb-6 bg-white rounded-xl p-1 shadow-sm">
+      <button
+        @click="activeTab = 'book'"
+        :class="activeTab === 'book' ? 'bg-red-600 text-white shadow' : 'text-slate-600 hover:text-slate-900'"
+        class="flex-1 py-2.5 text-center font-bold text-sm rounded-lg transition-all">
+        線上預約登記
+      </button>
+      <button
+        @click="activeTab = 'query'"
+        :class="activeTab === 'query' ? 'bg-red-600 text-white shadow' : 'text-slate-600 hover:text-slate-900'"
+        class="flex-1 py-2.5 text-center font-bold text-sm rounded-lg transition-all">
+        訂單查詢 / 回報匯款
+      </button>
+    </div>
+
+    <!-- TAB 1: 預約表單 -->
+    <main v-if="activeTab === 'book'" class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+
+      <!-- 提交成功卡片 -->
+      <div v-if="submittedOrder" class="py-4">
+        <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-bold">✓</div>
+        <h2 class="text-xl font-black text-center text-slate-800 mb-1">預約登記已成立！</h2>
+        <p class="text-xs text-center text-slate-500 mb-6">
+          您的專屬訂單編號：<span class="font-mono font-bold text-red-600 text-sm">{{ submittedOrder.orderId }}</span>
+        </p>
+
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-left mb-6 text-sm space-y-2">
+          <div class="font-bold text-slate-700 mb-2 border-b border-slate-200 pb-2">訂金匯款帳戶（請於 24 小時內完成匯款）</div>
+          <div class="flex justify-between"><span>銀行代碼：</span><span class="font-bold">國泰世華銀行 (013)</span></div>
+          <div class="flex justify-between"><span>分行名稱：</span><span class="font-bold">文山分行</span></div>
+          <div class="flex justify-between"><span>戶名：</span><span class="font-bold">葉俊賢</span></div>
+          <div class="flex justify-between items-center pt-1 border-t border-slate-200">
+            <span>帳號：</span>
+            <div class="flex items-center gap-2">
+              <span class="font-mono font-bold text-red-600">103700025326</span>
+              <button @click="copyAccount" class="text-xs bg-slate-200 hover:bg-slate-300 px-2 py-0.5 rounded">複製</button>
+            </div>
+          </div>
+          <div class="flex justify-between pt-2 border-t border-slate-200 font-bold">
+            <span>應付訂金總額：</span>
+            <span class="text-red-600 text-base">NT$ {{ submittedOrder.totalPrice.toLocaleString() }}</span>
+          </div>
+        </div>
+
+        <button
+          @click="switchToQueryFromSuccess"
+          class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition-all text-sm">
+          前往回報匯款後五碼
+        </button>
+      </div>
+
+      <!-- 預約表單內容 -->
+      <form v-else @submit.prevent="handleSubmit" class="space-y-5">
+
+        <!-- 1. 選擇日期 -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-2">1. 選擇搭乘日期（可複選）<span class="text-red-500">*</span></label>
+          <div class="grid grid-cols-2 gap-2">
+            <label
+              v-for="d in dates" :key="d.val"
+              :class="form.selectedDates.includes(d.val) ? 'border-red-600 bg-red-50/60 text-red-700 font-bold' : 'border-slate-200 bg-white text-slate-600'"
+              class="border rounded-xl p-3 text-center cursor-pointer text-xs transition-all flex flex-col justify-center items-center">
+              <input type="checkbox" :value="d.val" v-model="form.selectedDates" class="hidden">
+              <span class="text-sm">{{ d.label }}</span>
+              <span class="text-[11px] text-slate-400 mt-0.5">{{ d.desc }}</span>
+            </label>
+          </div>
+          <p v-if="form.selectedDates.length === 0 && touched" class="text-xs text-red-500 mt-1">請至少選擇一個搭乘日期</p>
+        </div>
+
+        <!-- 2. 上下車地點與時段 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">2. 去程上車地點 <span class="text-red-500">*</span></label>
+            <select v-model="form.pickupLocation" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs bg-white outline-none focus:ring-2 focus:ring-red-500">
+              <option value="名古屋車站">A. 名古屋車站（太閣通口 Ministop 前）</option>
+              <option value="名古屋榮站">B. 名古屋榮站（10B 出口 洋食厨房ムギ前）</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">3. 回程集合時段 <span class="text-red-500">*</span></label>
+            <select v-model="form.returnTime" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs bg-white outline-none focus:ring-2 focus:ring-red-500">
+              <option value="17:30">首批 17:30（避開散場最嚴重車潮）</option>
+              <option value="19:00">第二批 19:00（看頒獎、逛周邊）</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 3. 搭乘人數與優惠代碼 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">4. 搭乘人數 <span class="text-red-500">*</span></label>
+            <div class="flex items-center border border-slate-200 rounded-xl overflow-hidden">
+              <button type="button" @click="form.passengers = Math.max(1, form.passengers - 1)" class="w-10 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold">-</button>
+              <input type="number" min="1" max="20" v-model.number="form.passengers" class="w-full text-center font-bold text-slate-800 text-sm outline-none">
+              <button type="button" @click="form.passengers++" class="w-10 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold">+</button>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">5. 專屬優惠代碼</label>
+            <div class="flex gap-2">
+              <input type="text" v-model="form.promoCode" placeholder="如 SHARON" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs uppercase outline-none focus:ring-2 focus:ring-red-500">
+              <button type="button" @click="applyPromo" class="px-3 py-2 bg-slate-800 text-white text-xs font-bold rounded-xl whitespace-nowrap">套用</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. 聯絡人資料 -->
+        <div class="border-t border-slate-100 pt-4 space-y-3">
+          <div class="text-xs font-bold text-slate-800">6. 訂購聯絡人資訊</div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] text-slate-500 mb-1">主要聯絡人姓名 *</label>
+              <input type="text" required v-model="form.name" placeholder="王小明" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-500 mb-1">手機號碼 *</label>
+              <input type="tel" required v-model="form.phone" placeholder="0912345678" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-500 mb-1">LINE ID *</label>
+              <input type="text" required v-model="form.lineId" placeholder="方便賽事當週加入車長群" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-500 mb-1">電子信箱 Email *</label>
+              <input type="email" required v-model="form.email" placeholder="name@example.com" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-500 mb-1">備註事項（可填寫同行友人姓名，方便編排同車）</label>
+            <input type="text" v-model="form.notes" placeholder="無特殊需求可留空" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:ring-2 focus:ring-red-500">
+          </div>
+        </div>
+
+        <!-- 費用試算卡 -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex items-center justify-between">
+          <div class="text-xs text-slate-600">
+            <div>首波早鳥 NT$ {{ perDayPrice }} × {{ form.selectedDates.length }} 天 × {{ form.passengers }} 人</div>
+            <div class="text-[11px] text-emerald-600 mt-0.5">每人每天現折 NT$ 300（原價 NT$ 2,500）</div>
+          </div>
+          <div class="text-right">
+            <span class="text-xs text-slate-400 block">總計訂金</span>
+            <span class="text-xl font-black text-red-600">NT$ {{ totalPrice.toLocaleString() }}</span>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          :disabled="isSubmitting || form.selectedDates.length === 0"
+          class="w-full bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white font-bold py-3.5 rounded-xl transition-all text-sm">
+          {{ isSubmitting ? '正在送出預約中...' : '確認預約・取得匯款編號' }}
+        </button>
+      </form>
+    </main>
+
+    <!-- TAB 2: 訂單查詢與後五碼回報 -->
+    <main v-if="activeTab === 'query'" class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+      <div class="max-w-md mx-auto space-y-4">
+        <h2 class="text-base font-bold text-slate-800 text-center">訂單查詢與回報匯款</h2>
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-500 leading-relaxed">
+          為保障個人隱私，請輸入建立訂單時填寫的「手機號碼」與「訂單編號」進行雙重驗證查詢。
+        </div>
+
+        <div class="space-y-2">
+          <input type="tel" v-model="queryPhone" placeholder="手機號碼 (如 0912345678)" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:ring-2 focus:ring-red-500">
+          <input type="text" v-model="queryOrderId" placeholder="訂單編號 (如 #2027F1-0411-1234)" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:ring-2 focus:ring-red-500 uppercase">
+          <button @click="handleQuery" :disabled="isQuerying" class="w-full bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white text-xs font-bold py-2.5 rounded-xl transition-all">
+            {{ isQuerying ? '查詢中...' : '查詢訂單明細' }}
+          </button>
+        </div>
+
+        <!-- 查詢結果 -->
+        <div v-if="queryResult" class="border border-slate-200 rounded-xl p-4 space-y-2 bg-slate-50 text-xs mt-4">
+          <div class="flex justify-between border-b border-slate-200 pb-2">
+            <span class="text-slate-500">訂單編號</span>
+            <span class="font-mono font-bold">{{ queryResult.orderId }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">訂購人</span>
+            <span class="font-bold">{{ queryResult.name }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">搭乘日程</span>
+            <span>{{ queryResult.dates }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">搭乘人數</span>
+            <span>{{ queryResult.passengers }} 人</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">應付訂金</span>
+            <span class="font-bold text-red-600 text-sm">NT$ {{ Number(queryResult.totalPrice).toLocaleString() }}</span>
+          </div>
+          <div class="flex justify-between items-center pt-2 border-t border-slate-200">
+            <span class="text-slate-500">對帳狀態</span>
+            <span :class="queryResult.status === '已確認' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'" class="px-2 py-0.5 rounded-full font-bold text-[11px]">
+              {{ queryResult.status }}
+            </span>
+          </div>
+
+          <!-- 回報後五碼區塊 -->
+          <div v-if="queryResult.status !== '已確認'" class="pt-3 border-t border-slate-200 mt-2">
+            <label class="block text-[11px] font-bold text-slate-700 mb-1">
+              {{ queryResult.last5 ? '已回報後五碼：' + queryResult.last5 + ' (可重新填寫更正)' : '請輸入匯款帳號後五碼：' }}
+            </label>
+            <div class="flex gap-2">
+              <input type="text" maxlength="5" v-model="remitLast5" placeholder="54321" class="border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs w-full outline-none">
+              <button @click="handleRemitSubmit" :disabled="isSubmittingRemit" class="bg-slate-800 hover:bg-slate-900 disabled:bg-slate-400 text-white text-xs px-3 py-1.5 rounded-lg font-bold whitespace-nowrap">
+                {{ isSubmittingRemit ? '送出中...' : '回報' }}
+              </button>
+            </div>
+            <p v-if="remitSuccessMsg" class="text-xs text-emerald-600 mt-1 font-semibold">{{ remitSuccessMsg }}</p>
+          </div>
+        </div>
+
+        <div v-else-if="hasSearched && !queryResult" class="text-center text-xs text-slate-400 py-4">
+          查無相符資料，請確認手機號碼與訂單編號是否正確。
+        </div>
+      </div>
+    </main>
+
+    <footer class="mt-8 text-center text-xs text-slate-400 space-y-1">
+      <p>旅乘日本自由行包車・Forever young 株式会社</p>
+      <p>東京都知事登録旅行業第 3-6175 号 ｜ 全程日本合規營業綠牌車</p>
+    </footer>
+
+  </div>
+
+  <script>
+    // 請將下方字串替換為實際部署之 Apps Script Web App URL
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwJhKT_7qKboaiW9ddz-IWO2jRMGxqKeiVmPWr60ryov009fWqu1tV3WlPaaOGoTCJEqA/exec";
+
+    const { createApp, ref, computed } = Vue;
+
+    createApp({
+      setup() {
+        const activeTab = ref('book');
+        const touched = ref(false);
+        const isSubmitting = ref(false);
+        const submittedOrder = ref(null);
+
+        const dates = [
+          { val: '04/08', label: '04/08(四)', desc: '自由參觀日' },
+          { val: '04/09', label: '04/09(五)', desc: '練習賽 FP1/2' },
+          { val: '04/10', label: '04/10(六)', desc: '排位賽' },
+          { val: '04/11', label: '04/11(日)', desc: '正賽決賽' }
+        ];
+
+        const form = ref({
+          selectedDates: ['04/11'],
+          pickupLocation: '名古屋車站',
+          returnTime: '17:30',
+          passengers: 2,
+          promoCode: '',
+          name: '',
+          phone: '',
+          lineId: '',
+          email: '',
+          notes: ''
+        });
+
+        const perDayPrice = computed(() => 2200);
+        const totalPrice = computed(() => {
+          return perDayPrice.value * form.value.selectedDates.length * form.value.passengers;
+        });
+
+        const applyPromo = () => {
+          if (form.value.promoCode.trim().length > 0) {
+            alert('已成功套用代碼：' + form.value.promoCode.trim());
+          }
+        };
+
+        const handleSubmit = async () => {
+          touched.value = true;
+          if (form.value.selectedDates.length === 0) return;
+
+          isSubmitting.value = true;
+
+          const randomCode = Math.floor(1000 + Math.random() * 9000);
+          const firstDateStr = form.value.selectedDates[0].replace('/', '');
+          const orderId = `#2027F1-${firstDateStr}-${randomCode}`;
+
+          const payload = {
+            action: 'createOrder',
+            orderId: orderId,
+            ...form.value,
+            totalPrice: totalPrice.value
+          };
+
+          try {
+            await fetch(GAS_WEB_APP_URL, {
+              method: 'POST',
+              mode: 'no-cors',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+
+            // 成功送出
+            submittedOrder.value = {
+              orderId,
+              phone: form.value.phone,
+              totalPrice: totalPrice.value
+            };
+          } catch (err) {
+            alert('送出預約失敗，請檢查網路連線或稍後再試：' + err);
+          } finally {
+            isSubmitting.value = false;
+          }
+        };
+
+        const copyAccount = () => {
+          navigator.clipboard.writeText('103700025326');
+          alert('匯款帳號 103700025326 已複製至剪貼簿！');
+        };
+
+        // 查單與回報邏輯
+        const queryPhone = ref('');
+        const queryOrderId = ref('');
+        const isQuerying = ref(false);
+        const hasSearched = ref(false);
+        const queryResult = ref(null);
+
+        const remitLast5 = ref('');
+        const isSubmittingRemit = ref(false);
+        const remitSuccessMsg = ref('');
+
+        const switchToQueryFromSuccess = () => {
+          if (submittedOrder.value) {
+            queryPhone.value = submittedOrder.value.phone;
+            queryOrderId.value = submittedOrder.value.orderId;
+          }
+          activeTab.value = 'query';
+          handleQuery();
+        };
+
+        const handleQuery = async () => {
+          if (!queryPhone.value || !queryOrderId.value) {
+            alert('請同時輸入手機號碼與訂單編號');
+            return;
+          }
+
+          isQuerying.value = true;
+          hasSearched.value = true;
+          queryResult.value = null;
+          remitSuccessMsg.value = '';
+
+          try {
+            const res = await fetch(GAS_WEB_APP_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'queryOrder',
+                phone: queryPhone.value.trim(),
+                orderId: queryOrderId.value.trim()
+              })
+            });
+            const result = await res.json();
+            if (result.status === 'success') {
+              queryResult.value = result.data;
+            } else {
+              queryResult.value = null;
+            }
+          } catch (err) {
+            alert('查詢發生錯誤，請稍後再試');
+          } finally {
+            isQuerying.value = false;
+          }
+        };
+
+        const handleRemitSubmit = async () => {
+          if (remitLast5.value.trim().length !== 5) {
+            alert('請輸入完整 5 碼帳號後五碼');
+            return;
+          }
+
+          isSubmittingRemit.value = true;
+          remitSuccessMsg.value = '';
+
+          try {
+            const res = await fetch(GAS_WEB_APP_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'submitRemit',
+                phone: queryPhone.value.trim(),
+                orderId: queryOrderId.value.trim(),
+                last5: remitLast5.value.trim()
+              })
+            });
+            const result = await res.json();
+            if (result.status === 'success') {
+              remitSuccessMsg.value = '✓ 後五碼已回報成功，客服人員將於核對後更新狀態！';
+              if (queryResult.value) {
+                queryResult.value.last5 = remitLast5.value.trim();
+              }
+            } else {
+              alert('回報失敗，請確認訂單資料');
+            }
+          } catch (err) {
+            alert('回報發生錯誤，請稍後再試');
+          } finally {
+            isSubmittingRemit.value = false;
+          }
+        };
+
+        return {
+          activeTab,
+          dates,
+          form,
+          touched,
+          isSubmitting,
+          submittedOrder,
+          perDayPrice,
+          totalPrice,
+          applyPromo,
+          handleSubmit,
+          copyAccount,
+          switchToQueryFromSuccess,
+          queryPhone,
+          queryOrderId,
+          isQuerying,
+          hasSearched,
+          queryResult,
+          remitLast5,
+          isSubmittingRemit,
+          remitSuccessMsg,
+          handleQuery,
+          handleRemitSubmit
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
