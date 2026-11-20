@@ -11,7 +11,7 @@
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen">
-  <div id="app" v-cloak class="max-w-2xl mx-auto px-4 py-8">
+  <div id="app" v-cloak class="max-w-2xl mx-auto px-4 py-8 pb-28 md:pb-8">
 
     <!-- 頂部品牌主視覺 -->
     <header class="bg-gradient-to-r from-red-600 to-red-800 rounded-2xl p-6 text-white shadow-lg mb-6">
@@ -23,10 +23,23 @@
       <p class="text-red-100 text-lg mt-1">名古屋車站 / 榮站 ⇄ 鈴鹿賽道・直達共乘專車</p>
       <div class="mt-4 pt-3 border-t border-red-500/50 flex flex-wrap gap-x-4 gap-y-1 text-base text-red-100">
         <div>✓ 滿 7 人保證出車</div>
-        <div>✓ 首波限量 100 席早鳥現折 NT$300</div>
         <div>✓ 避開散場最嚴重車潮</div>
       </div>
+      <div class="mt-3 bg-white/15 rounded-lg p-2.5">
+        <div class="flex justify-between text-sm text-red-100 mb-1">
+          <span>首波早鳥 100 席（現折 NT$300）</span>
+          <span class="font-bold text-white">剩餘 {{ earlyBirdRemaining }} 席</span>
+        </div>
+        <div class="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+          <div class="bg-amber-300 h-full rounded-full transition-all" :style="{ width: (earlyBirdBooked / 100 * 100) + '%' }"></div>
+        </div>
+      </div>
     </header>
+
+    <!-- 信任感小標籤 -->
+    <div class="flex items-center justify-center gap-2 text-sm text-slate-500 mb-4">
+      <span>✓ 100% 合規綠牌營業車・多組旅客已陸續完成預約</span>
+    </div>
 
     <!-- 分頁切換 -->
     <div class="flex border-b border-slate-200 mb-6 bg-white rounded-xl p-1 shadow-sm">
@@ -64,7 +77,7 @@
             <span>帳號：</span>
             <div class="flex items-center gap-2">
               <span class="font-mono font-bold text-red-600">100100344320</span>
-              <button @click="copyAccount" class="text-base bg-slate-200 hover:bg-slate-300 px-2 py-0.5 rounded">複製</button>
+              <button @click="copyAccount" class="text-base px-2 py-0.5 rounded transition-all" :class="copiedAccount ? 'bg-emerald-500 text-white' : 'bg-slate-200 hover:bg-slate-300'">{{ copiedAccount ? '已複製 ✓' : '複製' }}</button>
             </div>
           </div>
           <div class="flex justify-between pt-2 border-t border-slate-200 font-bold">
@@ -85,7 +98,10 @@
 
         <!-- 1. 選擇日期，每天各自可設定上下車地點與回程時段 -->
         <div>
-          <label class="block text-base font-bold text-slate-700 mb-2">1. 選擇搭乘日期（可複選，每日可各自設定上下車地點與回程時段）<span class="text-red-500">*</span></label>
+          <label class="block text-base font-bold text-slate-700 mb-2">
+            1. 選擇搭乘日期 <span class="text-red-500">*</span>
+            <span class="inline-flex items-center text-sm font-normal text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5 ml-1">ⓘ 可複選，每日可各自設定上下車地點與回程時段</span>
+          </label>
           <div class="space-y-2">
             <div
               v-for="d in dates" :key="d.val"
@@ -94,7 +110,7 @@
               <label class="flex items-center justify-between cursor-pointer">
                 <div class="flex items-center gap-2">
                   <input type="checkbox" v-model="form.dateDetails[d.val].selected" class="w-5 h-5 accent-red-600">
-                  <span :class="form.dateDetails[d.val].selected ? 'text-red-700 font-bold' : 'text-slate-600'" class="text-lg">{{ d.label }}</span>
+                  <span :class="form.dateDetails[d.val].selected ? 'text-red-700 font-bold' : 'text-slate-700'" class="text-lg">{{ d.label }}</span>
                   <span class="text-sm text-slate-400">{{ d.desc }}</span>
                 </div>
               </label>
@@ -149,15 +165,14 @@
               <label class="block text-sm text-slate-500 mb-1">手機號碼 *</label>
               <input type="tel" required v-model="form.phone" placeholder="0912345678" class="w-full border border-slate-200 rounded-xl p-3 text-base outline-none focus:ring-2 focus:ring-red-500">
             </div>
-            <div>
+            <div class="md:col-span-2">
               <label class="block text-sm text-slate-500 mb-1">聯絡方式 *</label>
-              <select v-model="form.contactType" class="w-full border border-slate-200 rounded-xl p-3 text-base bg-white outline-none focus:ring-2 focus:ring-red-500">
-                <option v-for="c in contactTypes" :key="c" :value="c">{{ c }}</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm text-slate-500 mb-1">聯絡帳號 *</label>
-              <input type="text" required v-model="form.contactValue" class="w-full border border-slate-200 rounded-xl p-3 text-base outline-none focus:ring-2 focus:ring-red-500">
+              <div class="flex border border-slate-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-red-500">
+                <select v-model="form.contactType" class="bg-slate-50 border-r border-slate-200 px-3 py-3 text-base outline-none">
+                  <option v-for="c in contactTypes" :key="c" :value="c">{{ c }}</option>
+                </select>
+                <input type="text" required v-model="form.contactValue" placeholder="請輸入帳號 / ID" class="w-full px-3 py-3 text-base outline-none">
+              </div>
             </div>
             <div class="md:col-span-2">
               <label class="block text-sm text-slate-500 mb-1">電子信箱 Email *</label>
@@ -183,13 +198,27 @@
         </div>
 
         <button
+          id="submitBtn"
           type="submit"
           :disabled="isSubmitting || selectedCount === 0"
-          class="w-full bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white font-bold py-3.5 rounded-xl transition-all text-lg">
+          class="w-full bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white font-bold py-3.5 rounded-xl transition-all text-lg hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0">
           {{ isSubmitting ? '正在送出預約中...' : '確認預約・取得匯款編號' }}
         </button>
       </form>
     </main>
+
+    <!-- 手機版固定底部價格列 -->
+    <div v-if="activeTab === 'book' && !submittedOrder && selectedCount > 0" class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-4px_16px_rgba(0,0,0,0.1)] p-3 md:hidden z-40">
+      <div class="flex items-center justify-between gap-3 max-w-2xl mx-auto">
+        <div>
+          <div class="text-xs text-slate-400">總計訂金</div>
+          <div class="text-xl font-black text-red-600">NT$ {{ totalPrice.toLocaleString() }}</div>
+        </div>
+        <button @click="scrollToSubmit" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl text-base transition-all">
+          前往確認預約
+        </button>
+      </div>
+    </div>
 
     <!-- TAB 2: 訂單查詢與後五碼回報 -->
     <main v-if="activeTab === 'query'" class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
@@ -264,56 +293,95 @@
         <h3 class="text-lg font-black text-slate-800 mb-3">⚠️ 重要注意事項</h3>
         <ol class="list-decimal list-inside space-y-1.5">
           <li>當日採「準時到點即上車」方式，車輛抵達後將直接安排乘客上車。</li>
-          <li>司機免費等候 10 分鐘，逾時未到視同放棄權益。</li>
           <li>車輛為 10 人座海獅，滿 9 人即發車。</li>
-          <li>請於約定時間 20 分鐘內完成乘車。</li>
-          <li>若因交通或天候導致延誤，本公司不負賠償責任。</li>
-          <li>路程約 1.5 小時（依當日路況而定）。</li>
-          <li>確認付款後，將於出發前一週提供乘車辨識圖卡。</li>
-          <li>若乘客需使用洗手間，請提早告知司機。</li>
           <li>請務必準時抵達集合地點，共乘服務無法等候遲到乘客。</li>
+          <template v-if="showAllNotices">
+            <li>司機免費等候 10 分鐘，逾時未到視同放棄權益。</li>
+            <li>請於約定時間 20 分鐘內完成乘車。</li>
+            <li>若因交通或天候導致延誤，本公司不負賠償責任。</li>
+            <li>路程約 1.5 小時（依當日路況而定）。</li>
+            <li>確認付款後，將於出發前一週提供乘車辨識圖卡。</li>
+            <li>若乘客需使用洗手間，請提早告知司機。</li>
+          </template>
         </ol>
+        <button @click="showAllNotices = !showAllNotices" class="mt-2 text-red-600 font-bold text-sm underline">
+          {{ showAllNotices ? '收合規則 ▴' : '查看完整規則 ▾' }}
+        </button>
       </div>
 
       <div>
-        <h3 class="text-lg font-black text-slate-800 mb-3">📋 更改與取消政策</h3>
-        <p class="mb-3 text-slate-500">以下天數以「每一個搭乘日期」分別計算，自該搭乘日往前推算；手續費以當日票價（實際支付金額）之比例計算。</p>
+        <button @click="showPolicyDetails = !showPolicyDetails" class="w-full flex items-center justify-between text-left">
+          <h3 class="text-lg font-black text-slate-800">📋 更改與取消政策・退款說明</h3>
+          <span class="text-slate-400 text-xl transition-transform" :class="showPolicyDetails ? 'rotate-180' : ''">⌄</span>
+        </button>
 
-        <div class="mb-4">
-          <div class="font-bold text-slate-700 mb-1.5">更改政策（每人・每一搭乘日）</div>
-          <table class="w-full border border-slate-200 rounded-lg overflow-hidden">
-            <tbody>
-              <tr class="border-b border-slate-100"><td class="p-2 bg-slate-50 w-1/2">該日期 19 天前（含）</td><td class="p-2 font-bold text-emerald-600">免費更改</td></tr>
-              <tr class="border-b border-slate-100"><td class="p-2 bg-slate-50">18 天 ～ 9 天前</td><td class="p-2 font-bold">收取當日票價 10%</td></tr>
-              <tr class="border-b border-slate-100"><td class="p-2 bg-slate-50">8 天 ～ 5 天前</td><td class="p-2 font-bold">收取當日票價 50%</td></tr>
-              <tr><td class="p-2 bg-slate-50">4 天內（含搭乘當日）</td><td class="p-2 font-bold text-red-600">當日無法更改，請準時搭乘</td></tr>
-            </tbody>
-          </table>
+        <div v-show="showPolicyDetails" class="mt-3">
+
+          <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+            <div class="font-bold text-slate-700 mb-2">💡 手續費試算小工具</div>
+            <div class="grid grid-cols-2 gap-2 mb-2">
+              <div>
+                <label class="block text-sm text-slate-500 mb-1">我要</label>
+                <select v-model="feeCalcType" class="w-full border border-slate-200 rounded-lg p-2 text-base bg-white outline-none">
+                  <option value="change">更改日期</option>
+                  <option value="cancel">取消訂單</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm text-slate-500 mb-1">距搭乘日還有幾天</label>
+                <input type="number" min="0" v-model.number="feeCalcDays" placeholder="例如 10" class="w-full border border-slate-200 rounded-lg p-2 text-base outline-none">
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm text-slate-500 mb-1">每人每日實付票價（NT$，選填）</label>
+              <input type="number" min="0" v-model.number="feeCalcPrice" placeholder="例如 2200" class="w-full border border-slate-200 rounded-lg p-2 text-base outline-none">
+            </div>
+            <div v-if="feeCalcDays !== ''" class="mt-3 pt-3 border-t border-amber-200 flex justify-between items-center">
+              <span class="text-slate-600">預估手續費</span>
+              <span class="font-black text-red-600 text-lg">{{ feeCalcResult.percent }}%<span v-if="feeCalcPrice"> ・ NT$ {{ feeCalcResult.amount.toLocaleString() }}</span></span>
+            </div>
+            <p v-if="feeCalcDays !== '' && feeCalcResult.note" class="text-sm text-slate-400 mt-1">{{ feeCalcResult.note }}</p>
+          </div>
+
+          <p class="mb-3 text-slate-500">以下天數以「每一個搭乘日期」分別計算，自該搭乘日往前推算；手續費以當日票價（實際支付金額）之比例計算。</p>
+
+          <div class="mb-4">
+            <div class="font-bold text-slate-700 mb-1.5">更改政策（每人・每一搭乘日）</div>
+            <table class="w-full border border-slate-200 rounded-lg overflow-hidden">
+              <tbody>
+                <tr class="border-b border-slate-100"><td class="p-2 bg-slate-50 w-1/2">該日期 19 天前（含）</td><td class="p-2 font-bold text-emerald-600">免費更改</td></tr>
+                <tr class="border-b border-slate-100"><td class="p-2 bg-slate-50">18 天 ～ 9 天前</td><td class="p-2 font-bold">收取當日票價 10%</td></tr>
+                <tr class="border-b border-slate-100"><td class="p-2 bg-slate-50">8 天 ～ 5 天前</td><td class="p-2 font-bold">收取當日票價 50%</td></tr>
+                <tr><td class="p-2 bg-slate-50">4 天內（含搭乘當日）</td><td class="p-2 font-bold text-red-600">當日無法更改，請準時搭乘</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div>
+            <div class="font-bold text-slate-700 mb-1.5">取消政策（每人・每一搭乘日）</div>
+            <table class="w-full border border-slate-200 rounded-lg overflow-hidden">
+              <tbody>
+                <tr class="border-b border-slate-100"><td class="p-2 bg-slate-50 w-1/2">該日期 19 天前（含）</td><td class="p-2 font-bold text-emerald-600">0 手續費</td></tr>
+                <tr class="border-b border-slate-100"><td class="p-2 bg-slate-50">18 天 ～ 11 天前</td><td class="p-2 font-bold">收取當日票價 10%</td></tr>
+                <tr class="border-b border-slate-100"><td class="p-2 bg-slate-50">10 天 ～ 9 天前</td><td class="p-2 font-bold">收取當日票價 20%</td></tr>
+                <tr class="border-b border-slate-100"><td class="p-2 bg-slate-50">8 天 ～ 5 天前</td><td class="p-2 font-bold">收取當日票價 50%</td></tr>
+                <tr><td class="p-2 bg-slate-50">4 天 ～ 1 天前</td><td class="p-2 font-bold text-red-600">收取當日票價全額 100%</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="mt-3 text-sm text-slate-400">範例：若每人每天票價為 NT$2,500，「18 天～9 天前」更改／取消之手續費為每人每天 NT$250；「8 天～5 天前」為每人每天 NT$1,250；取消政策「4 天～1 天前」則為全額 NT$2,500。實際金額依您當時實付之每日票價計算。</p>
+
+          <div class="mt-5">
+            <h4 class="font-bold text-slate-700 mb-2">💳 退款與匯款說明</h4>
+            <ul class="list-disc list-inside space-y-1.5">
+              <li>更改／取消產生之手續費將自訂金中扣除，餘額將於核對完成後 7 個工作日內退回原匯款帳戶，退款匯款手續費由申請人自行負擔。</li>
+              <li>若因主辦單位或不可抗力因素（如天災、賽事取消）致行程無法成行，將全額退還已付訂金，不收取任何手續費。</li>
+              <li>退款需提供原匯款帳戶資料（戶名、銀行、帳號），資料有誤致退款延誤或失敗，本公司不負相關責任。</li>
+            </ul>
+          </div>
+
         </div>
-
-        <div>
-          <div class="font-bold text-slate-700 mb-1.5">取消政策（每人・每一搭乘日）</div>
-          <table class="w-full border border-slate-200 rounded-lg overflow-hidden">
-            <tbody>
-              <tr class="border-b border-slate-100"><td class="p-2 bg-slate-50 w-1/2">該日期 19 天前（含）</td><td class="p-2 font-bold text-emerald-600">0 手續費</td></tr>
-              <tr class="border-b border-slate-100"><td class="p-2 bg-slate-50">18 天 ～ 11 天前</td><td class="p-2 font-bold">收取當日票價 10%</td></tr>
-              <tr class="border-b border-slate-100"><td class="p-2 bg-slate-50">10 天 ～ 9 天前</td><td class="p-2 font-bold">收取當日票價 20%</td></tr>
-              <tr class="border-b border-slate-100"><td class="p-2 bg-slate-50">8 天 ～ 5 天前</td><td class="p-2 font-bold">收取當日票價 50%</td></tr>
-              <tr><td class="p-2 bg-slate-50">4 天 ～ 1 天前</td><td class="p-2 font-bold text-red-600">收取當日票價全額 100%</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <p class="mt-3 text-sm text-slate-400">範例：若每人每天票價為 NT$2,500，「18 天～9 天前」更改／取消之手續費為每人每天 NT$250；「8 天～5 天前」為每人每天 NT$1,250；取消政策「4 天～1 天前」則為全額 NT$2,500。實際金額依您當時實付之每日票價計算。</p>
-      </div>
-
-      <div>
-        <h3 class="text-lg font-black text-slate-800 mb-3">💳 退款與匯款說明</h3>
-        <ul class="list-disc list-inside space-y-1.5">
-          <li>更改／取消產生之手續費將自訂金中扣除，餘額將於核對完成後 7 個工作日內退回原匯款帳戶，退款匯款手續費由申請人自行負擔。</li>
-          <li>若因主辦單位或不可抗力因素（如天災、賽事取消）致行程無法成行，將全額退還已付訂金，不收取任何手續費。</li>
-          <li>退款需提供原匯款帳戶資料（戶名、銀行、帳號），資料有誤致退款延誤或失敗，本公司不負相關責任。</li>
-        </ul>
       </div>
 
     </section>
@@ -337,6 +405,46 @@
         const touched = ref(false);
         const isSubmitting = ref(false);
         const submittedOrder = ref(null);
+
+        const showAllNotices = ref(false);
+        const showPolicyDetails = ref(false);
+        const copiedAccount = ref(false);
+
+        // 首波早鳥名額已訂出人數（請依實際預約狀況手動更新）
+        const earlyBirdBooked = ref(0);
+        const earlyBirdRemaining = computed(() => Math.max(0, 100 - earlyBirdBooked.value));
+
+        const feeCalcType = ref('change');
+        const feeCalcDays = ref('');
+        const feeCalcPrice = ref(2200);
+        const feeCalcResult = computed(() => {
+          const days = feeCalcDays.value;
+          if (days === '' || days === null || isNaN(days)) return { percent: 0, amount: 0, note: '' };
+          let percent = 0;
+          let note = '';
+          if (feeCalcType.value === 'change') {
+            if (days >= 19) { percent = 0; }
+            else if (days >= 9) { percent = 10; }
+            else if (days >= 5) { percent = 50; }
+            else { percent = 100; note = '此區間內無法更改，請準時搭乘'; }
+          } else {
+            if (days >= 19) { percent = 0; }
+            else if (days >= 11) { percent = 10; }
+            else if (days >= 9) { percent = 20; }
+            else if (days >= 5) { percent = 50; }
+            else { percent = 100; }
+          }
+          const price = feeCalcPrice.value || 0;
+          const amount = Math.round(price * percent / 100);
+          return { percent, amount, note };
+        });
+
+        const scrollToSubmit = () => {
+          const btn = document.getElementById('submitBtn');
+          if (btn) {
+            btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        };
 
         const dates = [
           { val: '04/08', label: '04/08(四)', desc: '自由參觀日' },
@@ -455,7 +563,8 @@
 
         const copyAccount = () => {
           navigator.clipboard.writeText('100100344320');
-          alert('匯款帳號 100100344320 已複製至剪貼簿！');
+          copiedAccount.value = true;
+          setTimeout(() => { copiedAccount.value = false; }, 2000);
         };
 
         // 查單與回報邏輯
@@ -565,6 +674,16 @@
           handleSubmit,
           copyAccount,
           switchToQueryFromSuccess,
+          showAllNotices,
+          showPolicyDetails,
+          copiedAccount,
+          earlyBirdBooked,
+          earlyBirdRemaining,
+          feeCalcType,
+          feeCalcDays,
+          feeCalcPrice,
+          feeCalcResult,
+          scrollToSubmit,
           queryPhone,
           queryOrderId,
           isQuerying,
