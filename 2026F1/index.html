@@ -23,6 +23,18 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 .btn{width:100%;padding:16px;border-radius:10px;font-size:16px;font-weight:900;cursor:pointer;border:none;background:var(--red);color:#fff;font-family:'Noto Sans TC',sans-serif;transition:all .2s}
 .btn:active{transform:scale(.98)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
+.main-content{max-width:800px}
+.entry-grid{display:grid;gap:16px}
+.entry-card{display:block;width:100%;overflow:hidden;border:1px solid var(--border);border-radius:var(--r);background:var(--card);color:var(--text);font:inherit;text-align:left;text-decoration:none;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.entry-card:hover{border-color:var(--red)}
+.entry-card img{display:block;width:100%;aspect-ratio:2/1;object-fit:cover}
+.entry-body{display:block;padding:16px 18px}
+.entry-title{display:flex;justify-content:space-between;align-items:center;color:#b60024;font-size:18px;font-weight:900}
+.entry-description{display:block;margin-top:4px;color:var(--muted);font-size:13px}
+.lookup{max-width:408px;margin:0 auto}
+.back-btn{border:0;background:none;color:#b60024;font:inherit;font-weight:700;padding:8px 0;margin-bottom:12px;cursor:pointer}
+[hidden]{display:none}
+@media(min-width:600px){.entry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .hint{font-size:12px;color:var(--muted);text-align:center;margin-top:12px;line-height:1.6}
 .err{background:#fff5f5;border:1px solid #fca5a5;border-radius:10px;padding:12px 16px;font-size:14px;color:#dc2626;margin-top:14px;display:none}
 .err.show{display:block}
@@ -50,30 +62,66 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
   <div class="hdr-logo">旅乘包車</div>
   <div class="hdr-sub">F1 SUZUKA 2026 接駁服務</div>
 </div>
-<div class="wrap">
-  <div class="card">
-    <div id="formArea">
-      <div class="card-title">查詢乘車資訊</div>
-      <div class="card-sub">請輸入姓名與電話號碼以查詢您的乘車安排</div>
-      <label class="label">姓名</label>
-      <input class="inp" id="inpName" type="text" placeholder="請輸入您的姓名"
-        oninput="clearResult()" onkeydown="if(event.key==='Enter')doSearch()">
-      <label class="label">電話號碼</label>
-      <input class="inp" id="inpPhone" type="tel" inputmode="numeric" pattern="[0-9]*"
-        placeholder="請輸入電話號碼（純數字）"
-        oninput="this.value=this.value.replace(/[^0-9]/g,'');clearResult()"
-        onkeydown="if(event.key==='Enter')doSearch()">
-      <button class="btn" id="searchBtn" onclick="doSearch()">查詢</button>
-      <div class="hint">查無資料？請確認姓名與電話號碼是否正確<br>電話請輸入純數字，不需要符號</div>
-      <div class="err" id="errMsg"></div>
-    </div>
-    <div class="result" id="resultArea"></div>
+<main class="wrap main-content">
+  <div class="entry-grid" id="serviceMenu">
+    <a class="entry-card" href="https://docs.google.com/forms/d/e/1FAIpQLSc1ljxCaND4B-m-Gn7aJ_njJuob0z8NUg4F-1yVVWjyFziqdw/viewform">
+      <img src="../assets/home/images/656135d2-e164-4ec4-90fa-62178aa5b6aa.jpg" alt="">
+      <span class="entry-body">
+        <span class="entry-title">立即下單 <span aria-hidden="true">→</span></span>
+        <span class="entry-description">填寫表單預訂鈴鹿接駁</span>
+      </span>
+    </a>
+    <button class="entry-card" id="openLookup" type="button">
+      <img src="../assets/home/images/a55e0935-8f04-4299-b2cc-d64a1b175dc7.jpg" alt="">
+      <span class="entry-body">
+        <span class="entry-title">查詢乘車資訊 <span aria-hidden="true">→</span></span>
+        <span class="entry-description">查看您的接駁班次與集合地點</span>
+      </span>
+    </button>
   </div>
-</div>
+  <section class="lookup" id="lookup" hidden>
+    <button class="back-btn" id="backToMenu" type="button">← 返回首頁</button>
+    <div class="card">
+      <div id="formArea">
+        <div class="card-title">查詢乘車資訊</div>
+        <div class="card-sub">請輸入姓名與電話號碼以查詢您的乘車安排</div>
+        <label class="label">姓名</label>
+        <input class="inp" id="inpName" type="text" placeholder="請輸入您的姓名"
+          oninput="clearResult()" onkeydown="if(event.key==='Enter')doSearch()">
+        <label class="label">電話號碼</label>
+        <input class="inp" id="inpPhone" type="tel" inputmode="numeric" pattern="[0-9]*"
+          placeholder="請輸入電話號碼（純數字）"
+          oninput="this.value=this.value.replace(/[^0-9]/g,'');clearResult()"
+          onkeydown="if(event.key==='Enter')doSearch()">
+        <button class="btn" id="searchBtn" onclick="doSearch()">查詢</button>
+        <div class="hint">查無資料？請確認姓名與電話號碼是否正確<br>電話請輸入純數字，不需要符號</div>
+        <div class="err" id="errMsg"></div>
+      </div>
+      <div class="result" id="resultArea"></div>
+    </div>
+  </section>
+</main>
 
 <script src="config.js"></script>
 <script src="api.js"></script>
 <script>
+const serviceMenu = document.getElementById("serviceMenu");
+const lookup = document.getElementById("lookup");
+const openLookup = document.getElementById("openLookup");
+const backToMenu = document.getElementById("backToMenu");
+
+openLookup.addEventListener("click", () => {
+  serviceMenu.hidden = true;
+  lookup.hidden = false;
+  backToMenu.focus();
+});
+
+backToMenu.addEventListener("click", () => {
+  lookup.hidden = true;
+  serviceMenu.hidden = false;
+  openLookup.focus();
+});
+
 function simplePt(pt) {
   if (!pt) return "";
   if (pt.includes("榮")||pt.includes("栄"))        return "榮站";

@@ -42,6 +42,10 @@ jobs:
             kimono/ _site/
           mkdir -p _site/2026F1
           rsync -a --exclude '.DS_Store' 2026F1/ _site/2026F1/
+          mkdir -p _site/assets/home/images
+          cp assets/home/images/656135d2-e164-4ec4-90fa-62178aa5b6aa.jpg \
+            assets/home/images/a55e0935-8f04-4299-b2cc-d64a1b175dc7.jpg \
+            _site/assets/home/images/
           cp CNAME _site/CNAME
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
