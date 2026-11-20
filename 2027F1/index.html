@@ -57,13 +57,13 @@
 
         <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-left mb-6 text-sm space-y-2">
           <div class="font-bold text-slate-700 mb-2 border-b border-slate-200 pb-2">訂金匯款帳戶（請於 24 小時內完成匯款）</div>
-          <div class="flex justify-between"><span>銀行代碼：</span><span class="font-bold">國泰世華銀行 (013)</span></div>
-          <div class="flex justify-between"><span>分行名稱：</span><span class="font-bold">文山分行</span></div>
-          <div class="flex justify-between"><span>戶名：</span><span class="font-bold">葉俊賢</span></div>
+          <div class="flex justify-between"><span>銀行代碼：</span><span class="font-bold">華南銀行 (008)</span></div>
+          <div class="flex justify-between"><span>分行名稱：</span><span class="font-bold">營業部</span></div>
+          <div class="flex justify-between"><span>戶名：</span><span class="font-bold">佳遊國際旅行社有限公司</span></div>
           <div class="flex justify-between items-center pt-1 border-t border-slate-200">
             <span>帳號：</span>
             <div class="flex items-center gap-2">
-              <span class="font-mono font-bold text-red-600">103700025326</span>
+              <span class="font-mono font-bold text-red-600">100100344320</span>
               <button @click="copyAccount" class="text-xs bg-slate-200 hover:bg-slate-300 px-2 py-0.5 rounded">複製</button>
             </div>
           </div>
@@ -83,44 +83,45 @@
       <!-- 預約表單內容 -->
       <form v-else @submit.prevent="handleSubmit" class="space-y-5">
 
-        <!-- 1. 選擇日期 -->
+        <!-- 1. 選擇日期，每天各自可設定上下車地點與回程時段 -->
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-2">1. 選擇搭乘日期（可複選）<span class="text-red-500">*</span></label>
-          <div class="grid grid-cols-2 gap-2">
-            <label
+          <label class="block text-xs font-bold text-slate-700 mb-2">1. 選擇搭乘日期（可複選，每日可各自設定上下車地點與回程時段）<span class="text-red-500">*</span></label>
+          <div class="space-y-2">
+            <div
               v-for="d in dates" :key="d.val"
-              :class="form.selectedDates.includes(d.val) ? 'border-red-600 bg-red-50/60 text-red-700 font-bold' : 'border-slate-200 bg-white text-slate-600'"
-              class="border rounded-xl p-3 text-center cursor-pointer text-xs transition-all flex flex-col justify-center items-center">
-              <input type="checkbox" :value="d.val" v-model="form.selectedDates" class="hidden">
-              <span class="text-sm">{{ d.label }}</span>
-              <span class="text-[11px] text-slate-400 mt-0.5">{{ d.desc }}</span>
-            </label>
+              :class="form.dateDetails[d.val].selected ? 'border-red-600 bg-red-50/60' : 'border-slate-200 bg-white'"
+              class="border rounded-xl p-3 transition-all">
+              <label class="flex items-center justify-between cursor-pointer">
+                <div class="flex items-center gap-2">
+                  <input type="checkbox" v-model="form.dateDetails[d.val].selected" class="w-4 h-4 accent-red-600">
+                  <span :class="form.dateDetails[d.val].selected ? 'text-red-700 font-bold' : 'text-slate-600'" class="text-sm">{{ d.label }}</span>
+                  <span class="text-[11px] text-slate-400">{{ d.desc }}</span>
+                </div>
+              </label>
+
+              <div v-if="form.dateDetails[d.val].selected" class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3 pt-3 border-t border-red-100">
+                <div>
+                  <label class="block text-[11px] text-slate-500 mb-1">當日上車地點</label>
+                  <select v-model="form.dateDetails[d.val].pickup" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-white outline-none focus:ring-2 focus:ring-red-500">
+                    <option v-for="p in pickupOptions" :key="p" :value="p">{{ p }}</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[11px] text-slate-500 mb-1">當日回程集合時段</label>
+                  <select v-model="form.dateDetails[d.val].returnTime" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-white outline-none focus:ring-2 focus:ring-red-500">
+                    <option v-for="r in returnOptions" :key="r.val" :value="r.val">{{ r.label }}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
           </div>
-          <p v-if="form.selectedDates.length === 0 && touched" class="text-xs text-red-500 mt-1">請至少選擇一個搭乘日期</p>
+          <p v-if="selectedCount === 0 && touched" class="text-xs text-red-500 mt-1">請至少選擇一個搭乘日期</p>
         </div>
 
-        <!-- 2. 上下車地點與時段 -->
+        <!-- 2. 搭乘人數與優惠代碼 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">2. 去程上車地點 <span class="text-red-500">*</span></label>
-            <select v-model="form.pickupLocation" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs bg-white outline-none focus:ring-2 focus:ring-red-500">
-              <option value="名古屋車站">A. 名古屋車站（太閣通口 Ministop 前）</option>
-              <option value="名古屋榮站">B. 名古屋榮站（10B 出口 洋食厨房ムギ前）</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">3. 回程集合時段 <span class="text-red-500">*</span></label>
-            <select v-model="form.returnTime" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs bg-white outline-none focus:ring-2 focus:ring-red-500">
-              <option value="17:30">首批 17:30（避開散場最嚴重車潮）</option>
-              <option value="19:00">第二批 19:00（看頒獎、逛周邊）</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- 3. 搭乘人數與優惠代碼 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">4. 搭乘人數 <span class="text-red-500">*</span></label>
+            <label class="block text-xs font-bold text-slate-700 mb-1">2. 搭乘人數 <span class="text-red-500">*</span></label>
             <div class="flex items-center border border-slate-200 rounded-xl overflow-hidden">
               <button type="button" @click="form.passengers = Math.max(1, form.passengers - 1)" class="w-10 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold">-</button>
               <input type="number" min="1" max="20" v-model.number="form.passengers" class="w-full text-center font-bold text-slate-800 text-sm outline-none">
@@ -128,17 +129,17 @@
             </div>
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">5. 專屬優惠代碼</label>
+            <label class="block text-xs font-bold text-slate-700 mb-1">3. 專屬優惠代碼</label>
             <div class="flex gap-2">
-              <input type="text" v-model="form.promoCode" placeholder="如 SHARON" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs uppercase outline-none focus:ring-2 focus:ring-red-500">
+              <input type="text" v-model="form.promoCode" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs uppercase outline-none focus:ring-2 focus:ring-red-500">
               <button type="button" @click="applyPromo" class="px-3 py-2 bg-slate-800 text-white text-xs font-bold rounded-xl whitespace-nowrap">套用</button>
             </div>
           </div>
         </div>
 
-        <!-- 4. 聯絡人資料 -->
+        <!-- 3. 聯絡人資料 -->
         <div class="border-t border-slate-100 pt-4 space-y-3">
-          <div class="text-xs font-bold text-slate-800">6. 訂購聯絡人資訊</div>
+          <div class="text-xs font-bold text-slate-800">4. 訂購聯絡人資訊</div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label class="block text-[11px] text-slate-500 mb-1">主要聯絡人姓名 *</label>
@@ -149,10 +150,16 @@
               <input type="tel" required v-model="form.phone" placeholder="0912345678" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:ring-2 focus:ring-red-500">
             </div>
             <div>
-              <label class="block text-[11px] text-slate-500 mb-1">LINE ID *</label>
-              <input type="text" required v-model="form.lineId" placeholder="方便賽事當週加入車長群" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:ring-2 focus:ring-red-500">
+              <label class="block text-[11px] text-slate-500 mb-1">聯絡方式 *</label>
+              <select v-model="form.contactType" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs bg-white outline-none focus:ring-2 focus:ring-red-500">
+                <option v-for="c in contactTypes" :key="c" :value="c">{{ c }}</option>
+              </select>
             </div>
             <div>
+              <label class="block text-[11px] text-slate-500 mb-1">聯絡帳號 *</label>
+              <input type="text" required v-model="form.contactValue" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+            <div class="md:col-span-2">
               <label class="block text-[11px] text-slate-500 mb-1">電子信箱 Email *</label>
               <input type="email" required v-model="form.email" placeholder="name@example.com" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:ring-2 focus:ring-red-500">
             </div>
@@ -166,7 +173,7 @@
         <!-- 費用試算卡 -->
         <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex items-center justify-between">
           <div class="text-xs text-slate-600">
-            <div>首波早鳥 NT$ {{ perDayPrice }} × {{ form.selectedDates.length }} 天 × {{ form.passengers }} 人</div>
+            <div>首波早鳥 NT$ {{ perDayPrice }} × {{ selectedCount }} 天 × {{ form.passengers }} 人</div>
             <div class="text-[11px] text-emerald-600 mt-0.5">每人每天現折 NT$ 300（原價 NT$ 2,500）</div>
           </div>
           <div class="text-right">
@@ -177,7 +184,7 @@
 
         <button
           type="submit"
-          :disabled="isSubmitting || form.selectedDates.length === 0"
+          :disabled="isSubmitting || selectedCount === 0"
           class="w-full bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white font-bold py-3.5 rounded-xl transition-all text-sm">
           {{ isSubmitting ? '正在送出預約中...' : '確認預約・取得匯款編號' }}
         </button>
@@ -211,8 +218,8 @@
             <span class="font-bold">{{ queryResult.name }}</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-slate-500">搭乘日程</span>
-            <span>{{ queryResult.dates }}</span>
+            <span class="text-slate-500">行程明細</span>
+            <span class="text-right">{{ queryResult.itinerary }}</span>
           </div>
           <div class="flex justify-between">
             <span class="text-slate-500">搭乘人數</span>
@@ -250,6 +257,67 @@
       </div>
     </main>
 
+    <!-- 完整規範與退訂政策 -->
+    <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mt-6 space-y-6 text-xs text-slate-600 leading-relaxed">
+
+      <div>
+        <h3 class="text-sm font-black text-slate-800 mb-3">⚠️ 重要注意事項</h3>
+        <ol class="list-decimal list-inside space-y-1.5">
+          <li>當日採「準時到點即上車」方式，車輛抵達後將直接安排乘客上車。</li>
+          <li>司機免費等候 10 分鐘，逾時未到視同放棄權益。</li>
+          <li>車輛為 10 人座海獅，滿 9 人即發車。</li>
+          <li>請於約定時間 20 分鐘內完成乘車。</li>
+          <li>若因交通或天候導致延誤，本公司不負賠償責任。</li>
+          <li>路程約 1.5 小時（依當日路況而定）。</li>
+          <li>確認付款後，將於出發前一週提供乘車辨識圖卡。</li>
+          <li>若乘客需使用洗手間，請提早告知司機。</li>
+          <li>請務必準時抵達集合地點，共乘服務無法等候遲到乘客。</li>
+        </ol>
+      </div>
+
+      <div>
+        <h3 class="text-sm font-black text-slate-800 mb-3">📋 更改與取消政策</h3>
+        <p class="mb-3 text-slate-500">以下天數以「每一個搭乘日期」分別計算，自該搭乘日往前推算；手續費以當日票價（實際支付金額）之比例計算。</p>
+
+        <div class="mb-4">
+          <div class="font-bold text-slate-700 mb-1.5">更改政策（每人・每一搭乘日）</div>
+          <table class="w-full border border-slate-200 rounded-lg overflow-hidden">
+            <tbody>
+              <tr class="border-b border-slate-100"><td class="p-2 bg-slate-50 w-1/2">該日期 19 天前（含）</td><td class="p-2 font-bold text-emerald-600">免費更改</td></tr>
+              <tr class="border-b border-slate-100"><td class="p-2 bg-slate-50">18 天 ～ 9 天前</td><td class="p-2 font-bold">收取當日票價 10%</td></tr>
+              <tr class="border-b border-slate-100"><td class="p-2 bg-slate-50">8 天 ～ 5 天前</td><td class="p-2 font-bold">收取當日票價 50%</td></tr>
+              <tr><td class="p-2 bg-slate-50">4 天內（含搭乘當日）</td><td class="p-2 font-bold text-red-600">當日無法更改，請準時搭乘</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div>
+          <div class="font-bold text-slate-700 mb-1.5">取消政策（每人・每一搭乘日）</div>
+          <table class="w-full border border-slate-200 rounded-lg overflow-hidden">
+            <tbody>
+              <tr class="border-b border-slate-100"><td class="p-2 bg-slate-50 w-1/2">該日期 19 天前（含）</td><td class="p-2 font-bold text-emerald-600">0 手續費</td></tr>
+              <tr class="border-b border-slate-100"><td class="p-2 bg-slate-50">18 天 ～ 11 天前</td><td class="p-2 font-bold">收取當日票價 10%</td></tr>
+              <tr class="border-b border-slate-100"><td class="p-2 bg-slate-50">10 天 ～ 9 天前</td><td class="p-2 font-bold">收取當日票價 20%</td></tr>
+              <tr class="border-b border-slate-100"><td class="p-2 bg-slate-50">8 天 ～ 5 天前</td><td class="p-2 font-bold">收取當日票價 50%</td></tr>
+              <tr><td class="p-2 bg-slate-50">4 天 ～ 1 天前</td><td class="p-2 font-bold text-red-600">收取當日票價全額 100%</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="mt-3 text-[11px] text-slate-400">範例：若每人每天票價為 NT$2,500，「18 天～9 天前」更改／取消之手續費為每人每天 NT$250；「8 天～5 天前」為每人每天 NT$1,250；取消政策「4 天～1 天前」則為全額 NT$2,500。實際金額依您當時實付之每日票價計算。</p>
+      </div>
+
+      <div>
+        <h3 class="text-sm font-black text-slate-800 mb-3">💳 退款與匯款說明</h3>
+        <ul class="list-disc list-inside space-y-1.5">
+          <li>更改／取消產生之手續費將自訂金中扣除，餘額將於核對完成後 7 個工作日內退回原匯款帳戶，退款匯款手續費由申請人自行負擔。</li>
+          <li>若因主辦單位或不可抗力因素（如天災、賽事取消）致行程無法成行，將全額退還已付訂金，不收取任何手續費。</li>
+          <li>退款需提供原匯款帳戶資料（戶名、銀行、帳號），資料有誤致退款延誤或失敗，本公司不負相關責任。</li>
+        </ul>
+      </div>
+
+    </section>
+
     <footer class="mt-8 text-center text-xs text-slate-400 space-y-1">
       <p>旅乘日本自由行包車・Forever young 株式会社</p>
       <p>東京都知事登録旅行業第 3-6175 号 ｜ 全程日本合規營業綠牌車</p>
@@ -277,22 +345,48 @@
           { val: '04/11', label: '04/11(日)', desc: '正賽決賽' }
         ];
 
+        const pickupOptions = [
+          '名古屋車站（太閣通口 Ministop 前）',
+          '名古屋榮站（10B 出口 洋食廚房ムギ前）'
+        ];
+
+        const returnOptions = [
+          { val: '17:30', label: '首批 17:30（避開散場最嚴重車潮）' },
+          { val: '19:00', label: '第二批 19:00（看頒獎、逛周邊）' }
+        ];
+
+        const contactTypes = ['LINE', 'WhatsApp', 'Instagram', 'Facebook', '其他'];
+
+        const makeDateDetail = () => ({
+          selected: false,
+          pickup: pickupOptions[0],
+          returnTime: '17:30'
+        });
+
         const form = ref({
-          selectedDates: ['04/11'],
-          pickupLocation: '名古屋車站',
-          returnTime: '17:30',
+          dateDetails: {
+            '04/08': makeDateDetail(),
+            '04/09': makeDateDetail(),
+            '04/10': makeDateDetail(),
+            '04/11': { selected: true, pickup: pickupOptions[0], returnTime: '17:30' }
+          },
           passengers: 2,
           promoCode: '',
           name: '',
           phone: '',
-          lineId: '',
+          contactType: 'LINE',
+          contactValue: '',
           email: '',
           notes: ''
         });
 
+        const selectedCount = computed(() => {
+          return dates.filter(d => form.value.dateDetails[d.val].selected).length;
+        });
+
         const perDayPrice = computed(() => 2200);
         const totalPrice = computed(() => {
-          return perDayPrice.value * form.value.selectedDates.length * form.value.passengers;
+          return perDayPrice.value * selectedCount.value * form.value.passengers;
         });
 
         const applyPromo = () => {
@@ -301,20 +395,40 @@
           }
         };
 
+        const buildItineraryText = () => {
+          return dates
+            .filter(d => form.value.dateDetails[d.val].selected)
+            .map(d => {
+              const detail = form.value.dateDetails[d.val];
+              return d.label + ' ' + detail.pickup + '／回程 ' + detail.returnTime;
+            })
+            .join('；');
+        };
+
         const handleSubmit = async () => {
           touched.value = true;
-          if (form.value.selectedDates.length === 0) return;
+          if (selectedCount.value === 0) return;
 
           isSubmitting.value = true;
 
+          const firstDate = dates.find(d => form.value.dateDetails[d.val].selected);
           const randomCode = Math.floor(1000 + Math.random() * 9000);
-          const firstDateStr = form.value.selectedDates[0].replace('/', '');
+          const firstDateStr = firstDate.val.replace('/', '');
           const orderId = `#2027F1-${firstDateStr}-${randomCode}`;
+          const itineraryText = buildItineraryText();
 
           const payload = {
             action: 'createOrder',
             orderId: orderId,
-            ...form.value,
+            name: form.value.name,
+            phone: form.value.phone,
+            contactType: form.value.contactType,
+            contactValue: form.value.contactValue,
+            email: form.value.email,
+            itinerary: itineraryText,
+            passengers: form.value.passengers,
+            promoCode: form.value.promoCode,
+            notes: form.value.notes,
             totalPrice: totalPrice.value
           };
 
@@ -340,8 +454,8 @@
         };
 
         const copyAccount = () => {
-          navigator.clipboard.writeText('103700025326');
-          alert('匯款帳號 103700025326 已複製至剪貼簿！');
+          navigator.clipboard.writeText('100100344320');
+          alert('匯款帳號 100100344320 已複製至剪貼簿！');
         };
 
         // 查單與回報邏輯
@@ -437,8 +551,12 @@
         return {
           activeTab,
           dates,
+          pickupOptions,
+          returnOptions,
+          contactTypes,
           form,
           touched,
+          selectedCount,
           isSubmitting,
           submittedOrder,
           perDayPrice,
