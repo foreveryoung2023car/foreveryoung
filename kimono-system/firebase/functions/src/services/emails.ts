@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { FieldValue, Timestamp, db } from "../lib/firebase.js";
-import { HttpError, orderBrandPlatform, platformAccessContains, type BrandPlatform } from "../lib/constants.js";
+import { HttpError, orderBrandPlatform, platformAccessContains, resolveOrderStatus, type BrandPlatform } from "../lib/constants.js";
 import type { AuthContext } from "../lib/auth.js";
 import { writeAuditLog } from "../lib/audit.js";
 import { sendResendMessage } from "../lib/resend.js";
@@ -86,7 +86,8 @@ const brandEmailProfiles: Record<BrandPlatform, BrandEmailProfile> = {
   }
 };
 
-function makeDefaultTemplates(profile: BrandEmailProfile): Record<EmailKind, EmailTemplate> {
+function makeDefaultTemplates(brandPlatform: BrandPlatform): Record<EmailKind, EmailTemplate> {
+  const profile = brandEmailProfiles[brandPlatform];
   return {
     confirm: {
       subject: `【${profile.subjectBrand} 和服體驗】訂單確認 {{orderNo}}`,
@@ -150,6 +151,7 @@ function makeDefaultTemplates(profile: BrandEmailProfile): Record<EmailKind, Ema
         "髮型設計：{{hair}}",
         "化妝造型：{{makeup}}",
         "攝影：{{photo}}",
+        ...(brandPlatform === "japan-go" ? ["{{depositLabel}}：{{deposit}}"] : []),
         "現場應收：{{onsiteDue}}",
         "",
         "請依預約時間前來。如需調整，請提前聯繫客服。",
@@ -189,8 +191,8 @@ function makeDefaultTemplates(profile: BrandEmailProfile): Record<EmailKind, Ema
 }
 
 const defaultTemplatesByBrand: Record<BrandPlatform, Record<EmailKind, EmailTemplate>> = {
-  foreveryoung: makeDefaultTemplates(brandEmailProfiles.foreveryoung),
-  "japan-go": makeDefaultTemplates(brandEmailProfiles["japan-go"])
+  foreveryoung: makeDefaultTemplates("foreveryoung"),
+  "japan-go": makeDefaultTemplates("japan-go")
 };
 export const sendOrderEmailSchema = z.object({
   orderId: z.string().min(1),
@@ -391,6 +393,7 @@ async function templateVariables(orderId: string, order: FirebaseFirestore.Docum
   const store = await loadStoreContact(order.storeId);
   const profile = brandEmailProfiles[orderBrandPlatform(order)];
   const routeGuide = routeGuideForStore(order.storeId, store.name);
+  const depositConfirmed = ["confirmed", "checked_in", "balance_due", "completed"].includes(resolveOrderStatus(order));
   return {
     name: order.customerName || "貴賓",
     orderNo,
@@ -408,6 +411,7 @@ async function templateVariables(orderId: string, order: FirebaseFirestore.Docum
     makeupPlan: order.makeupPlan || "",
     photo: order.photo ? "需要" : "不需要",
     total: money(order.totalJpy),
+    depositLabel: depositConfirmed ? "已收訂金" : "預約訂金",
     deposit: money(order.depositJpy),
     kimonoPrice: money(order.kimonoPriceJpy),
     hairFee: money(order.hairFeeJpy),
