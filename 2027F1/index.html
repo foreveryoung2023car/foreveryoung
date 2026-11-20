@@ -318,31 +318,50 @@
         <div v-show="showPolicyDetails" class="mt-3">
 
           <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
-            <div class="font-bold text-slate-700 mb-2">💡 手續費試算小工具</div>
+            <div class="flex items-center justify-between mb-2">
+              <div class="font-bold text-slate-700">💡 手續費試算小工具</div>
+              <div class="text-sm text-slate-400">今天 {{ todayStr }}</div>
+            </div>
             <div class="grid grid-cols-2 gap-2 mb-2">
               <div>
                 <label class="block text-sm text-slate-500 mb-1">我要</label>
                 <select v-model="feeCalcType" class="w-full border border-slate-200 rounded-lg p-2 text-base bg-white outline-none">
                   <option value="change">更改日期</option>
-                  <option value="cancel">取消訂單</option>
+                  <option value="cancel">取消車位</option>
                 </select>
               </div>
               <div>
-                <label class="block text-sm text-slate-500 mb-1">選擇搭乘日期</label>
+                <label class="block text-sm text-slate-500 mb-1">要更改/取消哪一天的車位</label>
                 <select v-model="feeCalcDate" class="w-full border border-slate-200 rounded-lg p-2 text-base bg-white outline-none">
                   <option v-for="d in dates" :key="d.val" :value="d.val">{{ d.label }}</option>
                 </select>
               </div>
             </div>
-            <div>
-              <label class="block text-sm text-slate-500 mb-1">每人每日實付票價（NT$，選填）</label>
-              <input type="number" min="0" v-model.number="feeCalcPrice" placeholder="例如 2200" class="w-full border border-slate-200 rounded-lg p-2 text-base outline-none">
+            <div class="grid grid-cols-2 gap-2 mb-2">
+              <div>
+                <label class="block text-sm text-slate-500 mb-1">更改/取消人數</label>
+                <div class="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white">
+                  <button type="button" @click="feeCalcPeople = Math.max(1, feeCalcPeople - 1)" class="w-9 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold">-</button>
+                  <input type="number" min="1" v-model.number="feeCalcPeople" class="w-full text-center font-bold text-slate-800 outline-none">
+                  <button type="button" @click="feeCalcPeople++" class="w-9 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold">+</button>
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm text-slate-500 mb-1">每人每日實付票價（NT$）</label>
+                <input type="number" min="0" v-model.number="feeCalcPrice" placeholder="例如 2200" class="w-full border border-slate-200 rounded-lg p-2 text-base outline-none bg-white">
+              </div>
             </div>
-            <div class="mt-3 pt-3 border-t border-amber-200 flex justify-between items-center">
-              <span class="text-slate-600">距搭乘日 {{ feeCalcDaysLeft }} 天・預估手續費</span>
-              <span class="font-black text-red-600 text-lg">{{ feeCalcResult.percent }}%<span v-if="feeCalcPrice"> ・ NT$ {{ feeCalcResult.amount.toLocaleString() }}</span></span>
+            <div class="mt-3 pt-3 border-t border-amber-200 space-y-1.5">
+              <div class="flex justify-between items-center text-slate-600">
+                <span>距 {{ feeCalcDateLabel }} 還有 {{ feeCalcDaysLeft }} 天</span>
+                <span class="font-bold text-slate-700">手續費率 {{ feeCalcResult.percent }}%</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600">{{ feeCalcPeople }} 人共需扣除</span>
+                <span class="font-black text-red-600 text-xl">NT$ {{ feeCalcResult.totalAmount.toLocaleString() }}</span>
+              </div>
             </div>
-            <p v-if="feeCalcResult.note" class="text-sm text-slate-400 mt-1">{{ feeCalcResult.note }}</p>
+            <p v-if="feeCalcResult.note" class="text-sm text-amber-700 font-bold mt-1">⚠ {{ feeCalcResult.note }}</p>
           </div>
 
           <p class="mb-3 text-slate-500">以下天數以「每一個搭乘日期」分別計算，自該搭乘日往前推算；手續費以當日票價（實際支付金額）之比例計算。</p>
@@ -419,6 +438,15 @@
         const feeCalcType = ref('change');
         const feeCalcDate = ref('04/11');
         const feeCalcPrice = ref(2200);
+        const feeCalcPeople = ref(2);
+        const todayStr = computed(() => {
+          const now = new Date();
+          return `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
+        });
+        const feeCalcDateLabel = computed(() => {
+          const d = dates.find(x => x.val === feeCalcDate.value);
+          return d ? d.label : feeCalcDate.value;
+        });
         const feeCalcDaysLeft = computed(() => {
           const [m, d] = feeCalcDate.value.split('/').map(Number);
           const target = new Date(2027, m - 1, d);
@@ -445,7 +473,8 @@
           }
           const price = feeCalcPrice.value || 0;
           const amount = Math.round(price * percent / 100);
-          return { percent, amount, note };
+          const totalAmount = amount * (feeCalcPeople.value || 0);
+          return { percent, amount, totalAmount, note };
         });
 
         const scrollToSubmit = () => {
@@ -696,9 +725,12 @@
           earlyBirdRemaining,
           feeCalcType,
           feeCalcDate,
+          feeCalcDateLabel,
           feeCalcDaysLeft,
           feeCalcPrice,
+          feeCalcPeople,
           feeCalcResult,
+          todayStr,
           scrollToSubmit,
           queryPhone,
           queryOrderId,
