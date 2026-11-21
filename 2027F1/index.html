@@ -277,30 +277,33 @@
             <span class="text-slate-500">訂購人</span>
             <span class="font-bold">{{ queryResult.name }}</span>
           </div>
-          <div class="flex justify-between">
-            <span class="text-slate-500">行程明細</span>
-            <span class="text-right">{{ queryResult.itinerary }}</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-slate-500">搭乘人數</span>
-            <span>{{ queryResult.passengers }} 人</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-slate-500">應付訂金</span>
-            <span class="font-bold text-red-600 text-lg">NT$ {{ Number(queryResult.totalPrice).toLocaleString() }}</span>
-          </div>
-          <div class="flex justify-between items-center pt-2 border-t border-slate-200">
-            <span class="text-slate-500">對帳狀態</span>
-            <span :class="queryResult.status === '已確認' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'" class="px-2 py-0.5 rounded-full font-bold text-sm">
-              {{ queryResult.status }}
-            </span>
-          </div>
-
+                    <div class="flex justify-between">
+            <div class="text-slate-500">行程明細</div>
+            <div class="space-y-1.5 text-right">
+              <div v-for="(day, idx) in queryItineraryDays" :key="idx" class="text-sm">
+                <div class="font-bold text-slate-700">{{ day.dateLabel }}</div>
+                <div class="text-slate-500 text-xs">📍 {{ day.pickup }}</div>
+                <div class="text-slate-500 text-xs">🕐 {{ day.returnLabel }}</div>
+              </div>
+            </div>
+                    </div>
+          <div class="flex justify-between">          
+            <div class="text-slate-500">搭乘人數</div>            
+            <div>{{ queryResult.passengers }} 人</div>            
+          </div>            
+          <div class="flex justify-between">          
+            <div class="text-slate-500">應付訂金</div>            
+            <div class="font-bold text-red-600 text-lg">NT$ {{ Number(queryResult.totalPrice).toLocaleString() }}</div>            
+          </div>            
+          <div class="flex justify-between items-center pt-2 border-t border-slate-200">          
+            <div class="text-slate-500">對帳狀態</div>            
+            <div :class="queryResult.status === '已確認' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'" class="px-2 py-0.5 rounded-full font-bold text-sm">{{ queryResult.status }}</div>            
+          </div>            
           <!-- 回報後五碼區塊 -->
           <div v-if="queryResult.status !== '已確認'" class="pt-3 border-t border-slate-200 mt-2">
             <label class="block text-sm font-bold text-slate-700 mb-1">
               {{ queryResult.last5 ? '已回報後五碼：' + queryResult.last5 + ' (可重新填寫更正)' : '請輸入匯款帳號後五碼：' }}
-            </label>
+</label>
             <div class="flex gap-2">
               <input type="text" maxlength="5" v-model="remitLast5" placeholder="54321" class="border border-slate-300 rounded-lg px-3 py-2 text-base w-full outline-none">
               <button @click="handleRemitSubmit" :disabled="isSubmittingRemit" class="bg-slate-800 hover:bg-slate-900 disabled:bg-slate-400 text-white text-base px-3 py-1.5 rounded-lg font-bold whitespace-nowrap">
@@ -704,6 +707,23 @@
         const isSubmittingRemit = ref(false);
         const remitSuccessMsg = ref('');
 
+        // 將訂單明細的「行程明細」字串拆成每日一行，方便清楚呈現（日期／上車地點／回程方案）
+        const queryItineraryDays = computed(() => {
+          if (!queryResult.value || !queryResult.value.itinerary) return [];
+          return String(queryResult.value.itinerary)
+            .split('；')
+            .filter(s => s.trim().length > 0)
+            .map(line => {
+              const parts = line.split('／回程 ');
+              const left = (parts[0] || '').trim();
+              const returnLabel = (parts[1] || '').trim();
+              const spaceIdx = left.indexOf(' ');
+              const dateLabel = spaceIdx >= 0 ? left.slice(0, spaceIdx) : left;
+              const pickup = spaceIdx >= 0 ? left.slice(spaceIdx + 1).trim() : '';
+              return { dateLabel, pickup, returnLabel };
+            });
+        });
+
         const switchToQueryFromSuccess = () => {
           if (submittedOrder.value) {
             queryPhone.value = submittedOrder.value.phone;
@@ -827,6 +847,7 @@
           isQuerying,
           hasSearched,
           queryResult,
+          queryItineraryDays,
           remitLast5,
           isSubmittingRemit,
           remitSuccessMsg,
