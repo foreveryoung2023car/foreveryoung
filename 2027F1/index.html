@@ -560,15 +560,6 @@
           }
         };
 
-        const generateOrderId = () => {
-          const now = new Date();
-          const yy = String(now.getFullYear()).slice(-2);
-          const mm = String(now.getMonth() + 1).padStart(2, '0');
-          const dd = String(now.getDate()).padStart(2, '0');
-          const seq = String(Math.floor(Math.random() * 100)).padStart(2, '0');
-          return `F1${yy}${mm}${dd}${seq}`;
-        };
-
         const dates = [
           { val: '04/08', label: '04/08(四)', desc: '自由參觀日' },
           { val: '04/09', label: '04/09(五)', desc: '練習賽 FP1/2' },
@@ -652,12 +643,10 @@
 
           isSubmitting.value = true;
 
-          const orderId = generateOrderId();
           const itineraryText = buildItineraryText();
 
           const payload = {
             action: 'createOrder',
-            orderId: orderId,
             name: form.value.name,
             phone: form.value.phone,
             contactType: form.value.contactType,
@@ -671,16 +660,20 @@
           };
 
           try {
-            await fetch(GAS_WEB_APP_URL, {
+            const res = await fetch(GAS_WEB_APP_URL, {
               method: 'POST',
-              mode: 'no-cors',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(payload)
             });
+            const result = await res.json();
 
-            // 成功送出
+            if (result.status !== 'success' || !result.orderId) {
+              throw new Error(result.message || '系統忙碌，請稍後再試');
+            }
+
+            // 成功送出：訂單編號由後端依下單順序配發，確保遞增且不重複
             submittedOrder.value = {
-              orderId,
+              orderId: result.orderId,
               phone: form.value.phone,
               totalPrice: totalPrice.value
             };
