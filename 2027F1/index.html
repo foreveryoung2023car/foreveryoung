@@ -631,7 +631,9 @@
             .filter(d => form.value.dateDetails[d.val].selected)
             .map(d => {
               const detail = form.value.dateDetails[d.val];
-              return d.label + ' ' + detail.pickup + '／回程 ' + detail.returnTime;
+              const returnOpt = returnOptions.find(r => r.val === detail.returnTime);
+              const returnLabel = returnOpt ? returnOpt.label : detail.returnTime;
+              return d.label + ' ' + detail.pickup + '／回程 ' + returnLabel;
             })
             .join('；');
         };
