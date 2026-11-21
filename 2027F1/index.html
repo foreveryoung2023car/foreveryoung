@@ -256,17 +256,29 @@
           為保障個人隱私，請輸入建立訂單時填寫的「手機號碼」與「訂單編號」進行雙重驗證查詢。
         </div>
 
-        <div class="space-y-2">
-          <input type="tel" inputmode="numeric" v-model="queryPhone" placeholder="手機號碼 (如 0912345678)" class="w-full border border-slate-200 rounded-xl p-3 text-base outline-none focus:ring-2 focus:ring-red-500">
-          <div>
-            <input type="text" v-model="queryOrderId" placeholder="訂單編號 (如 F126112101)" class="w-full border border-slate-200 rounded-xl p-3 text-base outline-none focus:ring-2 focus:ring-red-500 uppercase">
-            <p class="text-sm text-slate-400 mt-1 px-1">例如：F126112101，英文大小寫不拘</p>
-          </div>
-          <button @click="handleQuery" :disabled="isQuerying" class="w-full bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white text-base font-bold py-2.5 rounded-xl transition-all">
-            {{ isQuerying ? '查詢中...' : '查詢訂單明細' }}
-          </button>
-        </div>
+        div v-if="showQueryForm" class="space-y-2">
+        input type="tel" inputmode="numeric" v-model="queryPhone" placeholder="手機號碼 (如 0912345678)" class="w-full border border-slate-200 rounded-xl p-3 text-base outline-none focus:ring-2 focus:ring-red-500">
+        div v-if="!phoneOnlyMode">
+        input type="text" v-model="queryOrderId" placeholder="訂單編號 (如 F126112101)" class="w-full border border-slate-200 rounded-xl p-3 text-base outline-none focus:ring-2 focus:ring-red-500 uppercase">
+        p class="text-sm text-slate-400 mt-1 px-1">例如：F126112101，英文大小寫不拘/p>
+        /div>
+        button v-if="!phoneOnlyMode" @click="handleQuery" :disabled="isQuerying" class="w-full bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white text-base font-bold py-2.5 rounded-xl transition-all">
+        {{ isQuerying ? '查詢中...' : '查詢訂單明細' }}
+        /button>
+        button v-else @click="handleQueryByPhone" :disabled="isQuerying" class="w-full bg-slate-800 hover:bg-slate-900 disabled:bg-slate-300 text-white text-base font-bold py-2.5 rounded-xl transition-all">
+        {{ isQuerying ? '查詢中...' : '查詢此手機號碼的所有訂單' }}
+        /button>
+        button v-if="phoneOnlyMode" @click="phoneOnlyMode = false; hasSearched = false; queryResultList = null" class="w-full text-center text-sm text-slate-500 underline py-1">返回使用訂單編號查詢/button>
+        /div>
 
+        div v-else class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm">
+        span class="text-slate-500">已查詢訂單：span class="font-mono font-bold text-slate-700">{{ queryResult ? queryResult.orderId : '' }}/span>/span>
+        div class="flex items-center gap-3 shrink-0">
+        button @click="showQueryForm = true" class="text-red-600 font-bold underline">重新查詢/button>
+        button @click="resetQuery" class="text-slate-400 font-bold">✕ 清空重查/button>
+        /div>
+        /div>
+        
         <!-- 查詢結果 -->
         <div v-if="queryResult" class="border border-slate-200 rounded-xl p-4 space-y-2 bg-slate-50 text-base mt-4">
           <div class="flex justify-between border-b border-slate-200 pb-2">
@@ -314,9 +326,23 @@
           </div>
         </div>
 
-        <div v-else-if="hasSearched && !queryResult" class="text-center text-base text-slate-400 py-4">
-          查無相符資料，請確認手機號碼與訂單編號是否正確。
-        </div>
+        div v-else-if="queryResultList && queryResultList.length" class="space-y-2 py-2">
+        p class="text-sm text-slate-500 px-1">此手機號碼共有 {{ queryResultList.length }} 筆訂單，請選擇：/p>
+        button v-for="o in queryResultList" :key="o.orderId" @click="selectOrderFromList(o)" class="w-full text-left bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl p-3 transition-all">
+        div class="flex justify-between items-center">
+        span class="font-mono font-bold text-slate-700">{{ o.orderId }}/span>
+        span :class="o.status === '已確認' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'" class="px-2 py-0.5 rounded-full text-xs font-bold">{{ o.status }}/span>
+        /div>
+        div class="text-sm text-slate-500 mt-1">{{ o.name }}・{{ o.passengers }} 人・NT$ {{ Number(o.totalPrice).toLocaleString() }}/div>
+        /button>
+        /div>
+        div v-else-if="queryResultList && queryResultList.length === 0" class="text-center text-base text-slate-400 py-4">
+        查無此手機號碼的訂單紀錄，請確認輸入是否正確，或聯繫客服協助查詢。
+        /div>
+        div v-else-if="hasSearched && !queryResult" class="text-center text-base text-slate-400 py-4 space-y-2">
+        p>查無相符資料，請確認手機號碼與訂單編號是否正確。/p>
+        button v-if="!phoneOnlyMode" @click="switchToPhoneOnlyMode" class="text-red-600 font-bold underline text-sm">忘記訂單編號？點此改用手機號碼查詢/button>
+        /div>
       </div>
     </main>
 
@@ -702,6 +728,9 @@
         const isQuerying = ref(false);
         const hasSearched = ref(false);
         const queryResult = ref(null);
+        const queryResultList = ref(null);
+        const phoneOnlyMode = ref(false);
+        const showQueryForm = ref(true);
 
         const remitLast5 = ref('');
         const isSubmittingRemit = ref(false);
@@ -742,6 +771,7 @@
           isQuerying.value = true;
           hasSearched.value = true;
           queryResult.value = null;
+          queryResultList.value = null;
           remitSuccessMsg.value = '';
 
           try {
@@ -757,6 +787,7 @@
             const result = await res.json();
             if (result.status === 'success') {
               queryResult.value = result.data;
+              showQueryForm.value = false;
             } else {
               queryResult.value = null;
             }
@@ -766,6 +797,74 @@
             isQuerying.value = false;
           }
         };
+
+        const switchToPhoneOnlyMode = () => {
+          phoneOnlyMode.value = true;
+          hasSearched.value = false;
+          queryResult.value = null;
+          queryResultList.value = null;
+          queryOrderId.value = '';
+          showQueryForm.value = true;
+        };
+
+        const selectOrderFromList = (order) => {
+          queryOrderId.value = order.orderId;
+          queryResult.value = order;
+          queryResultList.value = null;
+          showQueryForm.value = false;
+          phoneOnlyMode.value = false;
+        };
+
+        const handleQueryByPhone = async () => {
+          if (!queryPhone.value.trim()) {
+            alert('請輸入手機號碼');
+            return;
+          }
+
+          isQuerying.value = true;
+          hasSearched.value = true;
+          queryResult.value = null;
+          queryResultList.value = null;
+          remitSuccessMsg.value = '';
+
+          try {
+            const res = await fetch(GAS_WEB_APP_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: JSON.stringify({
+                action: 'queryByPhone',
+                phone: queryPhone.value.trim()
+              })
+            });
+            const result = await res.json();
+            if (result.status === 'success' && result.data && result.data.length) {
+              if (result.data.length === 1) {
+                selectOrderFromList(result.data[0]);
+              } else {
+                queryResultList.value = result.data;
+              }
+            } else {
+              queryResultList.value = [];
+            }
+          } catch (err) {
+            alert('查詢發生錯誤，請稍後再試');
+          } finally {
+            isQuerying.value = false;
+          }
+        };
+
+        const resetQuery = () => {
+          queryPhone.value = '';
+          queryOrderId.value = '';
+          queryResult.value = null;
+          queryResultList.value = null;
+          hasSearched.value = false;
+          phoneOnlyMode.value = false;
+          showQueryForm.value = true;
+          remitLast5.value = '';
+          remitSuccessMsg.value = '';
+        };
+        
 
         const handleRemitSubmit = async () => {
           if (remitLast5.value.trim().length !== 5) {
@@ -847,11 +946,18 @@
           isQuerying,
           hasSearched,
           queryResult,
+          queryResultList,
+          phoneOnlyMode,
+          showQueryForm,
           queryItineraryDays,
           remitLast5,
           isSubmittingRemit,
           remitSuccessMsg,
           handleQuery,
+          handleQueryByPhone,
+          selectOrderFromList,
+          switchToPhoneOnlyMode,
+          resetQuery,
           handleRemitSubmit
         };
       }
