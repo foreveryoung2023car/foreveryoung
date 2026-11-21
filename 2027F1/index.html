@@ -783,6 +783,8 @@
 
         onMounted(() => {
           fetchEarlyBirdStats();
+          // 每 30 秒自動向後端重新抓取最新已訂人數，讓剩餘席位即時更新，無需使用者手動重新整理
+          setInterval(fetchEarlyBirdStats, 30000);
         });
 
         return {
