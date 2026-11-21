@@ -31,6 +31,8 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 .entry-body{display:block;padding:16px 18px}
 .entry-title{display:flex;justify-content:space-between;align-items:center;color:#b60024;font-size:18px;font-weight:900}
 .entry-description{display:block;margin-top:4px;color:var(--muted);font-size:13px}
+.map-link.booking-2027-link{margin-top:16px}
+.map-link.booking-2027-link[hidden]{display:none}
 .lookup{max-width:408px;margin:0 auto}
 .back-btn{border:0;background:none;color:#b60024;font:inherit;font-weight:700;padding:8px 0;margin-bottom:12px;cursor:pointer}
 [hidden]{display:none}
@@ -111,6 +113,7 @@ details[open] > summary.booking-head::after{transform:rotate(225deg)}
       </span>
     </button>
   </div>
+  <a class="map-link booking-2027-link" href="../2027F1/" id="booking2027Link">2027 鈴鹿 F1 預約與方案 ↗</a>
   <section class="lookup" id="lookup" hidden>
     <button class="back-btn" id="backToMenu" type="button">← 返回首頁</button>
     <div class="card">
@@ -141,9 +144,11 @@ const serviceMenu = document.getElementById("serviceMenu");
 const lookup = document.getElementById("lookup");
 const openLookup = document.getElementById("openLookup");
 const backToMenu = document.getElementById("backToMenu");
+const booking2027Link = document.getElementById("booking2027Link");
 
 openLookup.addEventListener("click", () => {
   serviceMenu.hidden = true;
+  booking2027Link.hidden = true;
   lookup.hidden = false;
   backToMenu.focus();
 });
@@ -151,6 +156,7 @@ openLookup.addEventListener("click", () => {
 backToMenu.addEventListener("click", () => {
   lookup.hidden = true;
   serviceMenu.hidden = false;
+  booking2027Link.hidden = false;
   openLookup.focus();
 });
 
