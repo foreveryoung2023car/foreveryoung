@@ -28,12 +28,13 @@
       <div class="mt-3 bg-white/15 rounded-lg p-2.5">
         <template v-if="earlyBirdRemaining > 0">
           <div class="flex justify-between text-sm text-red-100 mb-1">
-            <span>首波早鳥 100 席（現折 NT$300）</span>
+            <span>🔥 首波早鳥 100 席熱烈登記中（<span class="line-through opacity-70">NT$2,500</span> → NT$2,200／天）</span>
             <span class="font-bold text-white">剩餘 {{ earlyBirdRemaining }} 席</span>
           </div>
           <div class="w-full bg-white/20 rounded-full h-2 overflow-hidden">
             <div class="bg-amber-300 h-full rounded-full transition-all" :style="{ width: (earlyBirdBooked / 100 * 100) + '%' }"></div>
           </div>
+          <div class="text-xs text-red-100/80 mt-1">※ 剩餘席次以匯款回報順序為準，額滿即恢復原價</div>
         </template>
         <div v-else class="text-sm text-white font-bold text-center">
           早鳥席位已額滿，現為原價 NT$ {{ perDayPrice }}
@@ -75,9 +76,13 @@
       <div v-if="submittedOrder" class="py-4">
         <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 text-3xl font-bold">✓</div>
         <h2 class="text-2xl font-black text-center text-slate-800 mb-1">預約登記已成立！</h2>
-        <p class="text-base text-center text-slate-500 mb-6">
+        <p class="text-base text-center text-slate-500 mb-3">
           您的專屬訂單編號：<span class="font-mono font-bold text-red-600 text-lg">{{ submittedOrder.orderId }}</span>
         </p>
+
+        <div class="bg-amber-50 border border-amber-300 text-amber-800 rounded-xl p-3 text-center text-base font-bold mb-6">
+          📸 請先將本畫面「螢幕截圖」保存訂單編號與帳號，以利後續查詢與對帳！
+        </div>
 
         <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-left mb-6 text-lg space-y-2">
           <div class="font-bold text-slate-700 mb-2 border-b border-slate-200 pb-2">訂金匯款帳戶（請於 24 小時內完成匯款）</div>
@@ -111,7 +116,7 @@
         <div>
           <label class="block text-base font-bold text-slate-700 mb-2">
             1. 選擇搭乘日期 <span class="text-red-500">*</span>
-            <span class="inline-flex items-center text-sm font-normal text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5 ml-1">ⓘ 可複選，每日可各自設定上下車地點與回程時段</span>
+            <span class="inline-flex items-center text-sm font-normal text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5 ml-1">ⓘ 可複選多天，每日可各自設定上下車地點與回程時段，系統將自動合併計算總金額</span>
           </label>
           <div class="space-y-2">
             <div
@@ -132,12 +137,14 @@
                   <select v-model="form.dateDetails[d.val].pickup" class="w-full border border-slate-200 rounded-lg p-2.5 text-base bg-white outline-none focus:ring-2 focus:ring-red-500">
                     <option v-for="p in pickupOptions" :key="p" :value="p">{{ p }}</option>
                   </select>
+                  <a :href="mapLink(form.dateDetails[d.val].pickup)" target="_blank" rel="noopener" class="inline-flex items-center gap-0.5 text-sm text-red-600 font-semibold mt-1 hover:underline">📍 Google 地圖定位</a>
                 </div>
                 <div>
                   <label class="block text-sm text-slate-500 mb-1">當日回程集合時段</label>
                   <select v-model="form.dateDetails[d.val].returnTime" class="w-full border border-slate-200 rounded-lg p-2.5 text-base bg-white outline-none focus:ring-2 focus:ring-red-500">
                     <option v-for="r in returnOptions" :key="r.val" :value="r.val">{{ r.label }}</option>
                   </select>
+                  <a :href="mapLink('鈴鹿サーキット apollostation')" target="_blank" rel="noopener" class="inline-flex items-center gap-0.5 text-sm text-red-600 font-semibold mt-1 hover:underline">📍 鈴鹿賽道集合處地圖</a>
                 </div>
               </div>
             </div>
@@ -151,8 +158,8 @@
             <label class="block text-base font-bold text-slate-700 mb-1">2. 搭乘人數 <span class="text-red-500">*</span></label>
             <div class="flex items-center border border-slate-200 rounded-xl overflow-hidden">
               <button type="button" @click="form.passengers = Math.max(1, form.passengers - 1)" class="w-10 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold">-</button>
-              <input type="number" min="1" max="20" v-model.number="form.passengers" class="w-full text-center font-bold text-slate-800 text-lg outline-none">
-              <button type="button" @click="form.passengers++" class="w-10 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold">+</button>
+              <input type="number" min="1" max="20" inputmode="numeric" v-model.number="form.passengers" @blur="clampPassengers" class="w-full text-center font-bold text-slate-800 text-lg outline-none">
+              <button type="button" @click="form.passengers = Math.min(20, form.passengers + 1)" class="w-10 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold">+</button>
             </div>
           </div>
           <div>
@@ -174,7 +181,7 @@
             </div>
             <div>
               <label class="block text-sm text-slate-500 mb-1">手機號碼 *</label>
-              <input type="tel" required v-model="form.phone" placeholder="0912345678" class="w-full border border-slate-200 rounded-xl p-3 text-base outline-none focus:ring-2 focus:ring-red-500">
+              <input type="tel" inputmode="numeric" required v-model="form.phone" placeholder="0912345678" class="w-full border border-slate-200 rounded-xl p-3 text-base outline-none focus:ring-2 focus:ring-red-500">
             </div>
             <div class="md:col-span-2">
               <label class="block text-sm text-slate-500 mb-1">聯絡方式 *</label>
@@ -200,8 +207,12 @@
         <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex items-center justify-between">
           <div class="text-base text-slate-600">
             <template v-if="earlyBirdRemaining > 0">
-              <div>首波早鳥 NT$ {{ perDayPrice }} × {{ selectedCount }} 天 × {{ form.passengers }} 人</div>
-              <div class="text-sm text-emerald-600 mt-0.5">每人每天現折 NT$ 300（原價 NT$ 2,500）</div>
+              <div>
+                <span class="line-through text-slate-400 mr-1.5">NT$ 2,500</span>
+                <span class="font-bold text-red-600">首波早鳥 NT$ {{ perDayPrice }}</span>
+                <span> × {{ selectedCount }} 天 × {{ form.passengers }} 人</span>
+              </div>
+              <div class="text-sm text-emerald-600 mt-0.5">每人每天現折 NT$ 300</div>
             </template>
             <template v-else>
               <div>原價 NT$ {{ perDayPrice }} × {{ selectedCount }} 天 × {{ form.passengers }} 人</div>
@@ -246,8 +257,11 @@
         </div>
 
         <div class="space-y-2">
-          <input type="tel" v-model="queryPhone" placeholder="手機號碼 (如 0912345678)" class="w-full border border-slate-200 rounded-xl p-3 text-base outline-none focus:ring-2 focus:ring-red-500">
-          <input type="text" v-model="queryOrderId" placeholder="訂單編號 (如 F126112101)" class="w-full border border-slate-200 rounded-xl p-3 text-base outline-none focus:ring-2 focus:ring-red-500 uppercase">
+          <input type="tel" inputmode="numeric" v-model="queryPhone" placeholder="手機號碼 (如 0912345678)" class="w-full border border-slate-200 rounded-xl p-3 text-base outline-none focus:ring-2 focus:ring-red-500">
+          <div>
+            <input type="text" v-model="queryOrderId" placeholder="訂單編號 (如 F126112101)" class="w-full border border-slate-200 rounded-xl p-3 text-base outline-none focus:ring-2 focus:ring-red-500 uppercase">
+            <p class="text-sm text-slate-400 mt-1 px-1">例如：F126112101，英文大小寫不拘</p>
+          </div>
           <button @click="handleQuery" :disabled="isQuerying" class="w-full bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white text-base font-bold py-2.5 rounded-xl transition-all">
             {{ isQuerying ? '查詢中...' : '查詢訂單明細' }}
           </button>
@@ -606,6 +620,15 @@
           return perDayPrice.value * selectedCount.value * form.value.passengers;
         });
 
+        const mapLink = (query) => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(query);
+
+        const clampPassengers = () => {
+          let n = Math.round(Number(form.value.passengers));
+          if (!Number.isFinite(n) || n < 1) n = 1;
+          if (n > 20) n = 20;
+          form.value.passengers = n;
+        };
+
         const applyPromo = () => {
           if (form.value.promoCode.trim().length > 0) {
             alert('已成功套用代碼：' + form.value.promoCode.trim());
@@ -624,6 +647,7 @@
 
         const handleSubmit = async () => {
           touched.value = true;
+          clampPassengers();
           if (selectedCount.value === 0) return;
 
           isSubmitting.value = true;
@@ -712,7 +736,7 @@
               body: JSON.stringify({
                 action: 'queryOrder',
                 phone: queryPhone.value.trim(),
-                orderId: queryOrderId.value.trim()
+                orderId: queryOrderId.value.trim().toUpperCase()
               })
             });
             const result = await res.json();
@@ -744,13 +768,13 @@
               body: JSON.stringify({
                 action: 'submitRemit',
                 phone: queryPhone.value.trim(),
-                orderId: queryOrderId.value.trim(),
+                orderId: queryOrderId.value.trim().toUpperCase(),
                 last5: remitLast5.value.trim()
               })
             });
             const result = await res.json();
             if (result.status === 'success') {
-              remitSuccessMsg.value = '✓ 後五碼已回報成功，客服人員將於核對後更新狀態！';
+              remitSuccessMsg.value = '✓ 已收到您的後五碼！車隊將於營業時間完成核帳，屆時狀態將更新為「已確認」，請耐心等候無需重複詢問。';
               if (queryResult.value) {
                 queryResult.value.last5 = remitLast5.value.trim();
               }
@@ -781,6 +805,8 @@
           submittedOrder,
           perDayPrice,
           totalPrice,
+          clampPassengers,
+          mapLink,
           applyPromo,
           handleSubmit,
           copyAccount,
